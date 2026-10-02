@@ -1,0 +1,12 @@
+{
+  "source_path": "/Users/samuel/dev/sift/README.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "Sift",
+  "summary": "Self-hosted email triage with local classification rules, trained embeddings classifier, and optional small LLM fallback.",
+  "scope": ["email triage", "classification", "IMAP", "local LLM", "Ollama", "Docker", "Postgres", "embeddings", "rules engine"],
+  "cross_refs": ["docs/adr/0002-tiered-classification.md", "docs/adr/0001-multiple-mailboxes-single-owner.md", "LICENSE"],
+  "locked": false,
+  "precedence": null
+}

@@ -1,0 +1,26 @@
+{
+  "source_path": "/Users/samuel/dev/sift/docs/adr/0003-traces-and-mail-app-relabels.md",
+  "type": "ADR",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "ADR 0003: Decision traces, and learning from relabels in the mail app",
+  "summary": "Defines decision traces for classifications, detects relabels in mail apps, and routes corrections to appropriate system tiers.",
+  "scope": [
+    "decision traces",
+    "relabel detection",
+    "IMAP polling",
+    "classification system tiers",
+    "Tier 0 rules",
+    "Tier 1 classifier",
+    "Tier 2 LLM",
+    "training data",
+    "Proton Bridge",
+    "message matching"
+  ],
+  "cross_refs": [
+    "0002-tiered-classification.md"
+  ],
+  "locked": true,
+  "precedence": null,
+  "notes": ""
+}

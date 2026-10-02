@@ -1,0 +1,27 @@
+{
+  "source_path": "/Users/samuel/dev/sift/docs/adr/0001-multiple-mailboxes-single-owner.md",
+  "type": "ADR",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "ADR 0001: Multiple mailboxes, single owner",
+  "summary": "Establishes mailbox as the isolation unit with row-level security to prevent mail-derived data leakage across mailboxes.",
+  "scope": [
+    "mailbox isolation",
+    "data boundaries",
+    "row-level security",
+    "Postgres",
+    "mail-derived data",
+    "Tier 1 classifier",
+    "Tier 2 retrieval",
+    "credentials",
+    "IMAP"
+  ],
+  "cross_refs": [
+    "data/mailboxes/<slug>/rules.md",
+    "data/shared-rules.md",
+    "evals/isolation/",
+    "config.yaml"
+  ],
+  "locked": true,
+  "precedence": null
+}

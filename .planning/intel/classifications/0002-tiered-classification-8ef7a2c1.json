@@ -1,0 +1,21 @@
+{
+  "source_path": "/Users/samuel/dev/sift/docs/adr/0002-tiered-classification.md",
+  "type": "ADR",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "ADR 0002: Tiered classification, trained only on the owner's labels",
+  "summary": "Three-tier email classification system using rules, embeddings, and LLM, where Tier 1 learns only from owner labels.",
+  "scope": [
+    "email classification",
+    "tiered architecture",
+    "embedding classifier",
+    "LLM inference",
+    "Sift mailbox system",
+    "training data governance"
+  ],
+  "cross_refs": [
+    "rules.md"
+  ],
+  "locked": true,
+  "precedence": null
+}
