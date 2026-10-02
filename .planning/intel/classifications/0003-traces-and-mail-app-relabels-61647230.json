@@ -10,9 +10,9 @@
     "relabel detection",
     "IMAP polling",
     "classification system tiers",
-    "Tier 0 rules",
-    "Tier 1 classifier",
-    "Tier 2 LLM",
+    "exact rules",
+    "classifier",
+    "local LLM",
     "training data",
     "Proton Bridge",
     "message matching"

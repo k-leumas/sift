@@ -19,7 +19,7 @@ Graph built from `cross_refs`: ADR-0003 -> ADR-0002; README -> ADR-0002, ADR-000
 ## Decisions locked: 3
 See /Users/samuel/dev/sift/.planning/intel/decisions.md
 - ADR-0001 mailbox isolation, single owner, RLS, per-mailbox learning/rules/credentials
-- ADR-0002 three-tier classification; Tier 1 trains only on owner-confirmed labels; quick confirm; distillation only as experiment
+- ADR-0002 three-tier classification; the classifier trains only on owner-confirmed labels; quick confirm; distillation only as experiment
 - ADR-0003 decision traces; relabel detection via IMAP polling; trace-based correction routing
 
 ## Requirements: 0

@@ -11,8 +11,8 @@
     "row-level security",
     "Postgres",
     "mail-derived data",
-    "Tier 1 classifier",
-    "Tier 2 retrieval",
+    "classifier",
+    "LLM retrieval",
     "credentials",
     "IMAP"
   ],

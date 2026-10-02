@@ -6,7 +6,7 @@
 
 ## Overview
 
-M1 takes Sift from an empty repository to one real Proton mailbox auto-labelled end to end on the home machine. The data boundary comes first (mailbox-scoped schema with row-level security from day one), then the Proton Bridge spike and IMAP ingest, which settle how mail is read and how labels can be applied. Next comes the classification pipeline (hardcoded Tier 0 rules, then the local LLM as Tier 2) with a decision trace for every classification. Finally Sift applies labels in the mailbox, holds uncertain messages for review, and runs against the real inbox. There is no UI, no Tier 1 classifier and no learning in this milestone; those are the next README milestones.
+M1 takes Sift from an empty repository to one real Proton mailbox auto-labelled end to end on the home machine. The data boundary comes first (mailbox-scoped schema with row-level security from day one), then the Proton Bridge spike and IMAP ingest, which settle how mail is read and how labels can be applied. Next comes the classification pipeline (hardcoded exact rules, then the local LLM) with a decision trace for every classification. Finally Sift applies labels in the mailbox, holds uncertain messages for review, and runs against the real inbox. There is no UI, no classifier and no learning in this milestone; those are the next README milestones.
 
 ## Phases
 
@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation and Isolation** - Compose stack, config, and a mailbox-scoped schema with RLS proven by a two-mailbox test
 - [ ] **Phase 2: Bridge Spike and IMAP Ingest** - Proton Bridge behaviour answered and recorded; one mailbox ingested idempotently
-- [ ] **Phase 3: Tiered Classification with Traces** - Tier 0 exact rules then Tier 2 local LLM, every classification traced
+- [ ] **Phase 3: Tiered Classification with Traces** - Exact rules, then the local LLM, every classification traced
 - [ ] **Phase 4: Labels and Real-Inbox Run** - Labels applied in Proton, uncertain mail held, changes recorded, end-to-end on a real inbox
 
 ## Phase Details
@@ -47,15 +47,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 ### Phase 3: Tiered Classification with Traces
-**Goal**: Every ingested message gets a category from Tier 0 exact rules or the local LLM, or is marked for review, and the reason is recorded as a replayable trace.
+**Goal**: Every ingested message gets a category from exact rules or the local LLM, or is marked for review, and the reason is recorded as a replayable trace.
 **Depends on**: Phase 2
-**Requirements**: CLS-01, CLS-02, CLS-03, CLS-04, CLS-05, CLS-06, TRC-01, TRC-02, TRC-03, TRC-04, SEC-01
+**Requirements**: CLS-01, CLS-02, CLS-03, CLS-04, CLS-05, CLS-06, TRC-01, TRC-02, TRC-03, TRC-04, TRC-06, SEC-01
 **Success Criteria** (what must be TRUE):
-  1. A message from a sender or domain, or containing a phrase, covered by a hardcoded Tier 0 rule is classified without any LLM call, and its trace shows the rules checked and the match
-  2. A message no Tier 0 rule matches is classified by the local LLM into one of the mailbox's categories, with a confidence and a one-sentence reason; an out-of-category or malformed answer is retried once and then marked for review
-  3. A Tier 2 result below the confidence threshold is marked for review rather than given a category
-  4. Every classification has a `decision` row with one span per tier that ran and the rule-set, prompt and model versions; the Tier 2 span holds the rules included, the raw output, the validation result and the confidence
+  1. A message from a sender or domain, or containing a phrase, covered by a hardcoded exact rule is classified without any LLM call, and its trace shows the rules checked and the match
+  2. A message no exact rule matches is classified by the local LLM into one of the mailbox's categories, with a confidence and a one-sentence reason; an out-of-category or malformed answer is retried once and then marked for review
+  3. An LLM result below the confidence threshold is marked for review rather than given a category
+  4. Every classification has a `decision` row with one span per tier that ran and the rule-set, prompt and model versions; the LLM span holds the rules included, the raw output, the validation result and the confidence
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
+  6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 **Plans**: TBD
 
 ### Phase 4: Labels and Real-Inbox Run
@@ -67,7 +68,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A message held for review receives no label, and its action span says it went to review and why
   3. Owner can print the full trace for any message from the command line or a documented SQL query, and no trace data appears in the mailbox
   4. Every change Sift made in the mailbox is recorded in `label_event`, and every label it applied is marked as applied by Sift and not owner-confirmed
-  5. Sift runs against one real Proton mailbox on the target machine end to end (Tier 0 plus Tier 2), and a sample of the resulting decisions can each be explained from its trace; Sift never sent, deleted or forwarded anything, and nothing left the machine except calls to the configured model URL
+  5. Sift runs against one real Proton mailbox on the target machine end to end (exact rules plus the LLM), and a sample of the resulting decisions can each be explained from its trace; Sift never sent, deleted or forwarded anything, and nothing left the machine except calls to the configured model URL
 **Plans**: TBD
 
 ## Progress
@@ -86,9 +87,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 Held here so the scope is visible; each becomes its own milestone with its own requirements when started. Phase numbering continues from Phase 5.
 
-- **M2 Learn**: review queue with "Why?" traces, one-key labeling, Tier 1 classifier retrained on every correction, cold-start thresholds, spot checks, quick confirm, learning from mail-app relabels (builds on the Phase 2 spike and the Phase 4 `label_event` record)
+- **M2 Learn**: review queue with "Why?" traces, one-key labeling, the classifier retrained on every correction, cold-start thresholds, spot checks, quick confirm, learning from mail-app relabels (builds on the Phase 2 spike and the Phase 4 `label_event` record)
 - **M3 Plain-English rules**: `rules.md`, interpretation step, `rules.lock.yaml`, rules editor, conflict handling for previously confirmed labels
-- **M4 Evals**: synthetic inbox, per-tier metrics, model comparison, rule-change preview, `learn-from-tier2` experiment (decide how synthetic eval runs fit under non-null `mailbox_id`, for example a dedicated synthetic mailbox)
+- **M4 Evals**: synthetic inbox, per-tier metrics, model comparison, rule-change preview, `learn-from-llm` experiment (decide how synthetic eval runs fit under non-null `mailbox_id`, for example a dedicated synthetic mailbox)
 - **M5 Multiple mailboxes**: manage in UI, per-mailbox rules and classifiers, `shared-rules.md` (merged at read time), unified review queue via a separate read-only role, isolation eval suite in `evals/isolation/`
 - **M6 Guardrails**: injection eval suite in CI, audit view, public demo on synthetic data
 - **M7 Extras**: draft replies to recruiters from `resume.yaml`, webhooks (for example n8n)

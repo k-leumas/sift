@@ -4,7 +4,7 @@
   "confidence": "high",
   "manifest_override": false,
   "title": "ADR 0002: Tiered classification, trained only on the owner's labels",
-  "summary": "Three-tier email classification system using rules, embeddings, and LLM, where Tier 1 learns only from owner labels.",
+  "summary": "Three-tier email classification system using exact rules, an embedding classifier, and a small LLM, where the classifier learns only from owner labels.",
   "scope": [
     "email classification",
     "tiered architecture",

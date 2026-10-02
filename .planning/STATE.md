@@ -23,7 +23,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 1 of 4 (Foundation and Isolation)
 Plan: 0 of 0 in current phase
 Status: Ready to plan
-Last activity: 2026-10-02 — Roadmap created from ingested ADRs and README (34 requirements, 4 phases)
+Last activity: 2026-10-02 — Roadmap created from ingested ADRs and README (34 requirements, 4 phases); TRC-06 added to Phase 3 (reserved classifier span)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -55,7 +55,8 @@ Recent decisions affecting current work:
 
 - [Init]: Every mail-derived table has non-null `mailbox_id` + RLS from Phase 1 (ADR-0001 wins over README "shared"/"synthetic" wording)
 - [Init]: Bridge spike sits in Phase 2, ahead of ingest and label application, because its findings shape both
-- [Init]: M1 has no Tier 1 and no UI; traces are read via CLI or SQL
+- [Init]: M1 has no classifier and no UI; traces are read via CLI or SQL
+- [Init]: M1 traces reserve a classifier span marked skipped ("not trained") so M2 does not change the trace layout (TRC-06)
 
 ### Pending Todos
 
@@ -64,7 +65,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 2]: Proton Bridge CONDSTORE/QRESYNC support and Message-ID consistency across label folders are unverified; polling fallback must work without either
-- [Phase 3]: Raw Tier 2 prompt retention limit (ADR-0003 open item) to decide when the `decision` table shape is set
+- [Phase 3]: Raw LLM prompt retention limit (ADR-0003 open item) to decide when the `decision` table shape is set
 - [Later]: How shared rules and synthetic eval runs fit under non-null `mailbox_id` (INGEST-CONFLICTS INFO) is deferred to M4/M5 planning
 - [Init]: No `.planning/config.json` exists; roadmap assumed `standard` granularity and `sequential` phase IDs
 
