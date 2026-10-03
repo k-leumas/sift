@@ -1,12 +1,20 @@
 ---
-gsd_state_version: '1.0'
+gsd_state_version: "1.0"
+milestone: v0.1
+milestone_name: "Classify (README M1, \"M1 on real inbox\")"
+current_phase: 1
+current_phase_name: Foundation and Isolation
 status: planning
+stopped_at: Phase 1 context gathered
+last_updated: "2026-10-03T18:10:24.797Z"
+last_activity: 2026-10-02
+last_activity_desc: Roadmap created from ingested ADRs and README (34 requirements, 4 phases); TRC-06 added to Phase 3 (reserved classifier span)
+state_head: cd4073dd9a16079c2d9d35fcc64c30580992c926
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State
@@ -79,6 +87,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02
-Stopped at: Roadmap and state initialized; ready to run /gsd-plan-phase 1
-Resume file: None
+Last session: 2026-10-03T18:10:24.771Z
+Stopped at: Phase 1 context gathered
+Resume file: .planning/phases/01-foundation-and-isolation/01-CONTEXT.md
