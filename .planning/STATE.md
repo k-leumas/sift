@@ -16,7 +16,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Every incoming email is auto-labelled correctly or explicitly held for the owner, entirely on local hardware, with a decision trace explaining why.
-**Current focus:** Phase 1 - Foundation and Isolation (milestone v1.0 Classify / README M1)
+**Current focus:** Phase 1 - Foundation and Isolation (milestone v0.1 Classify / README M1)
 
 ## Current Position
 
@@ -75,7 +75,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 | Category | Item | Status | Deferred At | Milestone |
 |----------|------|--------|-------------|-----------|
-| Scope | README milestones M2-M7 (Learn, Plain-English rules, Evals, Multiple mailboxes, Guardrails, Extras) | Backlog | 2026-10-02 | v1.0 |
+| Scope | README milestones M2-M7 (Learn, Plain-English rules, Evals, Multiple mailboxes, Guardrails, Extras) | Backlog | 2026-10-02 | v0.1 |
 
 ## Session Continuity
 

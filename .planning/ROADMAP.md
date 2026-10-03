@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.0 Classify (README M1, "M1 on real inbox")** - Phases 1-4 (in progress)
+- 🚧 **v0.1 Classify (README M1, "M1 on real inbox")** - Phases 1-4 (in progress)
 
 ## Overview
 
@@ -78,10 +78,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundation and Isolation | v1.0 | 0/0 | Not started | - |
-| 2. Bridge Spike and IMAP Ingest | v1.0 | 0/0 | Not started | - |
-| 3. Tiered Classification with Traces | v1.0 | 0/0 | Not started | - |
-| 4. Labels and Real-Inbox Run | v1.0 | 0/0 | Not started | - |
+| 1. Foundation and Isolation | v0.1 | 0/0 | Not started | - |
+| 2. Bridge Spike and IMAP Ingest | v0.1 | 0/0 | Not started | - |
+| 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
+| 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)
 
