@@ -164,7 +164,9 @@ Not in this phase: IMAP connection or ingest (Phase 2), Proton Bridge spike (Pha
 ## Existing Code Insights
 
 ### Reusable Assets
-- None. The repository contains only docs (`README.md`, `docs/adr/`, `.planning/`), `LICENSE` and `.gitignore`. This phase creates the workspace from scratch.
+- `.nvmrc` — already committed, pins `v26.10.0` (source for D-11; the Docker base image tag and CI read it).
+- `tsconfig.json` (root) — already committed with `module: nodenext`, `noEmit`, `erasableSyntaxOnly`, `verbatimModuleSyntax`, `allowImportingTsExtensions`. Extend it (or rename/split it into the shared base of D-14, adding `strict` and `moduleResolution`) rather than replacing it.
+- Otherwise only docs (`README.md`, `docs/adr/`, `.planning/`), `LICENSE` and `.gitignore`; the workspace is otherwise created from scratch.
 
 ### Established Patterns
 - Commit history uses conventional-commit prefixes (`docs:`, `chore:`, `chore(planning):`); commitlint (D-16) codifies this.
