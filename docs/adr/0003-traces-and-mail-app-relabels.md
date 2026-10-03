@@ -77,3 +77,22 @@ Traces live in Sift's database (the `decision` table) and are shown in the UI be
 **Write the trace into the mailbox** (as a header, note or draft). IMAP can't modify an existing message, and adding companion messages would clutter the owner's mail. Rejected.
 
 **A flat log line per decision instead of a structured trace.** Easier to write, but it can't be replayed, routed on or exported to observability tools. Rejected.
+
+## Note: message identity is pending the Proton Bridge spike
+
+*Added 2026-10-03.*
+
+How a message is identified isn't decided yet. It depends on what the Phase 2 Proton Bridge spike finds. Until then:
+
+- The `message` table has only keys and timestamps (`id`, `mailbox_id`, `created_at`, `updated_at`).
+- There is **no unique constraint on `Message-ID`**. Adding one before we know Bridge keeps it consistent across label folders would be the expensive kind of mistake.
+- Test fixtures that need readable emails carry subject and sender as fixture data, not as schema columns.
+
+The spike must answer:
+
+1. **Identity key:** is the `Message-ID` header present and stable across `INBOX` and every `Labels/*` folder? What is the fallback when it's missing or duplicated (for example, a hash of stable headers)?
+2. **Per-folder UIDs:** how UIDs and UIDVALIDITY behave per label folder, and what triggers a full resync.
+3. **Timestamps:** whether `received_at` comes from IMAP `INTERNALDATE` or the `Date` header.
+4. **Change tracking:** whether Bridge supports CONDSTORE/QRESYNC, or whether polling is the only option.
+
+The answers will be recorded as an addendum to this ADR. The identity columns and their constraints will then be added in a single migration that follows it.
