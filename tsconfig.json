@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "noEmit": true,
+    "erasableSyntaxOnly": true,        // errors on enums, namespaces, etc.
+    "verbatimModuleSyntax": true,      // forces `import type`
+    "allowImportingTsExtensions": true // allows "./x.ts" imports
+  }
+}
