@@ -32,7 +32,22 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Owner declares a mailbox in `config.yaml` and its password is read only from the environment variable named by `password_env`; searching the config files and the database finds no password
   3. A schema check fails the build if any table holding mail-derived data lacks a non-null `mailbox_id`
   4. With two seeded mailboxes, queries run under mailbox A's `app.mailbox_id` return and modify none of mailbox B's rows, even with the application-level filter removed; with no `app.mailbox_id` set, they return nothing
-**Plans**: TBD
+**Plans**: 13 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Workspace, toolchain and `sift` CLI shell; gated install of all phase dependencies (wave 1)
+- [ ] 01-02-PLAN.md — Local Postgres 18 + pgvector bootstrap (sift_owner, sift_backup), Compose db service, env/gitignore layout (wave 1)
+- [ ] 01-03-PLAN.md — Mailbox-scoped schema for all M1 tables, forced-RLS migrations, migrate(), Vitest DB harness (wave 2)
+- [ ] 01-04-PLAN.md — Strict config.yaml schema, `sift config check`, password_env presence check, redacting logger (wave 2)
+- [ ] 01-05-PLAN.md — Catalog schema check (fails the build) and GitHub Actions CI (wave 3)
+- [ ] 01-06-PLAN.md — Two-mailbox isolation test (every D-48 case) and owner FORCE-RLS delete test (wave 3)
+- [ ] 01-07-PLAN.md — Scoped data-access API: withMailbox, per-table helpers, requireActive, status use-cases (wave 3)
+- [ ] 01-08-PLAN.md — `sift migrate` with pre-migration pg_dump as sift_backup and 5-file retention (wave 3)
+- [ ] 01-09-PLAN.md — Mailbox registry: `sift config apply` guards, `sift mailbox rename`, `sift mailbox list` (wave 3)
+- [ ] 01-10-PLAN.md — Worker runtime: supervisor, no-op batch, backoff, heartbeat, graceful shutdown (wave 4)
+- [ ] 01-11-PLAN.md — Worker startup guards (drift, DB retry, role check) and secret-sentinel test (wave 5)
+- [ ] 01-12-PLAN.md — Docker image, full Compose stack, `sift setup`, compose smoke and version-drift tests (wave 5)
+- [ ] 01-13-PLAN.md — README quick start / mailbox lifecycle, CONTRIBUTING dev loop, user-facing text guard (wave 6)
 
 ### Phase 2: Bridge Spike and IMAP Ingest
 **Goal**: Proton Bridge's behaviour is known rather than assumed, and one real mailbox's mail is reliably in the database.
