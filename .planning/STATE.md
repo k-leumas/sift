@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-10-04T05:20:33.535Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-10-04T05:32:20.876Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: 6dd188b6f3db486745dc8706568e876be9c6b13c
+state_head: 9afc1d56d41c439cbe783e6232d0451de1a9c44d
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 ## Current Position
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 2 of 13
+Plan: 3 of 13
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 01 execution started
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 57min | 3 tasks | 19 files |
+| Phase 01 P02 | 8min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-01: Biome 2.5 uses rules.preset recommended (boolean recommended is deprecated) and !dir folder negations
 - [Phase 01]: 01-01: Root tsconfig sets allowJs+checkJs so root .js config files are type-checked
 - [Phase 01]: 01-01: Commits run lefthook (biome pre-commit, commitlint commit-msg); header/body lines <=100 chars, never --no-verify
+- [Phase 01]: 01-02: bootstrap ALTER ROLE re-asserts full role attributes on every run (repairs drift) and RAISEs on missing/empty password env
+- [Phase 01]: 01-02: vector is created by the superuser in template1 so sift_test_* databases inherit it; sift_app is created by sift migrate, not the bootstrap
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T05:20:33.449Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-10-04T05:32:20.726Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
