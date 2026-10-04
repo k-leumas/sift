@@ -218,7 +218,7 @@
       "error_message": "Significant refactor of ",
       "file": "packages/db/test/isolation.test.ts",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 4\u21923 lines (2 removed)",
+      "fix": "Rewrote 4→3 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -351,7 +351,7 @@
       "timestamp": "2026-10-04T06:57:50.315Z",
       "error_message": "Missing await",
       "file": "apps/worker/src/commands/worker.ts",
-      "root_cause": "Async call without await \u2014 returned Promise instead of value",
+      "root_cause": "Async call without await — returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -368,7 +368,7 @@
       "error_message": "Wrong reference: supervisor should be registry",
       "file": "apps/worker/src/commands/worker.ts",
       "root_cause": "Used \"supervisor\" instead of \"registry\"",
-      "fix": "Changed supervisor \u2192 registry",
+      "fix": "Changed supervisor → registry",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -383,7 +383,7 @@
       "timestamp": "2026-10-04T07:00:33.294Z",
       "error_message": "Missing error handling in unknown",
       "file": "apps/worker/src/commands/worker.ts",
-      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -433,7 +433,7 @@
       "error_message": "Significant refactor of ",
       "file": "scripts/compose-smoke.sh",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 3\u21924 lines (2 removed)",
+      "fix": "Rewrote 3→4 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -500,7 +500,7 @@
       "error_message": "Significant refactor of ",
       "file": "README.md",
       "root_cause": "8 lines replaced/restructured",
-      "fix": "Rewrote 24\u219269 lines (8 removed) | Also: \u251c\u2500\u2500 config.example.yaml; \u2514\u2500\u2500 .env.example",
+      "fix": "Rewrote 24→69 lines (8 removed) | Also: ├── config.example.yaml; └── .env.example",
       "tags": [
         "auto-detected",
         "refactor",
@@ -532,7 +532,7 @@
       "error_message": "Significant refactor of ",
       "file": "CONTRIBUTING.md",
       "root_cause": "10 lines replaced/restructured",
-      "fix": "Rewrote 32\u219289 lines (10 removed)",
+      "fix": "Rewrote 32→89 lines (10 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -564,7 +564,7 @@
       "error_message": "Wrong operator: !== should be ===",
       "file": "apps/worker/test/user-facing-text.test.ts",
       "root_cause": "Used \"!==\" instead of \"===\"",
-      "fix": "Changed operator !== \u2192 ===",
+      "fix": "Changed operator !== → ===",
       "tags": [
         "auto-detected",
         "operator-fix",
@@ -596,7 +596,7 @@
       "error_message": "Wrong reference: open should be resolved",
       "file": ".planning/phases/01-foundation-and-isolation/deferred-items.md",
       "root_cause": "Used \"open\" instead of \"resolved\"",
-      "fix": "Changed open \u2192 resolved",
+      "fix": "Changed open → resolved",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -771,6 +771,255 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-047",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "CR-02: local compose-smoke runs dumped into ./backups and pruned the owner pre-migration dumps",
+      "file": "scripts/compose-smoke.sh",
+      "root_cause": "setup always bind-mounted ./backups; smoke volume is fresh so every run migrates, dumps and prunes",
+      "fix": "compose.yaml mounts ${SIFT_BACKUP_HOST_DIR:-./backups}; smoke exports .smoke/<project>/backups and refuses a dir resolving to ./backups",
+      "tags": [
+        "compose-smoke",
+        "backups",
+        "d-29",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-048",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "WR-09: compose-smoke project guard was env-var based (CI=true or COMPOSE_PROJECT_NAME=owner project recreated owner containers)",
+      "file": "scripts/compose-smoke.sh",
+      "root_cause": "guard only compared env vars, not Docker state",
+      "fix": "before the EXIT trap: docker ps for the project; refuse unless a container mounts the smoke volume",
+      "tags": [
+        "compose-smoke",
+        "docker",
+        "guard",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-049",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-08: smoke stack used owner config.yaml/.env/.env.mailboxes and retagged sift:local",
+      "file": "compose.yaml",
+      "root_cause": "compose paths and image hard-coded",
+      "fix": "SIFT_IMAGE/SIFT_CONFIG_HOST_DIR/SIFT_MAILBOXES_ENV_FILE interpolation; smoke files in .smoke/<project>, --env-file, sift-smoke:local",
+      "tags": [
+        "compose-smoke",
+        "isolation",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-050",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "WR-04: migrate counted rows; a foreign applied row hid a skipped journal migration",
+      "file": "packages/db/src/owner/migrate.ts",
+      "root_cause": "row count vs journal length, not identity",
+      "fix": "refuse any journal entry neither pending nor recorded by hash (also catches edited applied files)",
+      "tags": [
+        "migrate",
+        "drizzle",
+        "hash",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-051",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-01: D-64 duplicate check did not trim host/username/folder; registry-plan identity differed",
+      "file": "packages/core/src/config/schema.ts",
+      "root_cause": "two identity helpers, one untrimmed",
+      "fix": "shared imapIdentityKey in @sift/core/config (trim, lowercase host/user, INBOX fold)",
+      "tags": [
+        "config",
+        "identity",
+        "d-64",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-052",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-02: ISO-04 lint guard missed relative imports of packages/*/src",
+      "file": "biome.json",
+      "root_cause": "noRestrictedImports only listed pg/drizzle-orm",
+      "fix": "pattern group **/packages/*/src/** and @sift/*/src/**; lint-guard test",
+      "tags": [
+        "biome",
+        "iso-04",
+        "lint",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-053",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-03: sift_app password sent as plaintext in CREATE/ALTER ROLE",
+      "file": "packages/db/src/owner/migrate.ts",
+      "root_cause": "role DDL takes no bind params; escapeLiteral(password)",
+      "fix": "client-built SCRAM-SHA-256 verifier (scram.ts); bootstrap.sql still plaintext, documented log_statement",
+      "tags": [
+        "security",
+        "scram",
+        "roles",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-054",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-04: unexpected worker errors bypassed pino and redaction",
+      "file": "apps/worker/src/commands/worker.ts",
+      "root_cause": "only DatabaseStartupError caught; rest went to cli stderr",
+      "fix": "catch in worker.run, unwrap drizzle Failed query to pg cause, log SQLSTATE + redacted message, return 1",
+      "tags": [
+        "worker",
+        "logging",
+        "redaction",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-055",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-06: mailbox disabled while worker down kept stale mailbox_status.state",
+      "file": "apps/worker/src/runtime/supervisor.ts",
+      "root_cause": "stopMailbox only for scheduled mailboxes",
+      "fix": "recordedDisabled set: record each disable once per process, incl. first sight",
+      "tags": [
+        "supervisor",
+        "status",
+        "d-45",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-056",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-13: batch longer than poll interval reran back-to-back",
+      "file": "apps/worker/src/runtime/supervisor.ts",
+      "root_cause": "nextRunAt = start + interval already past",
+      "fix": "nextRunAt = start + ceil(elapsed/interval)*interval (D-50 skip)",
+      "tags": [
+        "supervisor",
+        "scheduling",
+        "d-50",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-057",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-09/IN-10: rename hint paired 1:1 slugs regardless of IMAP identity and printed empty unpaired lists",
+      "file": "apps/worker/src/commands/config-apply.ts",
+      "root_cause": "no identity check in 1:1 case; lines printed unconditionally",
+      "fix": "identityDiffers flag + warning; print each unpaired list only when non-empty",
+      "tags": [
+        "registry",
+        "rename",
+        "hint",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-058",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-11: worker role guard and catalog gate ignored REPLICATION",
+      "file": "packages/db/src/connect.ts",
+      "root_cause": "rolreplication not selected",
+      "fix": "REPLICATION reason in assertUnprivilegedRole; attributeProblems in catalog",
+      "tags": [
+        "roles",
+        "rls",
+        "replication",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-059",
+      "timestamp": "2026-10-04T18:10:00Z",
+      "error_message": "IN-12: forced close missed pool clients still in handshake; socket kept process alive",
+      "file": "packages/db/src/app-db.ts",
+      "root_cause": "clients tracked from pg-pool connect event (post-handshake); Client.end only half-closes a connecting client",
+      "fix": "TrackedClient registers on construction; forced close destroys connection.stream after end()",
+      "tags": [
+        "pg",
+        "pool",
+        "shutdown",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:10:00Z"
+    },
+    {
+      "id": "bug-060",
+      "timestamp": "2026-10-04T18:19:41.880Z",
+      "error_message": "Wrong reference: VERIFICATION_PENDING should be exit",
+      "file": ".planning/phases/01-foundation-and-isolation/01-REVIEW-FIX.md",
+      "root_cause": "Used \"VERIFICATION_PENDING\" instead of \"exit\"",
+      "fix": "Changed VERIFICATION_PENDING → exit",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T18:19:41.880Z"
     }
   ]
 }

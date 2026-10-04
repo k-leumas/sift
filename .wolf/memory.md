@@ -237,3 +237,20 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 11:13 | Created ../../.claude/projects/-Users-samuel-dev-sift/memory/tooling-dirs-are-code.md | — | ~211 |
+| 11:14 | Session end: 1 writes across 1 files (tooling-dirs-are-code.md) | 0 reads | ~226 tok |
+
+## Session: 2026-10-04 11:16
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:23 | Created .planning/phases/01-foundation-and-isolation/01-REVIEW.md | — | ~5253 |
+| 11:25 | Session end: 1 writes across 1 files (01-REVIEW.md) | 2 reads | ~16767 tok |
+| 11:27 | Edited compose.yaml | 2→4 lines | ~73 |
+| 11:53 | Created apps/worker/test/lint-guard.test.ts | — | ~724 |
+| 11:55 | Created packages/db/src/owner/scram.ts | — | ~476 |
+| 11:55 | Created packages/db/test/scram.test.ts | — | ~911 |
+| 11:56 | Edited packages/db/test/scram.test.ts | 7→10 lines | ~127 |
+| 11:58 | Created apps/worker/test/worker-errors.test.ts | — | ~792 |
+| 12:19 | Created .planning/phases/01-foundation-and-isolation/01-REVIEW-FIX.md | — | ~5024 |
+| 12:19 | Edited .planning/phases/01-foundation-and-isolation/01-REVIEW-FIX.md | inline fix | ~35 |
+| 18:20 | Review fix iteration (CR-02, WR-04, WR-09, IN-01..IN-13): 16 commits 5e58de9..51ebdc4; lint/typecheck/test green (342 tests); 01-REVIEW-FIX.md rewritten | scripts/compose-smoke.sh, compose.yaml, packages/db, apps/worker | all_fixed | ~60000 |

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-04T17:13:40.085Z
-> Files: 173 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-04T18:19:41.842Z
+> Files: 177 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -24,7 +24,7 @@
 - `biome.json` (~416 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `commitlint.config.js` — Conventional commits (D-16). config-conventional caps header and body lines at 100 chars. (~47 tok)
-- `compose.yaml` — Sift stack: db -> setup (one-shot) -> worker. (~1059 tok)
+- `compose.yaml` — Sift stack: db -> setup (one-shot) -> worker. (~1155 tok)
 - `CONTRIBUTING.md` — Contributing to Sift (~2385 tok)
 - `Dockerfile` — Docker container definition (~475 tok)
 - `lefthook.yml` — Git hooks (D-16). Installed by lefthook's postinstall and by `pnpm lefthook install`. (~96 tok)
@@ -46,7 +46,7 @@
 
 ## .github/workflows/
 
-- `ci.yml` — workflow ci, job check: pgvector pg18 service, pnpm/action-setup@v6, setup-node .nvmrc, PG18 client, docker exec bootstrap.sql, lint/typecheck/test (~713 tok)
+- `ci.yml` — workflow ci, job check: pgvector pg18 service, actions pinned to commit SHAs (IN-07), setup-node .nvmrc, PG18 client, docker exec bootstrap.sql, lint/typecheck/test (~713 tok)
 
 ## .planning/
 
@@ -104,8 +104,8 @@
 - `01-CONTEXT.md` — Phase 1: Foundation and Isolation - Context (~6215 tok)
 - `01-DISCUSSION-LOG.md` — Phase 1: Foundation and Isolation - Discussion Log (~2217 tok)
 - `01-RESEARCH.md` — Phase 1: Foundation and Isolation - Research (~20122 tok)
-- `01-REVIEW-FIX.md` — Phase 1: Code Review Fix Report (~2699 tok)
-- `01-REVIEW.md` — Phase 1: Code Review Report (~5554 tok)
+- `01-REVIEW-FIX.md` — Phase 1: Code Review Fix Report (~4733 tok)
+- `01-REVIEW.md` — Phase 1: Code Review Report (re-review after CR-01, WR-01..WR-08 fixes) (~4924 tok)
 - `01-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~1563 tok)
 - `01-VERIFICATION.md` — Phase 1: Foundation and Isolation Verification Report (~7681 tok)
 - `COVERAGE.md` (~43 tok)
@@ -151,15 +151,17 @@
 
 - `ci-workflow.test.ts` — static contract test for .github/workflows/ci.yml (image, setup steps, bootstrap, lint<typecheck<test order, env) (~764 tok)
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~559 tok)
-- `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~974 tok)
+- `compose-smoke.test.ts` — runs compose-smoke.sh in a temp repo copy with docker/uname/id/sudo shims: CR-01 modes, WR-01 volume, CR-02 backup dir, WR-09 docker-state guard, IN-08 own files/image (~3500 tok)
 - `compose.test.ts` — Environment as a key -> value map, from either the map or the list form. (~2094 tok)
 - `drift.test.ts` — spawns sift worker on a drifted config (personal port 1144 + mailbox side): exit 1, differences, setup command, no status rows (~1218 tok)
+- `lint-guard.test.ts` — IN-02: lints probe files at apps/worker/src in a scratch copy with the real biome.json; relative/deep imports of packages/*/src are rejected (~724 tok)
 - `no-secret-leak.test.ts` — FND-02 / success criterion 2 (automated half, T-01-46): a mailbox password (~2633 tok)
 - `node-version.test.ts` — .nvmrc without the leading "v" and surrounding whitespace, e.g. 26.10.0. (~323 tok)
 - `registry-cli.test.ts` — 01-09 tracer: config apply + mailbox list via spawned CLI with no mailbox secrets in env (~659 tok)
 - `setup.test.ts` — Version-18 check for a host PostgreSQL client binary. (~2096 tok)
 - `supervisor.test.ts` — 01-10: fake-timer tests for computeBackoff and supervisor (first tick, cadence, no overlap, independent failure, backoff, disable, new mailbox, registry failure, redact, drain) (~3418 tok)
 - `user-facing-text.test.ts` — 01-13: D-69 word scan over README, CONTRIBUTING, example env/config, compose.yaml, Dockerfile, apps/worker/src, packages/{core,db}/src; README quick-start and CONTRIBUTING contract assertions; `pnpm <script>` names must exist in package.json (~2400 tok)
+- `worker-errors.test.ts` — IN-04: in-process worker run with SELECT on mailbox revoked; unexpected pg error logged via pino, redacted, SQLSTATE, exit 1, no stderr (~792 tok)
 - `worker.test.ts` — 01-10 tracer: spawns sift worker on freshDatabase (applyConfig first), waits for ok status + heartbeat, SIGTERM exit 0; missing env -> one JSON line, exit 1 (~1768 tok)
 
 ## config/
@@ -242,6 +244,7 @@
 - `backup.ts` — BACKUP_KEEP, BackupTarget, BackupFailedError, backupFileName, ensureWritableDir (chown 1000 hint), writeBackup (pg_dump -> 0600 wx file, PGPASSWORD only), pruneBackups (~1535 tok)
 - `migrate.ts` — migrate(): advisory lock -> pending detection -> required backup (BackupRequiredError) -> ensureAppRole -> drizzle migrator; returns { applied, backupFile } (~1618 tok)
 - `registry.ts` — @sift/db/registry: CONFIG_APPLY_LOCK_KEY, applyConfig (xact lock, for update, refused-rename/unchanged rollback), renameMailbox, listMailboxes (app.mailbox_id per status read) (~2400 tok)
+- `scram.ts` — IN-03: scramSha256Verifier(password, salt?, iterations?) builds PG's SCRAM-SHA-256 stored verifier client-side (node-pg SASLprep); migrate sends it instead of plaintext (~476 tok)
 
 ## packages/db/src/schema/
 
@@ -260,6 +263,7 @@
 - `registry-plan.test.ts` — 10 pure planRegistryChanges/findRenameSuspects/describeChange tests (~1290 tok)
 - `registry.test.ts` — 19 tests: applyConfig guards/snapshot/concurrency/rollback/re-enable, renameMailbox, CLI apply/list/rename + D-69 output check (~3976 tok)
 - `scope.test.ts` — 23 scoped API tests: no-RLS superuser proof, concurrency/rollback, guards, requireActive, status use-cases, readRegistry, export surface, 5 @ts-expect-error (~5048 tok)
+- `scram.test.ts` — IN-03: verifier equals PG's own for the same salt (incl. SASLprep chars); a role created with it logs in over TCP; wrong password 28P01 (~990 tok)
 
 ## packages/db/test/support/
 
@@ -269,5 +273,5 @@
 
 ## scripts/
 
-- `compose-smoke.sh` — Full-stack smoke test: build the image, bring up db -> setup -> worker, and (~1300 tok)
+- `compose-smoke.sh` — Full-stack smoke test. Own volume <project>-pgdata-smoke, own files in .smoke/<project>/ (.env via --env-file, .env.mailboxes, config with imap.smoke.invalid, backups), image sift-smoke:local; refuses projects with non-smoke containers (~2000 tok)
 - `pg-dump-via-compose.sh` — SIFT_PG_DUMP wrapper: pg_dump 18 inside the Compose db container, --dbname host rewritten to db:5432 (scram, not loopback trust) (~250 tok)

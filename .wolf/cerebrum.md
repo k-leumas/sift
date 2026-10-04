@@ -60,6 +60,12 @@
 - Drizzle's pg migrator applies a migration only when journal `when` > last applied created_at (not by count). migrate() now throws MigrationOrderError when the journal is not strictly increasing or a pending entry would be skipped.
 - Shell-script tests: apps/worker/test/compose-smoke.test.ts runs the script in a temp copy with PATH shims for docker/uname/id/sudo, so Linux-only branches are testable on macOS.
 - Never grant roles to the shared sift_app in tests (the worker role guard rejects any membership since WR-02, so concurrent test files would fail); use a throwaway stand-in role and membershipProblems(client, role).
+- compose-smoke (CR-02/WR-09/IN-08): compose.yaml takes SIFT_IMAGE, SIFT_CONFIG_HOST_DIR, SIFT_MAILBOXES_ENV_FILE, SIFT_BACKUP_HOST_DIR (smoke-only, leave unset). The script keeps everything in .smoke/<project>/ (git/docker-ignored), calls `docker compose --env-file .smoke/<project>/.env` (replaces ./.env in Compose 2.2.3; shell vars still win), builds sift-smoke:local, and refuses a project whose containers do not mount the smoke volume (checked before the EXIT trap). Test shims answer `docker ps` from SHIM_PS_* env.
+- Drizzle 0.45 wraps driver errors as "Failed query: <sql> params: ..." with the pg error in `cause`; unwrap to the error with a SQLSTATE before logging (worker.ts databaseCause).
+- pg 8.23: pool option `Client` takes a subclass (used for TrackedClient); Client.end() on a client still in its handshake only half-closes (Terminate + FIN), so destroy client.connection.stream after end(). A connect ended on purpose mid-handshake never settles its promise.
+- SCRAM verifier = `SCRAM-SHA-256$iter:salt$StoredKey:ServerKey` (packages/db/src/owner/scram.ts, node-pg's SASLprep); CREATE/ALTER ROLE ... PASSWORD '<verifier>' stores it as is. Test by reading pg_authid of a throwaway role and recomputing with its salt.
+- Supervisor: disabled mailboxes are recorded once per process (recordedDisabled), even if disabled before start; a run longer than the interval skips the missed slots (D-50).
+- Docker Desktop may be stopped on this Mac: `open -a Docker`, wait for `docker info`, sift-db-1 comes back (restart policy). DB tests fail with ECONNREFUSED ::1:5432 when it is down.
 
 ## Do-Not-Repeat
 
@@ -72,10 +78,14 @@
 - [2026-10-04] Do not run `state.advance-plan` in a command whose output is truncated and then re-run it: it advanced twice (01-04). Run once and read the JSON.
 - [2026-10-04] Never use `gsd query commit` while the user has staged files: commit with `git commit -- <pathspec>` so the pre-staged .wolf/.claude files stay out.
 - [2026-10-04] In registry/rename tests, derive IMAP usernames independently of the slug, or a rename shows up as an imap_username update.
+- [2026-10-04] `cp` is aliased to `cp -i` in agent zsh: restoring a file with `cp` silently does nothing ("not overwritten"). Use `command cp -f`.
+- [2026-10-04] A net.Server test socket with no 'data' listener never sees the peer's FIN, so 'close' never fires; call socket.resume().
+- [2026-10-04] Splitting two findings' hunks in one file: if a commit fails (biome), the files stay staged; re-check `git diff --cached` before restoring working copies.
 
 ## Decision Log
 
 <!-- Significant technical decisions with rationale. Why X was chosen over Y. -->
+- [2026-10-04] Review fix IN-05: an unhealthy worker is only documented (README, compose comment: `docker compose restart worker`); exiting after missed heartbeats is left to the owner. IN-07: actions pinned to the SHAs their major tags resolved to (checkout v7.0.1, pnpm/action-setup v6.0.10, setup-node v7.0.0); no Dependabot added. IN-12: fixed by tracking clients from construction, not connectionTimeoutMillis (that would change D-55 retry classification and time out pool waits).
 - [2026-10-04] Review fix WR-02/WR-07: the worker refuses any role that is superuser, BYPASSRLS, CREATEROLE, CREATEDB, owns objects, or is a member of any role; the catalog gate fails on any sift_app membership. Name is not required to be sift_app.
 - [2026-10-04] Review fix WR-08: supervisor ticks at min(15 s, next idle mailbox due) instead of a fixed 15 s, so poll_interval_seconds 10..3600 is honoured exactly; heartbeat still at least every 15 s.
 - [2026-10-04] 01-12: compose-smoke.sh --down (docker compose down -v) refuses outside CI unless SMOKE_ALLOW_VOLUME_REMOVAL=yes, since the named volume sift-pgdata would be deleted.
