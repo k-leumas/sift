@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Completed 01-11-PLAN.md
-last_updated: "2026-10-04T07:05:35.378Z"
+stopped_at: Completed 01-12-PLAN.md
+last_updated: "2026-10-04T07:47:26.107Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: 9a63c1874ba5931e63fcf1c41ffe8e7cead0021d
+state_head: 48181fd2a7586f12f5237b1f10e1f2c3502f93d8
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 ## Current Position
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 12 of 13
+Plan: 13 of 13
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 01 execution started
 
@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P09 | 7 min | 2 tasks | 8 files |
 | Phase 01 P10 | 7 min | 2 tasks | 8 files |
 | Phase 01 P11 | 6 min | 3 tasks | 6 files |
+| Phase 01 P12 | 37 min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-11: connectWithRetry bounds each attempt by the remaining deadline (ETIMEDOUT) so the ~30 s D-55 budget holds on a black-holed host
 - [Phase 01]: 01-11: startup errors map codes to fixed messages, driver messages are never logged (T-01-45); worker order is connect, role guard, drift check, supervisor
 - [Phase 01]: 01-11: sentinel test scans every non-system schema from pg_tables with a positive control (FND-02 automated half)
+- [Phase 01]: 01-12: compose-smoke.sh --down refuses outside CI (CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes) because down -v deletes sift-pgdata
+- [Phase 01]: 01-12: test files that run migrate() or compare the sift_app verifier hold lockAppRole() (advisory lock in the admin DB) for the whole file
+- [Phase 01]: 01-12: worker env_file .env.mailboxes must exist for any docker compose command on Compose v2.2.3; developers copy .env.mailboxes.example
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T07:05:15.829Z
-Stopped at: Completed 01-11-PLAN.md
+Last session: 2026-10-04T07:46:47.896Z
+Stopped at: Completed 01-12-PLAN.md
 Resume file: None
