@@ -76,16 +76,26 @@ function defaultPoolErrorHandler(error: Error): void {
  * a secret and is never logged.
  */
 export function createAppDb(connectionString: string, options: AppDbOptions = {}): AppDb {
+  // Every client the pool creates, idle, checked out or still connecting, so
+  // close() can end the ones a stuck batch never releases (pool.end() alone
+  // waits forever). Tracked from construction: pg-pool emits 'connect' only
+  // after the handshake, which would miss a client stuck in TCP connect or
+  // authentication and leave its socket keeping the process alive (IN-12).
+  const clients = new Set<pg.Client>();
+  class TrackedClient extends pg.Client {
+    constructor(config?: string | pg.ClientConfig) {
+      super(config);
+      clients.add(this);
+      this.once('end', () => clients.delete(this));
+    }
+  }
   const pool = new pg.Pool({
     connectionString,
     max: options.maxConnections ?? DEFAULT_MAX_CONNECTIONS,
+    Client: TrackedClient,
   });
   pool.on('error', options.onPoolError ?? defaultPoolErrorHandler);
-  // Every client the pool holds, idle or checked out, so close() can end
-  // the ones a stuck batch never releases (pool.end() alone waits forever).
-  const clients = new Set<pg.PoolClient>();
-  pool.on('connect', (client) => clients.add(client));
-  pool.on('remove', (client) => clients.delete(client));
+  pool.on('remove', (client) => clients.delete(client as pg.Client));
   const orm = drizzle({ client: pool });
 
   let closing: Promise<void> | undefined;
@@ -101,10 +111,16 @@ export function createAppDb(connectionString: string, options: AppDbOptions = {}
         await closing;
         return { forced: false };
       }
-      // pg's Client.end() destroys the socket when a query is in flight, so
-      // the query rejects and its holder releases the client.
+      // pg's Client.end() destroys the socket when a query is in flight or the
+      // client is still connecting, so the query or connect rejects and its
+      // holder releases the client.
       for (const client of clients) {
         client.end().catch(() => {});
+        // end() only half-closes a client that has not finished its handshake
+        // (it sends Terminate and waits for the server); destroy its socket so
+        // it cannot keep the process alive (IN-12). end() ran first, so the
+        // client treats the close as requested and emits no 'error'.
+        client.connection.stream.destroy();
       }
       await settlesWithin(closing, FORCED_CLOSE_WAIT_MS);
       return { forced: true };

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { type AddressInfo, createServer, type Socket } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { internalsOf } from '../src/app-db.ts';
@@ -343,6 +344,42 @@ describe('bounded close (D-53)', () => {
     } finally {
       await locker.query('rollback').catch(() => {});
       await locker.end();
+    }
+  });
+
+  it('ends a client still in its startup handshake, closing its socket (IN-12)', async () => {
+    // A server that accepts the TCP connection but never answers the startup
+    // message: the pool's client stays in the handshake, before pg-pool's
+    // 'connect' event.
+    const sockets: Socket[] = [];
+    const server = createServer((socket) => {
+      sockets.push(socket);
+      socket.on('error', () => {});
+      // Read (and drop) what the client sends, so its FIN is seen as 'close'.
+      socket.resume();
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address() as AddressInfo;
+    const db = createAppDb(`postgres://nobody:pw@127.0.0.1:${port}/none`, {
+      onPoolError: () => {},
+    });
+    try {
+      const pending = internalsOf(db).pool.query('select 1');
+      pending.catch(() => {});
+      while (sockets.length === 0) await delay(20);
+      const socket = sockets[0] as Socket;
+      const socketClosed = new Promise<'closed'>((resolve) =>
+        socket.once('close', () => resolve('closed')),
+      );
+
+      await expect(db.close({ timeoutMs: 100 })).resolves.toEqual({ forced: true });
+      const outcome = await Promise.race([socketClosed, delay(2_000).then(() => 'open')]);
+      // The socket, not the pending query, is what kept the worker alive: pg
+      // never settles a connect that was ended on purpose mid-handshake.
+      expect(outcome).toBe('closed');
+    } finally {
+      for (const socket of sockets) socket.destroy();
+      await new Promise<void>((resolve) => server.close(() => resolve()));
     }
   });
 });
