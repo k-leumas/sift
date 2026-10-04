@@ -1,6 +1,10 @@
 import { computeBackoff } from './backoff.ts';
 
-/** How often the supervisor rereads the registry and touches the heartbeat (D-49, D-54). */
+/**
+ * The longest gap between supervisor ticks, each of which rereads the registry
+ * and touches the heartbeat (D-49, D-54). A tick also runs as soon as the next
+ * mailbox is due, so poll intervals are kept exactly, not rounded up to this.
+ */
 export const SUPERVISOR_TICK_MS = 15_000;
 
 /** How long shutdown waits for in-flight batches before giving up (D-53). */
@@ -70,8 +74,9 @@ function summarizeError(error: unknown, redact?: (text: string) => string): Erro
 /**
  * The worker's scheduler (D-49..D-53). Each tick rereads the registry,
  * touches the heartbeat and starts every enabled mailbox that is due, each as
- * its own async task. Ticks are chained with setTimeout, so a tick never
- * overlaps the previous one. Mailboxes fail independently and back off
+ * its own async task. The next tick runs when the next idle mailbox is due,
+ * but at most tickMs later (D-52: the poll interval is kept exactly). Ticks
+ * are chained with setTimeout, so a tick never overlaps the previous one. Mailboxes fail independently and back off
  * (D-51); disabled ones are stopped (D-45); stop() drains with a bound (D-53).
  */
 export function createSupervisor(deps: SupervisorDeps): Supervisor {
@@ -85,7 +90,9 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
   const running = new Map<string, Promise<void>>();
   const inFlight = new Set<Promise<void>>();
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let currentTick: Promise<void> | undefined;
+  let timerDue = Number.POSITIVE_INFINITY;
+  let ticking = false;
+  let currentTick: Promise<boolean> | undefined;
   let started = false;
   let stopped = false;
 
@@ -111,10 +118,12 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
         await deps.runBatch(entry);
         state.failures = 0;
         state.nextRunAt = startedAt + pollIntervalMs;
+        wakeAt(state.nextRunAt);
       } catch (error) {
         state.failures += 1;
         const retryInMs = computeBackoff(state.failures, pollIntervalMs, random);
         state.nextRunAt = now() + retryInMs;
+        wakeAt(state.nextRunAt);
         log.warn(
           {
             mailbox: entry.slug,
@@ -190,13 +199,14 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
     }
   }
 
-  async function tick(): Promise<void> {
+  /** True when the registry was read and due mailboxes were scheduled. */
+  async function tick(): Promise<boolean> {
     let entries: MailboxEntry[];
     try {
       entries = await deps.readRegistry();
     } catch (error) {
       log.error({ error: describeError(error) }, 'reading the mailbox registry failed');
-      return;
+      return false;
     }
     try {
       await deps.heartbeat();
@@ -204,15 +214,46 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
       log.error({ error: describeError(error) }, 'writing the heartbeat failed');
     }
     if (!stopped) schedule(entries);
+    return true;
+  }
+
+  /** Make sure a tick runs no later than `at`; an earlier pending timer stays. */
+  function wakeAt(at: number): void {
+    if (stopped || (timer !== undefined && timerDue <= at)) return;
+    if (timer !== undefined) clearTimeout(timer);
+    timerDue = at;
+    timer = setTimeout(loop, Math.max(0, at - now()));
+  }
+
+  /**
+   * When the next tick is due: when the earliest idle mailbox is due, at most
+   * tickMs away. Running mailboxes are left out; they call wakeAt when they
+   * finish. After a failed registry read the plain tick applies, so a broken
+   * database is not hammered.
+   */
+  function nextTickAt(scheduled: boolean): number {
+    let at = now() + tickMs;
+    if (!scheduled) return at;
+    for (const [id, state] of states) {
+      if (!running.has(id)) at = Math.min(at, state.nextRunAt);
+    }
+    return at;
   }
 
   function loop(): void {
     timer = undefined;
-    if (stopped) return;
-    currentTick = tick();
-    void currentTick.finally(() => {
-      if (!stopped) timer = setTimeout(loop, tickMs);
-    });
+    timerDue = Number.POSITIVE_INFINITY;
+    // A wake-up during a tick is covered: the tick re-arms when it ends.
+    if (stopped || ticking) return;
+    ticking = true;
+    const thisTick = tick();
+    currentTick = thisTick;
+    void thisTick
+      .catch(() => false)
+      .then((scheduled) => {
+        ticking = false;
+        wakeAt(nextTickAt(scheduled));
+      });
   }
 
   return {

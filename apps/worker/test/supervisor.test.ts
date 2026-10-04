@@ -342,4 +342,48 @@ describe('createSupervisor', () => {
     await expect(stopAll(h, 20_000)).resolves.toEqual({ drained: false });
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  describe('poll intervals that are not multiples of the 15 s tick (WR-08, D-52)', () => {
+    it.each([
+      [10_000, [0, 10_000, 20_000, 30_000, 40_000, 50_000, 60_000]],
+      [20_000, [0, 20_000, 40_000, 60_000]],
+      [61_000, [0, 61_000, 122_000]],
+    ])('runs every %i ms exactly', async (pollIntervalMs, expected) => {
+      const h = harness([entry(A, 'a')], { pollIntervalMs });
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(expected.at(-1) ?? 0);
+      expect(h.runs.get('a')).toEqual(expected);
+      await stopAll(h);
+    });
+
+    it('still touches the heartbeat at least every 15 s', async () => {
+      const h = harness([entry(A, 'a')], { pollIntervalMs: 20_000 });
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(60_000);
+      const gaps = h.heartbeats.slice(1).map((t, i) => t - (h.heartbeats[i] ?? 0));
+      expect(h.heartbeats[0]).toBe(0);
+      expect(Math.max(...gaps)).toBeLessThanOrEqual(TICK_MS);
+      expect(h.heartbeats.at(-1)).toBeGreaterThanOrEqual(45_000);
+      await stopAll(h);
+    });
+
+    it('keeps the interval measured from the run start when a batch takes a while', async () => {
+      const h = harness([entry(A, 'a')], { pollIntervalMs: 10_000 });
+      h.batch.set('a', () => new Promise<void>((resolve) => setTimeout(resolve, 4_000)));
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(30_000);
+      expect(h.runs.get('a')).toEqual([0, 10_000, 20_000, 30_000]);
+      await stopAll(h, 5_000);
+    });
+
+    it('does not spin when the registry read keeps failing', async () => {
+      const h = harness([entry(A, 'a')], { pollIntervalMs: 10_000 });
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(0);
+      h.registryFailures = 1_000;
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(1_000 - h.registryFailures).toBeLessThanOrEqual(6);
+      await stopAll(h);
+    });
+  });
 });
