@@ -132,6 +132,12 @@ export function planRegistryChanges(
 export interface RenamePair {
   from: string;
   to: string;
+  /**
+   * Set on the lone pair (one removed, one added) when the registry row's IMAP
+   * host, username or folder differ from the new entry's: it may be a
+   * different account, not a rename (IN-09).
+   */
+  identityDiffers?: true;
 }
 
 export interface RenameSuspects {
@@ -141,7 +147,8 @@ export interface RenameSuspects {
   added: string[];
   /**
    * Removed -> added pairs safe to suggest as `sift mailbox rename`. One
-   * removed next to one added is paired as is (D-33). With more than one on
+   * removed next to one added is paired as is (D-33), flagged with
+   * identityDiffers when their IMAP identity is known to differ. With more than one on
    * either side, slugs are paired only by IMAP identity (host, username,
    * folder), which a real rename keeps, and only when the match is unique both
    * ways. Anything else is left unpaired rather than guessed: following a
@@ -167,9 +174,19 @@ export function findRenameSuspects(
   if (removed.length === 0 || added.length === 0) return null;
 
   const [onlyRemoved] = removed;
-  const [onlyAdded] = added;
-  if (removed.length === 1 && added.length === 1 && onlyRemoved && onlyAdded) {
-    return { removed, added, pairs: [{ from: onlyRemoved, to: onlyAdded }] };
+  const [onlyAdd] = adds;
+  if (removed.length === 1 && adds.length === 1 && onlyRemoved && onlyAdd) {
+    const pair: RenamePair = { from: onlyRemoved, to: onlyAdd.slug };
+    const row = rows.find((r) => r.slug === onlyRemoved);
+    const { imapHost, imapUsername, imapFolder } = onlyAdd.values;
+    if (
+      row !== undefined &&
+      imapIdentityKey(row.imapHost, row.imapUsername, row.imapFolder) !==
+        imapIdentityKey(imapHost, imapUsername, imapFolder)
+    ) {
+      pair.identityDiffers = true;
+    }
+    return { removed, added, pairs: [pair] };
   }
 
   const addedByKey = new Map<string, string[]>();

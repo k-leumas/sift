@@ -147,4 +147,23 @@ describe('sift config apply rename hint (WR-05)', () => {
     expect(stderr).toContain('New in config.yaml: "gamma", "zeta"');
     expect(stderr).toContain('suggests no rename');
   });
+
+  it('warns when the lone removed and added slugs read different IMAP accounts (IN-09)', async () => {
+    const other = await configFile('other-account.yaml', [
+      ['beta', 'b@proton.me'],
+      ['omega', 'o@proton.me'],
+    ]);
+    const { status, stderr } = await apply(other);
+    expect(status).toBe(1);
+    expect(stderr).toContain('sift mailbox rename alpha omega');
+    expect(stderr).toContain('Their IMAP host, username or folder differ');
+
+    const same = await configFile('same-account.yaml', [
+      ['beta', 'b@proton.me'],
+      ['omega', 'a@proton.me'],
+    ]);
+    const matching = await apply(same);
+    expect(matching.stderr).toContain('sift mailbox rename alpha omega');
+    expect(matching.stderr).not.toContain('Their IMAP host');
+  });
 });

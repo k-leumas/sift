@@ -121,6 +121,25 @@ describe('findRenameSuspects', () => {
     });
   });
 
+  it('flags a lone pair whose IMAP identity differs, and only then (IN-09)', () => {
+    const rows = [row(mailbox('jobs', { username: 'jobs@proton.me' }))];
+    const other = planRegistryChanges(
+      config(mailbox('side', { username: 'side@proton.me' })),
+      rows,
+    );
+    expect(findRenameSuspects(other, rows)?.pairs).toEqual([
+      { from: 'jobs', to: 'side', identityDiffers: true },
+    ]);
+
+    const same = planRegistryChanges(
+      config(mailbox('job-search', { username: 'Jobs@Proton.me' })),
+      rows,
+    );
+    const pairs = findRenameSuspects(same, rows)?.pairs;
+    expect(pairs).toEqual([{ from: 'jobs', to: 'job-search' }]);
+    expect(pairs?.[0]).not.toHaveProperty('identityDiffers');
+  });
+
   it('pairs several renames by IMAP identity, not by position (WR-05)', () => {
     const alpha = mailbox('alpha', { username: 'a@proton.me' });
     const beta = mailbox('beta', { username: 'b@proton.me' });

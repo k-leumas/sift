@@ -20,8 +20,14 @@ function printRenameHint(suspects: RenameSuspects, io: CommandIO) {
     'sift config apply: a mailbox slug left config.yaml while a new one appeared. ' +
       'This may be a rename.',
   );
-  for (const { from, to } of pairs) {
+  for (const { from, to, identityDiffers } of pairs) {
     io.stderr(`  "${from}" is no longer in config.yaml, and "${to}" is new.`);
+    if (identityDiffers) {
+      io.stderr(
+        `  Their IMAP host, username or folder differ, so rename only if "${to}" is the same ` +
+          `account as "${from}"; otherwise its history would be attached to another account.`,
+      );
+    }
     io.stderr('  To keep its data under the new slug, rename it:');
     io.stderr(`    sift mailbox rename ${from} ${to}`);
     io.stderr(`    (in Docker: docker compose run --rm setup sift mailbox rename ${from} ${to})`);

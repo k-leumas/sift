@@ -104,7 +104,8 @@ describe('applyConfig', () => {
       status: 'refused-rename',
       removed: ['jobs'],
       added: ['job-search'],
-      pairs: [{ from: 'jobs', to: 'job-search' }],
+      // The two entries read different IMAP usernames (IN-09).
+      pairs: [{ from: 'jobs', to: 'job-search', identityDiffers: true }],
     });
     expect(await snapshot(db)).toBe(before);
   });
