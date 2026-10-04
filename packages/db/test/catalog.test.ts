@@ -1,7 +1,11 @@
 import { randomBytes } from 'node:crypto';
 import type pg from 'pg';
 import { describe, expect, it } from 'vitest';
-import { CATALOG_ALLOWLIST, collectCatalogViolations } from './support/catalog.ts';
+import {
+  CATALOG_ALLOWLIST,
+  collectCatalogViolations,
+  membershipProblems,
+} from './support/catalog.ts';
 import { connect, freshDatabase, requireTestDb, type TestDatabase } from './support/db.ts';
 
 type Setup = (db: TestDatabase) => Promise<void>;
@@ -104,6 +108,26 @@ describe('catalog privilege and role checks (D-37, D-40, D-66)', () => {
       expect(violations).toEqual([`role ${rogue}: has BYPASSRLS; only sift_backup may bypass RLS`]);
     } finally {
       await run(adminUrl, `drop role if exists ${rogue}`);
+    }
+  });
+
+  it('reports membership in any role, including indirect ones (sift_app must belong to none)', async () => {
+    // A throwaway stand-in: granting to the shared sift_app would trip the
+    // worker's role guard in test files running at the same time.
+    const { adminUrl } = requireTestDb();
+    const standIn = `app_standIn_${randomBytes(3).toString('hex')}`;
+    const admin = await connect(adminUrl);
+    try {
+      await admin.query(`create role ${standIn} noinherit`);
+      expect(await membershipProblems(admin, standIn)).toEqual([]);
+      await admin.query(`grant sift_backup to ${standIn}`);
+      expect(await membershipProblems(admin, standIn)).toEqual([
+        `role ${standIn}: is a member of pg_read_all_data, expected none`,
+        `role ${standIn}: is a member of sift_backup, expected none`,
+      ]);
+    } finally {
+      await admin.query(`drop role if exists ${standIn}`);
+      await admin.end();
     }
   });
 

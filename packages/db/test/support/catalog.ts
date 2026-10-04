@@ -381,6 +381,23 @@ async function registryProblems(client: pg.Client): Promise<string[]> {
   return [`public.mailbox: columns are (${actual.join(', ')}), expected MAILBOX_COLUMNS`];
 }
 
+/**
+ * `role` must be a member of no other role, directly or indirectly. sift_app is
+ * NOINHERIT, so has_table_privilege never sees what a membership brings, yet
+ * `SET ROLE sift_backup` (BYPASSRLS + pg_read_all_data), pg_write_all_data or
+ * sift_owner would each break isolation or append-only. Exported so tests can
+ * point it at a throwaway role instead of changing the shared sift_app.
+ */
+export async function membershipProblems(client: pg.Client, role: string): Promise<string[]> {
+  const { rows } = await client.query<{ rolname: string }>(
+    `select b.rolname::text as rolname from pg_roles b
+      where b.oid <> $1::regrole and pg_has_role($1::regrole, b.oid, 'MEMBER')
+      order by 1`,
+    [role],
+  );
+  return rows.map(({ rolname }) => `role ${role}: is a member of ${rolname}, expected none`);
+}
+
 /** D-37, D-41 and D-66 role assertions. */
 async function roleProblems(client: pg.Client, siftRoles: RoleRow[]): Promise<string[]> {
   const problems: string[] = [];
@@ -413,12 +430,10 @@ async function roleProblems(client: pg.Client, siftRoles: RoleRow[]): Promise<st
   const { rows: access } = await client.query<{
     public_create: boolean;
     drizzle_usage: boolean;
-    member_of_owner: boolean;
   }>(`
     select has_schema_privilege('sift_app', 'public', 'CREATE') as public_create,
       case when to_regnamespace('drizzle') is null then false
-        else has_schema_privilege('sift_app', 'drizzle', 'USAGE') end as drizzle_usage,
-      pg_has_role('sift_app', 'sift_owner', 'MEMBER') as member_of_owner`);
+        else has_schema_privilege('sift_app', 'drizzle', 'USAGE') end as drizzle_usage`);
   const schemaAccess = access[0];
   if (schemaAccess?.public_create) {
     problems.push('role sift_app: has CREATE on schema public');
@@ -426,9 +441,7 @@ async function roleProblems(client: pg.Client, siftRoles: RoleRow[]): Promise<st
   if (schemaAccess?.drizzle_usage) {
     problems.push('role sift_app: has USAGE on schema drizzle');
   }
-  if (schemaAccess?.member_of_owner) {
-    problems.push('role sift_app: is a member of sift_owner');
-  }
+  problems.push(...(await membershipProblems(client, 'sift_app')));
 
   for (const name of ['sift_app', 'sift_backup']) {
     const { rows } = await client.query<{ relations: number; functions: number; schemas: number }>(
