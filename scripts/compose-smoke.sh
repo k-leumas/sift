@@ -7,9 +7,14 @@
 #   scripts/compose-smoke.sh           leave the stack running afterwards
 #   scripts/compose-smoke.sh --down    remove containers AND volumes at exit
 #
-# Missing owner files (.env, .env.mailboxes, config/config.yaml) are created
-# from the committed examples with throwaway values; existing ones are never
-# overwritten.
+# The smoke stack shares none of your files: it never reads or writes your
+# .env, .env.mailboxes, config/config.yaml or backups/. Its own copies live in
+# .smoke/<project>/ (git-ignored), made from the committed examples with
+# throwaway values: .env (random database passwords, kept across runs because
+# the smoke volume stores them), .env.mailboxes (placeholders) and
+# config/config.yaml (IMAP hosts replaced by an unroutable .invalid name, so no
+# smoke worker can reach your real mailboxes). It also builds its own image,
+# sift-smoke:local, and leaves your sift:local alone.
 #
 # The smoke stack never touches your database: it runs on its own volume,
 # <project>-pgdata-smoke (SIFT_PGDATA_VOLUME), never sift-pgdata. Outside CI it
@@ -25,8 +30,8 @@
 # --down runs `docker compose down -v`, which deletes the smoke volume. It only
 # runs when CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes is set.
 #
-# Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME, SIFT_DB_PORT,
-# SIFT_BACKUP_HOST_DIR.
+# Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME, SIFT_DB_PORT
+# (beats the smoke .env), SIFT_BACKUP_HOST_DIR.
 set -euo pipefail
 
 down=false
@@ -82,12 +87,20 @@ if [ -n "$existing" ]; then
   fi
 fi
 
-umask 077
-
 # Resolved physical path of an existing directory.
 real_dir() { (cd "$1" && pwd -P); }
 
-backup_dir=${SIFT_BACKUP_HOST_DIR:-$PWD/.smoke/$project/backups}
+# setup and worker run as uid 1000 (the image's node user) and bind-mount the
+# smoke config dir read-only and the backup dir read-write. Linux enforces host
+# ownership on bind mounts (Docker Desktop on macOS does not), so the config dir
+# and config.yaml must be readable by others and the backup dir must be owned
+# by uid 1000. The .env files stay 0600: only the compose CLI on the host reads
+# them.
+(umask 022 && mkdir -p ".smoke/$project/config")
+smoke_dir=$(real_dir ".smoke/$project")
+umask 077
+
+backup_dir=${SIFT_BACKUP_HOST_DIR:-$smoke_dir/backups}
 mkdir -p "$backup_dir"
 if [ -d backups ] && [ "$(real_dir "$backup_dir")" = "$(real_dir backups)" ]; then
   refuse "refusing to write smoke dumps into ./backups, your own backup folder; unset SIFT_BACKUP_HOST_DIR."
@@ -95,35 +108,33 @@ fi
 SIFT_BACKUP_HOST_DIR=$(real_dir "$backup_dir")
 export SIFT_BACKUP_HOST_DIR
 
-if [ ! -f .env ]; then
+smoke_env=$smoke_dir/.env
+if [ ! -f "$smoke_env" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
     case $line in
       *_PASSWORD=) printf '%s%s\n' "$line" "$(openssl rand -hex 24)" ;;
       *) printf '%s\n' "$line" ;;
     esac
-  done < .env.example > .env
-  echo "compose-smoke: created .env from .env.example (random passwords)"
+  done < .env.example > "$smoke_env"
+  echo "compose-smoke: created $smoke_env from .env.example (random passwords)"
 fi
 
-if [ ! -f .env.mailboxes ]; then
-  while IFS= read -r line || [ -n "$line" ]; do
-    case $line in
-      *_PASSWORD=) printf '%s%s\n' "$line" "smoke-placeholder" ;;
-      *) printf '%s\n' "$line" ;;
-    esac
-  done < .env.mailboxes.example > .env.mailboxes
-  echo "compose-smoke: created .env.mailboxes from .env.mailboxes.example (placeholder values)"
-fi
+while IFS= read -r line || [ -n "$line" ]; do
+  case $line in
+    *_PASSWORD=) printf '%s%s\n' "$line" "smoke-placeholder" ;;
+    *) printf '%s\n' "$line" ;;
+  esac
+done < .env.mailboxes.example > "$smoke_dir/.env.mailboxes"
 
-# setup and worker run as uid 1000 (the image's node user) and bind-mount
-# ./config read-only and the backup dir read-write. Linux enforces host
-# ownership on bind mounts (Docker Desktop on macOS does not), so config.yaml
-# must be readable by others and the backup dir must be owned by uid 1000. The
-# .env files stay 0600: only the compose CLI on the host reads them.
-if [ ! -f config/config.yaml ]; then
-  (umask 022 && cp config/config.example.yaml config/config.yaml)
-  echo "compose-smoke: created config/config.yaml from config/config.example.yaml"
-fi
+(umask 022 && sed -E 's/^([[:space:]]*host:).*/\1 imap.smoke.invalid/' \
+  config/config.example.yaml > "$smoke_dir/config/config.yaml")
+
+export SIFT_CONFIG_HOST_DIR=$smoke_dir/config
+export SIFT_MAILBOXES_ENV_FILE=$smoke_dir/.env.mailboxes
+export SIFT_IMAGE=sift-smoke:local
+
+# Every compose call reads the smoke .env, never ./.env.
+dc() { docker compose --env-file "$smoke_env" "$@"; }
 
 as_root() {
   if [ "$(id -u)" = 0 ]; then "$@"; else sudo -n "$@"; fi
@@ -140,14 +151,14 @@ fi
 
 cleanup() {
   if [ "$down" = true ]; then
-    docker compose down -v --remove-orphans || true
+    dc down -v --remove-orphans || true
   fi
 }
 trap cleanup EXIT
 
 fail() {
   echo "compose-smoke: FAILED: $*" >&2
-  docker compose logs --no-color || true
+  dc logs --no-color || true
   exit 1
 }
 
@@ -159,8 +170,8 @@ container() {
     --filter "label=com.docker.compose.oneoff=False" | head -n 1
 }
 
-docker compose build || fail "docker compose build"
-docker compose up -d || fail "docker compose up -d"
+dc build || fail "docker compose build"
+dc up -d || fail "docker compose up -d"
 
 deadline=$((SECONDS + timeout))
 setup_done=false
@@ -200,7 +211,7 @@ done
 
 # Inspection only: the image superuser bypasses RLS.
 query() {
-  docker compose exec -T db psql -U postgres -d sift -Atc "$1"
+  dc exec -T db psql -U postgres -d sift -Atc "$1"
 }
 
 atleast() {

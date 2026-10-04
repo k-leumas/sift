@@ -11,6 +11,11 @@
 #
 # No top-level `name:` and no healthcheck `start_interval`: the dev machine
 # runs Docker Compose v2.2.3.
+#
+# SIFT_IMAGE, SIFT_CONFIG_HOST_DIR, SIFT_MAILBOXES_ENV_FILE, SIFT_BACKUP_HOST_DIR
+# and SIFT_PGDATA_VOLUME exist only so scripts/compose-smoke.sh can run a
+# throwaway stack that shares none of your files, image or volume. Leave them
+# unset.
 
 services:
   db:
@@ -44,7 +49,7 @@ services:
       context: .
       args:
         NODE_VERSION: "${NODE_VERSION:-26.10.0}"
-    image: sift:local
+    image: ${SIFT_IMAGE:-sift:local}
     init: true
     command: ["sift", "setup"]
     environment:
@@ -54,7 +59,7 @@ services:
       SIFT_CONFIG: /config/config.yaml
       SIFT_BACKUP_DIR: /backups
     volumes:
-      - ./config:/config:ro
+      - ${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro
       # Must be writable by uid 1000 (the image's node user).
       # SIFT_BACKUP_HOST_DIR exists only so scripts/compose-smoke.sh keeps its
       # throwaway dumps out of your ./backups; leave it unset.
@@ -69,18 +74,18 @@ services:
       context: .
       args:
         NODE_VERSION: "${NODE_VERSION:-26.10.0}"
-    image: sift:local
+    image: ${SIFT_IMAGE:-sift:local}
     init: true
     command: ["sift", "worker"]
     # Mailbox IMAP passwords only (one variable per password_env in config.yaml).
     env_file:
-      - .env.mailboxes
+      - ${SIFT_MAILBOXES_ENV_FILE:-.env.mailboxes}
     environment:
       SIFT_DATABASE_URL: postgres://sift_app:${SIFT_DB_APP_PASSWORD:?set in .env}@db:5432/sift
       SIFT_CONFIG: /config/config.yaml
       SIFT_HEARTBEAT_FILE: /tmp/sift/heartbeat
     volumes:
-      - ./config:/config:ro
+      - ${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

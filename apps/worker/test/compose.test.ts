@@ -81,8 +81,11 @@ describe('compose.yaml services', () => {
   });
 
   it('runs setup and worker from the same locally built image', () => {
-    expect(service('setup').image).toBe('sift:local');
-    expect(service('worker').image).toBe('sift:local');
+    // Only compose-smoke sets SIFT_IMAGE (IN-08); owners build sift:local.
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    const image = '${SIFT_IMAGE:-sift:local}';
+    expect(service('setup').image).toBe(image);
+    expect(service('worker').image).toBe(image);
     expect(service('setup').command).toEqual(['sift', 'setup']);
     expect(service('worker').command).toEqual(['sift', 'worker']);
   });
@@ -140,7 +143,9 @@ describe('worker credentials (T-01-48, D-39, D-67)', () => {
   });
 
   it('reads mailbox passwords from .env.mailboxes and nothing else', () => {
-    expect(envFiles(worker)).toEqual(['.env.mailboxes']);
+    // Only compose-smoke sets SIFT_MAILBOXES_ENV_FILE (IN-08).
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    expect(envFiles(worker)).toEqual(['${SIFT_MAILBOXES_ENV_FILE:-.env.mailboxes}']);
   });
 });
 
@@ -197,8 +202,10 @@ describe('ordering and lifecycle (D-27, D-53, D-54, D-60)', () => {
   it('mounts the config directory read-only', () => {
     for (const name of ['setup', 'worker']) {
       const mounts = (service(name).volumes ?? []).filter((v) => v.includes(':/config'));
-      expect(mounts.length, `${name} config mount`).toBe(1);
-      for (const mount of mounts) expect(mount.endsWith(':ro')).toBe(true);
+      // Only compose-smoke sets SIFT_CONFIG_HOST_DIR (IN-08); owners mount ./config.
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+      const expected = '${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro';
+      expect(mounts, `${name} config mount`).toEqual([expected]);
     }
   });
 });
