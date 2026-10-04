@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Completed 01-08-PLAN.md
-last_updated: "2026-10-04T06:34:47.389Z"
+stopped_at: Completed 01-09-PLAN.md
+last_updated: "2026-10-04T06:44:54.467Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: dde79e311ea9947d61d26c82cddb3a30b2726b34
+state_head: 84df6024cfe9ca3f67e86bbfde3d698c20cde67b
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 ## Current Position
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 9 of 13
+Plan: 10 of 13
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 01 execution started
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P06 | 3min | 3 tasks | 2 files |
 | Phase 01 P07 | 6min | 2 tasks | 6 files |
 | Phase 01 P08 | 7 min | 2 tasks | 8 files |
+| Phase 01 P09 | 7 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-08: pg-dump-via-compose.sh targets db:5432; loopback is trust in the postgres image, so 127.0.0.1 skipped password auth
 - [Phase 01]: 01-08: MigrateOptions.backup is a required key (target | false | undefined); BackupTarget/BackupFailedError live in backup.ts, re-exported by migrate.ts
 - [Phase 01]: 01-08: backup tests read pg_restore 18 from the Compose db container when SIFT_PG_DUMP is the compose wrapper
+- [Phase 01]: 01-09: config apply validates the schema only (no checkMailboxEnv, no env overrides) and reconciles in one transaction under pg_advisory_xact_lock(815309002); rename suspects are refused without --confirm
+- [Phase 01]: 01-09: sift mailbox rename keeps the mailbox id and shares the config-apply advisory lock; mailbox list reads mailbox_status under app.mailbox_id
 
 ### Pending Todos
 
@@ -121,6 +124,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T06:34:47.343Z
-Stopped at: Completed 01-08-PLAN.md
+Last session: 2026-10-04T06:44:45.871Z
+Stopped at: Completed 01-09-PLAN.md
 Resume file: None
