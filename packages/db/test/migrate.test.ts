@@ -5,7 +5,7 @@ import { chmod, cp, mkdtemp, open, readdir, readFile, rm, stat, writeFile } from
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   BackupFailedError,
   BackupRequiredError,
@@ -509,6 +509,29 @@ describe('migrate() backups (D-29, D-66)', () => {
     } finally {
       await holder.end();
     }
+  });
+
+  it('never sends the sift_app password in a statement, only a SCRAM verifier (IN-03)', async () => {
+    const appPassword = requireEnv('SIFT_DB_APP_PASSWORD');
+    const texts: string[] = [];
+    const original = pg.Client.prototype.query;
+    const spy = vi.spyOn(pg.Client.prototype, 'query').mockImplementation(function (
+      this: pg.Client,
+      ...args: unknown[]
+    ) {
+      const [first] = args;
+      texts.push(typeof first === 'string' ? first : JSON.stringify(first));
+      return (original as (...a: unknown[]) => unknown).apply(this, args);
+    } as typeof original);
+    try {
+      await migrate({ ownerUrl: db.ownerUrl, appPassword, backup: undefined });
+    } finally {
+      spy.mockRestore();
+    }
+    const roleDdl = texts.filter((text) => /\b(CREATE|ALTER) ROLE sift_app\b/.test(text));
+    expect(roleDdl.length).toBeGreaterThan(0);
+    for (const text of roleDdl) expect(text).toMatch(/PASSWORD 'SCRAM-SHA-256\$4096:/);
+    for (const text of texts) expect(text).not.toContain(appPassword);
   });
 
   it('rotates the sift_app password on every run without breaking its login (D-39)', async () => {

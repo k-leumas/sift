@@ -306,6 +306,7 @@ Email is the one input Sift can't trust. Anyone can send you anything.
 - **Limited actions:** Sift applies labels and (later) writes **drafts**. It never sends, deletes or forwards mail.
 - **Flagging:** emails that look like injection attempts are flagged in the UI's audit view.
 - **Tested:** `evals/injection/` holds adversarial emails, and CI fails if any of them changes a classification.
+- **Database passwords:** `sift migrate` sets the worker role's password as a SCRAM verifier built on the client, so the plaintext never reaches the database server. The one-time bootstrap (`db/bootstrap.sql`) still sends the owner and backup passwords in plain `CREATE/ALTER ROLE` statements, so keep Postgres's `log_statement` at its default `none` (never `ddl` or `all`) when it runs.
 
 ### Privacy
 

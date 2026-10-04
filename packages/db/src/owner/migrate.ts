@@ -12,6 +12,7 @@ import {
   pruneBackups,
   writeBackup,
 } from './backup.ts';
+import { scramSha256Verifier } from './scram.ts';
 
 export { BackupFailedError, type BackupTarget } from './backup.ts';
 
@@ -244,9 +245,11 @@ async function appliedCount(client: pg.Client): Promise<number> {
 }
 
 /**
- * Create sift_app, or rotate its password when it exists (D-39). The password
- * is embedded with client.escapeLiteral() because role DDL takes no bind
- * parameters. The statement text is never logged or put into an error.
+ * Create sift_app, or rotate its password when it exists (D-39). Role DDL takes
+ * no bind parameters, so the statement carries a client-built SCRAM-SHA-256
+ * verifier (IN-03), never the plaintext password: a failing statement or
+ * log_statement = 'ddl' can then not write the password to the server log. The
+ * statement text is still never logged or put into an error.
  */
 async function ensureAppRole(
   client: pg.Client,
@@ -256,7 +259,7 @@ async function ensureAppRole(
   if (password.trim() === '') {
     throw new Error('Missing env var: SIFT_DB_APP_PASSWORD');
   }
-  const literal = client.escapeLiteral(password);
+  const literal = client.escapeLiteral(scramSha256Verifier(password));
   const existing = await client.query('select 1 from pg_catalog.pg_roles where rolname = $1', [
     APP_ROLE,
   ]);

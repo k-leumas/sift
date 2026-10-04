@@ -46,6 +46,10 @@ END
 $$;
 \endif
 
+-- The role statements below carry the passwords in plain text (psql cannot
+-- build a SCRAM verifier). initdb runs with log_statement = none; never rerun
+-- this file on a server whose log_statement is 'ddl' or 'all'.
+
 -- sift_owner: owns database sift and its schema; CREATEROLE so `sift migrate`
 -- can create and later ALTER sift_app (PG16+: only roles it created).
 SELECT format(
