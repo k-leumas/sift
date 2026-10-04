@@ -398,6 +398,23 @@ describe('createSupervisor', () => {
       await stopAll(h, 5_000);
     });
 
+    it.each([
+      // A 25 s run misses the 10 s and 20 s slots and resumes at 30 s.
+      [25_000, [0, 30_000, 60_000]],
+      // A run shorter than the interval misses nothing.
+      [9_000, [0, 10_000, 20_000, 30_000, 40_000, 50_000, 60_000]],
+    ])(
+      'skips the slots a %i ms run missed instead of rerunning at once (IN-13, D-50)',
+      async (batchMs, expected) => {
+        const h = harness([entry(A, 'a')], { pollIntervalMs: 10_000 });
+        h.batch.set('a', () => new Promise<void>((resolve) => setTimeout(resolve, batchMs)));
+        h.supervisor.start();
+        await vi.advanceTimersByTimeAsync(60_000);
+        expect(h.runs.get('a')).toEqual(expected);
+        await stopAll(h, batchMs + 1_000);
+      },
+    );
+
     it('does not spin when the registry read keeps failing', async () => {
       const h = harness([entry(A, 'a')], { pollIntervalMs: 10_000 });
       h.supervisor.start();

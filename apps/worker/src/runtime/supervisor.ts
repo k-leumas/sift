@@ -112,9 +112,11 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
 
   /**
    * One batch as its own task. Success returns the mailbox to the plain
-   * interval, measured from the run's start so ticks do not stretch it.
-   * Failure backs off exponentially (D-51). Nothing here can reject: one
-   * mailbox never takes down the supervisor.
+   * interval, measured from the run's start so ticks do not stretch it. A run
+   * that outlasted the interval skips the slots it missed (D-50: skipped, not
+   * stacked) instead of restarting at once. Failure backs off exponentially
+   * (D-51). Nothing here can reject: one mailbox never takes down the
+   * supervisor.
    */
   function runMailbox(entry: MailboxEntry, state: MailboxState): void {
     const task = (async () => {
@@ -122,7 +124,8 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
       try {
         await deps.runBatch(entry);
         state.failures = 0;
-        state.nextRunAt = startedAt + pollIntervalMs;
+        const slots = Math.max(1, Math.ceil((now() - startedAt) / pollIntervalMs));
+        state.nextRunAt = startedAt + slots * pollIntervalMs;
         wakeAt(state.nextRunAt);
       } catch (error) {
         state.failures += 1;
