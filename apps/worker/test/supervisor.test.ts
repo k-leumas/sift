@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { BACKOFF_CAP_MS, computeBackoff } from '../src/runtime/backoff.ts';
 import {
   createSupervisor,
@@ -10,6 +10,8 @@ import {
 const POLL_MS = 60_000;
 const TICK_MS = 15_000;
 const SKIPPED = 'skipped: previous run still in progress';
+
+type LogFn = (obj: object, msg?: string) => void;
 
 const A = '00000000-0000-4000-8000-00000000000a';
 const B = '00000000-0000-4000-8000-00000000000b';
@@ -35,7 +37,7 @@ interface Harness {
   errors: { slug: string; error: unknown }[];
   stopped: string[];
   heartbeats: number[];
-  log: { [K in 'info' | 'warn' | 'error' | 'debug']: ReturnType<typeof vi.fn> };
+  log: { [K in 'info' | 'warn' | 'error' | 'debug']: Mock<LogFn> };
   registryFailures: number;
 }
 
@@ -47,7 +49,12 @@ function harness(initial: MailboxEntry[], overrides: Partial<SupervisorDeps> = {
     errors: [] as { slug: string; error: unknown }[],
     stopped: [] as string[],
     heartbeats: [] as number[],
-    log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+    log: {
+      info: vi.fn<LogFn>(),
+      warn: vi.fn<LogFn>(),
+      error: vi.fn<LogFn>(),
+      debug: vi.fn<LogFn>(),
+    },
     registryFailures: 0,
   } as Harness;
   h.deps = {

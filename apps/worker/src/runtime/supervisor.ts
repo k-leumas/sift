@@ -1,3 +1,5 @@
+import { computeBackoff } from './backoff.ts';
+
 /** How often the supervisor rereads the registry and touches the heartbeat (D-49, D-54). */
 export const SUPERVISOR_TICK_MS = 15_000;
 
@@ -40,8 +42,13 @@ export interface Supervisor {
   stop(timeoutMs?: number): Promise<{ drained: boolean }>;
 }
 
-/** Per-mailbox schedule. Whether a run is in progress lives in `running`. */
+/**
+ * Per-mailbox schedule. Whether a run is in progress lives in `running`,
+ * keyed by mailbox id, so a run that outlives a dropped state (disabled, then
+ * re-enabled) still blocks an overlapping run (D-50).
+ */
 interface MailboxState {
+  failures: number;
   nextRunAt: number;
 }
 
@@ -61,15 +68,17 @@ function summarizeError(error: unknown, redact?: (text: string) => string): Erro
 }
 
 /**
- * The worker's scheduler (D-49, D-50). Each tick rereads the registry,
+ * The worker's scheduler (D-49..D-53). Each tick rereads the registry,
  * touches the heartbeat and starts every enabled mailbox that is due, each as
  * its own async task. Ticks are chained with setTimeout, so a tick never
- * overlaps the previous one.
+ * overlaps the previous one. Mailboxes fail independently and back off
+ * (D-51); disabled ones are stopped (D-45); stop() drains with a bound (D-53).
  */
 export function createSupervisor(deps: SupervisorDeps): Supervisor {
   const { log, pollIntervalMs } = deps;
   const tickMs = deps.tickMs ?? SUPERVISOR_TICK_MS;
   const now = deps.now ?? Date.now;
+  const random = deps.random ?? Math.random;
   const describeError = (error: unknown) => summarizeError(error, deps.redact);
 
   const states = new Map<string, MailboxState>();
@@ -89,13 +98,32 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
     });
   }
 
+  /**
+   * One batch as its own task. Success returns the mailbox to the plain
+   * interval, measured from the run's start so ticks do not stretch it.
+   * Failure backs off exponentially (D-51). Nothing here can reject: one
+   * mailbox never takes down the supervisor.
+   */
   function runMailbox(entry: MailboxEntry, state: MailboxState): void {
     const task = (async () => {
       const startedAt = now();
       try {
         await deps.runBatch(entry);
+        state.failures = 0;
+        state.nextRunAt = startedAt + pollIntervalMs;
       } catch (error) {
-        log.warn({ mailbox: entry.slug, error: describeError(error) }, 'mailbox run failed');
+        state.failures += 1;
+        const retryInMs = computeBackoff(state.failures, pollIntervalMs, random);
+        state.nextRunAt = now() + retryInMs;
+        log.warn(
+          {
+            mailbox: entry.slug,
+            failures: state.failures,
+            retryInMs,
+            error: describeError(error),
+          },
+          'mailbox run failed',
+        );
         try {
           await deps.onBatchError(entry, error);
         } catch (recordError) {
@@ -105,21 +133,60 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
           );
         }
       }
-      state.nextRunAt = startedAt + pollIntervalMs;
     })();
     track(entry.id, task);
   }
 
+  /** Record a disable (D-45). Errors are logged; the mailbox stays stopped. */
+  function stopMailbox(entry: MailboxEntry): void {
+    log.info({ mailbox: entry.slug }, 'mailbox disabled, stopping');
+    const task = (async () => {
+      try {
+        await deps.onMailboxStopped(entry);
+      } catch (error) {
+        log.error(
+          { mailbox: entry.slug, error: describeError(error) },
+          'recording mailbox stop failed',
+        );
+      }
+    })();
+    track(undefined, task);
+  }
+
   function schedule(entries: readonly MailboxEntry[]): void {
+    const listed = new Set<string>();
     for (const entry of entries) {
-      if (entry.disabledAt !== null) continue;
-      let state = states.get(entry.id);
+      listed.add(entry.id);
+      const known = states.get(entry.id);
+
+      if (entry.disabledAt !== null) {
+        // Disabled mailboxes are never started; a known one is stopped once.
+        if (known !== undefined) {
+          states.delete(entry.id);
+          stopMailbox(entry);
+        }
+        continue;
+      }
+
+      let state = known;
       if (state === undefined) {
-        state = { nextRunAt: now() };
+        state = { failures: 0, nextRunAt: now() };
         states.set(entry.id, state);
       }
-      if (now() < state.nextRunAt || running.has(entry.id)) continue;
+      if (now() < state.nextRunAt) continue;
+      if (running.has(entry.id)) {
+        // D-50: skip, do not queue. nextRunAt stays, so the next tick retries.
+        log.debug({ mailbox: entry.slug }, 'skipped: previous run still in progress');
+        continue;
+      }
       runMailbox(entry, state);
+    }
+
+    for (const id of states.keys()) {
+      if (!listed.has(id)) {
+        states.delete(id);
+        log.info({ mailboxId: id }, 'mailbox left the registry, stopping');
+      }
     }
   }
 
