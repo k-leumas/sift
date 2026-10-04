@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vite
 import { BACKOFF_CAP_MS, computeBackoff } from '../src/runtime/backoff.ts';
 import {
   createSupervisor,
+  type HeartbeatStall,
+  MAX_MISSED_HEARTBEATS,
   type MailboxEntry,
   type Supervisor,
   type SupervisorDeps,
@@ -92,6 +94,15 @@ function harness(initial: MailboxEntry[], overrides: Partial<SupervisorDeps> = {
 }
 
 const runCount = (h: Harness, slug: string) => h.runs.get(slug)?.length ?? 0;
+
+/** Read the supervisor's stall report as it settles; undefined while pending. */
+function watchStall(h: Harness): () => HeartbeatStall | undefined {
+  let stall: HeartbeatStall | undefined;
+  void h.supervisor.stalled.then((s) => {
+    stall = s;
+  });
+  return () => stall;
+}
 
 /** Stop with fake time advanced past the drain timeout. */
 async function stopAll(h: Harness, timeoutMs = 1_000) {
@@ -422,6 +433,127 @@ describe('createSupervisor', () => {
       h.registryFailures = 1_000;
       await vi.advanceTimersByTimeAsync(60_000);
       expect(1_000 - h.registryFailures).toBeLessThanOrEqual(6);
+      await stopAll(h);
+    });
+  });
+
+  describe('missed heartbeats (IN-05)', () => {
+    it('reports a stall after 3 failed registry reads in a row, never writing the heartbeat', async () => {
+      expect(MAX_MISSED_HEARTBEATS).toBe(3);
+      const h = harness([entry(A, 'a')]);
+      h.registryFailures = 1_000;
+      const stall = watchStall(h);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(TICK_MS);
+      expect(stall()).toBeUndefined();
+
+      await vi.advanceTimersByTimeAsync(TICK_MS);
+      expect(stall()).toEqual({
+        missedHeartbeats: 3,
+        step: 'registry_read',
+        reason: 'failed',
+        error: { name: 'Error' },
+      });
+      expect(h.heartbeats).toEqual([]);
+      expect(runCount(h, 'a')).toBe(0);
+      await stopAll(h);
+    });
+
+    it('a written heartbeat resets the count', async () => {
+      const h = harness([entry(A, 'a')]);
+      const stall = watchStall(h);
+      h.registryFailures = 2;
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(TICK_MS);
+      expect(h.heartbeats).toEqual([]);
+
+      // Third tick succeeds, then two more failures: still 2 in a row.
+      await vi.advanceTimersByTimeAsync(TICK_MS);
+      expect(h.heartbeats).toEqual([2 * TICK_MS]);
+      h.registryFailures = 2;
+      await vi.advanceTimersByTimeAsync(2 * TICK_MS);
+      expect(h.registryFailures).toBe(0);
+      expect(stall()).toBeUndefined();
+
+      h.registryFailures = 1;
+      await vi.advanceTimersByTimeAsync(TICK_MS);
+      expect(stall()).toMatchObject({ missedHeartbeats: 3, step: 'registry_read' });
+      await stopAll(h);
+    });
+
+    it('counts failed heartbeat writes and logs the coded cause, redacted', async () => {
+      const url = 'postgres://sift_app:hunter2@db:5432/sift';
+      let writes = 0;
+      const h = harness([entry(A, 'a')], {
+        async heartbeat() {
+          writes += 1;
+          const cause = Object.assign(new Error(`connect failed for ${url}`), { code: 'ENOSPC' });
+          throw new Error('Failed query: select 1', { cause });
+        },
+        redact: (text) => text.replace(url, '[REDACTED]'),
+      });
+      const stall = watchStall(h);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(2 * TICK_MS);
+      expect(writes).toBe(3);
+      expect(stall()).toEqual({
+        missedHeartbeats: 3,
+        step: 'heartbeat_write',
+        reason: 'failed',
+        error: { name: 'Error', code: 'ENOSPC', message: 'connect failed for [REDACTED]' },
+      });
+      expect(JSON.stringify(stall())).not.toContain('hunter2');
+      // Mailboxes keep running while the heartbeat cannot be written.
+      expect(runCount(h, 'a')).toBe(1);
+      await stopAll(h);
+    });
+
+    it('counts a hung tick once per tick interval', async () => {
+      const h = harness([entry(A, 'a')], { readRegistry: () => new Promise(() => {}) });
+      const stall = watchStall(h);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(2 * TICK_MS);
+      expect(stall()).toBeUndefined();
+      expect(h.log.warn).toHaveBeenCalledWith(
+        { step: 'registry_read', overdueMs: TICK_MS },
+        'supervisor tick is overdue',
+      );
+
+      await vi.advanceTimersByTimeAsync(TICK_MS);
+      expect(stall()).toEqual({ missedHeartbeats: 3, step: 'registry_read', reason: 'timed_out' });
+      expect(h.heartbeats).toEqual([]);
+      await expect(stopAll(h)).resolves.toEqual({ drained: false });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('a hung heartbeat write is reported as that step', async () => {
+      const h = harness([entry(A, 'a')], { heartbeat: () => new Promise(() => {}) });
+      const stall = watchStall(h);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(3 * TICK_MS);
+      expect(stall()).toEqual({
+        missedHeartbeats: 3,
+        step: 'heartbeat_write',
+        reason: 'timed_out',
+      });
+      await stopAll(h);
+    });
+
+    it('honours maxMissedHeartbeats and counts nothing after stop', async () => {
+      const h = harness([entry(A, 'a')], { maxMissedHeartbeats: 1 });
+      h.registryFailures = 1_000;
+      const stall = watchStall(h);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(stall()).toMatchObject({ missedHeartbeats: 1 });
+
+      const stopped = harness([entry(A, 'a')], { readRegistry: () => new Promise(() => {}) });
+      const stoppedStall = watchStall(stopped);
+      stopped.supervisor.start();
+      await stopAll(stopped);
+      await vi.advanceTimersByTimeAsync(10 * TICK_MS);
+      expect(stoppedStall()).toBeUndefined();
       await stopAll(h);
     });
   });

@@ -13,6 +13,7 @@ import { assertUnprivilegedRole, connectWithRetry, DatabaseStartupError } from '
 import type { CommandIO } from '../command.ts';
 import { createHeartbeat, defaultHeartbeatFile } from '../runtime/heartbeat.ts';
 import { createMailboxCallbacks } from '../runtime/mailbox-batch.ts';
+import { EXIT_HEARTBEAT_STALLED, runUntilStopped } from '../runtime/run-until-stopped.ts';
 import { waitForShutdownSignal } from '../runtime/shutdown.ts';
 import { checkDrift } from '../runtime/startup.ts';
 import { createSupervisor, SHUTDOWN_TIMEOUT_MS } from '../runtime/supervisor.ts';
@@ -24,6 +25,13 @@ import { createSupervisor, SHUTDOWN_TIMEOUT_MS } from '../runtime/supervisor.ts'
  * than being killed.
  */
 const CLOSE_TIMEOUT_MS = 3_000;
+
+/**
+ * IN-05: after a stall shutdown, a step that hung (a stuck file write, say)
+ * could keep the event loop alive. This unref'd timer exits anyway, so
+ * Docker sees the exit code and restarts the worker.
+ */
+const STALL_EXIT_BACKSTOP_MS = 2_000;
 
 /** Show a path relative to the working directory when it lives under it. */
 function displayPath(path: string, cwd: string): string {
@@ -57,6 +65,10 @@ function databaseCause(error: unknown): unknown {
  * (D-34), then the supervisor.
  * Nothing touches the database before the env check (D-35), so a missing
  * password produces exactly one log line.
+ *
+ * Exit codes: 0 after SIGTERM/SIGINT, 1 for config and startup errors, and
+ * EXIT_HEARTBEAT_STALLED (75) after MAX_MISSED_HEARTBEATS missed heartbeats in
+ * a row (IN-05), so Compose's `restart: on-failure` restarts the worker.
  *
  * Logs are pino JSON lines on stdout, including unexpected errors (redacted).
  * The database URL, config secrets and env values are never logged.
@@ -98,6 +110,7 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
   }
 
   const secrets = secretValues(config, io.env);
+  let exitCode = 0;
   const db = createAppDb(url, {
     onPoolError: (e) =>
       log.warn({ code: (e as { code?: string }).code }, 'idle database client error'),
@@ -145,12 +158,7 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
       'worker started',
     );
 
-    const signal = await waitForShutdownSignal();
-    log.info({ signal }, 'shutting down');
-    const { drained } = await supervisor.stop(SHUTDOWN_TIMEOUT_MS);
-    if (!drained) {
-      log.warn({ timeoutMs: SHUTDOWN_TIMEOUT_MS }, 'in-flight mailbox runs did not finish in time');
-    }
+    exitCode = await runUntilStopped(supervisor, log, waitForShutdownSignal, SHUTDOWN_TIMEOUT_MS);
   } catch (error) {
     // Anything unexpected (a pg error from the role guard, the drift check or
     // the supervisor) is logged through pino, redacted, never raw on stderr.
@@ -167,6 +175,9 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
       log.warn({ timeoutMs: CLOSE_TIMEOUT_MS }, 'closed database connections still in use');
     }
   }
-  log.info({}, 'stopped');
-  return 0;
+  log.info({ exitCode }, 'stopped');
+  if (exitCode === EXIT_HEARTBEAT_STALLED) {
+    setTimeout(() => process.exit(exitCode), STALL_EXIT_BACKSTOP_MS).unref();
+  }
+  return exitCode;
 }
