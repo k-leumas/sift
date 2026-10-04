@@ -110,10 +110,18 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
     const before = await appliedCount(client);
     // Pending exactly as drizzle decides it: newer than the last applied one.
     const last = await lastAppliedMillis(client);
-    const pending = tags.filter((_, i) => last === null || last < (millis[i] ?? 0));
-    if (before + pending.length < tags.length) {
+    const isPending = (i: number): boolean => last === null || last < (millis[i] ?? 0);
+    const pending = tags.filter((_, i) => isPending(i));
+    // Decide by identity, not by count: a journal entry that is neither recorded
+    // (by hash) nor pending would be skipped by drizzle. Counting rows misses it
+    // when the database also holds a migration this journal does not list (from
+    // another branch, or a reverted PR). An applied file edited afterwards has a
+    // new hash and lands here too.
+    const applied = await appliedHashes(client);
+    const skipped = tags.filter((_, i) => !isPending(i) && !applied.has(migrations[i]?.hash ?? ''));
+    if (skipped.length > 0) {
       throw new MigrationOrderError(
-        `${tags.length - before - pending.length} migration(s) in the journal are older than the last applied one and would never be applied; regenerate them so their "when" is the newest`,
+        `${skipped.length} migration(s) in the journal are older than the last applied one and would never be applied (${skipped.join(', ')}); regenerate them so their "when" is the newest, or restore an applied migration file that was edited`,
       );
     }
     const backupFile =
@@ -133,13 +141,12 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
       );
     }
 
-    const applied = pending;
     log(
-      applied.length === 0
+      pending.length === 0
         ? 'No pending migrations'
-        : `Applied ${applied.length} migration(s): ${applied.join(', ')}`,
+        : `Applied ${pending.length} migration(s): ${pending.join(', ')}`,
     );
-    return { applied, backupFile };
+    return { applied: pending, backupFile };
   } finally {
     try {
       if (locked) {
@@ -203,6 +210,22 @@ async function lastAppliedMillis(client: pg.Client): Promise<number | null> {
   );
   const value = result.rows[0]?.created_at;
   return value === undefined || value === null ? null : Number(value);
+}
+
+/** Hashes of every recorded migration (drizzle stores the SQL file's sha256). */
+async function appliedHashes(client: pg.Client): Promise<Set<string>> {
+  const table = `${MIGRATIONS_SCHEMA}.${MIGRATIONS_TABLE}`;
+  const exists = await client.query<{ present: boolean }>(
+    'select to_regclass($1) is not null as present',
+    [table],
+  );
+  if (!exists.rows[0]?.present) {
+    return new Set();
+  }
+  const result = await client.query<{ hash: string }>(
+    `select hash from "${MIGRATIONS_SCHEMA}"."${MIGRATIONS_TABLE}"`,
+  );
+  return new Set(result.rows.map((row) => row.hash));
 }
 
 async function appliedCount(client: pg.Client): Promise<number> {

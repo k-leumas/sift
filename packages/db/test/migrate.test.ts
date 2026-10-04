@@ -264,6 +264,79 @@ describe('migrate() ordering (drizzle applies only migrations newer than the las
   });
 });
 
+describe('migrate() decides skipped migrations by identity, not by count (WR-04)', () => {
+  async function appliedRows(ownerUrl: string): Promise<number> {
+    const owner = await connect(ownerUrl);
+    try {
+      const { rows } = await owner.query<{ n: number }>(
+        'select count(*)::int as n from drizzle.__drizzle_migrations',
+      );
+      return rows[0]?.n ?? -1;
+    } finally {
+      await owner.end();
+    }
+  }
+
+  it('refuses a skipped migration when a row from another branch makes the counts match', async () => {
+    const fresh = await freshDatabase();
+    const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
+    try {
+      const when = Date.now();
+      await withExtraMigration(folder, when);
+      // feat-1 applied its own 0005 (dated later) to this database; on feat-2
+      // the journal has 0005_test_extra instead. 6 rows, 6 journal entries.
+      const owner = await connect(fresh.ownerUrl);
+      try {
+        await owner.query(
+          'insert into drizzle.__drizzle_migrations (hash, created_at) values ($1, $2)',
+          ['hash-of-0005-from-another-branch', when + 60_000],
+        );
+      } finally {
+        await owner.end();
+      }
+
+      await expect(
+        migrate({
+          ownerUrl: fresh.ownerUrl,
+          appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+          migrationsFolder: folder,
+          backup: { url: fresh.backupUrl, dir: folder, pgDump: 'sift-pg-dump-must-not-run' },
+        }),
+      ).rejects.toThrow(/1 migration\(s\) .* would never be applied \(0005_test_extra\)/);
+      expect(await appliedRows(fresh.ownerUrl)).toBe(6);
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+      await fresh.drop();
+    }
+  });
+
+  it('refuses an applied migration whose file was edited afterwards', async () => {
+    const fresh = await freshDatabase();
+    const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
+    try {
+      await cp(MIGRATIONS_FOLDER, folder, { recursive: true });
+      const edited = path.join(folder, '0004_scoped_tables_force_grants.sql');
+      await writeFile(
+        edited,
+        `${await readFile(edited, 'utf8')}\n-- edited after it was applied\n`,
+      );
+
+      await expect(
+        migrate({
+          ownerUrl: fresh.ownerUrl,
+          appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+          migrationsFolder: folder,
+          backup: { url: fresh.backupUrl, dir: folder, pgDump: 'sift-pg-dump-must-not-run' },
+        }),
+      ).rejects.toThrow(/\(0004_scoped_tables_force_grants\)/);
+      expect(await appliedRows(fresh.ownerUrl)).toBe(5);
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+      await fresh.drop();
+    }
+  });
+});
+
 describe('migrate() backups (D-29, D-66)', () => {
   it('backs up before applying pending migrations', async (ctx) => {
     const pgDump = requirePgDump(ctx);
