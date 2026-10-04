@@ -114,6 +114,22 @@ describe('catalog privilege and role checks (D-37, D-40, D-66)', () => {
     expect(violations).toEqual(['public.decision: sift_app has UPDATE, expected none']);
   });
 
+  it('reports column-level SELECT and INSERT grants that has_table_privilege misses', async () => {
+    const violations = await violationsAfter((db) =>
+      run(
+        db.ownerUrl,
+        'grant insert (slug) on mailbox to sift_app',
+        'grant select (id) on drizzle.__drizzle_migrations to sift_app',
+        'grant insert (created_at) on message to sift_backup',
+      ),
+    );
+    expect(violations.sort()).toEqual([
+      'drizzle.__drizzle_migrations: sift_app has SELECT, expected none',
+      'public.mailbox: sift_app has INSERT, expected none',
+      'public.message: sift_backup has INSERT, expected none',
+    ]);
+  });
+
   it('reports a missing grant, an extra registry column and a dropped trigger', async () => {
     const violations = await violationsAfter((db) =>
       run(

@@ -123,14 +123,16 @@ const RELATIONS_SQL = `
         and (t.tgtype::int & 16) = 16  -- UPDATE
         and f.proname = 'set_updated_at'
     ) as updated_at_trigger,
-    has_table_privilege('sift_app', c.oid, 'SELECT') as app_select,
-    has_table_privilege('sift_app', c.oid, 'INSERT') as app_insert,
+    -- has_any_column_privilege: true for a table-level grant and for a grant on
+    -- any single column, which has_table_privilege does not see.
+    has_any_column_privilege('sift_app', c.oid, 'SELECT') as app_select,
+    has_any_column_privilege('sift_app', c.oid, 'INSERT') as app_insert,
     has_any_column_privilege('sift_app', c.oid, 'UPDATE') as app_update,
     has_table_privilege('sift_app', c.oid, 'DELETE') as app_delete,
     has_table_privilege('sift_app', c.oid, 'TRUNCATE') as app_truncate,
     has_table_privilege('sift_app', c.oid, 'REFERENCES') as app_references,
     has_table_privilege('sift_app', c.oid, 'TRIGGER') as app_trigger,
-    has_table_privilege('sift_backup', c.oid, 'INSERT') as backup_insert,
+    has_any_column_privilege('sift_backup', c.oid, 'INSERT') as backup_insert,
     has_any_column_privilege('sift_backup', c.oid, 'UPDATE') as backup_update,
     has_table_privilege('sift_backup', c.oid, 'DELETE') as backup_delete,
     has_table_privilege('sift_backup', c.oid, 'TRUNCATE') as backup_truncate
