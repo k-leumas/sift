@@ -39,6 +39,19 @@ interface Row {
 
 const sortedIds = (rows: readonly { id: string }[]): string[] => rows.map((r) => r.id).sort();
 
+const idColumn = (table: ScopedTable): string => (table === 'mailbox_status' ? 'mailbox_id' : 'id');
+
+/** label and decision reference a message through (mailbox_id, message_id) (D-04). */
+function insertStatement(
+  table: ScopedTable,
+  mailboxId: string | null,
+  messageId: string,
+): [string, unknown[]] {
+  return table === 'label' || table === 'decision'
+    ? [`insert into ${table} (mailbox_id, message_id) values ($1, $2)`, [mailboxId, messageId]]
+    : [`insert into ${table} (mailbox_id) values ($1)`, [mailboxId]];
+}
+
 /**
  * Run `fn` in a transaction with app.mailbox_id set transaction-locally, the
  * way the app's withMailbox does. Rolls back and rethrows on error.
@@ -75,9 +88,8 @@ let truth: Record<ScopedTable, Row[]>;
 async function readTruth(): Promise<Record<ScopedTable, Row[]>> {
   const out = {} as Record<ScopedTable, Row[]>;
   for (const table of SCOPED_TABLE_NAMES) {
-    const idCol = table === 'mailbox_status' ? 'mailbox_id' : 'id';
     const { rows } = await admin.query<Row>(
-      `select ${idCol} as id, mailbox_id, updated_at from ${table}`,
+      `select ${idColumn(table)} as id, mailbox_id, updated_at from ${table}`,
     );
     out[table] = rows;
   }
@@ -170,5 +182,135 @@ describe('mailbox isolation as sift_app with no application filter (ISO-03)', ()
     await expect(
       fresh.query('insert into message (mailbox_id) values ($1)', [A]),
     ).rejects.toMatchObject({ code: '42501' });
+  });
+});
+
+describe('cross-mailbox writes and scope edges (D-48)', () => {
+  const aMessage = (): string => (seededA[0] as ScopedRowIds).messageId;
+  const bMessage = (): string => (seededB[0] as ScopedRowIds).messageId;
+
+  it('inserting a row for B under A fails the RLS check on every scoped table', async () => {
+    for (const table of SCOPED_TABLE_NAMES) {
+      // label and decision point at A's own message, so RLS, not the FK, is what fails.
+      const [sql, params] = insertStatement(table, B, aMessage());
+      await expect(
+        inScope(app, A, (c) => c.query(sql, params)),
+        table,
+      ).rejects.toMatchObject({ code: '42501' });
+    }
+  });
+
+  it('moving an A row to B fails the RLS check on every non-append-only table', async () => {
+    for (const table of MUTABLE_TABLES) {
+      const aRow = rowsOf(table, A)[0] as Row;
+      await expect(
+        inScope(app, A, (c) =>
+          c.query(`update ${table} set mailbox_id = $1 where ${idColumn(table)} = $2`, [
+            B,
+            aRow.id,
+          ]),
+        ),
+        table,
+      ).rejects.toMatchObject({ code: '42501' });
+    }
+  });
+
+  it("an A label or decision pointing at B's message fails the composite FK (D-04)", async () => {
+    for (const table of ['label', 'decision'] as const) {
+      await expect(
+        inScope(app, A, (c) =>
+          c.query(`insert into ${table} (mailbox_id, message_id) values ($1, $2)`, [A, bMessage()]),
+        ),
+        table,
+      ).rejects.toMatchObject({ code: '23503' });
+    }
+  });
+
+  it('a reused connection after a committed scope reads nothing, without error', async () => {
+    const reused = await newAppClient();
+    const first = await inScope(reused, A, (c) => c.query(selectSql('message')));
+    expect(first.rows.length).toBeGreaterThan(0);
+
+    const { rows } = await reused.query<{ setting: string | null }>(
+      "select current_setting('app.mailbox_id', true) as setting",
+    );
+    expect(rows[0]?.setting).toBe('');
+    for (const table of SCOPED_TABLE_NAMES) {
+      const result = await reused.query(selectSql(table));
+      expect(result.rows, table).toHaveLength(0);
+    }
+    await expect(
+      reused.query('insert into message (mailbox_id) values ($1)', [A]),
+    ).rejects.toMatchObject({ code: '42501' });
+  });
+
+  it('a non-UUID app.mailbox_id errors with 22P02 and never returns rows', async () => {
+    await expect(
+      inScope(app, 'not-a-uuid', (c) => c.query('select * from message')),
+    ).rejects.toMatchObject({ code: '22P02' });
+    for (const table of SCOPED_TABLE_NAMES) {
+      await expect(
+        inScope(app, 'not-a-uuid', (c) => c.query(selectSql(table))),
+        table,
+      ).rejects.toMatchObject({ code: '22P02' });
+    }
+  });
+
+  it("the upper-case spelling of A's UUID scopes to A (uuid, not text, equality)", async () => {
+    const upper = A.toUpperCase();
+    expect(upper).not.toBe(A);
+    for (const table of SCOPED_TABLE_NAMES) {
+      const { rows } = await inScope(app, upper, (c) => c.query<Row>(selectSql(table)));
+      expect(sortedIds(rows), table).toEqual(sortedIds(rowsOf(table, A)));
+    }
+  });
+
+  it('an empty mailbox C reads 0 rows from every scoped table', async () => {
+    for (const table of SCOPED_TABLE_NAMES) {
+      const { rows } = await inScope(app, C, (c) => c.query<Row>(selectSql(table)));
+      expect(rows, table).toHaveLength(0);
+    }
+  });
+
+  it("an unfiltered update under A touches exactly A's rows", async () => {
+    const result = await inScope(app, A, (c) => c.query('update message set updated_at = now()'));
+    expect(result.rowCount).toBe(seededA.length);
+    expect(result.rowCount).toBe(rowsOf('message', A).length);
+
+    const after = await readTruth();
+    const bAfter = after.message.filter((r) => r.mailbox_id === B);
+    const bBefore = rowsOf('message', B);
+    expect(sortedIds(bAfter)).toEqual(sortedIds(bBefore));
+    for (const row of bBefore) {
+      const now = bAfter.find((r) => r.id === row.id);
+      expect(now?.updated_at?.getTime(), row.id).toBe(row.updated_at?.getTime());
+    }
+  });
+
+  it('update and delete on append-only tables fail the privilege check (D-40)', async () => {
+    for (const table of APPEND_ONLY_TABLE_NAMES) {
+      await expect(
+        inScope(app, A, (c) => c.query(`update ${table} set updated_at = now()`)),
+        `update ${table}`,
+      ).rejects.toMatchObject({ code: '42501' });
+      await expect(
+        inScope(app, A, (c) => c.query(`delete from ${table}`)),
+        `delete ${table}`,
+      ).rejects.toMatchObject({ code: '42501' });
+    }
+    // Even under the row's own mailbox the rows are still there.
+    const after = await readTruth();
+    for (const table of APPEND_ONLY_TABLE_NAMES) {
+      expect(sortedIds(after[table]), table).toEqual(sortedIds(truth[table]));
+    }
+  });
+
+  it('a NULL mailbox_id fails RLS as sift_app and NOT NULL as the superuser (ISO-01)', async () => {
+    await expect(
+      inScope(app, A, (c) => c.query('insert into message (mailbox_id) values (null)')),
+    ).rejects.toMatchObject({ code: '42501' });
+    await expect(
+      admin.query('insert into message (mailbox_id) values (null)'),
+    ).rejects.toMatchObject({ code: '23502' });
   });
 });
