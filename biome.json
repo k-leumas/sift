@@ -48,6 +48,10 @@
                   {
                     "group": ["drizzle-orm/*"],
                     "message": "Use the scoped API from @sift/db (ISO-04, D-42/D-43)"
+                  },
+                  {
+                    "group": ["**/packages/*/src/**", "@sift/*/src/**"],
+                    "message": "Import workspace packages by name through their exports (e.g. @sift/db), never their src files (ISO-04)"
                   }
                 ]
               }
