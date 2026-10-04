@@ -1,3 +1,4 @@
+export { applyEnvOverrides, checkMailboxEnv, type EnvCheck, secretValues } from './env.ts';
 export { type ConfigIssue, formatIssue, formatPath } from './errors.ts';
 export { type LoadResult, loadConfig, parseConfigText } from './load.ts';
 export {
