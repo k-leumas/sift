@@ -11,6 +11,7 @@ import {
   BackupRequiredError,
   MIGRATE_LOCK_KEY,
   MIGRATIONS_FOLDER,
+  MigrationOrderError,
   migrate,
 } from '../src/owner/migrate.ts';
 import { SCOPED_TABLE_NAMES } from '../src/schema/index.ts';
@@ -185,6 +186,81 @@ describe('migrate()', () => {
       backup: undefined,
     });
     expect(result).toEqual({ applied: [], backupFile: null });
+  });
+});
+
+describe('migrate() ordering (drizzle applies only migrations newer than the last one)', () => {
+  async function appliedTags(ownerUrl: string): Promise<number> {
+    const owner = await connect(ownerUrl);
+    try {
+      const { rows } = await owner.query<{ n: number }>(
+        'select count(*)::int as n from drizzle.__drizzle_migrations',
+      );
+      return rows[0]?.n ?? -1;
+    } finally {
+      await owner.end();
+    }
+  }
+
+  it('refuses a journal entry dated before the previous one, before touching the database', async () => {
+    const fresh = await freshDatabase();
+    const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
+    try {
+      const journal = JSON.parse(
+        await readFile(path.join(MIGRATIONS_FOLDER, 'meta', '_journal.json'), 'utf8'),
+      ) as { entries: { when: number }[] };
+      const lastWhen = journal.entries.at(-1)?.when ?? 0;
+      await withExtraMigration(folder, lastWhen - 1);
+
+      const run = migrate({
+        ownerUrl: fresh.ownerUrl,
+        appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+        migrationsFolder: folder,
+        backup: { url: fresh.backupUrl, dir: folder, pgDump: 'sift-pg-dump-must-not-run' },
+      });
+      await expect(run).rejects.toThrow(MigrationOrderError);
+      await expect(run).rejects.toThrow(/0005_test_extra is dated no later than 0004_/);
+      expect(await appliedTags(fresh.ownerUrl)).toBe(5);
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+      await fresh.drop();
+    }
+  });
+
+  it('refuses a pending migration older than the last applied one instead of reporting nothing pending', async () => {
+    const fresh = await freshDatabase();
+    const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
+    try {
+      const when = Date.now();
+      await withExtraMigration(folder, when);
+      // The database already ran a migration from another branch dated later
+      // than 0005_test_extra (the rebase case): drizzle would skip 0005.
+      const owner = await connect(fresh.ownerUrl);
+      try {
+        await owner.query(
+          `update drizzle.__drizzle_migrations set created_at = $1
+            where id = (select max(id) from drizzle.__drizzle_migrations)`,
+          [when + 60_000],
+        );
+      } finally {
+        await owner.end();
+      }
+
+      await expect(
+        migrate({
+          ownerUrl: fresh.ownerUrl,
+          appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+          migrationsFolder: folder,
+          backup: { url: fresh.backupUrl, dir: folder, pgDump: 'sift-pg-dump-must-not-run' },
+        }),
+      ).rejects.toThrow(
+        /1 migration\(s\) in the journal are older than the last applied one and would never be applied/,
+      );
+      expect(await appliedTags(fresh.ownerUrl)).toBe(5);
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+      await fresh.drop();
+    }
   });
 });
 
@@ -508,15 +584,15 @@ function checked(result: SpawnSyncReturns<string>): string {
   return result.stdout;
 }
 
-/** Copy the committed migrations and append a trivial 0005_test_extra. */
-async function withExtraMigration(folder: string): Promise<void> {
+/** Copy the committed migrations and append a trivial 0005_test_extra dated `when`. */
+async function withExtraMigration(folder: string, when: number = Date.now()): Promise<void> {
   await cp(MIGRATIONS_FOLDER, folder, { recursive: true });
   const journalPath = path.join(folder, 'meta', '_journal.json');
   const journal = JSON.parse(await readFile(journalPath, 'utf8')) as { entries: object[] };
   journal.entries.push({
     idx: 5,
     version: '7',
-    when: Date.now(),
+    when,
     tag: '0005_test_extra',
     breakpoints: true,
   });

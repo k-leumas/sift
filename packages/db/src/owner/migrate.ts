@@ -53,6 +53,16 @@ export class BackupRequiredError extends Error {
   override name = 'BackupRequiredError';
 }
 
+/**
+ * A journal migration would never be applied. Drizzle applies a migration only
+ * when its journal `when` is newer than the last applied one, so an entry dated
+ * older (typically after a rebase of two branches that each generated one) is
+ * skipped silently. Nothing was changed.
+ */
+export class MigrationOrderError extends Error {
+  override name = 'MigrationOrderError';
+}
+
 interface JournalEntry {
   tag: string;
 }
@@ -78,6 +88,14 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
       `Migration journal lists ${tags.length} entries but ${migrations.length} were read`,
     );
   }
+  const millis = migrations.map((m) => m.folderMillis);
+  for (let i = 1; i < millis.length; i += 1) {
+    if ((millis[i] ?? 0) <= (millis[i - 1] ?? 0)) {
+      throw new MigrationOrderError(
+        `Migration ${tags[i]} is dated no later than ${tags[i - 1]} in meta/_journal.json, so it would never be applied; regenerate it so its "when" is the newest`,
+      );
+    }
+  }
 
   const client = new pg.Client({ connectionString: options.ownerUrl });
   await client.connect();
@@ -90,7 +108,14 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
     // then the required backup. A missing or failed backup leaves the role and
     // the schema untouched (T-01-32).
     const before = await appliedCount(client);
-    const pending = tags.slice(before);
+    // Pending exactly as drizzle decides it: newer than the last applied one.
+    const last = await lastAppliedMillis(client);
+    const pending = tags.filter((_, i) => last === null || last < (millis[i] ?? 0));
+    if (before + pending.length < tags.length) {
+      throw new MigrationOrderError(
+        `${tags.length - before - pending.length} migration(s) in the journal are older than the last applied one and would never be applied; regenerate them so their "when" is the newest`,
+      );
+    }
     const backupFile =
       pending.length === 0 ? null : await backupBeforeApplying(options.backup, pending, log);
 
@@ -102,8 +127,13 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
       migrationsSchema: MIGRATIONS_SCHEMA,
     });
     const after = await appliedCount(client);
+    if (after - before !== pending.length) {
+      throw new MigrationOrderError(
+        `Expected to apply ${pending.length} migration(s) but ${after - before} were recorded`,
+      );
+    }
 
-    const applied = tags.slice(before, after);
+    const applied = pending;
     log(
       applied.length === 0
         ? 'No pending migrations'
@@ -156,6 +186,23 @@ function readJournalTags(migrationsFolder: string): string[] {
   const journalPath = path.join(migrationsFolder, 'meta', '_journal.json');
   const journal = JSON.parse(readFileSync(journalPath, 'utf8')) as { entries: JournalEntry[] };
   return journal.entries.map((entry) => entry.tag);
+}
+
+/** created_at of the newest applied migration (drizzle's own rule), or null when none. */
+async function lastAppliedMillis(client: pg.Client): Promise<number | null> {
+  const table = `${MIGRATIONS_SCHEMA}.${MIGRATIONS_TABLE}`;
+  const exists = await client.query<{ present: boolean }>(
+    'select to_regclass($1) is not null as present',
+    [table],
+  );
+  if (!exists.rows[0]?.present) {
+    return null;
+  }
+  const result = await client.query<{ created_at: string | null }>(
+    `select created_at from "${MIGRATIONS_SCHEMA}"."${MIGRATIONS_TABLE}" order by created_at desc limit 1`,
+  );
+  const value = result.rows[0]?.created_at;
+  return value === undefined || value === null ? null : Number(value);
 }
 
 async function appliedCount(client: pg.Client): Promise<number> {
