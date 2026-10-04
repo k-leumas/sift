@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { migrate } from '../src/owner/migrate.ts';
+import { SCOPED_TABLE_NAMES } from '../src/schema/index.ts';
 import { connect, freshDatabase, requireEnv, type TestDatabase } from './support/db.ts';
+import { seedMailboxes, seedScopedRows } from './support/seed.ts';
 
 let db: TestDatabase;
 
@@ -19,7 +21,7 @@ describe('migrate()', () => {
       const { rows } = await owner.query<{ n: number }>(
         'select count(*)::int as n from drizzle.__drizzle_migrations',
       );
-      expect(rows[0]?.n).toBe(3);
+      expect(rows[0]?.n).toBe(5);
     } finally {
       await owner.end();
     }
@@ -79,6 +81,67 @@ describe('migrate()', () => {
       expect(rows[0]?.n).toBe(0);
     } finally {
       await unscoped.end();
+    }
+  });
+
+  it('scopes every mailbox-scoped table to app.mailbox_id for sift_app', async () => {
+    const { work } = await seedMailboxes(db.ownerUrl, ['work']);
+    if (work === undefined) {
+      throw new Error('seedMailboxes returned no id for "work"');
+    }
+    for (const _table of SCOPED_TABLE_NAMES) {
+      await seedScopedRows(db.ownerUrl, work);
+    }
+
+    const scoped = await connect(db.appUrl);
+    try {
+      await scoped.query('begin');
+      await scoped.query("select set_config('app.mailbox_id', $1, true)", [work]);
+      for (const table of SCOPED_TABLE_NAMES) {
+        const { rows } = await scoped.query<{ n: number }>(
+          `select count(*)::int as n from "${table}"`,
+        );
+        expect(rows[0]?.n, `${table} under scope`).toBeGreaterThanOrEqual(1);
+      }
+      await scoped.query('commit');
+    } finally {
+      await scoped.end();
+    }
+
+    const unscoped = await connect(db.appUrl);
+    try {
+      for (const table of SCOPED_TABLE_NAMES) {
+        const { rows } = await unscoped.query<{ n: number }>(
+          `select count(*)::int as n from "${table}"`,
+        );
+        expect(rows[0]?.n, `${table} without scope`).toBe(0);
+      }
+    } finally {
+      await unscoped.end();
+    }
+  });
+
+  it('bumps updated_at on UPDATE through the trigger', async () => {
+    const { audit } = await seedMailboxes(db.ownerUrl, ['audit']);
+    if (audit === undefined) {
+      throw new Error('seedMailboxes returned no id for "audit"');
+    }
+    const { messageId } = await seedScopedRows(db.ownerUrl, audit);
+
+    // A later transaction than the insert, so now() differs.
+    const app = await connect(db.appUrl);
+    try {
+      await app.query('begin');
+      await app.query("select set_config('app.mailbox_id', $1, true)", [audit]);
+      const { rows } = await app.query<{ bumped: boolean }>(
+        `update message set mailbox_id = mailbox_id where id = $1
+         returning updated_at > created_at as bumped`,
+        [messageId],
+      );
+      await app.query('commit');
+      expect(rows).toEqual([{ bumped: true }]);
+    } finally {
+      await app.end();
     }
   });
 

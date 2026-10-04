@@ -1,7 +1,15 @@
 import type { mailbox } from './mailbox.ts';
 
 export { mailbox } from './mailbox.ts';
-export { message } from './scoped.ts';
+export {
+  decision,
+  folderSync,
+  label,
+  labelEvent,
+  mailboxStatus,
+  message,
+  ruleSet,
+} from './scoped.ts';
 
 /** Every mailbox-scoped table: NOT NULL mailbox_id, forced RLS, one policy. */
 export const SCOPED_TABLE_NAMES = [
