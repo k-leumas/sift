@@ -8,6 +8,7 @@
 .env.*
 config/config.yaml
 backups
+.smoke
 data
 **/test
 docs

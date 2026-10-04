@@ -17,10 +17,15 @@
 # containers: set COMPOSE_PROJECT_NAME (and SIFT_DB_PORT if your db already
 # publishes 5432).
 #
+# Pre-migration dumps go to .smoke/<project>/backups (SIFT_BACKUP_HOST_DIR),
+# never to ./backups: every smoke run migrates a fresh database, and the dump
+# prune would otherwise delete your own pre-migration backups.
+#
 # --down runs `docker compose down -v`, which deletes the smoke volume. It only
 # runs when CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes is set.
 #
-# Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME, SIFT_DB_PORT.
+# Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME, SIFT_DB_PORT,
+# SIFT_BACKUP_HOST_DIR.
 set -euo pipefail
 
 down=false
@@ -61,6 +66,17 @@ fi
 
 umask 077
 
+# Resolved physical path of an existing directory.
+real_dir() { (cd "$1" && pwd -P); }
+
+backup_dir=${SIFT_BACKUP_HOST_DIR:-$PWD/.smoke/$project/backups}
+mkdir -p "$backup_dir"
+if [ -d backups ] && [ "$(real_dir "$backup_dir")" = "$(real_dir backups)" ]; then
+  refuse "refusing to write smoke dumps into ./backups, your own backup folder; unset SIFT_BACKUP_HOST_DIR."
+fi
+SIFT_BACKUP_HOST_DIR=$(real_dir "$backup_dir")
+export SIFT_BACKUP_HOST_DIR
+
 if [ ! -f .env ]; then
   while IFS= read -r line || [ -n "$line" ]; do
     case $line in
@@ -82,10 +98,10 @@ if [ ! -f .env.mailboxes ]; then
 fi
 
 # setup and worker run as uid 1000 (the image's node user) and bind-mount
-# ./config read-only and ./backups read-write. Linux enforces host ownership on
-# bind mounts (Docker Desktop on macOS does not), so config.yaml must be
-# readable by others and backups/ must be owned by uid 1000. The .env files stay
-# 0600: only the compose CLI on the host reads them.
+# ./config read-only and the backup dir read-write. Linux enforces host
+# ownership on bind mounts (Docker Desktop on macOS does not), so config.yaml
+# must be readable by others and the backup dir must be owned by uid 1000. The
+# .env files stay 0600: only the compose CLI on the host reads them.
 if [ ! -f config/config.yaml ]; then
   (umask 022 && cp config/config.example.yaml config/config.yaml)
   echo "compose-smoke: created config/config.yaml from config/config.example.yaml"
@@ -95,12 +111,11 @@ as_root() {
   if [ "$(id -u)" = 0 ]; then "$@"; else sudo -n "$@"; fi
 }
 
-mkdir -p backups
 if [ "$(uname -s)" = Linux ] && [ "$(id -u)" != 1000 ] \
-  && [ "$(ls -nd backups | awk '{print $3}')" != 1000 ]; then
-  echo "compose-smoke: chown 1000 backups (setup writes pre-migration dumps there as uid 1000)"
-  if ! as_root chown 1000 backups; then
-    echo "compose-smoke: FAILED: backups/ must be writable by uid 1000; run: sudo chown 1000 backups" >&2
+  && [ "$(ls -nd "$SIFT_BACKUP_HOST_DIR" | awk '{print $3}')" != 1000 ]; then
+  echo "compose-smoke: chown 1000 $SIFT_BACKUP_HOST_DIR (setup writes pre-migration dumps there as uid 1000)"
+  if ! as_root chown 1000 "$SIFT_BACKUP_HOST_DIR"; then
+    echo "compose-smoke: FAILED: $SIFT_BACKUP_HOST_DIR must be writable by uid 1000; run: sudo chown 1000 $SIFT_BACKUP_HOST_DIR" >&2
     exit 1
   fi
 fi

@@ -144,6 +144,15 @@ describe('worker credentials (T-01-48, D-39, D-67)', () => {
   });
 });
 
+describe('setup backups (D-29, CR-02)', () => {
+  it('writes dumps to ./backups unless compose-smoke points it elsewhere', () => {
+    expect(service('setup').volumes).toContain(
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+      '${SIFT_BACKUP_HOST_DIR:-./backups}:/backups',
+    );
+  });
+});
+
 describe('setup credentials (T-01-49, D-67)', () => {
   const setup = service('setup');
   const setupEnv = env(setup);

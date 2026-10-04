@@ -152,5 +152,7 @@ config/config.yaml
 # pg_dump files written by `sift migrate`
 backups/*
 !backups/.gitkeep
+# Throwaway files of scripts/compose-smoke.sh (dumps, generated config)
+.smoke/
 # Local runtime data
 data/

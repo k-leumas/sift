@@ -5,9 +5,12 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   statSync,
+  symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -29,6 +32,7 @@ let work: string;
 let bin: string;
 let sudoLog: string;
 let dockerLog: string;
+let backupLog: string;
 
 function shim(name: string, body: string): void {
   const file = path.join(bin, name);
@@ -49,7 +53,10 @@ function runSmoke(
   env: Record<string, string> = { COMPOSE_PROJECT_NAME: 'smoketest' },
   args: string[] = [],
 ): { status: number | null; stderr: string } {
-  shim('docker', `echo "$SIFT_PGDATA_VOLUME $*" >> '${dockerLog}'; exit 1`);
+  shim(
+    'docker',
+    `echo "$SIFT_PGDATA_VOLUME $*" >> '${dockerLog}'; echo "$SIFT_BACKUP_HOST_DIR" >> '${backupLog}'; exit 1`,
+  );
   shim('uname', `echo ${os}`);
   shim('id', `if [ "$1" = -u ]; then echo ${uid}; else exit 1; fi`);
   shim('sudo', sudo);
@@ -60,6 +67,17 @@ function runSmoke(
     timeout: 30_000,
   });
   return { status: result.status, stderr: result.stderr };
+}
+
+/** The smoke stack's own backup dir for project "smoketest" (physical path). */
+function smokeBackups(project = 'smoketest'): string {
+  return path.join(realpathSync(work), '.smoke', project, 'backups');
+}
+
+/** SIFT_BACKUP_HOST_DIR as seen by the first docker invocation, or undefined. */
+function exportedBackupDir(): string | undefined {
+  if (!existsSync(backupLog)) return undefined;
+  return readFileSync(backupLog, 'utf8').split('\n')[0];
 }
 
 /** First docker invocation as "<SIFT_PGDATA_VOLUME> <args>", or undefined. */
@@ -73,6 +91,7 @@ beforeEach(() => {
   bin = path.join(work, 'bin');
   sudoLog = path.join(work, 'sudo.log');
   dockerLog = path.join(work, 'docker.log');
+  backupLog = path.join(work, 'backup-dir.log');
   mkdirSync(bin);
   for (const file of INPUTS) {
     mkdirSync(path.dirname(path.join(work, file)), { recursive: true });
@@ -100,23 +119,24 @@ describe('scripts/compose-smoke.sh file preparation (CR-01)', () => {
   });
 
   it.skipIf(process.getuid?.() === 1000)(
-    'hands backups/ to uid 1000 on a Linux host whose uid is not 1000',
+    'hands the smoke backup dir to uid 1000 on a Linux host whose uid is not 1000',
     () => {
       runSmoke('Linux', '1001');
-      expect(readFileSync(sudoLog, 'utf8').trim()).toBe('-n chown 1000 backups');
+      expect(readFileSync(sudoLog, 'utf8').trim()).toBe(`-n chown 1000 ${smokeBackups()}`);
     },
   );
 
-  it('leaves backups/ alone on macOS and when the host uid is already 1000', () => {
+  it('leaves the backup dir alone on macOS and when the host uid is already 1000', () => {
     runSmoke('Darwin', '501');
     runSmoke('Linux', '1000');
     expect(existsSync(sudoLog)).toBe(false);
   });
 
-  it('fails before starting the stack when backups/ cannot be handed to uid 1000', () => {
+  it('fails before starting the stack when the backup dir cannot be handed to uid 1000', () => {
     const { status, stderr } = runSmoke('Linux', '1001', 'exit 1');
     expect(status).toBe(1);
-    expect(stderr).toContain('sudo chown 1000 backups');
+    expect(stderr).toContain(`sudo chown 1000 ${smokeBackups()}`);
+    expect(firstDockerCall()).toBeUndefined();
   });
 });
 
@@ -162,5 +182,47 @@ describe('scripts/compose-smoke.sh never touches the owner database (WR-01)', ()
     expect(status).toBe(2);
     expect(stderr).toContain('smoketest-pgdata-smoke');
     expect(firstDockerCall()).toBeUndefined();
+  });
+});
+
+describe('scripts/compose-smoke.sh never touches the owner backups (CR-02)', () => {
+  it('sends the smoke dumps to .smoke/<project>/backups and leaves ./backups alone', () => {
+    const { status } = runSmoke('Linux', '1001');
+    expect(status).toBe(1); // stopped at the stubbed docker build
+    expect(exportedBackupDir()).toBe(smokeBackups());
+    expect(exportedBackupDir()).not.toBe(realpathSync(path.join(work, 'backups')));
+    expect(statSync(smokeBackups()).isDirectory()).toBe(true);
+    expect(readdirSync(path.join(work, 'backups'))).toEqual(['.gitkeep']);
+    expect(readFileSync(sudoLog, 'utf8')).not.toMatch(/chown 1000 backups$/m);
+  });
+
+  it.each([
+    ['./backups', 'backups'],
+    ['the absolute ./backups path', 'ABS'],
+    ['a symlink to ./backups', 'LINK'],
+  ])('refuses SIFT_BACKUP_HOST_DIR = %s, before any docker call', (_label, value) => {
+    let dir = value;
+    if (value === 'ABS') dir = path.join(work, 'backups');
+    if (value === 'LINK') {
+      dir = path.join(work, 'elsewhere');
+      symlinkSync(path.join(work, 'backups'), dir);
+    }
+    const { status, stderr } = runSmoke('Linux', '1001', undefined, {
+      COMPOSE_PROJECT_NAME: 'smoketest',
+      SIFT_BACKUP_HOST_DIR: dir,
+    });
+    expect(status).toBe(2);
+    expect(stderr).toContain('./backups');
+    expect(firstDockerCall()).toBeUndefined();
+    expect(existsSync(sudoLog)).toBe(false);
+    expect(existsSync(path.join(work, '.env'))).toBe(false);
+  });
+
+  it('honours an explicit SIFT_BACKUP_HOST_DIR elsewhere', () => {
+    runSmoke('Darwin', '501', undefined, {
+      COMPOSE_PROJECT_NAME: 'smoketest',
+      SIFT_BACKUP_HOST_DIR: 'custom/dumps',
+    });
+    expect(exportedBackupDir()).toBe(path.join(realpathSync(work), 'custom', 'dumps'));
   });
 });

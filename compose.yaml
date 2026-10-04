@@ -56,7 +56,9 @@ services:
     volumes:
       - ./config:/config:ro
       # Must be writable by uid 1000 (the image's node user).
-      - ./backups:/backups
+      # SIFT_BACKUP_HOST_DIR exists only so scripts/compose-smoke.sh keeps its
+      # throwaway dumps out of your ./backups; leave it unset.
+      - ${SIFT_BACKUP_HOST_DIR:-./backups}:/backups
     depends_on:
       db:
         condition: service_healthy
