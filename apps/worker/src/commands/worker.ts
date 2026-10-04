@@ -9,6 +9,7 @@ import {
 } from '@sift/core/config';
 import { createLogger, redactText } from '@sift/core/log';
 import { createAppDb, requireDatabaseUrl } from '@sift/db';
+import { assertUnprivilegedRole, connectWithRetry, DatabaseStartupError } from '@sift/db/connect';
 import type { CommandIO } from '../command.ts';
 import { createHeartbeat, defaultHeartbeatFile } from '../runtime/heartbeat.ts';
 import { createMailboxCallbacks } from '../runtime/mailbox-batch.ts';
@@ -24,8 +25,9 @@ function displayPath(path: string, cwd: string): string {
 
 /**
  * `sift worker` (D-49..D-54). Startup order: config, password_env presence,
- * then the database as sift_app (SIFT_DATABASE_URL), then the registry drift
- * check (D-34), then the supervisor.
+ * then the database as sift_app (SIFT_DATABASE_URL: classified connect retry
+ * and the unprivileged-role guard, D-55), then the registry drift check
+ * (D-34), then the supervisor.
  * Nothing touches the database before the env check (D-35), so a missing
  * password produces exactly one log line.
  *
@@ -75,6 +77,19 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
   });
 
   try {
+    // D-55: retry only self-resolving connection errors, then refuse a role
+    // that would bypass RLS (T-01-43).
+    try {
+      await connectWithRetry(db, { log });
+      await assertUnprivilegedRole(db);
+    } catch (error) {
+      if (error instanceof DatabaseStartupError) {
+        log.error({ code: error.code }, error.message);
+        return 1;
+      }
+      throw error;
+    }
+
     // D-34: never run against a registry that no longer matches config.yaml.
     // The worker does not reconcile config itself (D-27).
     const differences = await checkDrift(db, config);
