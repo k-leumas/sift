@@ -1,4 +1,4 @@
-import type { MailboxConfig, SiftConfig } from '@sift/core/config';
+import { imapIdentityKey, type MailboxConfig, type SiftConfig } from '@sift/core/config';
 import type { MailboxRow } from './schema/index.ts';
 
 /**
@@ -150,10 +150,6 @@ export interface RenameSuspects {
   pairs: RenamePair[];
 }
 
-function identityKey(host: string, username: string, folder: string): string {
-  return JSON.stringify([host.trim().toLowerCase(), username.trim().toLowerCase(), folder.trim()]);
-}
-
 /**
  * A slug that disappears while another appears in the same apply may be a
  * rename typed into config.yaml (D-33). Returns the suspects when there is at
@@ -178,7 +174,7 @@ export function findRenameSuspects(
 
   const addedByKey = new Map<string, string[]>();
   for (const { slug, values } of adds) {
-    const key = identityKey(values.imapHost, values.imapUsername, values.imapFolder);
+    const key = imapIdentityKey(values.imapHost, values.imapUsername, values.imapFolder);
     addedByKey.set(key, [...(addedByKey.get(key) ?? []), slug]);
   }
   const removedKeys = new Map<string, string[]>();
@@ -186,7 +182,7 @@ export function findRenameSuspects(
   for (const slug of removed) {
     const row = rows.find((r) => r.slug === slug);
     if (row === undefined) continue;
-    const key = identityKey(row.imapHost, row.imapUsername, row.imapFolder);
+    const key = imapIdentityKey(row.imapHost, row.imapUsername, row.imapFolder);
     keyOf.set(slug, key);
     removedKeys.set(key, [...(removedKeys.get(key) ?? []), slug]);
   }

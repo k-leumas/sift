@@ -6,6 +6,7 @@ export {
   DEFAULT_POLL_INTERVAL_SECONDS,
   ENV_VAR_NAME_PATTERN,
   type ImapConfig,
+  imapIdentityKey,
   MAX_POLL_INTERVAL_SECONDS,
   type MailboxConfig,
   MIN_POLL_INTERVAL_SECONDS,

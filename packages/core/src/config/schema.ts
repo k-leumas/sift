@@ -132,10 +132,22 @@ function field(value: unknown, key: string): unknown {
 }
 
 /**
- * Identity of the IMAP mailbox a config entry reads (D-64). Host and username
- * compare case-insensitively; INBOX is case-insensitive per RFC 3501, every
- * other folder name is compared exactly.
+ * Identity of an IMAP mailbox (D-64), shared by the duplicate check and the
+ * registry's rename pairing. Values are trimmed, as the schema stores them.
+ * Host and username compare case-insensitively; INBOX is case-insensitive per
+ * RFC 3501, every other folder name is compared exactly.
  */
+export function imapIdentityKey(host: string, username: string, folder: string): string {
+  const trimmedFolder = folder.trim();
+  const normalisedFolder = trimmedFolder.toUpperCase() === 'INBOX' ? 'INBOX' : trimmedFolder;
+  return JSON.stringify([
+    host.trim().toLowerCase(),
+    username.trim().toLowerCase(),
+    normalisedFolder,
+  ]);
+}
+
+/** imapIdentityKey of a raw (not yet parsed) config entry, or undefined. */
 function imapIdentity(mailbox: unknown): string | undefined {
   const imap = field(mailbox, 'imap');
   const host = field(imap, 'host');
@@ -144,8 +156,7 @@ function imapIdentity(mailbox: unknown): string | undefined {
   if (typeof host !== 'string' || typeof username !== 'string' || typeof folder !== 'string') {
     return undefined;
   }
-  const normalisedFolder = folder.toUpperCase() === 'INBOX' ? 'INBOX' : folder;
-  return JSON.stringify([host.toLowerCase(), username.toLowerCase(), normalisedFolder]);
+  return imapIdentityKey(host, username, folder);
 }
 
 /** Slug uniqueness (D-63) and one config entry per IMAP mailbox (D-64). */

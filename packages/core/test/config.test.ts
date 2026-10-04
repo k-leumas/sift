@@ -1,4 +1,4 @@
-import { type ConfigIssue, formatPath, parseConfigText } from '@sift/core/config';
+import { type ConfigIssue, formatPath, imapIdentityKey, parseConfigText } from '@sift/core/config';
 import { describe, expect, it } from 'vitest';
 
 interface MailboxYaml {
@@ -169,6 +169,29 @@ describe('password_env and duplicate mailboxes (D-62, D-64)', () => {
         mailbox({ slug: 'a', folder: 'Archive' }),
         mailbox({ slug: 'b', folder: 'INBOX' }),
       ]),
+    );
+  });
+
+  it('rejects the same account when values differ only by surrounding spaces (IN-01)', () => {
+    // The schema stores trimmed values, so these two entries would be identical.
+    const text = configYaml([
+      mailbox({ slug: 'a', host: '"bridge "', username: '" me@x"', folder: '" INBOX "' }),
+      mailbox({ slug: 'b', host: 'bridge', username: 'me@x', folder: 'INBOX' }),
+    ]);
+    const messages = issuesOf(text).map((issue) => issue.message);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain('mailboxes[0] and mailboxes[1] read the same IMAP mailbox');
+  });
+
+  it('builds one identity key for trimmed, case-folded host and username (IN-01)', () => {
+    expect(imapIdentityKey(' Bridge ', 'Me@X ', ' inbox')).toBe(
+      imapIdentityKey('bridge', 'me@x', 'INBOX'),
+    );
+    expect(imapIdentityKey('bridge', 'me@x', ' Archive ')).toBe(
+      imapIdentityKey('bridge', 'me@x', 'Archive'),
+    );
+    expect(imapIdentityKey('bridge', 'me@x', 'Archive')).not.toBe(
+      imapIdentityKey('bridge', 'me@x', 'archive'),
     );
   });
 

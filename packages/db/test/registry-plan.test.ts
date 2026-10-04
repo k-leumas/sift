@@ -139,6 +139,19 @@ describe('findRenameSuspects', () => {
     });
   });
 
+  it('pairs by the same identity as the D-64 duplicate check: INBOX in any case (IN-01)', () => {
+    const alpha = mailbox('alpha', { username: 'a@proton.me', folder: 'INBOX' });
+    const beta = mailbox('beta', { username: 'b@proton.me' });
+    const zeta = mailbox('zeta', { username: 'a@proton.me', folder: 'inbox' });
+    const gamma = mailbox('gamma', { username: 'b@proton.me' });
+    const rows = [row(alpha), row(beta)];
+    const changes = planRegistryChanges(config(zeta, gamma), rows);
+    expect(findRenameSuspects(changes, rows)?.pairs).toEqual([
+      { from: 'alpha', to: 'zeta' },
+      { from: 'beta', to: 'gamma' },
+    ]);
+  });
+
   it('suggests no pair when several slugs change and no IMAP identity matches', () => {
     const rows = [row(mailbox('alpha')), row(mailbox('beta'))];
     const changes = planRegistryChanges(config(mailbox('gamma'), mailbox('zeta')), rows);
