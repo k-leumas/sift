@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-10-03T19:14:49.478Z",
   "lifetime": {
-    "total_tokens_estimated": 2976893,
-    "total_reads": 534,
-    "total_writes": 1945,
-    "total_sessions": 2,
-    "anatomy_hits": 309,
+    "total_tokens_estimated": 2993886,
+    "total_reads": 536,
+    "total_writes": 1947,
+    "total_sessions": 3,
+    "anatomy_hits": 311,
     "anatomy_misses": 225,
     "repeated_reads_blocked": 694,
-    "estimated_savings_vs_bare_cli": 297318
+    "estimated_savings_vs_bare_cli": 297718
   },
   "sessions": [
     {
@@ -13346,6 +13346,61 @@
         "writes_count": 155,
         "repeated_reads_blocked": 52,
         "anatomy_lookups": 27
+      }
+    },
+    {
+      "id": "session-2026-10-04-1107",
+      "started": "2026-10-04T17:07:29.177Z",
+      "ended": "2026-10-04T17:14:01.330Z",
+      "reads": [],
+      "writes": [
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/memory/tooling-dirs-are-code.md",
+          "tokens_estimated": 226,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 226,
+        "reads_count": 0,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 0
+      }
+    },
+    {
+      "id": "session-2026-10-04-1116",
+      "started": "2026-10-04T17:16:12.214Z",
+      "ended": "2026-10-04T17:25:33.731Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/01-foundation-and-isolation/01-REVIEW.md",
+          "tokens_estimated": 4924,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/01-foundation-and-isolation/01-CONTEXT.md",
+          "tokens_estimated": 6215,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/01-foundation-and-isolation/01-REVIEW.md",
+          "tokens_estimated": 5628,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 11139,
+        "output_tokens_estimated": 5628,
+        "reads_count": 2,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 2
       }
     }
   ],

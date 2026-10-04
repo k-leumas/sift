@@ -254,3 +254,4 @@
 | 12:19 | Created .planning/phases/01-foundation-and-isolation/01-REVIEW-FIX.md | — | ~5024 |
 | 12:19 | Edited .planning/phases/01-foundation-and-isolation/01-REVIEW-FIX.md | inline fix | ~35 |
 | 18:20 | Review fix iteration (CR-02, WR-04, WR-09, IN-01..IN-13): 16 commits 5e58de9..51ebdc4; lint/typecheck/test green (342 tests); 01-REVIEW-FIX.md rewritten | scripts/compose-smoke.sh, compose.yaml, packages/db, apps/worker | all_fixed | ~60000 |
+| 12:20 | code-review --fix --all 01: incremental deep re-review (1C/2W/13I) then 16/16 fixed, 342 tests pass, ledger 0/24 open | .planning/phases/01-*/01-REVIEW*.md | all_fixed | ~ |
