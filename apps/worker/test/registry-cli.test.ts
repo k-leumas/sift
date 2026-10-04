@@ -166,4 +166,20 @@ describe('sift config apply rename hint (WR-05)', () => {
     expect(matching.stderr).toContain('sift mailbox rename alpha omega');
     expect(matching.stderr).not.toContain('Their IMAP host');
   });
+
+  it('prints only the non-empty unpaired lists (IN-10)', async () => {
+    // alpha pairs with zeta by account; gamma is new and unpaired; nothing
+    // removed is left unpaired.
+    const mixed = await configFile('mixed.yaml', [
+      ['beta', 'b@proton.me'],
+      ['zeta', 'a@proton.me'],
+      ['gamma', 'g@proton.me'],
+    ]);
+    const { status, stderr } = await apply(mixed);
+    expect(status).toBe(1);
+    expect(stderr).toContain('sift mailbox rename alpha zeta');
+    expect(stderr).toContain('New in config.yaml: "gamma"');
+    expect(stderr).not.toContain('No longer in config.yaml:');
+    expect(stderr).not.toMatch(/: $/m);
+  });
 });

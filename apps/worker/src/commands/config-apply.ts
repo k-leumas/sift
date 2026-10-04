@@ -36,8 +36,12 @@ function printRenameHint(suspects: RenameSuspects, io: CommandIO) {
   const unpairedRemoved = removed.filter((slug) => !pairs.some((p) => p.from === slug));
   const unpairedAdded = added.filter((slug) => !pairs.some((p) => p.to === slug));
   if (unpairedRemoved.length > 0 || unpairedAdded.length > 0) {
-    io.stderr(`  No longer in config.yaml: ${unpairedRemoved.map((s) => `"${s}"`).join(', ')}`);
-    io.stderr(`  New in config.yaml: ${unpairedAdded.map((s) => `"${s}"`).join(', ')}`);
+    if (unpairedRemoved.length > 0) {
+      io.stderr(`  No longer in config.yaml: ${unpairedRemoved.map((s) => `"${s}"`).join(', ')}`);
+    }
+    if (unpairedAdded.length > 0) {
+      io.stderr(`  New in config.yaml: ${unpairedAdded.map((s) => `"${s}"`).join(', ')}`);
+    }
     if (unpairedRemoved.length > 0 && unpairedAdded.length > 0) {
       io.stderr(
         '  Sift cannot tell which of these became which (their IMAP host, username and folder ' +
