@@ -12,3 +12,4 @@ export {
   type SiftConfig,
   type WorkerConfig,
 } from './schema.ts';
+export { RESERVED_SLUGS, SLUG_MAX_LENGTH, SLUG_PATTERN, validateSlug } from './slug.ts';

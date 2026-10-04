@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SUPPORTED_CONFIG_VERSION } from '../index.ts';
+import { validateSlug } from './slug.ts';
 
 /** Default Ollama endpoint as seen from inside the Compose network (D-60). */
 export const DEFAULT_MODELS_URL = 'http://host.docker.internal:11434';
@@ -71,8 +72,21 @@ export const Labels = z.strictObject({
   }),
 });
 
+/**
+ * Accepts any input so a numeric slug reaches validateSlug (and its "quote it"
+ * hint) instead of Zod's generic type error.
+ */
+const Slug = z.unknown().transform((value, ctx): string => {
+  const message = validateSlug(value);
+  if (message !== null) {
+    ctx.addIssue({ code: 'custom', message });
+    return z.NEVER;
+  }
+  return value as string;
+});
+
 export const Mailbox = z.strictObject({
-  slug: nonEmpty('slug'),
+  slug: Slug,
   display_name: nonEmpty('display_name')
     .max(80, 'display_name must be at most 80 characters')
     .optional(),
@@ -111,6 +125,71 @@ export const Worker = z.strictObject(
   { error: unlessMissing('worker must be a mapping') },
 );
 
+function field(value: unknown, key: string): unknown {
+  return typeof value === 'object' && value !== null
+    ? (value as Record<string, unknown>)[key]
+    : undefined;
+}
+
+/**
+ * Identity of the IMAP mailbox a config entry reads (D-64). Host and username
+ * compare case-insensitively; INBOX is case-insensitive per RFC 3501, every
+ * other folder name is compared exactly.
+ */
+function imapIdentity(mailbox: unknown): string | undefined {
+  const imap = field(mailbox, 'imap');
+  const host = field(imap, 'host');
+  const username = field(imap, 'username');
+  const folder = field(imap, 'folder') ?? 'INBOX';
+  if (typeof host !== 'string' || typeof username !== 'string' || typeof folder !== 'string') {
+    return undefined;
+  }
+  const normalisedFolder = folder.toUpperCase() === 'INBOX' ? 'INBOX' : folder;
+  return JSON.stringify([host.toLowerCase(), username.toLowerCase(), normalisedFolder]);
+}
+
+/** Slug uniqueness (D-63) and one config entry per IMAP mailbox (D-64). */
+function checkMailboxDuplicates(mailboxes: unknown, ctx: z.RefinementCtx): void {
+  if (!Array.isArray(mailboxes)) return;
+  const slugs = new Map<string, number>();
+  const accounts = new Map<string, number>();
+  mailboxes.forEach((mailbox: unknown, index) => {
+    const slug = field(mailbox, 'slug');
+    if (typeof slug === 'string') {
+      const first = slugs.get(slug);
+      if (first === undefined) {
+        slugs.set(slug, index);
+      } else {
+        ctx.addIssue({
+          code: 'custom',
+          path: [index, 'slug'],
+          message: `duplicate slug "${slug}" (also used by mailboxes[${first}])`,
+        });
+      }
+    }
+
+    const identity = imapIdentity(mailbox);
+    if (identity !== undefined) {
+      const first = accounts.get(identity);
+      if (first === undefined) {
+        accounts.set(identity, index);
+      } else {
+        const imap = field(mailbox, 'imap');
+        const described = [
+          field(imap, 'host'),
+          field(imap, 'username'),
+          field(imap, 'folder') ?? 'INBOX',
+        ];
+        ctx.addIssue({
+          code: 'custom',
+          path: [index, 'imap'],
+          message: `mailboxes[${first}] and mailboxes[${index}] read the same IMAP mailbox (${described.join(' ')}); this would process mail twice`,
+        });
+      }
+    }
+  });
+}
+
 export const Config = z.strictObject(
   {
     version: Version,
@@ -121,7 +200,10 @@ export const Config = z.strictObject(
             ? 'mailboxes is required: add at least one mailbox'
             : 'mailboxes must be a list of mailboxes',
       })
-      .min(1, 'mailboxes must list at least one mailbox'),
+      .min(1, 'mailboxes must list at least one mailbox')
+      // `when` runs the cross-mailbox checks even if a field elsewhere failed,
+      // so every problem in the file is reported in one pass.
+      .superRefine(checkMailboxDuplicates, { when: () => true }),
     models: Models,
     worker: Worker.default({ poll_interval_seconds: DEFAULT_POLL_INTERVAL_SECONDS }),
   },
