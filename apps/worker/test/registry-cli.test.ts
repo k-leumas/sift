@@ -1,9 +1,12 @@
 // Brings in the vitest ProvidedContext augmentation that types inject('testDb').
 /// <reference path="../../../packages/db/test/global-setup.ts" />
 import { spawnSync } from 'node:child_process';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
+import { run as configApply } from '../src/commands/config-apply.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../../..');
 const CLI = path.join(REPO_ROOT, 'apps/worker/src/cli.ts');
@@ -61,5 +64,87 @@ describe('sift config apply and sift mailbox list (tracer)', () => {
     expect(lines[0]).toMatch(/^SLUG\s+STATUS\s+LAST SEEN\s+LAST SYNC$/);
     expect(lines.find((l) => l.startsWith('personal '))).toMatch(/never run/);
     expect(lines.find((l) => l.startsWith('job-search '))).toMatch(/never run/);
+  });
+});
+
+describe('sift config apply rename hint (WR-05)', () => {
+  let renameDb: TestDatabase;
+  let dir: string;
+
+  beforeAll(async () => {
+    renameDb = await freshDatabase();
+    dir = await mkdtemp(path.join(tmpdir(), 'sift-rename-hint-'));
+  });
+
+  afterAll(async () => {
+    await renameDb?.drop();
+    if (dir !== undefined) await rm(dir, { recursive: true, force: true });
+  });
+
+  /** Config with one mailbox per [slug, IMAP username] entry, in that order. */
+  async function configFile(name: string, entries: [string, string][]): Promise<string> {
+    const mailboxes = entries.map(
+      ([slug, username]) => `  - slug: ${slug}
+    imap:
+      host: protonmail-bridge
+      port: 1143
+      username: ${username}
+      password_env: SIFT_TEST_IMAP_PASSWORD
+    labels:
+      apply_as: proton_labels
+`,
+    );
+    const file = path.join(dir, name);
+    await writeFile(
+      file,
+      `version: 1\nmailboxes:\n${mailboxes.join('')}models:\n  provider: ollama\n  embeddings: nomic-embed-text\n  llm: qwen3:1.7b\n`,
+    );
+    return file;
+  }
+
+  /** Run `sift config apply` in-process; returns the exit code and stderr. */
+  async function apply(file: string): Promise<{ status: number; stderr: string }> {
+    const lines: string[] = [];
+    const status = await configApply([], {
+      env: { SIFT_OWNER_DATABASE_URL: renameDb.ownerUrl, SIFT_CONFIG: file },
+      cwd: dir,
+      stdout: () => {},
+      stderr: (line) => lines.push(line),
+    });
+    return { status, stderr: lines.join('\n') };
+  }
+
+  it('pairs two simultaneous renames by IMAP account, never by position', async () => {
+    const start = await configFile('start.yaml', [
+      ['alpha', 'a@proton.me'],
+      ['beta', 'b@proton.me'],
+    ]);
+    expect((await apply(start)).status).toBe(0);
+
+    // gamma is beta's account and comes first; zeta is alpha's account.
+    const renamed = await configFile('renamed.yaml', [
+      ['gamma', 'b@proton.me'],
+      ['zeta', 'a@proton.me'],
+    ]);
+    const { status, stderr } = await apply(renamed);
+    expect(status).toBe(1);
+    expect(stderr).toContain('sift mailbox rename alpha zeta');
+    expect(stderr).toContain('sift mailbox rename beta gamma');
+    expect(stderr).not.toContain('sift mailbox rename alpha gamma');
+    expect(stderr).not.toContain('sift mailbox rename beta zeta');
+    expect(stderr).toContain('No changes applied.');
+  });
+
+  it('suggests no rename command when the accounts do not match one to one', async () => {
+    const unrelated = await configFile('unrelated.yaml', [
+      ['gamma', 'g@proton.me'],
+      ['zeta', 'z@proton.me'],
+    ]);
+    const { status, stderr } = await apply(unrelated);
+    expect(status).toBe(1);
+    expect(stderr).not.toMatch(/sift mailbox rename (alpha|beta) /);
+    expect(stderr).toContain('No longer in config.yaml: "alpha", "beta"');
+    expect(stderr).toContain('New in config.yaml: "gamma", "zeta"');
+    expect(stderr).toContain('suggests no rename');
   });
 });

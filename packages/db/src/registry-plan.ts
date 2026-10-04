@@ -128,17 +128,79 @@ export function planRegistryChanges(
   return changes;
 }
 
+/** A rename the owner can run: the removed slug and the added slug it likely became. */
+export interface RenamePair {
+  from: string;
+  to: string;
+}
+
+export interface RenameSuspects {
+  /** Enabled slugs no longer in config, in slug order. */
+  removed: string[];
+  /** New config slugs, in config order. */
+  added: string[];
+  /**
+   * Removed -> added pairs safe to suggest as `sift mailbox rename`. One
+   * removed next to one added is paired as is (D-33). With more than one on
+   * either side, slugs are paired only by IMAP identity (host, username,
+   * folder), which a real rename keeps, and only when the match is unique both
+   * ways. Anything else is left unpaired rather than guessed: following a
+   * wrong pair would attach one account's history to another.
+   */
+  pairs: RenamePair[];
+}
+
+function identityKey(host: string, username: string, folder: string): string {
+  return JSON.stringify([host.trim().toLowerCase(), username.trim().toLowerCase(), folder.trim()]);
+}
+
 /**
  * A slug that disappears while another appears in the same apply may be a
- * rename typed into config.yaml (D-33). Returns both lists when there is at
- * least one disable and at least one add, otherwise null.
+ * rename typed into config.yaml (D-33). Returns the suspects when there is at
+ * least one disable and at least one add, otherwise null. `rows` are the
+ * registry rows the changes were planned from; they supply the removed slugs'
+ * IMAP identity.
  */
 export function findRenameSuspects(
   changes: readonly RegistryChange[],
-): { removed: string[]; added: string[] } | null {
+  rows: readonly RegistryRowLike[] = [],
+): RenameSuspects | null {
   const removed = changes.filter((c) => c.kind === 'disable').map((c) => c.slug);
-  const added = changes.filter((c) => c.kind === 'add').map((c) => c.slug);
-  return removed.length > 0 && added.length > 0 ? { removed, added } : null;
+  const adds = changes.flatMap((c) => (c.kind === 'add' ? [c] : []));
+  const added = adds.map((c) => c.slug);
+  if (removed.length === 0 || added.length === 0) return null;
+
+  const [onlyRemoved] = removed;
+  const [onlyAdded] = added;
+  if (removed.length === 1 && added.length === 1 && onlyRemoved && onlyAdded) {
+    return { removed, added, pairs: [{ from: onlyRemoved, to: onlyAdded }] };
+  }
+
+  const addedByKey = new Map<string, string[]>();
+  for (const { slug, values } of adds) {
+    const key = identityKey(values.imapHost, values.imapUsername, values.imapFolder);
+    addedByKey.set(key, [...(addedByKey.get(key) ?? []), slug]);
+  }
+  const removedKeys = new Map<string, string[]>();
+  const keyOf = new Map<string, string>();
+  for (const slug of removed) {
+    const row = rows.find((r) => r.slug === slug);
+    if (row === undefined) continue;
+    const key = identityKey(row.imapHost, row.imapUsername, row.imapFolder);
+    keyOf.set(slug, key);
+    removedKeys.set(key, [...(removedKeys.get(key) ?? []), slug]);
+  }
+  const pairs: RenamePair[] = [];
+  for (const from of removed) {
+    const key = keyOf.get(from);
+    if (key === undefined) continue;
+    const candidates = addedByKey.get(key) ?? [];
+    const [to] = candidates;
+    if (to !== undefined && candidates.length === 1 && removedKeys.get(key)?.length === 1) {
+      pairs.push({ from, to });
+    }
+  }
+  return { removed, added, pairs };
 }
 
 function formatValue(value: string | number | null): string {

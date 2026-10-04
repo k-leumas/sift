@@ -100,7 +100,12 @@ describe('applyConfig', () => {
       config(mailbox('personal'), mailbox('job-search')),
     );
 
-    expect(result).toEqual({ status: 'refused-rename', removed: ['jobs'], added: ['job-search'] });
+    expect(result).toEqual({
+      status: 'refused-rename',
+      removed: ['jobs'],
+      added: ['job-search'],
+      pairs: [{ from: 'jobs', to: 'job-search' }],
+    });
     expect(await snapshot(db)).toBe(before);
   });
 

@@ -5,7 +5,7 @@ import { formatIssue, loadConfig } from '@sift/core/config';
 import { redactText } from '@sift/core/log';
 import { requireDatabaseUrl } from '@sift/db';
 import { applyConfig } from '@sift/db/registry';
-import { describeChange } from '@sift/db/registry-plan';
+import { describeChange, type RenameSuspects } from '@sift/db/registry-plan';
 import type { CommandIO } from '../command.ts';
 
 /** Show a path relative to the working directory when it lives under it. */
@@ -14,24 +14,31 @@ function displayPath(path: string, cwd: string): string {
   return rel !== '' && !rel.startsWith('..') ? rel : path;
 }
 
-function printRenameHint(removed: readonly string[], added: readonly string[], io: CommandIO) {
+function printRenameHint(suspects: RenameSuspects, io: CommandIO) {
+  const { removed, added, pairs } = suspects;
   io.stderr(
     'sift config apply: a mailbox slug left config.yaml while a new one appeared. ' +
       'This may be a rename.',
   );
-  const pairs = Math.min(removed.length, added.length);
-  for (let i = 0; i < pairs; i += 1) {
-    const from = removed[i];
-    const to = added[i];
+  for (const { from, to } of pairs) {
     io.stderr(`  "${from}" is no longer in config.yaml, and "${to}" is new.`);
     io.stderr('  To keep its data under the new slug, rename it:');
     io.stderr(`    sift mailbox rename ${from} ${to}`);
     io.stderr(`    (in Docker: docker compose run --rm setup sift mailbox rename ${from} ${to})`);
     io.stderr('  then run setup again: docker compose run --rm setup');
   }
-  if (removed.length !== added.length) {
-    io.stderr(`  No longer in config.yaml: ${removed.map((s) => `"${s}"`).join(', ')}`);
-    io.stderr(`  New in config.yaml: ${added.map((s) => `"${s}"`).join(', ')}`);
+  const unpairedRemoved = removed.filter((slug) => !pairs.some((p) => p.from === slug));
+  const unpairedAdded = added.filter((slug) => !pairs.some((p) => p.to === slug));
+  if (unpairedRemoved.length > 0 || unpairedAdded.length > 0) {
+    io.stderr(`  No longer in config.yaml: ${unpairedRemoved.map((s) => `"${s}"`).join(', ')}`);
+    io.stderr(`  New in config.yaml: ${unpairedAdded.map((s) => `"${s}"`).join(', ')}`);
+    if (unpairedRemoved.length > 0 && unpairedAdded.length > 0) {
+      io.stderr(
+        '  Sift cannot tell which of these became which (their IMAP host, username and folder ' +
+          'do not match one to one), so it suggests no rename for them. Rename each one yourself ' +
+          'with sift mailbox rename <old> <new> if it is the same account.',
+      );
+    }
   }
   io.stderr(
     'If these are different mailboxes, rerun with --confirm to disable the old ones and add the new ones.',
@@ -87,7 +94,7 @@ export async function run(args: readonly string[], io: CommandIO): Promise<numbe
         io.stdout('Mailbox registry already matches config.yaml.');
         return 0;
       case 'refused-rename':
-        printRenameHint(result.removed, result.added, io);
+        printRenameHint(result, io);
         return 1;
     }
   } catch (error) {

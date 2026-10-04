@@ -7,6 +7,7 @@ import {
   planRegistryChanges,
   type RegistryChange,
   type RegistryRowLike,
+  type RenameSuspects,
 } from '../registry-plan.ts';
 
 /**
@@ -21,7 +22,7 @@ export const CONFIG_APPLY_LOCK_KEY = 815309002;
 export type ApplyResult =
   | { status: 'applied'; changes: RegistryChange[] }
   | { status: 'unchanged' }
-  | { status: 'refused-rename'; removed: string[]; added: string[] };
+  | ({ status: 'refused-rename' } & RenameSuspects);
 
 export interface MailboxListing {
   slug: string;
@@ -161,9 +162,10 @@ export async function applyConfig(
     try {
       await client.query('select pg_advisory_xact_lock($1)', [CONFIG_APPLY_LOCK_KEY]);
       const { rows } = await client.query<MailboxDbRow>(`${MAILBOX_SELECT} for update`);
-      const changes = planRegistryChanges(config, rows.map(toRowLike));
+      const registry = rows.map(toRowLike);
+      const changes = planRegistryChanges(config, registry);
 
-      const suspects = findRenameSuspects(changes);
+      const suspects = findRenameSuspects(changes, registry);
       if (suspects !== null && options.confirm !== true) {
         await client.query('rollback');
         return { status: 'refused-rename', ...suspects };

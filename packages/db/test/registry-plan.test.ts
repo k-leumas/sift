@@ -114,7 +114,45 @@ describe('planRegistryChanges', () => {
 describe('findRenameSuspects', () => {
   it('flags one disable next to one add', () => {
     const changes = planRegistryChanges(config(mailbox('job-search')), [row(mailbox('jobs'))]);
-    expect(findRenameSuspects(changes)).toEqual({ removed: ['jobs'], added: ['job-search'] });
+    expect(findRenameSuspects(changes)).toEqual({
+      removed: ['jobs'],
+      added: ['job-search'],
+      pairs: [{ from: 'jobs', to: 'job-search' }],
+    });
+  });
+
+  it('pairs several renames by IMAP identity, not by position (WR-05)', () => {
+    const alpha = mailbox('alpha', { username: 'a@proton.me' });
+    const beta = mailbox('beta', { username: 'b@proton.me' });
+    // Config order puts B's new slug first; removed slugs are sorted.
+    const gamma = mailbox('gamma', { username: 'b@proton.me' });
+    const zeta = mailbox('zeta', { username: 'A@Proton.me' });
+    const rows = [row(alpha), row(beta)];
+    const changes = planRegistryChanges(config(gamma, zeta), rows);
+    expect(findRenameSuspects(changes, rows)).toEqual({
+      removed: ['alpha', 'beta'],
+      added: ['gamma', 'zeta'],
+      pairs: [
+        { from: 'alpha', to: 'zeta' },
+        { from: 'beta', to: 'gamma' },
+      ],
+    });
+  });
+
+  it('suggests no pair when several slugs change and no IMAP identity matches', () => {
+    const rows = [row(mailbox('alpha')), row(mailbox('beta'))];
+    const changes = planRegistryChanges(config(mailbox('gamma'), mailbox('zeta')), rows);
+    expect(findRenameSuspects(changes, rows)?.pairs).toEqual([]);
+  });
+
+  it('suggests no pair when an identity matches more than one slug', () => {
+    const shared = { username: 'shared@proton.me' };
+    const rows = [row(mailbox('alpha', shared)), row(mailbox('beta', shared))];
+    const changes = planRegistryChanges(
+      config(mailbox('gamma', shared), mailbox('zeta', { username: 'z@proton.me' })),
+      rows,
+    );
+    expect(findRenameSuspects(changes, rows)?.pairs).toEqual([]);
   });
 
   it('returns null for adds only or disables only', () => {
