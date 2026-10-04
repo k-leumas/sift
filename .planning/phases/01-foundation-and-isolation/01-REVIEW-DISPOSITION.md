@@ -5,39 +5,39 @@ titles: json
 findings:
   - id: CR-01
     severity: critical
-    disposition: open
+    disposition: fixed
     title: "compose-smoke cannot pass on GitHub's Linux runners: config.yaml is created mode 0600 and ./backups is not writable by the container user"
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "compose-smoke's COMPOSE_PROJECT_NAME does not isolate the database; the `--down` guard only checks env vars"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The worker's role guard accepts sift_owner (schema owner with CREATEROLE)"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Shutdown hangs, and never exits 0, when a batch outlives SHUTDOWN_TIMEOUT_MS"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "migrate() counts pending migrations while drizzle compares timestamps, so a skipped migration is reported as \"No pending migrations\""
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The rename hint pairs removed and added slugs arbitrarily and can steer the owner into attaching one mailbox's history to another account"
   - id: WR-06
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The catalog gate (D-37) does not see column-level SELECT/INSERT grants to sift_app"
   - id: WR-07
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Neither the catalog gate nor the runtime guard checks sift_app's membership in sift_backup or other RLS-bypassing roles"
   - id: WR-08
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "poll_interval_seconds values that are not multiples of the 15 s tick are rounded up (10 s runs every 15 s, 20 s every 30 s)"
   - id: IN-01
     severity: info
@@ -67,24 +67,24 @@ findings:
     severity: info
     disposition: open
     title: "GitHub Actions are pinned by major tag, not commit SHA"
-open: 16
+open: 7
 total: 16
-recorded: 2026-10-04T08:19:36.887Z
+recorded: 2026-10-04T09:23:12.889Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | open | - |
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
-| WR-06 | warning | open | - |
-| WR-07 | warning | open | - |
-| WR-08 | warning | open | - |
+| CR-01 | critical | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-06 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-07 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-08 | warning | fixed | 01-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
