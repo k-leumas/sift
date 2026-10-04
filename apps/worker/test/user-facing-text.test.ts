@@ -76,6 +76,7 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     'cp .env.mailboxes.example .env.mailboxes',
     'docker compose up -d',
     'docker compose run --rm setup',
+    'sudo chown 1000 backups',
     'version: 1',
   ])('contains %s', (text) => {
     expect(readme).toContain(text);

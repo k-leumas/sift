@@ -62,9 +62,28 @@ if [ ! -f .env.mailboxes ]; then
   echo "compose-smoke: created .env.mailboxes from .env.mailboxes.example (placeholder values)"
 fi
 
+# setup and worker run as uid 1000 (the image's node user) and bind-mount
+# ./config read-only and ./backups read-write. Linux enforces host ownership on
+# bind mounts (Docker Desktop on macOS does not), so config.yaml must be
+# readable by others and backups/ must be owned by uid 1000. The .env files stay
+# 0600: only the compose CLI on the host reads them.
 if [ ! -f config/config.yaml ]; then
-  cp config/config.example.yaml config/config.yaml
+  (umask 022 && cp config/config.example.yaml config/config.yaml)
   echo "compose-smoke: created config/config.yaml from config/config.example.yaml"
+fi
+
+as_root() {
+  if [ "$(id -u)" = 0 ]; then "$@"; else sudo -n "$@"; fi
+}
+
+mkdir -p backups
+if [ "$(uname -s)" = Linux ] && [ "$(id -u)" != 1000 ] \
+  && [ "$(ls -nd backups | awk '{print $3}')" != 1000 ]; then
+  echo "compose-smoke: chown 1000 backups (setup writes pre-migration dumps there as uid 1000)"
+  if ! as_root chown 1000 backups; then
+    echo "compose-smoke: FAILED: backups/ must be writable by uid 1000; run: sudo chown 1000 backups" >&2
+    exit 1
+  fi
 fi
 
 cleanup() {

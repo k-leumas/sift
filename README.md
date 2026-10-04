@@ -396,7 +396,13 @@ What works today: the database, the one-shot `setup` service (migrations with a 
    cp .env.mailboxes.example .env.mailboxes
    ```
 
-5. Start the stack:
+5. Start the stack. On Linux, do this first: the `setup` and `worker` containers run as uid 1000, and Linux enforces file ownership on the folders they mount. `setup` writes a backup to `backups/` before it migrates, so if `id -u` does not print `1000`, hand that folder to the container user. Also leave `config/config.yaml` readable by others (the mode `cp` gives it is fine):
+
+   ```sh
+   sudo chown 1000 backups
+   ```
+
+   Then, on any system:
 
    ```sh
    docker compose up -d
