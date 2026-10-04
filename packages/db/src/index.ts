@@ -18,3 +18,14 @@ export function requireDatabaseUrl(
   }
   return value;
 }
+
+export { type AppDb, type AppDbOptions, createAppDb } from './app-db.ts';
+export {
+  InvalidMailboxIdError,
+  type Match,
+  type Scope,
+  ScopeClosedError,
+  type ScopedTableApi,
+  type WithMailboxOptions,
+  withMailbox,
+} from './scope.ts';
