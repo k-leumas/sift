@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A schema check fails the build if any table holding mail-derived data lacks a non-null `mailbox_id`
   4. With two seeded mailboxes, queries run under mailbox A's `app.mailbox_id` return and modify none of mailbox B's rows, even with the application-level filter removed; with no `app.mailbox_id` set, they return nothing
 
-**Plans**: 7/13 plans executed
+**Plans**: 8/13 plans executed
 
 Plans:
 **Wave 1**
@@ -49,7 +49,7 @@ Plans:
 - [x] 01-05-PLAN.md — Catalog schema check (fails the build) and GitHub Actions CI (wave 3)
 - [x] 01-06-PLAN.md — Two-mailbox isolation test (every D-48 case) and owner FORCE-RLS delete test (wave 3)
 - [x] 01-07-PLAN.md — Scoped data-access API: withMailbox, per-table helpers, requireActive, status use-cases (wave 3)
-- [ ] 01-08-PLAN.md — `sift migrate` with pre-migration pg_dump as sift_backup and 5-file retention (wave 3)
+- [x] 01-08-PLAN.md — `sift migrate` with pre-migration pg_dump as sift_backup and 5-file retention (wave 3)
 - [ ] 01-09-PLAN.md — Mailbox registry: `sift config apply` guards, `sift mailbox rename`, `sift mailbox list` (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundation and Isolation | v0.1 | 7/13 | In Progress|  |
+| 1. Foundation and Isolation | v0.1 | 8/13 | In Progress|  |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 0/0 | Not started | - |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |

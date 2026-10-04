@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Completed 01-07-PLAN.md
-last_updated: "2026-10-04T06:24:57.112Z"
+stopped_at: Completed 01-08-PLAN.md
+last_updated: "2026-10-04T06:34:47.389Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: 900132c6f1dce765f898125d36dcf6de8d5b0054
+state_head: dde79e311ea9947d61d26c82cddb3a30b2726b34
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 ## Current Position
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 8 of 13
+Plan: 9 of 13
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 01 execution started
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P05 | 6min | 3 tasks | 4 files |
 | Phase 01 P06 | 3min | 3 tasks | 2 files |
 | Phase 01 P07 | 6min | 2 tasks | 6 files |
+| Phase 01 P08 | 7 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-07: Scoped API is opaque: AppDb/Scope internals in module-private WeakMaps; Scope frozen and closed once the callback settles
 - [Phase 01]: 01-07: Helpers re-check D-44/D-40 at runtime (mailboxId/id in update sets, unknown Match keys throw TypeError); empty update/upsert is a touch
 - [Phase 01]: 01-07: ISO-04 application filter proven on a superuser (RLS-bypassing) connection; @sift/db root exports pinned by test
+- [Phase 01]: 01-08: pg-dump-via-compose.sh targets db:5432; loopback is trust in the postgres image, so 127.0.0.1 skipped password auth
+- [Phase 01]: 01-08: MigrateOptions.backup is a required key (target | false | undefined); BackupTarget/BackupFailedError live in backup.ts, re-exported by migrate.ts
+- [Phase 01]: 01-08: backup tests read pg_restore 18 from the Compose db container when SIFT_PG_DUMP is the compose wrapper
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T06:24:57.067Z
-Stopped at: Completed 01-07-PLAN.md
+Last session: 2026-10-04T06:34:47.343Z
+Stopped at: Completed 01-08-PLAN.md
 Resume file: None
