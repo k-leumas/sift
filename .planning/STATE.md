@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Completed 01-10-PLAN.md
-last_updated: "2026-10-04T06:55:14.565Z"
+stopped_at: Completed 01-11-PLAN.md
+last_updated: "2026-10-04T07:05:35.378Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: e61431ebe5480d2719a0a80dab5e730b5fff4bda
+state_head: 9a63c1874ba5931e63fcf1c41ffe8e7cead0021d
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 ## Current Position
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 11 of 13
+Plan: 12 of 13
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 01 execution started
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P08 | 7 min | 2 tasks | 8 files |
 | Phase 01 P09 | 7 min | 2 tasks | 8 files |
 | Phase 01 P10 | 7 min | 2 tasks | 8 files |
+| Phase 01 P11 | 6 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-10: supervisor schedules the next successful run from the run's start time, so 15 s ticks do not stretch the 60 s poll interval
 - [Phase 01]: 01-10: in-progress tracking is keyed by mailbox id apart from schedule state; disable/re-enable during a run cannot overlap it
 - [Phase 01]: 01-10: supervisor logs error name/code only unless an injected redact() is given; worker passes redactText with mailbox secrets and the DB URL
+- [Phase 01]: 01-11: connectWithRetry bounds each attempt by the remaining deadline (ETIMEDOUT) so the ~30 s D-55 budget holds on a black-holed host
+- [Phase 01]: 01-11: startup errors map codes to fixed messages, driver messages are never logged (T-01-45); worker order is connect, role guard, drift check, supervisor
+- [Phase 01]: 01-11: sentinel test scans every non-system schema from pg_tables with a positive control (FND-02 automated half)
 
 ### Pending Todos
 
@@ -128,6 +132,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T06:55:14.520Z
-Stopped at: Completed 01-10-PLAN.md
+Last session: 2026-10-04T07:05:15.829Z
+Stopped at: Completed 01-11-PLAN.md
 Resume file: None

@@ -18,7 +18,7 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 ### Isolation
 
 - [x] **ISO-01**: Every table holding mail-derived data (message, label, decision, folder_sync, label_event, rule_set, and any other added in M1) has a non-null `mailbox_id` foreign key to `mailbox`
-- [ ] **ISO-02**: Every such table has an RLS policy keyed on the per-request `app.mailbox_id` setting, RLS is forced for the worker's application role (not the table owner, not a superuser), and a missing setting returns no rows
+- [x] **ISO-02**: Every such table has an RLS policy keyed on the per-request `app.mailbox_id` setting, RLS is forced for the worker's application role (not the table owner, not a superuser), and a missing setting returns no rows
 - [x] **ISO-03**: An automated test seeds two mailboxes and proves that, under each mailbox's `app.mailbox_id`, reads and writes never touch the other mailbox's rows even with the application-level `WHERE mailbox_id` filter removed
 - [x] **ISO-04**: Application code also filters by `mailbox_id` explicitly (RLS is the backstop, not the only mechanism)
 
@@ -123,7 +123,7 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | FND-02 | Phase 1 | Pending |
 | FND-03 | Phase 1 | Pending |
 | ISO-01 | Phase 1 | Complete |
-| ISO-02 | Phase 1 | Pending |
+| ISO-02 | Phase 1 | Complete |
 | ISO-03 | Phase 1 | Complete |
 | ISO-04 | Phase 1 | Complete |
 | SPK-01 | Phase 2 | Pending |
