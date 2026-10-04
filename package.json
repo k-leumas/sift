@@ -14,5 +14,15 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p packages/core/tsconfig.json && tsc -p packages/db/tsconfig.json && tsc -p apps/worker/tsconfig.json",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
+    "@types/node": "26.6.3",
+    "drizzle-kit": "0.31.11",
+    "lefthook": "2.1.14",
+    "typescript": "7.0.2",
+    "vitest": "5.0.2"
   }
 }

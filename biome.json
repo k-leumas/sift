@@ -1,0 +1,60 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": ["**", "!.planning", "!.wolf", "!.claude", "!.gsd", "!packages/db/migrations"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "useImportExtensions": "error"
+      },
+      "style": {
+        "useImportType": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/**/src/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "pg": "Use the scoped API from @sift/db (ISO-04, D-42/D-43)",
+                  "drizzle-orm": "Use the scoped API from @sift/db (ISO-04, D-42/D-43)"
+                },
+                "patterns": [
+                  {
+                    "group": ["drizzle-orm/*"],
+                    "message": "Use the scoped API from @sift/db (ISO-04, D-42/D-43)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
