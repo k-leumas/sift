@@ -11,7 +11,16 @@ import {
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
 import { type AppDb, internalsOf } from './app-db.ts';
-import { message } from './schema/index.ts';
+import {
+  decision,
+  folderSync,
+  label,
+  labelEvent,
+  mailbox,
+  mailboxStatus,
+  message,
+  ruleSet,
+} from './schema/index.ts';
 
 type Tx = Parameters<Parameters<NodePgDatabase['transaction']>[0]>[0];
 
@@ -32,15 +41,53 @@ export interface ScopedTableApi<T extends PgTable> {
   delete(match?: Match<T>): Promise<InferSelectModel<T>[]>;
 }
 
+/** Append-only tables (D-40): no update or delete, by type as well as by privilege. */
+export interface AppendOnlyTableApi<T extends PgTable> {
+  insert: ScopedTableApi<T>['insert'];
+  find: ScopedTableApi<T>['find'];
+}
+
+export type MailboxStatusRow = InferSelectModel<typeof mailboxStatus>;
+
+/** The scope's single mailbox_status row (D-07). */
+export interface MailboxStatusApi {
+  get(): Promise<MailboxStatusRow | null>;
+  upsert(
+    values: Partial<Omit<InferInsertModel<typeof mailboxStatus>, 'mailboxId'>>,
+  ): Promise<MailboxStatusRow>;
+}
+
 /** Everything app code can do with one mailbox's data (D-43). */
 export interface Scope {
   readonly mailboxId: string;
   readonly message: ScopedTableApi<typeof message>;
+  readonly label: ScopedTableApi<typeof label>;
+  readonly folderSync: ScopedTableApi<typeof folderSync>;
+  readonly ruleSet: ScopedTableApi<typeof ruleSet>;
+  readonly decision: AppendOnlyTableApi<typeof decision>;
+  readonly labelEvent: AppendOnlyTableApi<typeof labelEvent>;
+  readonly mailboxStatus: MailboxStatusApi;
 }
 
 export interface WithMailboxOptions {
-  /** Reserved for requireActive (D-45). */
+  /** Run requireActive before the callback (D-45). */
   requireActive?: boolean;
+}
+
+/** The scope's mailbox has disabled_at set (D-45). */
+export class MailboxDisabledError extends Error {
+  constructor(slug: string) {
+    super(`mailbox "${slug}" is disabled`);
+    this.name = 'MailboxDisabledError';
+  }
+}
+
+/** No mailbox row has the scope's id. */
+export class MailboxNotFoundError extends Error {
+  constructor() {
+    super('Mailbox not found');
+    this.name = 'MailboxNotFoundError';
+  }
 }
 
 /** The mailbox id is not a UUID. Thrown before any query runs. */
@@ -69,6 +116,9 @@ interface ScopeContext {
   mailboxId: string;
   assertOpen(): void;
 }
+
+/** Scope -> its transaction context; never reachable from outside this module. */
+const contexts = new WeakMap<Scope, ScopeContext>();
 
 function matchConditions(table: ScopedTable, match: object | undefined): SQL[] {
   if (match === undefined) return [];
@@ -138,6 +188,62 @@ function scopedTable<T extends ScopedTable>(ctx: ScopeContext, table: T): Scoped
   }) as ScopedTableApi<T>;
 }
 
+/** insert and find only (D-40). */
+function appendOnlyTable<T extends ScopedTable>(
+  ctx: ScopeContext,
+  table: T,
+): AppendOnlyTableApi<T> {
+  const { insert, find } = scopedTable(ctx, table);
+  return Object.freeze({ insert, find });
+}
+
+function mailboxStatusApi(ctx: ScopeContext): MailboxStatusApi {
+  const { tx, mailboxId } = ctx;
+  return Object.freeze({
+    async get() {
+      ctx.assertOpen();
+      const rows = await tx
+        .select()
+        .from(mailboxStatus)
+        .where(eq(mailboxStatus.mailboxId, mailboxId));
+      return rows[0] ?? null;
+    },
+    async upsert(values: Partial<Omit<InferInsertModel<typeof mailboxStatus>, 'mailboxId'>>) {
+      ctx.assertOpen();
+      const set = definedEntries(values);
+      if ('mailboxId' in set) throw new TypeError('Cannot set "mailboxId"');
+      // updated_at is maintained by the set_updated_at trigger.
+      const onConflictSet = Object.keys(set).length > 0 ? set : { updatedAt: sql`now()` };
+      const rows = await tx
+        .insert(mailboxStatus)
+        .values({ ...set, mailboxId })
+        .onConflictDoUpdate({ target: mailboxStatus.mailboxId, set: onConflictSet })
+        .returning();
+      const row = rows[0];
+      if (row === undefined) throw new Error('mailbox_status upsert returned no row');
+      return row;
+    },
+  });
+}
+
+/**
+ * Throw unless the scope's mailbox exists and is enabled (D-45). Processing
+ * entry points (ingest, classify, apply labels) call this; reading status
+ * and history does not.
+ */
+export async function requireActive(scope: Scope): Promise<void> {
+  const ctx = contexts.get(scope);
+  if (ctx === undefined) throw new TypeError('Not a Scope created by withMailbox');
+  ctx.assertOpen();
+  const rows = await ctx.tx
+    .select({ slug: mailbox.slug, disabledAt: mailbox.disabledAt })
+    .from(mailbox)
+    .where(eq(mailbox.id, ctx.mailboxId));
+  const row = rows[0];
+  if (row === undefined) throw new MailboxNotFoundError();
+  if (row.disabledAt !== null) throw new MailboxDisabledError(row.slug);
+}
+
 /**
  * Run `fn` inside one transaction scoped to `mailboxId` (D-42).
  *
@@ -150,7 +256,7 @@ export async function withMailbox<T>(
   db: AppDb,
   mailboxId: string,
   fn: (scope: Scope) => Promise<T>,
-  _options: WithMailboxOptions = {},
+  options: WithMailboxOptions = {},
 ): Promise<T> {
   if (typeof mailboxId !== 'string' || !UUID.test(mailboxId)) {
     throw new InvalidMailboxIdError();
@@ -169,8 +275,16 @@ export async function withMailbox<T>(
     const scope: Scope = Object.freeze({
       mailboxId,
       message: scopedTable(ctx, message),
+      label: scopedTable(ctx, label),
+      folderSync: scopedTable(ctx, folderSync),
+      ruleSet: scopedTable(ctx, ruleSet),
+      decision: appendOnlyTable(ctx, decision),
+      labelEvent: appendOnlyTable(ctx, labelEvent),
+      mailboxStatus: mailboxStatusApi(ctx),
     });
+    contexts.set(scope, ctx);
     try {
+      if (options.requireActive === true) await requireActive(scope);
       return await fn(scope);
     } finally {
       open = false;
