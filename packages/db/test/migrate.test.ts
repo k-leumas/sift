@@ -1,10 +1,18 @@
-import { spawnSync } from 'node:child_process';
-import { mkdtemp, open, rm, stat } from 'node:fs/promises';
+import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
+import { readFileSync as readFileSyncBuffer } from 'node:fs';
+import { chmod, cp, mkdtemp, open, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { migrate } from '../src/owner/migrate.ts';
+import {
+  BackupFailedError,
+  BackupRequiredError,
+  MIGRATE_LOCK_KEY,
+  MIGRATIONS_FOLDER,
+  migrate,
+} from '../src/owner/migrate.ts';
 import { SCOPED_TABLE_NAMES } from '../src/schema/index.ts';
 import {
   connect,
@@ -173,13 +181,8 @@ describe('migrate()', () => {
 
 describe('migrate() backups (D-29, D-66)', () => {
   it('backs up before applying pending migrations', async (ctx) => {
-    const pgDump = resolvePgDump();
-    if (pgDump === undefined) {
-      const reason = 'no pg_dump 18: set SIFT_PG_DUMP or install PostgreSQL 18 client tools';
-      if (process.env.CI) throw new Error(reason);
-      ctx.skip(reason);
-      return;
-    }
+    const pgDump = requirePgDump(ctx);
+    if (pgDump === undefined) return;
     const empty = await emptyDatabase();
     const dir = await mkdtemp(path.join(tmpdir(), 'sift-backup-'));
     try {
@@ -199,6 +202,217 @@ describe('migrate() backups (D-29, D-66)', () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
       await empty.drop();
+    }
+  });
+
+  it('writes no backup when there are no pending migrations', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'sift-backup-'));
+    try {
+      const result = await migrate({
+        ownerUrl: db.ownerUrl,
+        appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+        backup: { url: db.backupUrl, dir, pgDump: 'sift-no-pg-dump-needed' },
+      });
+      expect(result).toEqual({ applied: [], backupFile: null });
+      expect(await readdir(dir)).toEqual([]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps the newest 5 sift-*.dump files and leaves other files alone', async (ctx) => {
+    const pgDump = requirePgDump(ctx);
+    if (pgDump === undefined) return;
+    const empty = await emptyDatabase();
+    const dir = await mkdtemp(path.join(tmpdir(), 'sift-backup-'));
+    try {
+      const older = [1, 2, 3, 4, 5, 6].map((d) => `sift-2020010${d}T000000Z-pre-0004_old.dump`);
+      for (const name of [...older, 'notes.txt']) {
+        await writeFile(path.join(dir, name), 'x');
+      }
+
+      const result = await migrate({
+        ownerUrl: empty.ownerUrl,
+        appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+        backup: { url: empty.backupUrl, dir, pgDump },
+      });
+
+      const newest = path.basename(result.backupFile ?? '');
+      expect(newest).toMatch(BACKUP_FILE);
+      const remaining = (await readdir(dir)).sort();
+      expect(remaining).toEqual([newest, ...older.slice(2), 'notes.txt'].sort());
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+      await empty.drop();
+    }
+  });
+
+  it('throws BackupRequiredError and applies nothing without a backup target', async () => {
+    const empty = await emptyDatabase();
+    try {
+      const verifier = await appVerifier();
+      await expect(
+        migrate({
+          ownerUrl: empty.ownerUrl,
+          appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+          backup: undefined,
+        }),
+      ).rejects.toThrow(BackupRequiredError);
+      await expect(
+        migrate({
+          ownerUrl: empty.ownerUrl,
+          appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+          backup: undefined,
+        }),
+      ).rejects.toThrow(
+        'SIFT_BACKUP_DATABASE_URL is not set; a backup is required before applying 5 pending migrations',
+      );
+      expect(await migrationsTableExists(empty.ownerUrl)).toBe(false);
+      expect(await appVerifier()).toBe(verifier);
+    } finally {
+      await empty.drop();
+    }
+  });
+
+  it('throws BackupFailedError without the password, leaves no file and applies nothing', async (ctx) => {
+    const pgDump = requirePgDump(ctx);
+    if (pgDump === undefined) return;
+    const empty = await emptyDatabase();
+    const dir = await mkdtemp(path.join(tmpdir(), 'sift-backup-'));
+    const wrongPassword = `wrong-${randomBytes(8).toString('hex')}`;
+    const badUrl = new URL(empty.backupUrl);
+    badUrl.password = wrongPassword;
+    try {
+      const verifier = await appVerifier();
+      const error = await migrate({
+        ownerUrl: empty.ownerUrl,
+        appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+        backup: { url: badUrl.toString(), dir, pgDump },
+      }).then(
+        () => undefined,
+        (e: unknown) => e,
+      );
+
+      expect(error).toBeInstanceOf(BackupFailedError);
+      const message = (error as Error).message;
+      expect(message).toMatch(/^pg_dump failed \(exit \d+\)/);
+      expect(message).not.toContain(wrongPassword);
+      expect(await readdir(dir)).toEqual([]);
+      expect(await migrationsTableExists(empty.ownerUrl)).toBe(false);
+      expect(await appVerifier()).toBe(verifier);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+      await empty.drop();
+    }
+  });
+
+  it('fails on an unwritable backup dir with a chown 1000 hint and applies nothing', async (ctx) => {
+    if (process.getuid?.() === 0) {
+      ctx.skip('running as root: directory permissions are not enforced for root');
+      return;
+    }
+    const empty = await emptyDatabase();
+    const dir = await mkdtemp(path.join(tmpdir(), 'sift-backup-'));
+    await chmod(dir, 0o500);
+    try {
+      await expect(
+        migrate({
+          ownerUrl: empty.ownerUrl,
+          appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+          backup: { url: empty.backupUrl, dir, pgDump: 'sift-pg-dump-must-not-run' },
+        }),
+      ).rejects.toThrow(`backup directory ${dir} is not writable; on Linux run: chown 1000 ${dir}`);
+      expect(await migrationsTableExists(empty.ownerUrl)).toBe(false);
+    } finally {
+      await chmod(dir, 0o700);
+      await rm(dir, { recursive: true, force: true });
+      await empty.drop();
+    }
+  });
+
+  it('waits for the advisory lock held by another session (D-30)', async () => {
+    const holder = await connect(db.ownerUrl);
+    try {
+      await holder.query('select pg_advisory_lock($1)', [MIGRATE_LOCK_KEY]);
+      let settled = false;
+      const run = migrate({
+        ownerUrl: db.ownerUrl,
+        appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+        backup: undefined,
+      }).finally(() => {
+        settled = true;
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(settled).toBe(false);
+
+      await holder.query('select pg_advisory_unlock($1)', [MIGRATE_LOCK_KEY]);
+      await expect(run).resolves.toEqual({ applied: [], backupFile: null });
+    } finally {
+      await holder.end();
+    }
+  });
+
+  it('rotates the sift_app password on every run without breaking its login (D-39)', async () => {
+    const appPassword = requireEnv('SIFT_DB_APP_PASSWORD');
+    const first = await appVerifier();
+    await migrate({ ownerUrl: db.ownerUrl, appPassword, backup: undefined });
+    const second = await appVerifier();
+    await migrate({ ownerUrl: db.ownerUrl, appPassword, backup: undefined });
+    const third = await appVerifier();
+
+    // SCRAM salts are random per ALTER ROLE, so equal passwords still differ.
+    expect(second).not.toBe(first);
+    expect(third).not.toBe(second);
+    const app = await connect(db.appUrl);
+    try {
+      const { rows } = await app.query<{ ok: number }>('select 1 as ok');
+      expect(rows).toEqual([{ ok: 1 }]);
+    } finally {
+      await app.end();
+    }
+  });
+
+  it('dumps both mailboxes as sift_backup before a later migration (D-66)', async (ctx) => {
+    const pgDump = requirePgDump(ctx);
+    if (pgDump === undefined) return;
+    const fresh = await freshDatabase();
+    const dir = await mkdtemp(path.join(tmpdir(), 'sift-backup-'));
+    const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
+    try {
+      const { a, b } = await seedMailboxes(fresh.ownerUrl, ['a', 'b']);
+      if (a === undefined || b === undefined) {
+        throw new Error('seedMailboxes returned no ids');
+      }
+      await seedScopedRows(fresh.ownerUrl, a);
+      await seedScopedRows(fresh.ownerUrl, b);
+      await withExtraMigration(folder);
+
+      const result = await migrate({
+        ownerUrl: fresh.ownerUrl,
+        appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+        migrationsFolder: folder,
+        backup: { url: fresh.backupUrl, dir, pgDump },
+      });
+      expect(result.applied).toEqual(['0005_test_extra']);
+      const file = result.backupFile ?? '';
+      expect(path.basename(file)).toMatch(/^sift-\d{8}T\d{6}Z-pre-0005_test_extra\.dump$/);
+      expect(await readMagic(file)).toBe('PGDMP');
+
+      const restore = resolvePgRestore();
+      if (restore === undefined) {
+        const reason = 'no pg_restore 18: cannot read the dump contents';
+        if (process.env.CI) throw new Error(reason);
+        ctx.skip(reason);
+        return;
+      }
+      const data = restore(file, ['--data-only', '--table=message', '--file=-']);
+      expect(data).toContain(a);
+      expect(data).toContain(b);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+      await rm(folder, { recursive: true, force: true });
+      await fresh.drop();
     }
   });
 });
@@ -240,6 +454,94 @@ function resolvePgDump(): string | undefined {
     return configured.includes('/') ? path.resolve(REPO_ROOT, configured) : configured;
   }
   return reportsVersion18('pg_dump') ? 'pg_dump' : undefined;
+}
+
+/** pg_dump for a test that needs one: throws under CI, otherwise skips with a reason. */
+function requirePgDump(ctx: { skip(note?: string): void }): string | undefined {
+  const pgDump = resolvePgDump();
+  if (pgDump === undefined) {
+    const reason = 'no pg_dump 18: set SIFT_PG_DUMP or install PostgreSQL 18 client tools';
+    if (process.env.CI) throw new Error(reason);
+    ctx.skip(reason);
+  }
+  return pgDump;
+}
+
+type Restore = (file: string, args: readonly string[]) => string;
+
+/**
+ * pg_restore 18: a host binary that reports 18, else the Compose db
+ * container when SIFT_PG_DUMP points at the compose wrapper (the dump is fed
+ * on stdin), else undefined.
+ */
+function resolvePgRestore(): Restore | undefined {
+  if (reportsVersion18('pg_restore')) {
+    return (file, args) => checked(spawnSync('pg_restore', [...args, file], { encoding: 'utf8' }));
+  }
+  if (path.basename(process.env.SIFT_PG_DUMP?.trim() ?? '') === 'pg-dump-via-compose.sh') {
+    return (file, args) =>
+      checked(
+        spawnSync('docker', ['compose', 'exec', '-T', 'db', 'pg_restore', ...args], {
+          cwd: REPO_ROOT,
+          encoding: 'utf8',
+          input: readFileSyncBuffer(file),
+          maxBuffer: 64 * 1024 * 1024,
+        }),
+      );
+  }
+  return undefined;
+}
+
+function checked(result: SpawnSyncReturns<string>): string {
+  if (result.status !== 0) {
+    throw new Error(`pg_restore failed (exit ${result.status}): ${result.stderr}`);
+  }
+  return result.stdout;
+}
+
+/** Copy the committed migrations and append a trivial 0005_test_extra. */
+async function withExtraMigration(folder: string): Promise<void> {
+  await cp(MIGRATIONS_FOLDER, folder, { recursive: true });
+  const journalPath = path.join(folder, 'meta', '_journal.json');
+  const journal = JSON.parse(await readFile(journalPath, 'utf8')) as { entries: object[] };
+  journal.entries.push({
+    idx: 5,
+    version: '7',
+    when: Date.now(),
+    tag: '0005_test_extra',
+    breakpoints: true,
+  });
+  await writeFile(journalPath, JSON.stringify(journal, null, 2));
+  await writeFile(path.join(folder, '0005_test_extra.sql'), 'select 1;\n');
+}
+
+/** sift_app's stored SCRAM verifier, read with the superuser test URL. */
+async function appVerifier(): Promise<string> {
+  const admin = await connect(requireTestDb().adminUrl);
+  try {
+    const { rows } = await admin.query<{ rolpassword: string }>(
+      "select rolpassword from pg_authid where rolname = 'sift_app'",
+    );
+    const verifier = rows[0]?.rolpassword;
+    if (verifier === undefined) {
+      throw new Error('sift_app has no stored password');
+    }
+    return verifier;
+  } finally {
+    await admin.end();
+  }
+}
+
+async function migrationsTableExists(ownerUrl: string): Promise<boolean> {
+  const owner = await connect(ownerUrl);
+  try {
+    const { rows } = await owner.query<{ present: boolean }>(
+      "select to_regclass('drizzle.__drizzle_migrations') is not null as present",
+    );
+    return rows[0]?.present === true;
+  } finally {
+    await owner.end();
+  }
 }
 
 function reportsVersion18(command: string): boolean {
