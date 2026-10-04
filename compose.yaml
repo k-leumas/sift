@@ -95,8 +95,10 @@ services:
         condition: service_completed_successfully
     healthcheck:
       # Unhealthy when the heartbeat file is older than 120 s. Docker restarts
-      # a container only when it exits, never because it is unhealthy, so a
-      # stuck worker stays unhealthy until `docker compose restart worker`.
+      # a container only when it exits, never because it is unhealthy, so the
+      # worker exits by itself (code 75) after 3 missed heartbeats in a row,
+      # logging which step failed, and `restart: on-failure` starts it again.
+      # While the database is down this repeats until it is back.
       test:
         - CMD
         - node
@@ -107,7 +109,7 @@ services:
       retries: 3
       start_period: 30s
     stop_grace_period: 30s
-    restart: unless-stopped
+    restart: on-failure
 
 volumes:
   sift-pgdata:

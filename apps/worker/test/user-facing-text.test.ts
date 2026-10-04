@@ -77,7 +77,7 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     'docker compose up -d',
     'docker compose run --rm setup',
     'sudo chown 1000 backups',
-    'docker compose restart worker',
+    'docker compose logs worker',
     'version: 1',
   ])('contains %s', (text) => {
     expect(readme).toContain(text);

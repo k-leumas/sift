@@ -186,13 +186,15 @@ describe('ordering and lifecycle (D-27, D-53, D-54, D-60)', () => {
     const worker = service('worker');
     expect(worker.depends_on?.db?.condition).toBe('service_healthy');
     expect(worker.depends_on?.setup?.condition).toBe('service_completed_successfully');
-    expect(worker.restart).toBe('unless-stopped');
   });
 
-  it('documents that an unhealthy worker is not restarted automatically (IN-05)', () => {
+  it('restarts the worker only when it exits with an error (IN-05)', () => {
+    // The worker exits 75 after missed heartbeats; SIGTERM still exits 0.
+    expect(service('worker').restart).toBe('on-failure');
     const text = read('compose.yaml');
     const health = text.slice(text.indexOf('    healthcheck:', text.indexOf('  worker:')));
-    expect(health).toContain('docker compose restart worker');
+    expect(health).toContain('exits by itself (code 75) after 3 missed heartbeats');
+    expect(health).not.toContain('docker compose restart worker');
   });
 
   it('checks worker health on a heartbeat younger than 120 s', () => {
