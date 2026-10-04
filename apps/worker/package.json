@@ -1,0 +1,9 @@
+{
+  "name": "@sift/worker",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sift/core": "workspace:*",
+    "@sift/db": "workspace:*"
+  }
+}

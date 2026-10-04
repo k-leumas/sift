@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 12 fails install (ERR_PNPM_IGNORED_BUILDS) on any build script not listed here.
+allowBuilds:
+  esbuild: true
+  lefthook: true
+
+# Supply-chain gate: refuse dependency versions published less than 7 days ago.
+minimumReleaseAge: 10080

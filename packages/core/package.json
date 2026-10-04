@@ -1,0 +1,10 @@
+{
+  "name": "@sift/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config/index.ts",
+    "./log": "./src/log.ts"
+  }
+}
