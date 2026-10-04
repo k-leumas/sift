@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: CR-02
     severity: critical
-    disposition: open
+    disposition: fixed
     title: "Local compose-smoke runs write throwaway dumps into the owner's ./backups and prune the owner's real pre-migration backups"
   - id: WR-04
     severity: warning
@@ -13,59 +13,59 @@ findings:
     title: "migrate() counts pending migrations while drizzle compares timestamps, so a skipped migration is reported as \"No pending migrations\""
   - id: WR-09
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "compose-smoke's \"do not replace your containers\" guard is still env-var based: with CI=true, or an explicit COMPOSE_PROJECT_NAME equal to the owner's project, it recreates and then removes the owner's running stack"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The D-64 duplicate-account check uses raw values, but the stored values are trimmed"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The ISO-04 lint guard does not cover relative imports into packages/db internals"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Role passwords are sent as plaintext literals in DDL"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Unexpected worker errors bypass pino and redaction"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "An unhealthy worker is never restarted, so the heartbeat healthcheck does not recover a stuck supervisor"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: fixed
     title: "A mailbox disabled while the worker is down keeps a stale mailbox_status.state"
   - id: IN-07
     severity: info
-    disposition: open
+    disposition: fixed
     title: "GitHub Actions are pinned by major tag, not commit SHA"
   - id: IN-08
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The smoke stack reuses the owner's config.yaml, .env and .env.mailboxes and the shared sift:local image"
   - id: IN-09
     severity: info
-    disposition: open
+    disposition: fixed
     title: "A single removed+added pair is suggested as a rename even when its IMAP identity differs"
   - id: IN-10
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The rename hint prints empty \"No longer in config.yaml:\" / \"New in config.yaml:\" lines"
   - id: IN-11
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The worker role guard does not check REPLICATION"
   - id: IN-12
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The bounded close does not cover a pool client that is still connecting"
   - id: IN-13
     severity: info
-    disposition: open
+    disposition: fixed
     title: "A mailbox whose batch outlasts the poll interval now reruns back-to-back with no gap"
   - id: CR-01
     severity: critical
@@ -99,31 +99,31 @@ findings:
     severity: warning
     disposition: fixed
     title: "poll_interval_seconds values that are not multiples of the 15 s tick are rounded up (10 s runs every 15 s, 20 s every 30 s)"
-open: 15
+open: 0
 total: 24
-recorded: 2026-10-04T17:24:45.259Z
+recorded: 2026-10-04T18:20:35.549Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-02 | critical | open | - |
+| CR-02 | critical | fixed | 01-REVIEW-FIX.md |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-09 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
-| IN-07 | info | open | - |
-| IN-08 | info | open | - |
-| IN-09 | info | open | - |
-| IN-10 | info | open | - |
-| IN-11 | info | open | - |
-| IN-12 | info | open | - |
-| IN-13 | info | open | - |
+| WR-09 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md |
+| IN-05 | info | fixed | 01-REVIEW-FIX.md |
+| IN-06 | info | fixed | 01-REVIEW-FIX.md |
+| IN-07 | info | fixed | 01-REVIEW-FIX.md |
+| IN-08 | info | fixed | 01-REVIEW-FIX.md |
+| IN-09 | info | fixed | 01-REVIEW-FIX.md |
+| IN-10 | info | fixed | 01-REVIEW-FIX.md |
+| IN-11 | info | fixed | 01-REVIEW-FIX.md |
+| IN-12 | info | fixed | 01-REVIEW-FIX.md |
+| IN-13 | info | fixed | 01-REVIEW-FIX.md |
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
