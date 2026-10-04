@@ -3,42 +3,18 @@ phase: 01
 review: 01-REVIEW.md
 titles: json
 findings:
-  - id: CR-01
+  - id: CR-02
     severity: critical
-    disposition: fixed
-    title: "compose-smoke cannot pass on GitHub's Linux runners: config.yaml is created mode 0600 and ./backups is not writable by the container user"
-  - id: WR-01
-    severity: warning
-    disposition: fixed
-    title: "compose-smoke's COMPOSE_PROJECT_NAME does not isolate the database; the `--down` guard only checks env vars"
-  - id: WR-02
-    severity: warning
-    disposition: fixed
-    title: "The worker's role guard accepts sift_owner (schema owner with CREATEROLE)"
-  - id: WR-03
-    severity: warning
-    disposition: fixed
-    title: "Shutdown hangs, and never exits 0, when a batch outlives SHUTDOWN_TIMEOUT_MS"
+    disposition: open
+    title: "Local compose-smoke runs write throwaway dumps into the owner's ./backups and prune the owner's real pre-migration backups"
   - id: WR-04
     severity: warning
     disposition: fixed
     title: "migrate() counts pending migrations while drizzle compares timestamps, so a skipped migration is reported as \"No pending migrations\""
-  - id: WR-05
+  - id: WR-09
     severity: warning
-    disposition: fixed
-    title: "The rename hint pairs removed and added slugs arbitrarily and can steer the owner into attaching one mailbox's history to another account"
-  - id: WR-06
-    severity: warning
-    disposition: fixed
-    title: "The catalog gate (D-37) does not see column-level SELECT/INSERT grants to sift_app"
-  - id: WR-07
-    severity: warning
-    disposition: fixed
-    title: "Neither the catalog gate nor the runtime guard checks sift_app's membership in sift_backup or other RLS-bypassing roles"
-  - id: WR-08
-    severity: warning
-    disposition: fixed
-    title: "poll_interval_seconds values that are not multiples of the 15 s tick are rounded up (10 s runs every 15 s, 20 s every 30 s)"
+    disposition: open
+    title: "compose-smoke's \"do not replace your containers\" guard is still env-var based: with CI=true, or an explicit COMPOSE_PROJECT_NAME equal to the owner's project, it recreates and then removes the owner's running stack"
   - id: IN-01
     severity: info
     disposition: open
@@ -67,24 +43,74 @@ findings:
     severity: info
     disposition: open
     title: "GitHub Actions are pinned by major tag, not commit SHA"
-open: 7
-total: 16
-recorded: 2026-10-04T09:23:12.889Z
+  - id: IN-08
+    severity: info
+    disposition: open
+    title: "The smoke stack reuses the owner's config.yaml, .env and .env.mailboxes and the shared sift:local image"
+  - id: IN-09
+    severity: info
+    disposition: open
+    title: "A single removed+added pair is suggested as a rename even when its IMAP identity differs"
+  - id: IN-10
+    severity: info
+    disposition: open
+    title: "The rename hint prints empty \"No longer in config.yaml:\" / \"New in config.yaml:\" lines"
+  - id: IN-11
+    severity: info
+    disposition: open
+    title: "The worker role guard does not check REPLICATION"
+  - id: IN-12
+    severity: info
+    disposition: open
+    title: "The bounded close does not cover a pool client that is still connecting"
+  - id: IN-13
+    severity: info
+    disposition: open
+    title: "A mailbox whose batch outlasts the poll interval now reruns back-to-back with no gap"
+  - id: CR-01
+    severity: critical
+    disposition: fixed
+    title: "compose-smoke cannot pass on GitHub's Linux runners: config.yaml is created mode 0600 and ./backups is not writable by the container user"
+  - id: WR-01
+    severity: warning
+    disposition: fixed
+    title: "compose-smoke's COMPOSE_PROJECT_NAME does not isolate the database; the `--down` guard only checks env vars"
+  - id: WR-02
+    severity: warning
+    disposition: fixed
+    title: "The worker's role guard accepts sift_owner (schema owner with CREATEROLE)"
+  - id: WR-03
+    severity: warning
+    disposition: fixed
+    title: "Shutdown hangs, and never exits 0, when a batch outlives SHUTDOWN_TIMEOUT_MS"
+  - id: WR-05
+    severity: warning
+    disposition: fixed
+    title: "The rename hint pairs removed and added slugs arbitrarily and can steer the owner into attaching one mailbox's history to another account"
+  - id: WR-06
+    severity: warning
+    disposition: fixed
+    title: "The catalog gate (D-37) does not see column-level SELECT/INSERT grants to sift_app"
+  - id: WR-07
+    severity: warning
+    disposition: fixed
+    title: "Neither the catalog gate nor the runtime guard checks sift_app's membership in sift_backup or other RLS-bypassing roles"
+  - id: WR-08
+    severity: warning
+    disposition: fixed
+    title: "poll_interval_seconds values that are not multiples of the 15 s tick are rounded up (10 s runs every 15 s, 20 s every 30 s)"
+open: 15
+total: 24
+recorded: 2026-10-04T17:24:45.259Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | fixed | 01-REVIEW-FIX.md |
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
+| CR-02 | critical | open | - |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-06 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-07 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-08 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-09 | warning | open | - |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
@@ -92,6 +118,20 @@ recorded: 2026-10-04T09:23:12.889Z
 | IN-05 | info | open | - |
 | IN-06 | info | open | - |
 | IN-07 | info | open | - |
+| IN-08 | info | open | - |
+| IN-09 | info | open | - |
+| IN-10 | info | open | - |
+| IN-11 | info | open | - |
+| IN-12 | info | open | - |
+| IN-13 | info | open | - |
+| CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-06 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-07 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-08 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
