@@ -149,15 +149,49 @@ export async function connectWithRetry(
   }
 }
 
+interface RoleAttributes {
+  name: string;
+  rolsuper: boolean;
+  rolbypassrls: boolean;
+  rolcreaterole: boolean;
+  rolcreatedb: boolean;
+  owns_objects: boolean;
+  member_of: string[];
+}
+
+/** Why `role` is not a DML-only, owns-nothing role; empty when it is. */
+function privilegeReasons(role: RoleAttributes): string[] {
+  // A superuser is a member of every role; listing them adds nothing.
+  if (role.rolsuper) return ['superuser'];
+  const reasons: string[] = [];
+  if (role.rolbypassrls) reasons.push('BYPASSRLS');
+  if (role.rolcreaterole) reasons.push('CREATEROLE');
+  if (role.rolcreatedb) reasons.push('CREATEDB');
+  if (role.owns_objects) reasons.push('owns database objects');
+  if (role.member_of.length > 0) reasons.push(`member of ${role.member_of.join(', ')}`);
+  return reasons;
+}
+
 /**
- * Refuse to run as a role that bypasses row-level security (T-01-43). A
- * superuser or BYPASSRLS role would silently turn off mailbox isolation, so
- * the worker must connect as sift_app.
+ * Refuse to run as anything but a DML-only role that owns nothing (T-01-43,
+ * D-36). A superuser or BYPASSRLS role would silently turn off mailbox
+ * isolation; an owner (sift_owner) could drop the policies or turn FORCE RLS
+ * off; CREATEROLE or CREATEDB could mint such a role; and membership in another
+ * role (sift_backup, pg_read_all_data, pg_write_all_data, ...) is one SET ROLE
+ * away from its powers. The worker must connect as sift_app, which is a member
+ * of nothing.
  */
 export async function assertUnprivilegedRole(db: AppDb): Promise<void> {
   const { pool } = internalsOf(db);
-  const { rows } = await pool.query<{ name: string; rolsuper: boolean; rolbypassrls: boolean }>(
-    `select current_user as name, r.rolsuper, r.rolbypassrls
+  const { rows } = await pool.query<RoleAttributes>(
+    `select r.rolname::text as name, r.rolsuper, r.rolbypassrls, r.rolcreaterole, r.rolcreatedb,
+            exists (select 1 from pg_class c where c.relowner = r.oid)
+              or exists (select 1 from pg_namespace n where n.nspowner = r.oid)
+              or exists (select 1 from pg_proc p where p.proowner = r.oid)
+              or exists (select 1 from pg_database d where d.datdba = r.oid) as owns_objects,
+            array(select b.rolname::text from pg_roles b
+                   where b.oid <> r.oid and pg_has_role(r.oid, b.oid, 'MEMBER')
+                   order by 1) as member_of
        from pg_roles r
       where r.rolname = current_user`,
   );
@@ -165,9 +199,10 @@ export async function assertUnprivilegedRole(db: AppDb): Promise<void> {
   if (role === undefined) {
     throw new DatabaseStartupError('could not read the attributes of the worker role', undefined);
   }
-  if (role.rolsuper || role.rolbypassrls) {
+  const reasons = privilegeReasons(role);
+  if (reasons.length > 0) {
     throw new DatabaseStartupError(
-      `the worker must connect as sift_app; refusing to run as superuser or BYPASSRLS role "${role.name}"`,
+      `the worker must connect as sift_app (DML only, owns nothing); refusing to run as role "${role.name}": ${reasons.join(', ')}`,
       undefined,
     );
   }

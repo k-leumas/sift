@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -180,6 +181,46 @@ describe('assertUnprivilegedRole', () => {
     }
   });
 
+  it('refuses sift_owner: it owns the schema and has CREATEROLE (D-36)', async () => {
+    const db = createAppDb(fresh.ownerUrl);
+    try {
+      const error = await startupError(assertUnprivilegedRole(db));
+      expect(error.message).toContain('"sift_owner"');
+      expect(error.message).toContain('CREATEROLE');
+      expect(error.message).toContain('owns database objects');
+      expect(error.message).not.toContain(fresh.ownerUrl);
+    } finally {
+      await db.close();
+    }
+  });
+
+  it('refuses a plain role that is a member of sift_backup (one SET ROLE from BYPASSRLS)', async () => {
+    const name = `sift_guard_${randomBytes(3).toString('hex')}`;
+    const password = randomBytes(12).toString('hex');
+    const admin = await connect(fresh.adminUrl);
+    try {
+      await admin.query(
+        `create role ${name} login password '${password}' nosuperuser nobypassrls in role sift_backup`,
+      );
+      const url = new URL(fresh.appUrl);
+      url.username = name;
+      url.password = password;
+      const db = createAppDb(url.toString());
+      try {
+        const error = await startupError(assertUnprivilegedRole(db));
+        expect(error.message).toContain(`"${name}"`);
+        // Indirect memberships count too: sift_backup brings pg_read_all_data.
+        expect(error.message).toContain('member of pg_read_all_data, sift_backup');
+        expect(error.message).not.toContain(password);
+      } finally {
+        await db.close();
+      }
+    } finally {
+      await admin.query(`drop role if exists ${name}`);
+      await admin.end();
+    }
+  });
+
   it('the worker exits 1 when SIFT_DATABASE_URL is a superuser URL', async () => {
     const child = spawn(process.execPath, [CLI, 'worker'], {
       cwd: REPO_ROOT,
@@ -212,7 +253,7 @@ describe('assertUnprivilegedRole', () => {
     });
 
     expect(code, output).toBe(1);
-    expect(output).toContain('refusing to run as superuser or BYPASSRLS role');
+    expect(output).toContain(': superuser');
     expect(output).not.toContain(fresh.adminUrl);
     expect(output).not.toContain('worker started');
 
