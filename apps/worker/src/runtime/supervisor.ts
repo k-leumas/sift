@@ -87,6 +87,11 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
   const describeError = (error: unknown) => summarizeError(error, deps.redact);
 
   const states = new Map<string, MailboxState>();
+  /**
+   * Disabled mailboxes whose stop this process has already recorded, so that
+   * one disabled before the worker started is still recorded once (IN-06).
+   */
+  const recordedDisabled = new Set<string>();
   const running = new Map<string, Promise<void>>();
   const inFlight = new Set<Promise<void>>();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -147,8 +152,11 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
   }
 
   /** Record a disable (D-45). Errors are logged; the mailbox stays stopped. */
-  function stopMailbox(entry: MailboxEntry): void {
-    log.info({ mailbox: entry.slug }, 'mailbox disabled, stopping');
+  function stopMailbox(entry: MailboxEntry, wasScheduled: boolean): void {
+    log.info(
+      { mailbox: entry.slug },
+      wasScheduled ? 'mailbox disabled, stopping' : 'mailbox disabled',
+    );
     const task = (async () => {
       try {
         await deps.onMailboxStopped(entry);
@@ -169,13 +177,18 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
       const known = states.get(entry.id);
 
       if (entry.disabledAt !== null) {
-        // Disabled mailboxes are never started; a known one is stopped once.
-        if (known !== undefined) {
-          states.delete(entry.id);
-          stopMailbox(entry);
+        // Disabled mailboxes are never started. Each disable is recorded once:
+        // when a scheduled mailbox is disabled, and also when the worker first
+        // sees a mailbox that was disabled while it was down, so its
+        // mailbox_status.state does not stay stale.
+        if (known !== undefined) states.delete(entry.id);
+        if (known !== undefined || !recordedDisabled.has(entry.id)) {
+          recordedDisabled.add(entry.id);
+          stopMailbox(entry, known !== undefined);
         }
         continue;
       }
+      recordedDisabled.delete(entry.id);
 
       let state = known;
       if (state === undefined) {
@@ -191,6 +204,9 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
       runMailbox(entry, state);
     }
 
+    for (const id of recordedDisabled) {
+      if (!listed.has(id)) recordedDisabled.delete(id);
+    }
     for (const id of states.keys()) {
       if (!listed.has(id)) {
         states.delete(id);

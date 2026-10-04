@@ -133,7 +133,29 @@ describe('createSupervisor', () => {
 
     await vi.advanceTimersByTimeAsync(3 * POLL_MS);
     expect(runCount(h, 'd')).toBe(0);
-    expect(h.stopped).toEqual([]);
+    // Disabled before the worker started: its status is recorded once (IN-06).
+    expect(h.stopped).toEqual(['d']);
+    await stopAll(h);
+  });
+
+  it('records a mailbox disabled while the worker was down once, and again after a re-enable (IN-06)', async () => {
+    const h = harness([entry(A, 'a', true), entry(B, 'b')]);
+    h.supervisor.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.stopped).toEqual(['a']);
+    expect(h.log.info).toHaveBeenCalledWith({ mailbox: 'a' }, 'mailbox disabled');
+
+    await vi.advanceTimersByTimeAsync(3 * POLL_MS);
+    expect(h.stopped).toEqual(['a']);
+    expect(runCount(h, 'a')).toBe(0);
+
+    // Re-enabled, it runs; disabled again, the new disable is recorded too.
+    h.registry = [entry(A, 'a'), entry(B, 'b')];
+    await vi.advanceTimersByTimeAsync(TICK_MS);
+    expect(runCount(h, 'a')).toBe(1);
+    h.registry = [entry(A, 'a', true), entry(B, 'b')];
+    await vi.advanceTimersByTimeAsync(TICK_MS);
+    expect(h.stopped).toEqual(['a', 'a']);
     await stopAll(h);
   });
 
