@@ -22,7 +22,13 @@ export function requireDatabaseUrl(
 // The scoped API is the only data-access surface app code gets (ISO-04,
 // D-42/D-43). Nothing here yields a pg pool, client, Drizzle instance or
 // transaction.
-export { type AppDb, type AppDbOptions, createAppDb } from './app-db.ts';
+export {
+  type AppDb,
+  type AppDbOptions,
+  type CloseOptions,
+  type CloseResult,
+  createAppDb,
+} from './app-db.ts';
 export { type RegistryRow, readRegistry } from './registry-read.ts';
 export {
   type AppendOnlyTableApi,

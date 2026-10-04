@@ -17,6 +17,14 @@ import { waitForShutdownSignal } from '../runtime/shutdown.ts';
 import { checkDrift } from '../runtime/startup.ts';
 import { createSupervisor, SHUTDOWN_TIMEOUT_MS } from '../runtime/supervisor.ts';
 
+/**
+ * D-53: after the drain, wait this long for the pool to close, then end the
+ * clients a stuck batch still holds (plus at most 1 s). 20 s drain + 3 s + 1 s
+ * stays inside Compose's 30 s stop_grace_period, so the worker exits 0 rather
+ * than being killed.
+ */
+const CLOSE_TIMEOUT_MS = 3_000;
+
 /** Show a path relative to the working directory when it lives under it. */
 function displayPath(path: string, cwd: string): string {
   const rel = relative(cwd, path);
@@ -125,7 +133,10 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
       log.warn({ timeoutMs: SHUTDOWN_TIMEOUT_MS }, 'in-flight mailbox runs did not finish in time');
     }
   } finally {
-    await db.close();
+    const { forced } = await db.close({ timeoutMs: CLOSE_TIMEOUT_MS });
+    if (forced) {
+      log.warn({ timeoutMs: CLOSE_TIMEOUT_MS }, 'closed database connections still in use');
+    }
   }
   log.info({}, 'stopped');
   return 0;

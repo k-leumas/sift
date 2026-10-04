@@ -317,6 +317,36 @@ describe('pooled connections', () => {
   });
 });
 
+describe('bounded close (D-53)', () => {
+  it('closes an idle pool without forcing', async () => {
+    const db = createAppDb(fresh.appUrl);
+    await withMailbox(db, A, (s) => s.message.find());
+    await expect(db.close({ timeoutMs: 1_000 })).resolves.toEqual({ forced: false });
+  });
+
+  it('ends a client stuck in a lock wait once the timeout passes', async () => {
+    // Another session holds an exclusive lock, so the scope blocks inside its
+    // transaction the way a stuck batch would; pool.end() alone never resolves.
+    const locker = await connect(fresh.adminUrl);
+    const db = createAppDb(fresh.appUrl);
+    try {
+      await locker.query('begin');
+      await locker.query('lock table message in access exclusive mode');
+      const stuck = withMailbox(db, A, (s) => s.message.find());
+      stuck.catch(() => {});
+      await delay(300);
+
+      const startedAt = Date.now();
+      await expect(db.close({ timeoutMs: 200 })).resolves.toEqual({ forced: true });
+      expect(Date.now() - startedAt).toBeLessThan(5_000);
+      await expect(stuck).rejects.toThrow();
+    } finally {
+      await locker.query('rollback').catch(() => {});
+      await locker.end();
+    }
+  });
+});
+
 describe('guards', () => {
   it('rejects a non-UUID mailbox id before any query runs', async () => {
     // Nothing listens on port 1: any query would fail with a connection error.
