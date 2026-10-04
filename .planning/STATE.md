@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-10-03T20:02:16.864Z"
-last_activity: 2026-10-02
-last_activity_desc: Roadmap created from ingested ADRs and README (34 requirements, 4 phases); TRC-06 added to Phase 3 (reserved classifier span)
-state_head: 42ac9fd6e0b608f1583435d54f6b8590a7fe2569
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-10-04T05:20:33.535Z"
+last_activity: 2026-10-03
+last_activity_desc: Phase 01 execution started
+state_head: 6dd188b6f3db486745dc8706568e876be9c6b13c
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 0
+  completed_plans: 1
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Every incoming email is auto-labelled correctly or explicitly held for the owner, entirely on local hardware, with a decision trace explaining why.
-**Current focus:** Phase 1 - Foundation and Isolation (milestone v0.1 Classify / README M1)
+**Current focus:** Phase 01 — Foundation and Isolation
 
 ## Current Position
 
-Phase: 01 (Foundation and Isolation) — READY TO EXECUTE
-Plan: 0 of 0 in current phase
+Phase: 01 (Foundation and Isolation) — EXECUTING
+Plan: 2 of 13
 Status: Ready to execute
-Last activity: 2026-10-02 — Roadmap created from ingested ADRs and README (34 requirements, 4 phases); TRC-06 added to Phase 3 (reserved classifier span)
+Last activity: 2026-10-03 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -53,6 +53,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01 | 57min | 3 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -65,6 +70,10 @@ Recent decisions affecting current work:
 - [Init]: Bridge spike sits in Phase 2, ahead of ingest and label application, because its findings shape both
 - [Init]: M1 has no classifier and no UI; traces are read via CLI or SQL
 - [Init]: M1 traces reserve a classifier span marked skipped ("not trained") so M2 does not change the trace layout (TRC-06)
+- [Phase 01]: 01-01: @types/node pinned at 26.6.3, the newest 26.x past the 7-day minimumReleaseAge gate
+- [Phase 01]: 01-01: Biome 2.5 uses rules.preset recommended (boolean recommended is deprecated) and !dir folder negations
+- [Phase 01]: 01-01: Root tsconfig sets allowJs+checkJs so root .js config files are type-checked
+- [Phase 01]: 01-01: Commits run lefthook (biome pre-commit, commitlint commit-msg); header/body lines <=100 chars, never --no-verify
 
 ### Pending Todos
 
@@ -87,6 +96,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-03T18:10:24.771Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundation-and-isolation/01-CONTEXT.md
+Last session: 2026-10-04T05:20:33.449Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
