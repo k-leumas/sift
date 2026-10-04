@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-10-04T06:11:10.743Z"
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-10-04T06:16:42.548Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: 0726f5bf7f9189c6b57d158f1787930fe7dce1e7
+state_head: 8613f35e556049deeb1419a06f905162dd403801
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 ## Current Position
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 6 of 13
+Plan: 7 of 13
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 01 execution started
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 9min | 2 tasks | 22 files |
 | Phase 01 P04 | 13min | 3 tasks | 13 files |
 | Phase 01 P05 | 6min | 3 tasks | 4 files |
+| Phase 01 P06 | 3min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-04: config check --schema-only skips the D-35 presence check (D-67); SIFT_MODELS_URL override is validated with the same HttpUrl as models.url
 - [Phase 01]: 01-05: catalog check (collectCatalogViolations) asserts D-37/D-38/D-40/D-66 from pg_catalog; composite key = UNIQUE or PK on exactly (mailbox_id, id); FK mailbox_id pairing is positional
 - [Phase 01]: 01-05: CI workflow ci/check pins actions/checkout@v7, pnpm/action-setup@v6, setup-node@v7 (.nvmrc); bootstrap via docker exec of db/bootstrap.sql; GitHub run is a pending end-of-phase human check
+- [Phase 01]: 01-06: isolation tests iterate SCOPED_TABLE_NAMES on raw sift_app clients and compare sorted id sets to superuser ground truth; mailbox_status uses mailbox_id as its id
+- [Phase 01]: 01-06: append-only 42501 is asserted on unfiltered UPDATE/DELETE so it can only be the privilege check (RLS alone gives 0 rows)
 
 ### Pending Todos
 
@@ -110,6 +113,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T06:11:10.701Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-10-04T06:16:42.500Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None
