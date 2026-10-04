@@ -213,9 +213,11 @@ The classifier learns judgment rules from your confirmed labels, so a rule chang
 
 ### Technical settings
 
-Connection details and tuning live in `config.yaml`, which a non-technical person never needs to touch. Passwords are never stored in it; each mailbox points to an environment variable.
+Connection details and tuning live in `config/config.yaml`, which a non-technical person never needs to touch. Passwords are never stored in it; each mailbox points to an environment variable whose value lives in `.env.mailboxes`.
 
 ```yaml
+version: 1
+
 mailboxes:
   - slug: personal
     imap:
@@ -258,6 +260,12 @@ quick_confirm:
 relabel_sync:
   enabled: true
   poll_interval_seconds: 60     # how often label folders are compared
+```
+
+[`config/config.example.yaml`](config/config.example.yaml) is the authoritative list of the keys the current version accepts. Unknown keys are rejected, with the path of each one in the error. Sections shown above that the current version does not accept yet (`tiers`, `quick_confirm`, `relabel_sync`) arrive with later milestones; until then, leave them out of your `config/config.yaml`. After editing the file, apply it with:
+
+```sh
+docker compose run --rm setup
 ```
 
 ---
@@ -360,29 +368,74 @@ Sift is designed for an always-on machine on your home network.
 - **Mac mini (Apple Silicon):** run **Ollama natively**, not in Docker. Docker on macOS can't use the GPU, so a containerized model runs CPU-only and much slower. Sift's containers reach the native Ollama at `host.docker.internal:11434`. This is the default.
 - **Linux mini PC:** run everything in Docker, using the `ollama` Compose profile. With the classifier handling most mail, CPU-only inference is fine.
 
-### Quick start (planned)
+### Quick start
+
+What works today: the database, the one-shot `setup` service (migrations with a backup first, then your mailboxes registered from `config/config.yaml`) and the worker, which runs one loop per enabled mailbox. Classifying mail arrives with M1.
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/<you>/sift && cd sift
+   ```
+
+2. Copy the example config, then edit it for your mailboxes:
+
+   ```sh
+   cp config/config.example.yaml config/config.yaml
+   ```
+
+3. Copy the database settings and fill in every password. Generate each one with `openssl rand -hex 24`:
+
+   ```sh
+   cp .env.example .env
+   ```
+
+4. Copy the mailbox password file. Each Proton Bridge IMAP password goes here, one line per `password_env` in `config/config.yaml`. Database passwords stay in `.env`; mailbox passwords never go there:
+
+   ```sh
+   cp .env.mailboxes.example .env.mailboxes
+   ```
+
+5. Start the stack:
+
+   ```sh
+   docker compose up -d
+   ```
+
+   Compose starts `db`, runs `setup` once, and starts `worker` when setup has finished.
+
+6. To add or change a mailbox: edit `config/config.yaml`, add its password variable to `.env.mailboxes`, then run:
+
+   ```sh
+   docker compose run --rm setup
+   ```
+
+   The worker reads `.env.mailboxes` only when its container is created, so after adding a password, recreate it with `docker compose up -d --force-recreate worker`.
+
+**Arriving in later milestones** (these commands do not work yet):
 
 ```sh
-git clone https://github.com/<you>/sift && cd sift
-cp config.example.yaml config.yaml
-cp .env.example .env              # mailbox passwords go here
-
-# Mac: install and start Ollama natively, then:
+# Mac: install and start Ollama natively, then pull the default models
 ollama pull nomic-embed-text
 ollama pull qwen3:1.7b
-docker compose up -d
 
-# Linux: run Ollama in Docker too
+# Linux: run Ollama in Docker too, using the ollama Compose profile
 docker compose --profile ollama up -d
 
 # One-time Proton Bridge login (interactive)
 docker compose run --rm bridge init
-
-# Add a mailbox (also possible from the UI)
-docker compose run --rm worker sift mailbox add personal
 ```
 
-Then open `http://<your-machine>:3000`.
+The web UI at `http://<your-machine>:3000` also arrives in a later milestone.
+
+### Managing mailboxes
+
+The mailboxes in `config/config.yaml` are the source of truth. Every change goes through `docker compose run --rm setup`:
+
+- **Remove a mailbox:** delete its entry from `config/config.yaml` and rerun setup. The mailbox is disabled and its data is kept.
+- **Bring it back:** add the same slug again and rerun setup. It is re-enabled with its data.
+- **Rename a mailbox:** run `docker compose run --rm setup sift mailbox rename <old> <new>`, change the slug in `config/config.yaml` to match, then rerun setup. The mailbox keeps its data under the new slug. If setup sees one slug disappear while a new one appears, it refuses to apply until you either rename the mailbox or rerun with `docker compose run --rm setup sift setup --confirm`, which disables the old mailbox and adds the new one.
+- **See every mailbox and its status:** `docker compose run --rm setup sift mailbox list`. Disabled mailboxes are listed too.
 
 ### Remote access
 
@@ -410,9 +463,14 @@ sift/
 ├── docs/
 │   └── adr/            # architecture decision records
 ├── data/               # rules files per mailbox (gitignored except examples)
+├── config/
+│   └── config.example.yaml   # copy to config/config.yaml (gitignored)
+├── db/
+│   └── bootstrap.sql   # roles and extensions, run once when the database is created
+├── backups/            # pg_dump files written before migrations (gitignored)
 ├── compose.yaml
-├── config.example.yaml
-└── .env.example
+├── .env.example        # database passwords (copy to .env)
+└── .env.mailboxes.example   # mailbox IMAP passwords (copy to .env.mailboxes)
 ```
 
 **Stack:** TypeScript end to end (including the classifier, so no Python) · React Router v7 · Hono · Postgres + pgvector · Drizzle · Ollama · Docker Compose. Major decisions are recorded as ADRs in `docs/adr/`.
