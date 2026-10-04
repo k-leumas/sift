@@ -411,6 +411,8 @@ What works today: the database, the one-shot `setup` service (migrations with a 
 
    Compose starts `db`, runs `setup` once, and starts `worker` when setup has finished.
 
+   `docker compose ps` shows the worker as `healthy` while it works. It turns `unhealthy` when it has not managed to read the mailbox registry for a few minutes, for example because the database is unreachable. Docker restarts the worker when it exits, but not when it is merely unhealthy, so if it stays unhealthy, check `docker compose logs worker` and then run `docker compose restart worker`.
+
 6. To add or change a mailbox: edit `config/config.yaml`, add its password variable to `.env.mailboxes`, then run:
 
    ```sh

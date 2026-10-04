@@ -94,7 +94,9 @@ services:
       setup:
         condition: service_completed_successfully
     healthcheck:
-      # Unhealthy when the heartbeat file is older than 120 s.
+      # Unhealthy when the heartbeat file is older than 120 s. Docker restarts
+      # a container only when it exits, never because it is unhealthy, so a
+      # stuck worker stays unhealthy until `docker compose restart worker`.
       test:
         - CMD
         - node

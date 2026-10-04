@@ -189,6 +189,12 @@ describe('ordering and lifecycle (D-27, D-53, D-54, D-60)', () => {
     expect(worker.restart).toBe('unless-stopped');
   });
 
+  it('documents that an unhealthy worker is not restarted automatically (IN-05)', () => {
+    const text = read('compose.yaml');
+    const health = text.slice(text.indexOf('    healthcheck:', text.indexOf('  worker:')));
+    expect(health).toContain('docker compose restart worker');
+  });
+
   it('checks worker health on a heartbeat younger than 120 s', () => {
     const worker = service('worker');
     expect(env(worker).SIFT_HEARTBEAT_FILE).toBe('/tmp/sift/heartbeat');
