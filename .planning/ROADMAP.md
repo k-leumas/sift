@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A schema check fails the build if any table holding mail-derived data lacks a non-null `mailbox_id`
   4. With two seeded mailboxes, queries run under mailbox A's `app.mailbox_id` return and modify none of mailbox B's rows, even with the application-level filter removed; with no `app.mailbox_id` set, they return nothing
 
-**Plans**: 12/13 plans executed
+**Plans**: 13/13 plans executed
 
 Plans:
 **Wave 1**
@@ -60,7 +60,7 @@ Plans:
 - [x] 01-12-PLAN.md — Docker image, full Compose stack, `sift setup`, compose smoke and version-drift tests (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 01-13-PLAN.md — README quick start / mailbox lifecycle, CONTRIBUTING dev loop, user-facing text guard (wave 6)
+- [x] 01-13-PLAN.md — README quick start / mailbox lifecycle, CONTRIBUTING dev loop, user-facing text guard (wave 6)
 
 ### Phase 2: Bridge Spike and IMAP Ingest
 
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundation and Isolation | v0.1 | 12/13 | In Progress|  |
+| 1. Foundation and Isolation | v0.1 | 13/13 | In Progress|  |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 0/0 | Not started | - |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |

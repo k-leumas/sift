@@ -4,17 +4,17 @@ milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
-status: executing
-stopped_at: Completed 01-12-PLAN.md
-last_updated: "2026-10-04T07:47:26.107Z"
+status: verifying
+stopped_at: Completed 01-13-PLAN.md
+last_updated: "2026-10-04T08:04:56.966Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: 48181fd2a7586f12f5237b1f10e1f2c3502f93d8
+state_head: 0a02986e7124276b0f8c14e222d2f160a5922747
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
 Plan: 13 of 13
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-03 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P10 | 7 min | 2 tasks | 8 files |
 | Phase 01 P11 | 6 min | 3 tasks | 6 files |
 | Phase 01 P12 | 37 min | 2 tasks | 14 files |
+| Phase 01 P13 | 8 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-12: compose-smoke.sh --down refuses outside CI (CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes) because down -v deletes sift-pgdata
 - [Phase 01]: 01-12: test files that run migrate() or compare the sift_app verifier hold lockAppRole() (advisory lock in the admin DB) for the whole file
 - [Phase 01]: 01-12: worker env_file .env.mailboxes must exist for any docker compose command on Compose v2.2.3; developers copy .env.mailboxes.example
+- [Phase 01]: 01-13: README tells owners to recreate the worker (up -d --force-recreate worker) after adding a mailbox password; env_file is read only at container creation
+- [Phase 01]: 01-13: user-facing-text.test.ts enforces D-69 over docs, example env/config, compose.yaml, Dockerfile and shipped src; update it when the deferred command ships
 
 ### Pending Todos
 
@@ -136,6 +139,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T07:46:47.896Z
-Stopped at: Completed 01-12-PLAN.md
+Last session: 2026-10-04T08:04:56.641Z
+Stopped at: Completed 01-13-PLAN.md
 Resume file: None

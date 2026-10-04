@@ -11,9 +11,9 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 
 ### Foundation
 
-- [ ] **FND-01**: Owner can bring up the stack (Postgres with pgvector, worker) on the home machine with Docker Compose, with migrations applied automatically or by one documented command
-- [ ] **FND-02**: Owner can define a mailbox in `config.yaml` (slug, IMAP host/port/username/folder, label mode `proton_labels`) and the model settings (Ollama URL, embedding and LLM model names, LLM confidence threshold); a mailbox's password is read from the environment variable named by `password_env` and is never stored in a config file or the database
-- [ ] **FND-03**: The repository has the TypeScript workspace layout the milestone needs (`apps/worker`, `packages/core`, `packages/db`) with Drizzle schema and migrations in `packages/db`
+- [x] **FND-01**: Owner can bring up the stack (Postgres with pgvector, worker) on the home machine with Docker Compose, with migrations applied automatically or by one documented command
+- [x] **FND-02**: Owner can define a mailbox in `config.yaml` (slug, IMAP host/port/username/folder, label mode `proton_labels`) and the model settings (Ollama URL, embedding and LLM model names, LLM confidence threshold); a mailbox's password is read from the environment variable named by `password_env` and is never stored in a config file or the database
+- [x] **FND-03**: The repository has the TypeScript workspace layout the milestone needs (`apps/worker`, `packages/core`, `packages/db`) with Drizzle schema and migrations in `packages/db`
 
 ### Isolation
 
@@ -119,9 +119,9 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 1 | Pending |
-| FND-02 | Phase 1 | Pending |
-| FND-03 | Phase 1 | Pending |
+| FND-01 | Phase 1 | Complete |
+| FND-02 | Phase 1 | Complete |
+| FND-03 | Phase 1 | Complete |
 | ISO-01 | Phase 1 | Complete |
 | ISO-02 | Phase 1 | Complete |
 | ISO-03 | Phase 1 | Complete |
