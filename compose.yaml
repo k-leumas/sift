@@ -102,4 +102,6 @@ services:
 
 volumes:
   sift-pgdata:
-    name: sift-pgdata
+    # Your database. SIFT_PGDATA_VOLUME exists only so scripts/compose-smoke.sh
+    # can run a throwaway stack on its own volume; leave it unset.
+    name: ${SIFT_PGDATA_VOLUME:-sift-pgdata}

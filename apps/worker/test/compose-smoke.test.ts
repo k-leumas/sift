@@ -28,6 +28,7 @@ const INPUTS = [
 let work: string;
 let bin: string;
 let sudoLog: string;
+let dockerLog: string;
 
 function shim(name: string, body: string): void {
   const file = path.join(bin, name);
@@ -45,24 +46,33 @@ function runSmoke(
   os: string,
   uid: string,
   sudo = `echo "$*" >> '${sudoLog}'`,
+  env: Record<string, string> = { COMPOSE_PROJECT_NAME: 'smoketest' },
+  args: string[] = [],
 ): { status: number | null; stderr: string } {
-  shim('docker', 'exit 1');
+  shim('docker', `echo "$SIFT_PGDATA_VOLUME $*" >> '${dockerLog}'; exit 1`);
   shim('uname', `echo ${os}`);
   shim('id', `if [ "$1" = -u ]; then echo ${uid}; else exit 1; fi`);
   shim('sudo', sudo);
-  const result = spawnSync('bash', ['scripts/compose-smoke.sh'], {
+  const result = spawnSync('bash', ['scripts/compose-smoke.sh', ...args], {
     cwd: work,
     encoding: 'utf8',
-    env: { PATH: `${bin}:${process.env.PATH ?? ''}`, HOME: work },
+    env: { PATH: `${bin}:${process.env.PATH ?? ''}`, HOME: work, ...env },
     timeout: 30_000,
   });
   return { status: result.status, stderr: result.stderr };
+}
+
+/** First docker invocation as "<SIFT_PGDATA_VOLUME> <args>", or undefined. */
+function firstDockerCall(): string | undefined {
+  if (!existsSync(dockerLog)) return undefined;
+  return readFileSync(dockerLog, 'utf8').split('\n')[0];
 }
 
 beforeEach(() => {
   work = mkdtempSync(path.join(tmpdir(), 'sift-smoke-'));
   bin = path.join(work, 'bin');
   sudoLog = path.join(work, 'sudo.log');
+  dockerLog = path.join(work, 'docker.log');
   mkdirSync(bin);
   for (const file of INPUTS) {
     mkdirSync(path.dirname(path.join(work, file)), { recursive: true });
@@ -107,5 +117,50 @@ describe('scripts/compose-smoke.sh file preparation (CR-01)', () => {
     const { status, stderr } = runSmoke('Linux', '1001', 'exit 1');
     expect(status).toBe(1);
     expect(stderr).toContain('sudo chown 1000 backups');
+  });
+});
+
+describe('scripts/compose-smoke.sh never touches the owner database (WR-01)', () => {
+  it('runs the stack on its own volume, named after the project', () => {
+    const { status } = runSmoke('Darwin', '501');
+    expect(status).toBe(1);
+    expect(firstDockerCall()).toBe('smoketest-pgdata-smoke compose build');
+  });
+
+  it('refuses the default project outside CI, before creating any file', () => {
+    const { status, stderr } = runSmoke('Darwin', '501', undefined, {});
+    expect(status).toBe(2);
+    expect(stderr).toContain('COMPOSE_PROJECT_NAME');
+    expect(existsSync(path.join(work, 'config/config.yaml'))).toBe(false);
+    expect(firstDockerCall()).toBeUndefined();
+  });
+
+  it('allows the default project in CI, still on a separate volume', () => {
+    runSmoke('Darwin', '501', undefined, { CI: 'true' });
+    const project = path.basename(work).toLowerCase();
+    expect(firstDockerCall()).toBe(`${project}-pgdata-smoke compose build`);
+  });
+
+  it('refuses to run on sift-pgdata, even in CI', () => {
+    const { status, stderr } = runSmoke('Darwin', '501', undefined, {
+      CI: 'true',
+      SIFT_PGDATA_VOLUME: 'sift-pgdata',
+    });
+    expect(status).toBe(2);
+    expect(stderr).toContain('sift-pgdata');
+    expect(firstDockerCall()).toBeUndefined();
+  });
+
+  it('still asks for confirmation before --down outside CI', () => {
+    const { status, stderr } = runSmoke(
+      'Darwin',
+      '501',
+      undefined,
+      { COMPOSE_PROJECT_NAME: 'smoketest' },
+      ['--down'],
+    );
+    expect(status).toBe(2);
+    expect(stderr).toContain('smoketest-pgdata-smoke');
+    expect(firstDockerCall()).toBeUndefined();
   });
 });

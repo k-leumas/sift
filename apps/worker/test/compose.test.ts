@@ -104,7 +104,9 @@ describe('db service (T-01-52)', () => {
 
   it('keeps data in the named volume sift-pgdata at the PG18 path', () => {
     expect(service('db').volumes).toContain('sift-pgdata:/var/lib/postgresql');
-    expect(compose.volumes?.['sift-pgdata']?.name).toBe('sift-pgdata');
+    // Only the smoke script overrides the name (WR-01); owners get sift-pgdata.
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    expect(compose.volumes?.['sift-pgdata']?.name).toBe('${SIFT_PGDATA_VOLUME:-sift-pgdata}');
   });
 
   it('is the only service holding the superuser password', () => {

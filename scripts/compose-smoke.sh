@@ -11,11 +11,16 @@
 # from the committed examples with throwaway values; existing ones are never
 # overwritten.
 #
-# --down runs `docker compose down -v`, which deletes the sift-pgdata volume
-# (the whole database). It therefore only runs when CI=true or
-# SMOKE_ALLOW_VOLUME_REMOVAL=yes is set.
+# The smoke stack never touches your database: it runs on its own volume,
+# <project>-pgdata-smoke (SIFT_PGDATA_VOLUME), never sift-pgdata. Outside CI it
+# also needs its own Compose project, so it cannot replace your running
+# containers: set COMPOSE_PROJECT_NAME (and SIFT_DB_PORT if your db already
+# publishes 5432).
 #
-# Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME.
+# --down runs `docker compose down -v`, which deletes the smoke volume. It only
+# runs when CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes is set.
+#
+# Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME, SIFT_DB_PORT.
 set -euo pipefail
 
 down=false
@@ -29,16 +34,30 @@ for arg in "$@"; do
   esac
 done
 
-if [ "$down" = true ] && [ "${CI:-}" != true ] && [ "${SMOKE_ALLOW_VOLUME_REMOVAL:-}" != yes ]; then
-  echo "compose-smoke: --down deletes the sift-pgdata volume (all data)." >&2
-  echo "Refusing outside CI; set SMOKE_ALLOW_VOLUME_REMOVAL=yes to confirm." >&2
-  exit 2
-fi
-
 timeout=${SMOKE_TIMEOUT:-300}
 # Compose's default project name: the directory name, lowercased, restricted
 # to [a-z0-9_-].
-project=${COMPOSE_PROJECT_NAME:-$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-')}
+default_project=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-')
+project=${COMPOSE_PROJECT_NAME:-$default_project}
+volume=${SIFT_PGDATA_VOLUME:-$project-pgdata-smoke}
+export SIFT_PGDATA_VOLUME=$volume
+
+refuse() {
+  echo "compose-smoke: $*" >&2
+  exit 2
+}
+
+if [ "$volume" = sift-pgdata ]; then
+  refuse "refusing to run on sift-pgdata, the database volume of your own stack; unset SIFT_PGDATA_VOLUME."
+fi
+if [ "${CI:-}" != true ] && [ "$project" = "$default_project" ]; then
+  refuse "outside CI, set COMPOSE_PROJECT_NAME (and SIFT_DB_PORT if 5432 is taken) so the smoke stack does not replace your own containers."
+fi
+if [ "$down" = true ] && [ "${CI:-}" != true ] && [ "${SMOKE_ALLOW_VOLUME_REMOVAL:-}" != yes ]; then
+  echo "compose-smoke: --down deletes the smoke volume $volume." >&2
+  echo "Refusing outside CI; set SMOKE_ALLOW_VOLUME_REMOVAL=yes to confirm." >&2
+  exit 2
+fi
 
 umask 077
 
