@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import type pg from 'pg';
 import { describe, expect, it } from 'vitest';
 import {
+  attributeProblems,
   CATALOG_ALLOWLIST,
   collectCatalogViolations,
   membershipProblems,
@@ -124,6 +125,25 @@ describe('catalog privilege and role checks (D-37, D-40, D-66)', () => {
       expect(await membershipProblems(admin, standIn)).toEqual([
         `role ${standIn}: is a member of pg_read_all_data, expected none`,
         `role ${standIn}: is a member of sift_backup, expected none`,
+      ]);
+    } finally {
+      await admin.query(`drop role if exists ${standIn}`);
+      await admin.end();
+    }
+  });
+
+  it('reports REPLICATION and the other bypassing attributes (IN-11)', async () => {
+    // A throwaway stand-in, as above: never alter the shared sift_app.
+    const { adminUrl } = requireTestDb();
+    const standIn = `app_standIn_${randomBytes(3).toString('hex')}`;
+    const admin = await connect(adminUrl);
+    try {
+      await admin.query(`create role ${standIn} noinherit`);
+      expect(await attributeProblems(admin, standIn)).toEqual([]);
+      await admin.query(`alter role ${standIn} replication createdb`);
+      expect(await attributeProblems(admin, standIn)).toEqual([
+        `role ${standIn}: has CREATEDB`,
+        `role ${standIn}: has REPLICATION`,
       ]);
     } finally {
       await admin.query(`drop role if exists ${standIn}`);

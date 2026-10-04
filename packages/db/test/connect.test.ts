@@ -221,6 +221,31 @@ describe('assertUnprivilegedRole', () => {
     }
   });
 
+  it('refuses a REPLICATION role: logical decoding reads every row past RLS (IN-11)', async () => {
+    const name = `sift_guard_${randomBytes(3).toString('hex')}`;
+    const password = randomBytes(12).toString('hex');
+    const admin = await connect(fresh.adminUrl);
+    try {
+      await admin.query(
+        `create role ${name} login password '${password}' nosuperuser nobypassrls replication`,
+      );
+      const url = new URL(fresh.appUrl);
+      url.username = name;
+      url.password = password;
+      const db = createAppDb(url.toString());
+      try {
+        const error = await startupError(assertUnprivilegedRole(db));
+        expect(error.message).toContain(`"${name}": REPLICATION`);
+        expect(error.message).not.toContain(password);
+      } finally {
+        await db.close();
+      }
+    } finally {
+      await admin.query(`drop role if exists ${name}`);
+      await admin.end();
+    }
+  });
+
   it('the worker exits 1 when SIFT_DATABASE_URL is a superuser URL', async () => {
     const child = spawn(process.execPath, [CLI, 'worker'], {
       cwd: REPO_ROOT,

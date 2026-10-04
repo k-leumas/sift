@@ -155,6 +155,7 @@ interface RoleAttributes {
   rolbypassrls: boolean;
   rolcreaterole: boolean;
   rolcreatedb: boolean;
+  rolreplication: boolean;
   owns_objects: boolean;
   member_of: string[];
 }
@@ -167,6 +168,7 @@ function privilegeReasons(role: RoleAttributes): string[] {
   if (role.rolbypassrls) reasons.push('BYPASSRLS');
   if (role.rolcreaterole) reasons.push('CREATEROLE');
   if (role.rolcreatedb) reasons.push('CREATEDB');
+  if (role.rolreplication) reasons.push('REPLICATION');
   if (role.owns_objects) reasons.push('owns database objects');
   if (role.member_of.length > 0) reasons.push(`member of ${role.member_of.join(', ')}`);
   return reasons;
@@ -176,7 +178,8 @@ function privilegeReasons(role: RoleAttributes): string[] {
  * Refuse to run as anything but a DML-only role that owns nothing (T-01-43,
  * D-36). A superuser or BYPASSRLS role would silently turn off mailbox
  * isolation; an owner (sift_owner) could drop the policies or turn FORCE RLS
- * off; CREATEROLE or CREATEDB could mint such a role; and membership in another
+ * off; CREATEROLE or CREATEDB could mint such a role; REPLICATION can read
+ * every row change through logical decoding, past RLS; and membership in another
  * role (sift_backup, pg_read_all_data, pg_write_all_data, ...) is one SET ROLE
  * away from its powers. The worker must connect as sift_app, which is a member
  * of nothing.
@@ -185,6 +188,7 @@ export async function assertUnprivilegedRole(db: AppDb): Promise<void> {
   const { pool } = internalsOf(db);
   const { rows } = await pool.query<RoleAttributes>(
     `select r.rolname::text as name, r.rolsuper, r.rolbypassrls, r.rolcreaterole, r.rolcreatedb,
+            r.rolreplication,
             exists (select 1 from pg_class c where c.relowner = r.oid)
               or exists (select 1 from pg_namespace n where n.nspowner = r.oid)
               or exists (select 1 from pg_proc p where p.proowner = r.oid)

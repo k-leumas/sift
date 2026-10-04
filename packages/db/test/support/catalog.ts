@@ -398,25 +398,42 @@ export async function membershipProblems(client: pg.Client, role: string): Promi
   return rows.map(({ rolname }) => `role ${role}: is a member of ${rolname}, expected none`);
 }
 
+/**
+ * `role` must have none of the attributes that bypass or widen access:
+ * SUPERUSER, BYPASSRLS, CREATEROLE, CREATEDB, or REPLICATION (logical decoding
+ * reads every row change past RLS, IN-11). Exported so tests can point it at a
+ * throwaway role instead of changing the shared sift_app.
+ */
+export async function attributeProblems(client: pg.Client, role: string): Promise<string[]> {
+  const { rows } = await client.query<{
+    rolsuper: boolean;
+    rolbypassrls: boolean;
+    rolcreaterole: boolean;
+    rolcreatedb: boolean;
+    rolreplication: boolean;
+  }>(
+    `select rolsuper, rolbypassrls, rolcreaterole, rolcreatedb, rolreplication
+       from pg_roles where oid = $1::regrole`,
+    [role],
+  );
+  const attrs = rows[0];
+  if (attrs === undefined) return [`role ${role}: does not exist`];
+  const flags: [string, boolean][] = [
+    ['SUPERUSER', attrs.rolsuper],
+    ['BYPASSRLS', attrs.rolbypassrls],
+    ['CREATEROLE', attrs.rolcreaterole],
+    ['CREATEDB', attrs.rolcreatedb],
+    ['REPLICATION', attrs.rolreplication],
+  ];
+  return flags.filter(([, has]) => has).map(([flag]) => `role ${role}: has ${flag}`);
+}
+
 /** D-37, D-41 and D-66 role assertions. */
 async function roleProblems(client: pg.Client, siftRoles: RoleRow[]): Promise<string[]> {
   const problems: string[] = [];
   const role = (name: string) => siftRoles.find((r) => r.rolname === name);
 
-  const app = role('sift_app');
-  if (app !== undefined) {
-    const flags: [string, boolean][] = [
-      ['SUPERUSER', app.rolsuper],
-      ['BYPASSRLS', app.rolbypassrls],
-      ['CREATEROLE', app.rolcreaterole],
-      ['CREATEDB', app.rolcreatedb],
-    ];
-    for (const [flag, has] of flags) {
-      if (has) {
-        problems.push(`role sift_app: has ${flag}`);
-      }
-    }
-  }
+  problems.push(...(await attributeProblems(client, 'sift_app')));
 
   // FORCE RLS must bind the owner (D-41).
   const owner = role('sift_owner');
