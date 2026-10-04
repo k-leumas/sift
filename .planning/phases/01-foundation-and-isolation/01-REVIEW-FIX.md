@@ -24,7 +24,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 
 ## Fixed Issues
 
-### CR-01: compose-smoke cannot pass on GitHub's Linux runners
+### CR-01: compose-smoke cannot pass on GitHub's Linux runners: config.yaml is created mode 0600 and ./backups is not writable by the container user
 
 **Files modified:** `scripts/compose-smoke.sh`, `apps/worker/test/compose-smoke.test.ts` (new), `README.md`, `apps/worker/test/user-facing-text.test.ts`
 **Commit:** 3249ce5
@@ -38,7 +38,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 
 **Still open:** someone needs to push and confirm that both CI jobs are green. `ensureWritableDir`'s error still names the container path `/backups`; the README note covers the host side.
 
-### WR-01: compose-smoke's COMPOSE_PROJECT_NAME does not isolate the database
+### WR-01: compose-smoke's COMPOSE_PROJECT_NAME does not isolate the database; the `--down` guard only checks env vars
 
 **Files modified:** `compose.yaml`, `scripts/compose-smoke.sh`, `apps/worker/test/compose-smoke.test.ts`, `apps/worker/test/compose.test.ts`, `CONTRIBUTING.md`
 **Commit:** d45299e
@@ -51,7 +51,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 - The `SMOKE_ALLOW_VOLUME_REMOVAL` confirmation for `--down` is kept.
 - Tests cover each refusal and the volume name passed to docker.
 
-### WR-02: The worker's role guard accepts sift_owner
+### WR-02: The worker's role guard accepts sift_owner (schema owner with CREATEROLE)
 
 **Files modified:** `packages/db/src/connect.ts`, `packages/db/test/connect.test.ts`
 **Commit:** 191b056
@@ -62,7 +62,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 - New tests: `sift_owner` is refused (CREATEROLE, owns objects). A throwaway login role in `sift_backup` is refused as "member of pg_read_all_data, sift_backup".
 - The guard does not require the role to be named `sift_app`. A clean DML-only role with another name still passes.
 
-### WR-03: Shutdown hangs when a batch outlives SHUTDOWN_TIMEOUT_MS
+### WR-03: Shutdown hangs, and never exits 0, when a batch outlives SHUTDOWN_TIMEOUT_MS
 
 **Files modified:** `packages/db/src/app-db.ts`, `packages/db/src/index.ts`, `apps/worker/src/commands/worker.ts`, `packages/db/test/scope.test.ts`
 **Commit:** 148143e
@@ -76,7 +76,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 - `statement_timeout` and `idle_in_transaction_session_timeout` (the review marked them optional). Choosing values is a design decision.
 - An end-to-end worker test with a never-resolving batch. It would need more than 20 s of real time.
 
-### WR-04: migrate() counts pending migrations while drizzle compares timestamps
+### WR-04: migrate() counts pending migrations while drizzle compares timestamps, so a skipped migration is reported as "No pending migrations"
 
 **Files modified:** `packages/db/src/owner/migrate.ts`, `packages/db/test/migrate.test.ts`
 **Commit:** 0b32e67
@@ -89,7 +89,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 - A database that has more rows than the journal (an older image) keeps the old behaviour and is not rejected.
 - Two new tests: a back-dated journal entry, and a pending entry older than the last applied one. Both fail with nothing applied.
 
-### WR-05: The rename hint pairs removed and added slugs arbitrarily
+### WR-05: The rename hint pairs removed and added slugs arbitrarily and can steer the owner into attaching one mailbox's history to another account
 
 **Files modified:** `packages/db/src/registry-plan.ts`, `packages/db/src/owner/registry.ts`, `apps/worker/src/commands/config-apply.ts`, `packages/db/test/registry-plan.test.ts`, `packages/db/test/registry.test.ts`, `apps/worker/test/registry-cli.test.ts`
 **Commit:** aa7f88a
@@ -102,7 +102,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 - `config apply` prints rename commands only for those pairs. It lists the unpaired slugs and says it cannot tell which became which.
 - New tests: the review's alpha/beta to gamma/zeta example in reversed config order, run in-process against the DB; no identity match; an ambiguous identity.
 
-### WR-06: The catalog gate does not see column-level SELECT/INSERT grants
+### WR-06: The catalog gate (D-37) does not see column-level SELECT/INSERT grants to sift_app
 
 **Files modified:** `packages/db/test/support/catalog.ts`, `packages/db/test/catalog.test.ts`
 **Commit:** 2c7a0c2
@@ -111,7 +111,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 - `app_select`, `app_insert` and `backup_insert` now use `has_any_column_privilege`.
 - New test: column-level `INSERT (slug)` on `mailbox`, `SELECT (id)` on `drizzle.__drizzle_migrations` and `INSERT (created_at)` on `message` to `sift_backup`. All three are reported.
 
-### WR-07: Catalog gate and runtime guard miss memberships in RLS-bypassing roles
+### WR-07: Neither the catalog gate nor the runtime guard checks sift_app's membership in sift_backup or other RLS-bypassing roles
 
 **Files modified:** `packages/db/test/support/catalog.ts`, `packages/db/test/catalog.test.ts`
 **Commit:** 809ff06
@@ -121,7 +121,7 @@ Every fix has one commit on `main`, and each commit names its files explicitly, 
 - The runtime guard mirror was added in the WR-02 commit.
 - The test uses a throwaway NOINHERIT stand-in role that is granted `sift_backup`, and expects `pg_read_all_data` and `sift_backup` to be reported. I did not grant anything to the shared `sift_app`: test files running at the same time would trip the new worker guard.
 
-### WR-08: poll_interval_seconds values that are not multiples of the 15 s tick are rounded up
+### WR-08: poll_interval_seconds values that are not multiples of the 15 s tick are rounded up (10 s runs every 15 s, 20 s every 30 s)
 
 **Files modified:** `apps/worker/src/runtime/supervisor.ts`, `apps/worker/test/supervisor.test.ts`
 **Commit:** 45a7ad6
