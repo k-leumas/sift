@@ -1,4 +1,4 @@
-import type { SiftConfig } from '@sift/core/config';
+import { type SiftConfig, validateSlug } from '@sift/core/config';
 import pg from 'pg';
 import {
   type FieldChange,
@@ -180,6 +180,43 @@ export async function applyConfig(
       throw error;
     }
   });
+}
+
+const UNIQUE_VIOLATION = '23505';
+
+/**
+ * Rename a mailbox slug (D-32, D-63). Only the slug changes: the id, and so
+ * every scoped row, stays attached. Runs under CONFIG_APPLY_LOCK_KEY so it
+ * cannot interleave with a config apply. Errors carry a message for the owner
+ * and change nothing.
+ */
+export async function renameMailbox(
+  ownerUrl: string,
+  oldSlug: string,
+  newSlug: string,
+): Promise<void> {
+  const invalid = validateSlug(newSlug);
+  if (invalid !== null) throw new Error(invalid);
+  if (oldSlug === newSlug) throw new Error(`mailbox "${oldSlug}" already has that slug`);
+
+  await withOwnerClient(ownerUrl, (client) =>
+    inTransaction(client, async () => {
+      await client.query('select pg_advisory_xact_lock($1)', [CONFIG_APPLY_LOCK_KEY]);
+      let rowCount: number | null;
+      try {
+        ({ rowCount } = await client.query('update mailbox set slug = $2 where slug = $1', [
+          oldSlug,
+          newSlug,
+        ]));
+      } catch (error) {
+        if ((error as { code?: unknown }).code === UNIQUE_VIOLATION) {
+          throw new Error(`a mailbox with slug "${newSlug}" already exists`);
+        }
+        throw error;
+      }
+      if (rowCount === 0) throw new Error(`no mailbox with slug "${oldSlug}"`);
+    }),
+  );
 }
 
 interface StatusDbRow {

@@ -260,13 +260,16 @@ describe('registry CLI (config apply, mailbox list, mailbox rename)', () => {
     return file;
   }
 
+  /** "job-search" is "jobs" renamed: same IMAP account, so a rename leaves nothing to apply. */
+  const ACCOUNT: Record<string, string> = { 'job-search': 'jobs' };
+
   function yamlFor(slugs: readonly string[]): string {
     const entries = slugs.map(
       (slug) => `  - slug: ${slug}
     imap:
       host: protonmail-bridge
       port: 1143
-      username: ${slug}@proton.me
+      username: ${ACCOUNT[slug] ?? slug}@proton.me
       password_env: SIFT_TEST_IMAP_PASSWORD
     labels:
       apply_as: proton_labels
