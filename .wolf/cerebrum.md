@@ -8,6 +8,8 @@
 
 <!-- How the user likes things done. Code style, tools, patterns, communication. -->
 
+- 2026-10-04: `.claude/`, `.wolf/`, `.gsd/`, `.planning/` and `CLAUDE.md` are code. Track and commit them like source; never exclude them from commits or leave them staged. Still scan them for secrets before committing.
+
 ## Key Learnings
 - `pnpm -s lint` exits 2 under pnpm 12 even when `pnpm lint` exits 0 — check gate exit codes without -s.
 - Linux uid/permission bugs hidden by Docker Desktop (macOS) can be reproduced in a throwaway `docker run --rm --user root sift:local` by chown-ing paths to 1001 and `su node` (uid 1000).

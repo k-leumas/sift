@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-04T09:21:54.943Z
-> Files: 172 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-04T17:13:40.085Z
+> Files: 173 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -11,6 +11,10 @@
 - `make-dev-env.sh` — Creates /Users/samuel/dev/sift/.env.development from .env.development.example, (~386 tok)
 - `mk-mailboxes-env.sh` — Create the repo's mailbox env file from the committed example (empty values, (~113 tok)
 - `red-evidence.mjs` — Usage: node red-evidence.mjs <testFile> <targetTestName> <expected> <actual> <outJson> (~256 tok)
+
+## ../../.claude/projects/-Users-samuel-dev-sift/memory/
+
+- `tooling-dirs-are-code.md` (~227 tok)
 
 ## ./
 
