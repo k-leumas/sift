@@ -13,6 +13,7 @@ import type { CommandIO } from '../command.ts';
 import { createHeartbeat, defaultHeartbeatFile } from '../runtime/heartbeat.ts';
 import { createMailboxCallbacks } from '../runtime/mailbox-batch.ts';
 import { waitForShutdownSignal } from '../runtime/shutdown.ts';
+import { checkDrift } from '../runtime/startup.ts';
 import { createSupervisor, SHUTDOWN_TIMEOUT_MS } from '../runtime/supervisor.ts';
 
 /** Show a path relative to the working directory when it lives under it. */
@@ -23,7 +24,8 @@ function displayPath(path: string, cwd: string): string {
 
 /**
  * `sift worker` (D-49..D-54). Startup order: config, password_env presence,
- * then the database as sift_app (SIFT_DATABASE_URL), then the supervisor.
+ * then the database as sift_app (SIFT_DATABASE_URL), then the registry drift
+ * check (D-34), then the supervisor.
  * Nothing touches the database before the env check (D-35), so a missing
  * password produces exactly one log line.
  *
@@ -73,6 +75,17 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
   });
 
   try {
+    // D-34: never run against a registry that no longer matches config.yaml.
+    // The worker does not reconcile config itself (D-27).
+    const differences = await checkDrift(db, config);
+    if (differences.length > 0) {
+      log.error(
+        { differences },
+        'config.yaml differs from the mailbox registry; apply it with: docker compose run --rm setup',
+      );
+      return 1;
+    }
+
     const supervisor = createSupervisor({
       ...createMailboxCallbacks(db, secrets),
       heartbeat: createHeartbeat(defaultHeartbeatFile(io.env)),
