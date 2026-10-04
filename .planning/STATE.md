@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 01
 current_phase_name: Foundation and Isolation
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-10-04T05:46:10.311Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-10-04T06:02:24.573Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 execution started
-state_head: 73da6c5cdba26cf7b46267d7d596055c5b508a94
+state_head: 243620ada30bc39538cb8cbb50d79a413d088ffd
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 13
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 ## Current Position
 
 Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 4 of 13
+Plan: 5 of 13
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 01 execution started
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 57min | 3 tasks | 19 files |
 | Phase 01 P02 | 8min | 2 tasks | 5 files |
 | Phase 01 P03 | 9min | 2 tasks | 22 files |
+| Phase 01 P04 | 13min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-03: migrate() rebuilds role DDL errors from SQLSTATE + server message only; the statement (password literal) never reaches logs or errors
 - [Phase 01]: 01-03: each table-adding generated migration is followed by a custom migration (FORCE RLS, explicit grants, set_updated_at trigger) applied in the same migrator transaction
 - [Phase 01]: 01-03: test clones are sift_test_<run>_<n>_<hex> (workers share runId); globalSetup drops the run's DBs if template migration fails
+- [Phase 01]: 01-04: config missing-key fallback is a per-parse Zod error map sentinel, so schema-specific messages (version, mailboxes) win; duplicate checks use superRefine when:()=>true to report beside type errors
+- [Phase 01]: 01-04: literal-secret keys are rejected by a YAML pre-pass before Zod (values never echoed); YAML parsed with prettyErrors:false so syntax errors never quote source; maxAliasCount 50 on doc.toJS
+- [Phase 01]: 01-04: config check --schema-only skips the D-35 presence check (D-67); SIFT_MODELS_URL override is validated with the same HttpUrl as models.url
 
 ### Pending Todos
 
@@ -103,6 +107,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T05:46:10.182Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-10-04T06:02:24.529Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
