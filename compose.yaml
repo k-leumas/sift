@@ -97,7 +97,8 @@ services:
       # Unhealthy when the heartbeat file is older than 120 s. Docker restarts
       # a container only when it exits, never because it is unhealthy, so the
       # worker exits by itself (code 75) after 3 missed heartbeats in a row,
-      # logging which step failed, and `restart: on-failure` starts it again.
+      # logging which step failed, and `restart: unless-stopped` starts it again
+      # (it also comes back after a Docker daemon restart or host reboot).
       # While the database is down this repeats until it is back.
       test:
         - CMD
@@ -109,7 +110,7 @@ services:
       retries: 3
       start_period: 30s
     stop_grace_period: 30s
-    restart: on-failure
+    restart: unless-stopped
 
 volumes:
   sift-pgdata:

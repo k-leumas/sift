@@ -190,7 +190,7 @@ describe('ordering and lifecycle (D-27, D-53, D-54, D-60)', () => {
 
   it('restarts the worker only when it exits with an error (IN-05)', () => {
     // The worker exits 75 after missed heartbeats; SIGTERM still exits 0.
-    expect(service('worker').restart).toBe('on-failure');
+    expect(service('worker').restart).toBe('unless-stopped');
     const text = read('compose.yaml');
     const health = text.slice(text.indexOf('    healthcheck:', text.indexOf('  worker:')));
     expect(health).toContain('exits by itself (code 75) after 3 missed heartbeats');

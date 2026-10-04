@@ -9,7 +9,7 @@ import {
  * Exit code after too many missed heartbeats (IN-05): 75, EX_TEMPFAIL in
  * sysexits.h. It differs from 1 (startup and config errors) and 2 (usage), so
  * the log and `docker compose ps` tell a stall apart. Any non-zero code makes
- * Compose's `restart: on-failure` restart the worker.
+ * Compose's `restart: unless-stopped` restart the worker.
  */
 export const EXIT_HEARTBEAT_STALLED = 75;
 

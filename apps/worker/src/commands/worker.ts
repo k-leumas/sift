@@ -68,7 +68,7 @@ function databaseCause(error: unknown): unknown {
  *
  * Exit codes: 0 after SIGTERM/SIGINT, 1 for config and startup errors, and
  * EXIT_HEARTBEAT_STALLED (75) after MAX_MISSED_HEARTBEATS missed heartbeats in
- * a row (IN-05), so Compose's `restart: on-failure` restarts the worker.
+ * a row (IN-05), so Compose's `restart: unless-stopped` restarts the worker.
  *
  * Logs are pino JSON lines on stdout, including unexpected errors (redacted).
  * The database URL, config secrets and env values are never logged.
