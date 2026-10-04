@@ -31,6 +31,25 @@ function displayPath(path: string, cwd: string): string {
   return rel !== '' && !rel.startsWith('..') ? rel : path;
 }
 
+function sqlStateOf(error: unknown): string | undefined {
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+/**
+ * The driver error inside drizzle's "Failed query: <sql> params: ..." wrapper,
+ * so the log names the SQLSTATE and server message rather than the query text.
+ * Falls back to the error itself.
+ */
+function databaseCause(error: unknown): unknown {
+  let current: unknown = error;
+  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
+    if (sqlStateOf(current) !== undefined) return current;
+    current = current.cause;
+  }
+  return error;
+}
+
 /**
  * `sift worker` (D-49..D-54). Startup order: config, password_env presence,
  * then the database as sift_app (SIFT_DATABASE_URL: classified connect retry
@@ -39,8 +58,8 @@ function displayPath(path: string, cwd: string): string {
  * Nothing touches the database before the env check (D-35), so a missing
  * password produces exactly one log line.
  *
- * Logs are pino JSON lines on stdout. The database URL, config secrets and
- * env values are never logged.
+ * Logs are pino JSON lines on stdout, including unexpected errors (redacted).
+ * The database URL, config secrets and env values are never logged.
  */
 export async function run(_args: readonly string[], io: CommandIO): Promise<number> {
   const log = createLogger({
@@ -132,6 +151,16 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
     if (!drained) {
       log.warn({ timeoutMs: SHUTDOWN_TIMEOUT_MS }, 'in-flight mailbox runs did not finish in time');
     }
+  } catch (error) {
+    // Anything unexpected (a pg error from the role guard, the drift check or
+    // the supervisor) is logged through pino, redacted, never raw on stderr.
+    const root = databaseCause(error);
+    const message = root instanceof Error ? root.message : String(root);
+    log.error(
+      { code: sqlStateOf(root) },
+      `worker failed: ${redactText(message, [...secrets, url])}`,
+    );
+    return 1;
   } finally {
     const { forced } = await db.close({ timeoutMs: CLOSE_TIMEOUT_MS });
     if (forced) {
