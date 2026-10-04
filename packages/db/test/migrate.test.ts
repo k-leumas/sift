@@ -18,6 +18,7 @@ import {
   connect,
   dropDatabase,
   freshDatabase,
+  lockAppRole,
   requireEnv,
   requireTestDb,
   roleUrl,
@@ -29,13 +30,21 @@ const REPO_ROOT = path.resolve(import.meta.dirname, '../../..');
 const BACKUP_FILE = /^sift-\d{8}T\d{6}Z-pre-0004_scoped_tables_force_grants\.dump$/;
 
 let db: TestDatabase;
+let releaseAppRole: (() => Promise<void>) | undefined;
 
+// Several tests compare sift_app's password verifier, which any concurrent
+// migrate() in another test file would rotate (apps/worker/test/setup.test.ts).
 beforeAll(async () => {
+  releaseAppRole = await lockAppRole();
   db = await freshDatabase();
-});
+}, 180_000);
 
 afterAll(async () => {
-  await db?.drop();
+  try {
+    await db?.drop();
+  } finally {
+    await releaseAppRole?.();
+  }
 });
 
 describe('migrate()', () => {

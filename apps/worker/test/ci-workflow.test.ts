@@ -13,6 +13,7 @@ interface Step {
 }
 
 interface Job {
+  'runs-on'?: string;
   env?: Record<string, unknown>;
   services?: Record<string, { image?: string }>;
   steps?: Step[];
@@ -22,13 +23,17 @@ interface Workflow {
   jobs?: Record<string, Job>;
 }
 
-function checkJob(): Job {
+function workflowJob(name: string): Job {
   const workflow = parse(readFileSync(WORKFLOW, 'utf8')) as Workflow;
-  const job = workflow.jobs?.check;
+  const job = workflow.jobs?.[name];
   if (job === undefined) {
-    throw new Error('ci.yml has no job "check"');
+    throw new Error(`ci.yml has no job "${name}"`);
   }
   return job;
+}
+
+function checkJob(): Job {
+  return workflowJob('check');
 }
 
 /** Index of the first run step containing `command`, or -1. */
@@ -73,5 +78,21 @@ describe('.github/workflows/ci.yml (D-26)', () => {
     expect(job.env).toHaveProperty('SIFT_DB_OWNER_PASSWORD');
     expect(job.env).toHaveProperty('SIFT_DB_APP_PASSWORD');
     expect(job.env).toHaveProperty('SIFT_DB_BACKUP_PASSWORD');
+  });
+});
+
+describe('.github/workflows/ci.yml compose-smoke job', () => {
+  const job = workflowJob('compose-smoke');
+  const steps = job.steps ?? [];
+
+  it('checks out the repository and runs the full-stack smoke script', () => {
+    expect(job['runs-on']).toBe('ubuntu-24.04');
+    expect(steps.some((s) => s.uses?.startsWith('actions/checkout@'))).toBe(true);
+    expect(runIndex(steps, 'scripts/compose-smoke.sh')).toBeGreaterThanOrEqual(0);
+  });
+
+  it('tears the throwaway stack down, volumes included', () => {
+    const smoke = steps[runIndex(steps, 'scripts/compose-smoke.sh')];
+    expect(smoke?.run).toContain('--down');
   });
 });

@@ -102,6 +102,27 @@ export async function dropDatabase(adminUrl: string, name: string): Promise<void
   }
 }
 
+/** Advisory lock key that serializes sift_app role rotation across test files. */
+export const APP_ROLE_TEST_LOCK_KEY = 815309101;
+
+/**
+ * Hold a cross-file lock on sift_app's password. migrate() rotates the
+ * cluster-wide role on every run, so a test file that compares the role's
+ * verifier must not overlap another file that runs migrate. Advisory locks are
+ * per database, so every holder locks in the admin database. The returned
+ * function releases the lock by closing the session.
+ */
+export async function lockAppRole(): Promise<() => Promise<void>> {
+  const client = await connect(requireTestDb().adminUrl);
+  try {
+    await client.query('select pg_advisory_lock($1)', [APP_ROLE_TEST_LOCK_KEY]);
+  } catch (error) {
+    await client.end();
+    throw error;
+  }
+  return () => client.end();
+}
+
 /** A connected client. The caller ends it. */
 export async function connect(url: string): Promise<pg.Client> {
   const client = new pg.Client({ connectionString: url });

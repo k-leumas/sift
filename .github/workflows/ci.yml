@@ -81,3 +81,15 @@ jobs:
       # fail (never skip) when SIFT_TEST_ADMIN_URL is unusable.
       - name: Test
         run: pnpm test
+
+  # Builds the image and runs the whole stack (db -> setup -> worker) the way
+  # owners do. Fails when setup exits non-zero or the worker never turns healthy.
+  compose-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compose smoke
+        run: scripts/compose-smoke.sh --down
