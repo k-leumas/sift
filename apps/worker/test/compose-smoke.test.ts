@@ -33,6 +33,7 @@ let bin: string;
 let sudoLog: string;
 let dockerLog: string;
 let backupLog: string;
+let psLog: string;
 
 function shim(name: string, body: string): void {
   const file = path.join(bin, name);
@@ -53,9 +54,21 @@ function runSmoke(
   env: Record<string, string> = { COMPOSE_PROJECT_NAME: 'smoketest' },
   args: string[] = [],
 ): { status: number | null; stderr: string } {
+  // `docker ps` answers from SHIM_PS_PROJECT (containers of the project) and
+  // SHIM_PS_SMOKE (those mounting the smoke volume); any other call fails.
   shim(
     'docker',
-    `echo "$SIFT_PGDATA_VOLUME $*" >> '${dockerLog}'; echo "$SIFT_BACKUP_HOST_DIR" >> '${backupLog}'; exit 1`,
+    [
+      'if [ "$1" = ps ]; then',
+      `  echo "$*" >> '${psLog}'`,
+      '  [ -z "$SHIM_PS_FAIL" ] || exit 1',
+      '  case "$*" in *volume=*) printf "%s" "$SHIM_PS_SMOKE" ;; *) printf "%s" "$SHIM_PS_PROJECT" ;; esac',
+      '  exit 0',
+      'fi',
+      `echo "$SIFT_PGDATA_VOLUME $*" >> '${dockerLog}'`,
+      `echo "$SIFT_BACKUP_HOST_DIR" >> '${backupLog}'`,
+      'exit 1',
+    ].join('\n'),
   );
   shim('uname', `echo ${os}`);
   shim('id', `if [ "$1" = -u ]; then echo ${uid}; else exit 1; fi`);
@@ -80,7 +93,7 @@ function exportedBackupDir(): string | undefined {
   return readFileSync(backupLog, 'utf8').split('\n')[0];
 }
 
-/** First docker invocation as "<SIFT_PGDATA_VOLUME> <args>", or undefined. */
+/** First docker invocation other than `docker ps`, as "<SIFT_PGDATA_VOLUME> <args>". */
 function firstDockerCall(): string | undefined {
   if (!existsSync(dockerLog)) return undefined;
   return readFileSync(dockerLog, 'utf8').split('\n')[0];
@@ -92,6 +105,7 @@ beforeEach(() => {
   sudoLog = path.join(work, 'sudo.log');
   dockerLog = path.join(work, 'docker.log');
   backupLog = path.join(work, 'backup-dir.log');
+  psLog = path.join(work, 'ps.log');
   mkdirSync(bin);
   for (const file of INPUTS) {
     mkdirSync(path.dirname(path.join(work, file)), { recursive: true });
@@ -224,5 +238,56 @@ describe('scripts/compose-smoke.sh never touches the owner backups (CR-02)', () 
       SIFT_BACKUP_HOST_DIR: 'custom/dumps',
     });
     expect(exportedBackupDir()).toBe(path.join(realpathSync(work), 'custom', 'dumps'));
+  });
+});
+
+describe('scripts/compose-smoke.sh checks Docker state, not only env vars (WR-09)', () => {
+  const ownerStack = { SHIM_PS_PROJECT: 'aaa\nbbb\nccc', SHIM_PS_SMOKE: '' };
+
+  it.each([
+    ['CI=true with the default project', { CI: 'true', ...ownerStack }],
+    [
+      "an explicit COMPOSE_PROJECT_NAME naming the owner's project",
+      { COMPOSE_PROJECT_NAME: 'sift', SMOKE_ALLOW_VOLUME_REMOVAL: 'yes', ...ownerStack },
+    ],
+  ])('refuses %s when that project already runs non-smoke containers', (_label, env) => {
+    const { status, stderr } = runSmoke('Darwin', '501', undefined, env, ['--down']);
+    expect(status).toBe(2);
+    expect(stderr).toContain('not a smoke stack');
+    // Neither `up` nor the --down cleanup ran, and no file was created.
+    expect(firstDockerCall()).toBeUndefined();
+    expect(existsSync(path.join(work, '.env'))).toBe(false);
+  });
+
+  it('asks Docker about the project and the smoke volume', () => {
+    runSmoke('Darwin', '501', undefined, { COMPOSE_PROJECT_NAME: 'sift', ...ownerStack });
+    const calls = readFileSync(psLog, 'utf8');
+    expect(calls).toContain('label=com.docker.compose.project=sift');
+    expect(calls).toContain('volume=sift-pgdata-smoke');
+  });
+
+  it('accepts a rerun on an earlier smoke stack of the same project', () => {
+    const { status } = runSmoke('Darwin', '501', undefined, {
+      COMPOSE_PROJECT_NAME: 'smoketest',
+      SHIM_PS_PROJECT: 'aaa\nbbb',
+      SHIM_PS_SMOKE: 'aaa',
+    });
+    expect(status).toBe(1); // stopped at the stubbed docker build
+    expect(firstDockerCall()).toBe('smoketest-pgdata-smoke compose build');
+  });
+
+  it('accepts a project with no containers, as on a fresh CI runner', () => {
+    runSmoke('Darwin', '501', undefined, { CI: 'true' });
+    expect(firstDockerCall()).toMatch(/-pgdata-smoke compose build$/);
+  });
+
+  it('refuses when docker ps fails', () => {
+    const { status, stderr } = runSmoke('Darwin', '501', undefined, {
+      COMPOSE_PROJECT_NAME: 'smoketest',
+      SHIM_PS_FAIL: '1',
+    });
+    expect(status).toBe(2);
+    expect(stderr).toContain('docker ps failed');
+    expect(firstDockerCall()).toBeUndefined();
   });
 });

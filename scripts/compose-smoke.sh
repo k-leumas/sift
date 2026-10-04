@@ -15,7 +15,8 @@
 # <project>-pgdata-smoke (SIFT_PGDATA_VOLUME), never sift-pgdata. Outside CI it
 # also needs its own Compose project, so it cannot replace your running
 # containers: set COMPOSE_PROJECT_NAME (and SIFT_DB_PORT if your db already
-# publishes 5432).
+# publishes 5432). In CI too, it refuses a project that already has containers
+# unless they are an earlier smoke stack on the same volume.
 #
 # Pre-migration dumps go to .smoke/<project>/backups (SIFT_BACKUP_HOST_DIR),
 # never to ./backups: every smoke run migrates a fresh database, and the dump
@@ -62,6 +63,23 @@ if [ "$down" = true ] && [ "${CI:-}" != true ] && [ "${SMOKE_ALLOW_VOLUME_REMOVA
   echo "compose-smoke: --down deletes the smoke volume $volume." >&2
   echo "Refusing outside CI; set SMOKE_ALLOW_VOLUME_REMOVAL=yes to confirm." >&2
   exit 2
+fi
+
+# The env-var checks above cannot see CI=true in a local shell, or an explicit
+# COMPOSE_PROJECT_NAME that names your own project. So also check what Docker
+# actually runs: a project that already has containers must be an earlier
+# smoke stack (one of them mounts the smoke volume), or `up` would recreate
+# your containers on the smoke volume and --down would remove them. This runs
+# before the EXIT trap is set, so a refusal never triggers --down.
+project_filter="label=com.docker.compose.project=$project"
+existing=$(docker ps -aq --filter "$project_filter") \
+  || refuse "docker ps failed; is the Docker daemon running?"
+if [ -n "$existing" ]; then
+  on_volume=$(docker ps -aq --filter "$project_filter" --filter "volume=$volume") \
+    || refuse "docker ps failed; is the Docker daemon running?"
+  if [ -z "$on_volume" ]; then
+    refuse "Compose project $project already has containers that are not a smoke stack (none mounts $volume); pick another COMPOSE_PROJECT_NAME."
+  fi
 fi
 
 umask 077
