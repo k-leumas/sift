@@ -1,0 +1,35 @@
+# Sift local stack. Phase 1 plan 01-02 defines the db service only;
+# plan 01-12 adds setup and worker.
+#
+# Compose reads variables from .env (copy .env.example and fill it in).
+# No top-level `name:` and no healthcheck `start_interval`: the dev machine
+# runs Docker Compose v2.2.3.
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg18-trixie
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      SIFT_DB_OWNER_PASSWORD: ${SIFT_DB_OWNER_PASSWORD:?set in .env}
+      SIFT_DB_BACKUP_PASSWORD: ${SIFT_DB_BACKUP_PASSWORD:?set in .env}
+    volumes:
+      # PG18 images keep PGDATA under /var/lib/postgresql/18/docker; mount the
+      # parent, not .../data, or the data lands in an anonymous volume.
+      - sift-pgdata:/var/lib/postgresql
+      - ./db/bootstrap.sql:/docker-entrypoint-initdb.d/10-sift-bootstrap.sql:ro
+    healthcheck:
+      # TCP, not the unix socket: the temporary initdb server listens on no
+      # TCP address, so it never reads as healthy while bootstrap runs.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d sift"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    ports:
+      # Loopback only. Never publish Postgres on all interfaces.
+      - "127.0.0.1:${SIFT_DB_PORT:-5432}:5432"
+    restart: unless-stopped
+
+volumes:
+  sift-pgdata:
+    name: sift-pgdata
