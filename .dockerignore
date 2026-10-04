@@ -1,0 +1,15 @@
+**/node_modules
+.git
+.planning
+.wolf
+.claude
+.gsd
+.env
+.env.*
+config/config.yaml
+backups
+data
+**/test
+docs
+coverage
+*.log

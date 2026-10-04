@@ -1,7 +1,14 @@
-# Sift local stack. Phase 1 plan 01-02 defines the db service only;
-# plan 01-12 adds setup and worker.
+# Sift stack: db -> setup (one-shot) -> worker.
 #
-# Compose reads variables from .env (copy .env.example and fill it in).
+# Before the first `docker compose up -d`, copy the three example files:
+#   .env.example                -> .env             (database passwords)
+#   .env.mailboxes.example      -> .env.mailboxes   (mailbox IMAP passwords)
+#   config/config.example.yaml  -> config/config.yaml
+#
+# Each service receives only the secrets it needs: the worker connects as
+# sift_app and reads mailbox passwords; setup holds the owner and backup
+# credentials but never a mailbox password.
+#
 # No top-level `name:` and no healthcheck `start_interval`: the dev machine
 # runs Docker Compose v2.2.3.
 
@@ -28,6 +35,69 @@ services:
     ports:
       # Loopback only. Never publish Postgres on all interfaces.
       - "127.0.0.1:${SIFT_DB_PORT:-5432}:5432"
+    restart: unless-stopped
+
+  # `sift setup`: config check, migrate (with a pg_dump backup first), config
+  # apply. Rerun after editing config/config.yaml: docker compose run --rm setup
+  setup:
+    build:
+      context: .
+      args:
+        NODE_VERSION: "${NODE_VERSION:-26.10.0}"
+    image: sift:local
+    init: true
+    command: ["sift", "setup"]
+    environment:
+      SIFT_OWNER_DATABASE_URL: postgres://sift_owner:${SIFT_DB_OWNER_PASSWORD:?set in .env}@db:5432/sift
+      SIFT_BACKUP_DATABASE_URL: postgres://sift_backup:${SIFT_DB_BACKUP_PASSWORD:?set in .env}@db:5432/sift
+      SIFT_DB_APP_PASSWORD: ${SIFT_DB_APP_PASSWORD:?set in .env}
+      SIFT_CONFIG: /config/config.yaml
+      SIFT_BACKUP_DIR: /backups
+    volumes:
+      - ./config:/config:ro
+      # Must be writable by uid 1000 (the image's node user).
+      - ./backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  worker:
+    build:
+      context: .
+      args:
+        NODE_VERSION: "${NODE_VERSION:-26.10.0}"
+    image: sift:local
+    init: true
+    command: ["sift", "worker"]
+    # Mailbox IMAP passwords only (one variable per password_env in config.yaml).
+    env_file:
+      - .env.mailboxes
+    environment:
+      SIFT_DATABASE_URL: postgres://sift_app:${SIFT_DB_APP_PASSWORD:?set in .env}@db:5432/sift
+      SIFT_CONFIG: /config/config.yaml
+      SIFT_HEARTBEAT_FILE: /tmp/sift/heartbeat
+    volumes:
+      - ./config:/config:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+      setup:
+        condition: service_completed_successfully
+    healthcheck:
+      # Unhealthy when the heartbeat file is older than 120 s.
+      test:
+        - CMD
+        - node
+        - -e
+        - "const s=require('node:fs').statSync('/tmp/sift/heartbeat');process.exit(Date.now()-s.mtimeMs<120000?0:1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 30s
     restart: unless-stopped
 
 volumes:
