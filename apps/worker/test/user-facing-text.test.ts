@@ -109,3 +109,48 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     expect(readme).toContain('docker compose run --rm setup sift mailbox list');
   });
 });
+
+describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
+  const contributing = read('CONTRIBUTING.md');
+
+  it.each([
+    'pnpm install',
+    'cp .env.development.example .env.development',
+    'cp .env.mailboxes.example .env.mailboxes',
+    'docker compose up -d db',
+    'pnpm sift migrate && pnpm sift config apply',
+    'pnpm dev',
+    'pnpm lint',
+    'pnpm typecheck',
+    'pnpm test',
+    'SIFT_TEST_ADMIN_URL',
+    'SIFT_PG_DUMP=scripts/pg-dump-via-compose.sh',
+    'packages/db/test/catalog.test.ts',
+    'packages/db/test/isolation.test.ts',
+    'pnpm db:generate',
+    'withMailbox',
+  ])('contains %s', (text) => {
+    expect(contributing).toContain(text);
+  });
+
+  it('no longer claims the repository has no code or no linter', () => {
+    const staleLinter = new RegExp(
+      ['No', 'linter', 'or', 'formatter', 'is', 'configured'].join(' '),
+    );
+    expect(contributing).not.toMatch(staleLinter);
+    expect(contributing).not.toMatch(/There is nothing to build or run yet/);
+  });
+
+  it('names commands that exist in package.json', () => {
+    const scripts = Object.keys(
+      (JSON.parse(read('package.json')) as { scripts: Record<string, string> }).scripts,
+    );
+    const named = [...contributing.matchAll(/`pnpm ([a-z][a-z:-]*)/g)].flatMap((m) =>
+      m[1] === undefined ? [] : [m[1]],
+    );
+    expect(named).toContain('db:generate');
+    // pnpm built-ins, plus `pnpm eval`, which CONTRIBUTING marks as planned (M4).
+    const builtins = new Set(['install', 'vitest', 'eval']);
+    expect(named.filter((name) => !builtins.has(name) && !scripts.includes(name))).toEqual([]);
+  });
+});
