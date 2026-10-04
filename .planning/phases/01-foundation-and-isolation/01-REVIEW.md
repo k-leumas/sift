@@ -1,313 +1,221 @@
 ---
 phase: 01-foundation-and-isolation
-reviewed: 2026-10-04T08:16:53Z
-depth: standard
-files_reviewed: 101
+reviewed: 2026-10-04T17:22:35Z
+depth: deep
+files_reviewed: 25
 files_reviewed_list:
-  - .dockerignore
-  - .env.development.example
-  - .env.example
-  - .env.mailboxes.example
-  - .github/workflows/ci.yml
-  - .gitignore
-  - apps/worker/package.json
-  - apps/worker/src/cli.ts
-  - apps/worker/src/command.ts
   - apps/worker/src/commands/config-apply.ts
-  - apps/worker/src/commands/config-check.ts
-  - apps/worker/src/commands/mailbox-list.ts
-  - apps/worker/src/commands/mailbox-rename.ts
-  - apps/worker/src/commands/migrate.ts
-  - apps/worker/src/commands/setup.ts
   - apps/worker/src/commands/worker.ts
-  - apps/worker/src/runtime/backoff.ts
-  - apps/worker/src/runtime/heartbeat.ts
-  - apps/worker/src/runtime/mailbox-batch.ts
-  - apps/worker/src/runtime/shutdown.ts
-  - apps/worker/src/runtime/startup.ts
   - apps/worker/src/runtime/supervisor.ts
-  - apps/worker/test/ci-workflow.test.ts
-  - apps/worker/test/cli.test.ts
+  - apps/worker/test/compose-smoke.test.ts
   - apps/worker/test/compose.test.ts
-  - apps/worker/test/drift.test.ts
-  - apps/worker/test/no-secret-leak.test.ts
-  - apps/worker/test/node-version.test.ts
   - apps/worker/test/registry-cli.test.ts
-  - apps/worker/test/setup.test.ts
   - apps/worker/test/supervisor.test.ts
   - apps/worker/test/user-facing-text.test.ts
-  - apps/worker/test/worker.test.ts
-  - apps/worker/tsconfig.json
-  - backups/.gitkeep
-  - biome.json
-  - commitlint.config.js
   - compose.yaml
-  - config/config.example.yaml
   - CONTRIBUTING.md
-  - db/bootstrap.sql
-  - Dockerfile
-  - docs/adr/0003-traces-and-mail-app-relabels.md
-  - lefthook.yml
-  - package.json
-  - packages/core/package.json
-  - packages/core/src/config/env.ts
-  - packages/core/src/config/errors.ts
-  - packages/core/src/config/index.ts
-  - packages/core/src/config/load.ts
-  - packages/core/src/config/schema.ts
-  - packages/core/src/config/slug.ts
-  - packages/core/src/index.ts
-  - packages/core/src/log.ts
-  - packages/core/test/config.test.ts
-  - packages/core/test/env.test.ts
-  - packages/core/test/example-config.test.ts
-  - packages/core/test/log.test.ts
-  - packages/core/tsconfig.json
-  - packages/db/drizzle.config.ts
-  - packages/db/migrations/0000_extensions.sql
-  - packages/db/migrations/0001_registry_and_message.sql
-  - packages/db/migrations/0002_message_force_grants.sql
-  - packages/db/migrations/0003_scoped_tables.sql
-  - packages/db/migrations/0004_scoped_tables_force_grants.sql
-  - packages/db/migrations/meta/_journal.json
-  - packages/db/package.json
   - packages/db/src/app-db.ts
   - packages/db/src/connect.ts
   - packages/db/src/index.ts
-  - packages/db/src/owner/backup.ts
   - packages/db/src/owner/migrate.ts
   - packages/db/src/owner/registry.ts
   - packages/db/src/registry-plan.ts
-  - packages/db/src/registry-read.ts
-  - packages/db/src/rls.ts
-  - packages/db/src/schema/index.ts
-  - packages/db/src/schema/mailbox.ts
-  - packages/db/src/schema/scoped.ts
-  - packages/db/src/scope.ts
-  - packages/db/src/status.ts
   - packages/db/test/catalog.test.ts
   - packages/db/test/connect.test.ts
-  - packages/db/test/global-setup.ts
-  - packages/db/test/isolation.test.ts
   - packages/db/test/migrate.test.ts
-  - packages/db/test/owner-rls.test.ts
   - packages/db/test/registry-plan.test.ts
   - packages/db/test/registry.test.ts
   - packages/db/test/scope.test.ts
   - packages/db/test/support/catalog.ts
-  - packages/db/test/support/db.ts
-  - packages/db/test/support/seed.ts
-  - packages/db/tsconfig.json
-  - pnpm-workspace.yaml
   - README.md
   - scripts/compose-smoke.sh
-  - scripts/pg-dump-via-compose.sh
-  - tsconfig.base.json
-  - tsconfig.json
-  - vitest.config.ts
 findings:
   critical: 1
-  warning: 8
-  info: 7
+  warning: 2
+  info: 13
   total: 16
 status: issues_found
 ---
 
-# Phase 1: Code Review Report
+# Phase 1: Code Review Report (re-review after CR-01, WR-01..WR-08 fixes)
 
-**Reviewed:** 2026-10-04T08:16:53Z
-**Depth:** standard (configured deep; downgraded because scope > 50 files)
-**Files Reviewed:** 101 (generated drizzle snapshots `packages/db/migrations/meta/000*_snapshot.json` excluded as instructed)
+**Reviewed:** 2026-10-04T17:22:35Z
+**Depth:** deep
+**Files Reviewed:** 25 (changed since da7bad9 by fix commits 3249ce5..45a7ad6)
 **Status:** issues_found
 
 ## Summary
 
-I read every source, migration, SQL, Compose, Docker, CI and shell file in scope in full. For the test files I checked reliability only: skips, env handling, the catalog-check helper and the global setup. I traced the isolation path (`withMailbox` -> transaction-local `set_config` -> forced RLS policy on `sift_app` and `sift_owner`), secret handling (pg_dump password via `PGPASSWORD`, `redactText`, `last_error` redaction, error mapping in `connect.ts`), the migrate/backup ordering, and supervisor shutdown, including the pg-pool `end()` and drizzle migrator internals in `node_modules`.
+I checked each fix against the current source and followed the call chains into unchanged code: `backup.ts` (`pruneBackups`), `mailbox-batch.ts`, `cli.ts`, `db/bootstrap.sql`, the migrations, and the installed `pg-pool` 3.14.0 (`_pulseQueue`, `_remove`, the `connect` event) and drizzle-orm 0.45.3 (`pg-core/dialect.js` `migrate`). Results per fix:
 
-The isolation core is solid. The scoped API exposes no raw transaction, pool or ORM. Every helper adds its own `mailbox_id` filter on top of RLS. The policies, FORCE RLS and grants in the migrations match D-40/D-41. I found no path that leaks across mailboxes or logs a secret. The problems are elsewhere:
+- **CR-01 (config.yaml mode, backups ownership):** correct. `(umask 022 && cp ...)` gives 0644. `.env` and `.env.mailboxes` stay 0600. The chown only runs on Linux when the host uid is not 1000 and `backups/` is not owned by uid 1000. GitHub runners have passwordless `sudo -n`.
+- **WR-01 (volume/project isolation):** `sift-pgdata` can no longer be removed by the script. The volume is always `<project>-pgdata-smoke` unless `SIFT_PGDATA_VOLUME` is set explicitly, and a literal `sift-pgdata` is refused even in CI. The shell export beats any `.env` value. However, the fix makes local smoke runs from the owner's checkout normal practice, and every such run now writes and **prunes** dumps in the owner's shared `./backups` (CR-02, new BLOCKER). The project guard also still depends on an env var (WR-09).
+- **WR-02 / WR-07 (role guard, catalog membership):** correct. `sift_app` is created by `sift_owner` with `NOINHERIT`, and is granted only table privileges, so `member_of` is empty and the guard does not reject the legitimate role. PG16+ grants `sift_app` to its creator `sift_owner`, which makes `sift_owner` a member of `sift_app`, not the other way round. `pg_has_role(sift_app, X, 'MEMBER')` stays false. `owns_objects` is false for `sift_app`. `rolreplication` is not checked (IN-11).
+- **WR-03 (bounded shutdown):** correct for clients that are checked out. `pg.Client.end()` with `_ending` set does not emit `error`, so ending a checked-out client cannot crash the process. The budget 20 s + 3 s + 1 s fits within `stop_grace_period: 30s`. One gap remains: a client still in the TCP or startup handshake is not tracked (IN-12).
+- **WR-04 (migrate journal check):** incomplete. The journal monotonicity check closes the rebase case. The DB-side check compares row *counts*, though, so a migration that drizzle skips is still reported as "No pending migrations" when the database holds a row from another branch. Re-listed below.
+- **WR-05 (rename-hint pairing):** correct for two or more slugs. Two side issues: the 1:1 case ignores identity (IN-09), and the hint prints empty lists (IN-10).
+- **WR-06 (column-level grants):** correct.
+- **WR-08 (next-due scheduling, heartbeat cadence):** correct. Ticks cannot overlap: a wake-up that arrives during a tick is folded into the re-arm. The heartbeat gap stays at or below `tickMs` after a successful read. A failing registry falls back to the plain tick. A batch that runs longer than the interval now restarts back-to-back (IN-13).
 
-- **CI blocker:** the compose-smoke CI job cannot pass on a Linux runner because of file permissions.
-- **Guards that are weaker than they claim:** the runtime role guard accepts `sift_owner`, and the catalog gate does not see column-level INSERT grants or memberships in roles that bypass RLS.
-- **Migrate bookkeeping:** pending migrations are counted, while drizzle compares timestamps, so the two can disagree.
-- **Shutdown:** a stuck batch makes shutdown hang until Docker sends SIGKILL.
-- **Smoke script:** it suggests `COMPOSE_PROJECT_NAME` gives an isolated stack, but it still uses the owner's real `sift-pgdata` volume.
+Carry-forward: I re-verified IN-01 through IN-07 against the current source. All seven still apply and are repeated below under their original IDs and titles. New findings start at CR-02, WR-09 and IN-08.
 
 ## Critical Issues
 
-### CR-01: compose-smoke cannot pass on GitHub's Linux runners: config.yaml is created mode 0600 and ./backups is not writable by the container user
+### CR-02: Local compose-smoke runs write throwaway dumps into the owner's ./backups and prune the owner's real pre-migration backups
 
-**File:** `scripts/compose-smoke.sh:43,65-68` (with `compose.yaml:57-59`, `Dockerfile:41`, `packages/db/src/owner/backup.ts:47-60`)
-**Issue:** The script sets `umask 077` and then runs `cp config/config.example.yaml config/config.yaml`. With that umask, `cp` creates the file as mode 0600, owned by the runner user. GitHub-hosted Ubuntu runners use uid 1001. Both `setup` and `worker` run as `node` (uid 1000) and bind-mount `./config` read-only, so `loadConfig` gets EACCES and setup exits 1 with `cannot read config file /config/config.yaml (EACCES)`.
+**File:** `compose.yaml:57-59`, `scripts/compose-smoke.sh:98-106`, `packages/db/src/owner/migrate.ts:119-120,175-177`, `packages/db/src/owner/backup.ts:26,134-142`, `CONTRIBUTING.md:82`
+**Issue:** The `setup` service always bind-mounts `./backups:/backups`, and the smoke script does not override it. Since WR-01, the smoke stack starts on a brand-new `<project>-pgdata-smoke` volume, so every migration is pending on every run. `migrate()` therefore always calls `backupBeforeApplying`, which:
+1. writes `sift-<stamp>-pre-0004_...dump` (a dump of the empty smoke database) into the same `./backups` folder the owner's own stack uses, and
+2. calls `pruneBackups(backup.dir, BACKUP_KEEP)`. That function keeps the 5 newest files matching `^sift-\d{8}T\d{6}Z-pre-.+\.dump$` and deletes the rest. The smoke dumps match the pattern and are always the newest.
 
-The backups mount fails independently. `./backups` comes from `actions/checkout` as 0755, owned by uid 1001. On a fresh database every migration is pending, so `migrate()` requires a backup, and `ensureWritableDir('/backups')` throws `backup directory /backups is not writable; on Linux run: chown 1000 /backups`.
-
-Either failure fails the `compose-smoke` job on every push. The 01-12 summary lists "both CI jobs green after a push" as still pending, so this has not been run on Linux yet. Docker Desktop on macOS hides both problems because its file sharing does not enforce host uids.
-**Fix:**
-```bash
-umask 077
-# ... .env / .env.mailboxes generation stays 0600 (read by the compose CLI on the host)
-
-if [ ! -f config/config.yaml ]; then
-  (umask 022 && cp config/config.example.yaml config/config.yaml)   # container uid 1000 must read it
-fi
-# setup runs as uid 1000 and must write dumps here
-mkdir -p backups
-if [ "$(id -u)" != 1000 ]; then chmod o+rwx backups || sudo chown 1000 backups; fi
+CONTRIBUTING now documents the local run from the repo root (`COMPOSE_PROJECT_NAME=sift-smoke SIFT_DB_PORT=55433 scripts/compose-smoke.sh`) and says it "never touches your database". On this project the owner's stack runs from the same checkout. Each smoke run silently deletes one more of the owner's real pre-migration dumps (D-29). After five runs, `./backups` holds only dumps of throwaway smoke databases, and the owner's recovery point for a failed migration is gone. Before WR-01 the smoke run reused `sift-pgdata`, where nothing was pending and no dump or prune happened, so the fix introduced this regression. On Linux the script also `chown`s the owner's folder.
+**Fix:** Give the smoke stack its own backup directory, in the same way it already has its own volume:
+```yaml
+# compose.yaml (setup)
+    volumes:
+      - ./config:/config:ro
+      # Must be writable by uid 1000. SIFT_BACKUP_HOST_DIR exists only for compose-smoke.
+      - ${SIFT_BACKUP_HOST_DIR:-./backups}:/backups
 ```
-Alternatively, give the CI job a step that runs `sudo chown -R 1000 backups config` before the script.
+```bash
+# compose-smoke.sh
+backup_dir=${SIFT_BACKUP_HOST_DIR:-.smoke/$project/backups}
+[ "$(cd "$(dirname "$backup_dir")" 2>/dev/null && pwd)/$(basename "$backup_dir")" != "$PWD/backups" ] \
+  || refuse "refusing to write smoke dumps into ./backups, your own backup folder"
+mkdir -p "$backup_dir"; export SIFT_BACKUP_HOST_DIR=$backup_dir
+# chown the smoke dir (not ./backups) on Linux; gitignore .smoke/
+```
+Add a compose-smoke test asserting that the exported backup dir is not `./backups`, and correct the CONTRIBUTING sentence.
 
 ## Warnings
 
-### WR-01: compose-smoke's COMPOSE_PROJECT_NAME does not isolate the database; the `--down` guard only checks env vars
-
-**File:** `scripts/compose-smoke.sh:18,32-36,41,70-75` (with `compose.yaml:103-105`)
-**Issue:** The script header lists `COMPOSE_PROJECT_NAME` as a supported knob, which suggests a separate stack. But `compose.yaml` pins the volume with `name: sift-pgdata`, so every project name mounts the owner's real data volume. The cerebrum notes that an isolated smoke run only works after `sed`-ing the volume name in a copy.
-
-Consequences:
-- `COMPOSE_PROJECT_NAME=x SIFT_DB_PORT=55433 scripts/compose-smoke.sh` starts a second Postgres container on the same data directory. If the owner's db container is also running, both postmasters run as PID 1 in their own namespaces, so Postgres's stale-lock check (`other_pid == my_pid`) passes and two servers write the same cluster.
-- With `--down` plus `SMOKE_ALLOW_VOLUME_REMOVAL=yes` (or any shell where `CI=true` is set), cleanup runs `docker compose down -v` against the real `sift-pgdata`. It deletes the volume whenever no container still references it, for example after the owner's own `docker compose down`.
-
-The guard only looks at env vars. It never checks whether the volume holds data that existed before the smoke run.
-**Fix:** Make the volume name follow the project, e.g. `name: ${SIFT_PGDATA_VOLUME:-sift-pgdata}`, and have the smoke script export `SIFT_PGDATA_VOLUME="${project}-pgdata-smoke"`. Independently, have the script refuse to start, with or without `--down`, when `docker volume inspect sift-pgdata` succeeds and the volume was not created by this run:
-```bash
-if [ "${CI:-}" != true ] && docker volume inspect sift-pgdata >/dev/null 2>&1; then
-  echo "compose-smoke: sift-pgdata already exists; refusing to run against an existing database" >&2
-  exit 2
-fi
-```
-
-### WR-02: The worker's role guard accepts sift_owner (schema owner with CREATEROLE)
-
-**File:** `packages/db/src/connect.ts:157-174`
-**Issue:** `assertUnprivilegedRole` rejects only `rolsuper` and `rolbypassrls`. If `SIFT_DATABASE_URL` points at `sift_owner`, which is neither, the worker starts. It then holds DDL rights on every table (`ALTER TABLE ... NO FORCE ROW LEVEL SECURITY`, `DROP POLICY`), `CREATEROLE`, and the ability to rotate `sift_app`'s password.
-
-The error text itself says "the worker must connect as sift_app", but the check never enforces that. Row-level isolation still holds today because the policy also applies to `sift_owner`. However, D-36 ("sift_app: DML only, owns nothing") is the guarantee this guard exists for. The guard also ignores membership in a role that bypasses RLS, such as `sift_backup` (see WR-07).
-**Fix:** Assert the actual role and its powers:
-```ts
-`select current_user as name, r.rolsuper, r.rolbypassrls, r.rolcreaterole, r.rolcreatedb,
-        exists (select 1 from pg_class c where c.relowner = r.oid) as owns_relations,
-        exists (select 1 from pg_roles b
-                 where b.rolbypassrls and pg_has_role(r.oid, b.oid, 'MEMBER')
-                   and b.oid <> r.oid) as member_of_bypass
-   from pg_roles r where r.rolname = current_user`
-// refuse unless name === 'sift_app' (or none of the flags are set)
-```
-
-### WR-03: Shutdown hangs, and never exits 0, when a batch outlives SHUTDOWN_TIMEOUT_MS
-
-**File:** `apps/worker/src/commands/worker.ts:121-129`, `packages/db/src/app-db.ts:55-58`, `apps/worker/src/runtime/supervisor.ts:225-240`
-**Issue:** When `supervisor.stop()` returns `drained: false`, the worker calls `db.close()`, which is `pool.end()`. In pg-pool (`_pulseQueue` in the ending branch), `end()` resolves only after every checked-out client is released. A batch stuck in a query, such as a lock wait or a half-open TCP connection with no keepalive or statement timeout, keeps its client forever. So `db.close()` never resolves, the "stopped" line is never logged, and the process waits for Compose's `stop_grace_period: 30s` SIGKILL.
-
-D-53 requires a bounded wait, then closing the pool and exiting 0. The bound covers only the batches, not the close. Phase 2 IMAP ingest makes long-running batches much more likely.
-**Fix:** Bound the close as well. When the drain timed out, destroy the remaining clients instead of waiting for them:
-```ts
-const { drained } = await supervisor.stop(SHUTDOWN_TIMEOUT_MS);
-// in finally:
-await Promise.race([db.close(), new Promise((r) => setTimeout(r, 5_000).unref())]);
-```
-Or add a `closeNow()` to AppDb that ends every client in the pool. Also set `statement_timeout` / `idle_in_transaction_session_timeout` on the app pool, so a stuck batch fails instead of hanging.
-
 ### WR-04: migrate() counts pending migrations while drizzle compares timestamps, so a skipped migration is reported as "No pending migrations"
 
-**File:** `packages/db/src/owner/migrate.ts:92-106,161-174`
-**Issue:** `migrate()` treats `tags.slice(appliedCount)` as pending and reports `tags.slice(before, after)` as applied. Drizzle's pg migrator (`pg-core/dialect.js:56-69`) does not count rows. It applies a migration only when `lastDbMigration.created_at < migration.folderMillis`.
+**File:** `packages/db/src/owner/migrate.ts:110-118,129-134`
+**Issue:** The fix is incomplete. The journal check (lines 91-98) catches a back-dated entry *within* the journal. The database-side check is `before + pending.length < tags.length`, which compares a row count with a journal length and never asks *which* migrations were applied. Drizzle stores each migration's `hash`, but the check does not use it. When the database holds a row that is not in this journal, the counts can match while a journal migration is still skipped. Trace:
 
-Suppose a migration's journal `when` is older than the last applied one, which happens when two branches each generate a migration and one is rebased onto the other. Then:
-1. A backup is taken because the count says one migration is pending.
-2. Drizzle silently skips the migration.
-3. `after === before`, so the command prints "No pending migrations." and exits 0, while the schema is missing that migration.
+- On branch `feat-1`, the dev database applies 0000-0004 plus `0005_x`, with `when = T2`.
+- After switching to branch `feat-2`, the journal is 0000-0004 plus `0005_y`, generated earlier with `when = T1 < T2`.
+- `before = 6`, `tags.length = 6`, `last = T2`, so `pending = []` (because `T1 < T2`), and the check `6 + 0 < 6` is false.
+- Drizzle skips `0005_y`, the post-check `0 === 0` passes, and the command logs "No pending migrations." and exits 0, with `0005_y`'s schema missing.
 
-The catalog test runs against fresh test databases built in journal order, so it never sees this case.
-**Fix:** After `drizzleMigrate`, assert that the database caught up, and fail loudly if not:
+The same thing happens on any database that ran a migration later dropped from the journal (a reverted PR) when a new migration is added with an older `when` than the dropped one. The fix report's carve-out ("more rows than the journal keeps the old behaviour") hides this.
+**Fix:** Decide by identity, not count. `readMigrationFiles` already returns `hash` for each entry:
 ```ts
-const after = await appliedCount(client);
-if (after !== tags.length) {
-  throw new Error(
-    `Migrations out of order: ${tags.length - after} journal entr(y/ies) were not applied ` +
-    `(journal "when" older than the last applied migration)`);
+const appliedHashes = new Set(
+  (await client.query<{ hash: string }>(`select hash from "drizzle"."__drizzle_migrations"`)).rows
+    .map((r) => r.hash),
+);
+const missing = migrations.filter(
+  (m, i) => !appliedHashes.has(m.hash) && !(last === null || last < m.folderMillis),
+);
+if (missing.length > 0) {
+  throw new MigrationOrderError(
+    `${missing.length} migration(s) not applied and older than the last applied one: ...`);
 }
 ```
-Also check, before applying anything, that the journal's `when` values strictly increase.
+Guard the table-exists case as `lastAppliedMillis` does. Note that an applied migration file edited after the fact also shows up here, which is desirable. Add a test that inserts a foreign row with a later `created_at`, so that the row count equals the journal length.
 
-### WR-05: The rename hint pairs removed and added slugs arbitrarily and can steer the owner into attaching one mailbox's history to another account
+### WR-09: compose-smoke's "do not replace your containers" guard is still env-var based: with CI=true, or an explicit COMPOSE_PROJECT_NAME equal to the owner's project, it recreates and then removes the owner's running stack
 
-**File:** `apps/worker/src/commands/config-apply.ts:17-40` (with `packages/db/src/registry-plan.ts:122-125,136-142`)
-**Issue:** `removed` is sorted alphabetically (`planRegistryChanges`), while `added` is in config order. `printRenameHint` then prints `sift mailbox rename ${removed[i]} ${added[i]}` for each index. When two or more slugs change in one apply, the suggested pairs are arbitrary.
+**File:** `scripts/compose-smoke.sh:40-41,53-55,108-113,129-130`, `CONTRIBUTING.md:82`
+**Issue:** The project guard refuses only when `CI != true` **and** `project == basename($PWD)`. Two ways around it remain:
+- **`CI=true` in a local shell.** Some tool wrappers export it. The previous review named this case. The default project is then accepted.
+- **An explicit `COMPOSE_PROJECT_NAME` that names the owner's project from a checkout with a different directory name.** For example, running from `~/dev/sift-wt` with `COMPOSE_PROJECT_NAME=sift`: the project is `sift`, which differs from the default `sift-wt`, so the guard passes.
 
-Example: `alpha` and `beta` are removed, and `zeta` (alpha's account) and `gamma` (beta's account) are added. The hint suggests renaming `alpha` to `zeta` (correct) and `beta` to `gamma` (also correct only by luck). In another order, following the copy-pasteable commands attaches account A's message, label and decision history to the slug that now reads account B. Undoing that needs a manual DB fix.
-**Fix:** Print concrete `rename` commands only when exactly one slug was removed and one added. Otherwise pair by IMAP identity, since a real rename keeps host, username and folder. The removed rows' `imap_username` and the new config entries are both available in `applyConfig`. If no identity matches, list the two sets without commands.
-
-### WR-06: The catalog gate (D-37) does not see column-level SELECT/INSERT grants to sift_app
-
-**File:** `packages/db/test/support/catalog.ts:126-136,323-342`
-**Issue:** UPDATE is checked with `has_any_column_privilege`, but SELECT and INSERT use `has_table_privilege`, which is false for column-level grants. So a migration with `GRANT INSERT (slug, imap_host, ...) ON mailbox TO sift_app` passes the gate. That would break D-06 ("sift_app has SELECT only" on the unscoped registry, the one table without RLS). The same applies to a column-level SELECT on `drizzle.__drizzle_migrations` (only partly covered by the schema USAGE check). Append-only tables are not affected, because column-level UPDATE is caught.
-**Fix:** Use `has_any_column_privilege('sift_app', c.oid, 'SELECT')` and `has_any_column_privilege('sift_app', c.oid, 'INSERT')` for `app_select` / `app_insert`, and do the same for `backup_insert`. Add a catalog test case that grants column-level INSERT on `mailbox`.
-
-### WR-07: Neither the catalog gate nor the runtime guard checks sift_app's membership in sift_backup or other RLS-bypassing roles
-
-**File:** `packages/db/test/support/catalog.ts:411-429` (with `packages/db/src/connect.ts:157-174`)
-**Issue:** The only membership check is `pg_has_role('sift_app', 'sift_owner', 'MEMBER')`. `sift_app` is created `NOINHERIT`, so `has_table_privilege` ignores any role it is a member of, and a grant such as `GRANT sift_backup TO sift_app` is invisible to every privilege check. Yet such a grant lets the app role run `SET ROLE sift_backup` and read every mailbox: BYPASSRLS plus `pg_read_all_data`.
-
-The same blind spot covers `pg_write_all_data` (bulk write on every table, which would bypass D-40 append-only after `SET ROLE`), and also `pg_read_all_data`. The scoped API cannot issue `SET ROLE`, but the gate exists to catch privilege drift, and this is the highest-impact drift there is.
-**Fix:** Add to `roleProblems`:
-```sql
-select b.rolname from pg_roles b
- where pg_has_role('sift_app', b.oid, 'MEMBER') and b.rolname <> 'sift_app'
+In both cases `docker compose up -d` runs under the owner's project with a different volume name. Compose recreates the owner's `db`, `setup` and `worker` containers on the empty smoke volume, so the owner's worker now runs against a throwaway database. `--down` (always allowed when `CI=true`) then runs `down -v --remove-orphans` on the owner's project and deletes those containers. `sift-pgdata` itself survives, so this is a disruption, not data loss. Still, CONTRIBUTING promises the script "cannot replace your running containers".
+**Fix:** Check the actual Docker state instead of env vars. Before `docker compose build`, refuse when the project already has containers that do not mount the smoke volume:
+```bash
+existing=$(docker ps -aq --filter "label=com.docker.compose.project=$project")
+if [ -n "$existing" ] && ! docker ps -aq --filter "label=com.docker.compose.project=$project" \
+     --filter "volume=$volume" | grep -q .; then
+  refuse "project $project already has containers that are not a smoke stack; pick another COMPOSE_PROJECT_NAME."
+fi
 ```
-Fail on any row. sift_app should be a member of nothing. Mirror the check in `assertUnprivilegedRole` (WR-02).
-
-### WR-08: poll_interval_seconds values that are not multiples of the 15 s tick are rounded up (10 s runs every 15 s, 20 s every 30 s)
-
-**File:** `packages/core/src/config/schema.ts:10`, `apps/worker/src/runtime/supervisor.ts:4,113,176`, `config/config.example.yaml:48`
-**Issue:** The schema accepts `MIN_POLL_INTERVAL_SECONDS = 10`, and the example documents "How often each mailbox is checked ... (10 to 3600)". But the supervisor only starts runs on ticks every `SUPERVISOR_TICK_MS = 15_000`, and sets `nextRunAt = startedAt + pollIntervalMs`. The effective interval is therefore `ceil(interval / 15) * 15` seconds, plus tick drift: 10 becomes 15, 20 becomes 30 (50 % slower than configured), and 61 becomes 75. The owner's configured value is silently not honoured.
-**Fix:** Either raise the minimum to the tick and require multiples of it, or schedule from `nextRunAt` instead of the fixed tick. For example, set the next tick timeout to `min(tickMs, earliest nextRunAt - now)` while still touching the heartbeat at least every `tickMs`.
+This holds in CI too, where a fresh runner has no containers, so the `CI` exemption is no longer needed for safety.
 
 ## Info
 
 ### IN-01: The D-64 duplicate-account check uses raw values, but the stored values are trimmed
 
-**File:** `packages/core/src/config/schema.ts:139-149`
-**Issue:** `imapIdentity` reads `host`, `username` and `folder` from the raw input. The schema stores them trimmed (`nonEmpty(...).trim()`). Two entries such as `host: "imap.x "` and `host: "imap.x"` (quoted YAML) pass the duplicate check but are stored identically, so the same IMAP mailbox would be processed twice.
-**Fix:** Trim (and lowercase) inside `imapIdentity`: `host.trim().toLowerCase()`, `username.trim().toLowerCase()`, `folder.trim()`.
+**File:** `packages/core/src/config/schema.ts:139-149` (with `:30-33,62-66`)
+**Issue:** Still present. `imapIdentity` lowercases `host` and `username` but never trims them. The schema stores them trimmed through `nonEmpty(...).trim()`, so `host: "imap.x "` and `host: "imap.x"` pass D-64 and are stored identically. Note that the new `identityKey` in `registry-plan.ts:153-155` does trim, so the two identity notions now disagree.
+**Fix:** Trim (and lowercase) inside `imapIdentity`: `host.trim().toLowerCase()`, `username.trim().toLowerCase()`, `folder.trim()`. Better still, share one identity helper with `registry-plan.ts`.
 
 ### IN-02: The ISO-04 lint guard does not cover relative imports into packages/db internals
 
 **File:** `biome.json:34-58`
-**Issue:** `noRestrictedImports` blocks `pg`, `drizzle-orm` and `drizzle-orm/*` in `apps/**/src/**`. A relative import such as `../../../../packages/db/src/app-db.ts` (which exports `internalsOf`, giving the raw pool and ORM) is not matched. The package `exports` map blocks only the bare-specifier route.
+**Issue:** Still present. `noRestrictedImports` covers only `pg`, `drizzle-orm` and `drizzle-orm/*`. A relative import of `packages/db/src/app-db.ts` (`internalsOf`) from `apps/**/src/**` is not matched.
 **Fix:** Add a pattern group such as `["**/packages/db/src/**", "**/packages/*/src/**"]` with the same message.
 
 ### IN-03: Role passwords are sent as plaintext literals in DDL
 
-**File:** `packages/db/src/owner/migrate.ts:189-215`, `db/bootstrap.sql:51-72`
-**Issue:** `CREATE/ALTER ROLE ... PASSWORD '<plaintext>'` puts the password in the statement text. If one of these statements fails, or if `log_statement = 'ddl'` or `'all'` is ever enabled, Postgres writes the statement, password included, to the server log (`docker compose logs db`). The application code itself never logs it.
-**Fix:** Send a pre-computed SCRAM-SHA-256 verifier (`PASSWORD 'SCRAM-SHA-256$4096:...'`) built client-side. Or at least document that `log_statement` must stay off or at `mod`-excluding settings.
+**File:** `packages/db/src/owner/migrate.ts:244,257`, `db/bootstrap.sql:52,59,66,70`
+**Issue:** Still present. `CREATE/ALTER ROLE ... PASSWORD '<plaintext>'` puts the password in the statement text. A failing statement, or `log_statement = 'ddl'`/`'all'`, writes it to the server log. Nothing in README or CONTRIBUTING warns about `log_statement`.
+**Fix:** Send a SCRAM-SHA-256 verifier built on the client side, or document that `log_statement` must not include DDL.
 
 ### IN-04: Unexpected worker errors bypass pino and redaction
 
-**File:** `apps/worker/src/cli.ts:67-74`, `apps/worker/src/commands/worker.ts:84-102`
-**Issue:** Only `DatabaseStartupError` is handled inside `worker.run`. Errors from `checkDrift`, `assertUnprivilegedRole` (non-startup pg errors) or `createSupervisor` reach `cli.main`, which writes `sift: ${error.message}` to stderr as plain text, without `redactText`. Every other worker log line is JSON on stdout.
-**Fix:** Catch inside `worker.run`, log via `log.error({ error: summarize(error) }, ...)` with `redactText(message, [...secrets, url])`, and return 1.
+**File:** `apps/worker/src/cli.ts:67-74`, `apps/worker/src/commands/worker.ts:93-99,103`
+**Issue:** Still present. Only `DatabaseStartupError` is handled inside `worker.run`. A pg error from the new role-guard query, or from `checkDrift` or `createSupervisor`, is rethrown and written by `cli.main` as plain `sift: <message>` to stderr, without `redactText`.
+**Fix:** Catch inside `worker.run`, log through `log.error` with `redactText(message, [...secrets, url])`, and return 1.
 
 ### IN-05: An unhealthy worker is never restarted, so the heartbeat healthcheck does not recover a stuck supervisor
 
-**File:** `compose.yaml:89-101`, `apps/worker/src/runtime/supervisor.ts:193-207`
-**Issue:** The heartbeat is skipped whenever the registry read fails or hangs, for example when all 4 pool clients are held by stuck batches. Docker then marks the container unhealthy. But `restart: unless-stopped` acts only on process exit, never on health status, so a wedged worker stays wedged. Health is only informational.
-**Fix:** Document this, or have the supervisor exit non-zero after N consecutive missed heartbeats, so the restart policy recovers the worker.
+**File:** `compose.yaml:89-101`, `apps/worker/src/runtime/supervisor.ts:203-218`
+**Issue:** Still present. The heartbeat is skipped when the registry read fails or hangs. `restart: unless-stopped` acts only when the process exits, and nothing in the supervisor exits after missed heartbeats.
+**Fix:** Document this, or exit non-zero after N consecutive failed or overdue ticks.
 
 ### IN-06: A mailbox disabled while the worker is down keeps a stale mailbox_status.state
 
-**File:** `apps/worker/src/runtime/supervisor.ts:162-168`
-**Issue:** `stopMailbox` / `recordDisabled` runs only for mailboxes already in `states`. After a restart, a mailbox that is disabled in the registry is never known, so its `mailbox_status.state` stays `ok` or `error` indefinitely. `sift mailbox list` hides this by checking `disabledAt` first, but anything else reading `mailbox_status` (future UI) sees the wrong state.
-**Fix:** On the first tick, call `onMailboxStopped` for disabled entries whose status is not `disabled`, or always record it once per process.
+**File:** `apps/worker/src/runtime/supervisor.ts:171-177`
+**Issue:** Still present. `stopMailbox` runs only for mailboxes that are already in `states`. A mailbox that was disabled before the process started is skipped with `continue`, so its `mailbox_status.state` is never set to `disabled`.
+**Fix:** On the first tick, call `onMailboxStopped` for disabled entries, or once per process for each disabled id.
 
 ### IN-07: GitHub Actions are pinned by major tag, not commit SHA
 
 **File:** `.github/workflows/ci.yml:43,46,48,92`
-**Issue:** `actions/checkout@v7`, `pnpm/action-setup@v6` and `actions/setup-node@v7` are mutable tags. This is inconsistent with the supply-chain stance in `pnpm-workspace.yaml` (`minimumReleaseAge`).
+**Issue:** Still present. `actions/checkout@v7`, `pnpm/action-setup@v6` and `actions/setup-node@v7` are mutable tags.
 **Fix:** Pin each action to a full commit SHA with a version comment.
+
+### IN-08: The smoke stack reuses the owner's config.yaml, .env and .env.mailboxes and the shared sift:local image
+
+**File:** `scripts/compose-smoke.sh:64-92,129`, `compose.yaml:47,70,74-75`
+**Issue:** Existing owner files are "never overwritten", so they are used as they are. The smoke worker therefore loads the owner's real mailbox list and IMAP passwords. Today the batch is a no-op. Once Phase 2 ingest lands, every local smoke run would start a second worker that polls the owner's real mailboxes at the same time as the owner's own worker, writing into the throwaway database. In Phase 4 it would also apply labels to the owner's real mail. `docker compose build` also retags the shared `sift:local`, so the owner's next `docker compose up -d` picks up whatever the smoke run built.
+**Fix:** Point the smoke run at its own config (`SIFT_CONFIG` or a smoke-only config directory with placeholder mailboxes and an unroutable host) and its own env files, and use a distinct image tag (`image: ${SIFT_IMAGE:-sift:local}`).
+
+### IN-09: A single removed+added pair is suggested as a rename even when its IMAP identity differs
+
+**File:** `packages/db/src/registry-plan.ts:173-177`
+**Issue:** With exactly one removed and one added slug, the pair is suggested with no identity check. The doc comment at lines 143-149 gives the reason why a wrong pair is harmful ("following a wrong pair would attach one account's history to another"), and that reason applies just as much here. Replacing one mailbox with an unrelated one in a single edit is a plausible case. The data needed to tell these apart (`rows`) is already passed in.
+**Fix:** In the 1:1 case, compare `identityKey`s as well. When they differ, keep the pair but have `printRenameHint` add "their IMAP host/username/folder differ; only rename if it is the same account", or leave the pair out.
+
+### IN-10: The rename hint prints empty "No longer in config.yaml:" / "New in config.yaml:" lines
+
+**File:** `apps/worker/src/commands/config-apply.ts:32-34`
+**Issue:** The block runs when *either* side has unpaired slugs, but it prints both lines unconditionally. For example, with `alpha` removed and `zeta`/`gamma` added, and `alpha` paired with `zeta` by identity, the output contains `  No longer in config.yaml: ` with nothing after it.
+**Fix:** Print each line only when its list is non-empty.
+
+### IN-11: The worker role guard does not check REPLICATION
+
+**File:** `packages/db/src/connect.ts:163-173,187`
+**Issue:** `privilegeReasons` checks SUPERUSER, BYPASSRLS, CREATEROLE, CREATEDB, ownership and membership, but not `rolreplication`. A REPLICATION role can read every row change through logical decoding (`pg_create_logical_replication_slot` / `pg_logical_slot_get_changes`) when `wal_level=logical`, bypassing RLS. Today's default `wal_level=replica` blocks this, so it is defence in depth only.
+**Fix:** Select `r.rolreplication` and add `'REPLICATION'` to the reasons. Mirror it in the catalog `roleProblems` check for `sift_app`.
+
+### IN-12: The bounded close does not cover a pool client that is still connecting
+
+**File:** `packages/db/src/app-db.ts:79-88,104-110`
+**Issue:** `clients` is filled from the pool's `connect` event, which pg-pool 3.14 emits only after the handshake (`index.js:337`). A client still in TCP connect or authentication at shutdown is in the pool's `_clients` but not in `clients`, so it is never ended. The pool has no `connectionTimeoutMillis`. In that case `close()` returns `{ forced: true }` after 1 s, `run` returns 0, but the pending socket keeps the event loop alive. `cli.ts` sets `process.exitCode` and never calls `process.exit()`, so the container can still hit the 30 s SIGKILL that WR-03 meant to avoid. This is unlikely inside the Compose network.
+**Fix:** Set `connectionTimeoutMillis` (for example 5000) on the pool, or have the worker call `process.exit(code)` after a forced close.
+
+### IN-13: A mailbox whose batch outlasts the poll interval now reruns back-to-back with no gap
+
+**File:** `apps/worker/src/runtime/supervisor.ts:119-121,221-226`
+**Issue:** After a successful run, `nextRunAt = startedAt + pollIntervalMs` is already in the past when the batch took longer than the interval. `wakeAt` then arms `setTimeout(loop, 0)`, and the next tick restarts the mailbox immediately. Before WR-08 there was a gap of up to 15 s. A slow mailbox now polls IMAP continuously, and each completion adds a registry read. D-50 says "if a run exceeds the interval, the next run is skipped, not stacked". The code does not stack runs, but it also never skips the missed slot.
+**Fix:** If D-50's "skip" is meant literally, advance to the next slot: `state.nextRunAt = startedAt + Math.ceil((now() - startedAt) / pollIntervalMs) * pollIntervalMs`. Otherwise, record that back-to-back reruns are intended.
 
 ---
 
-_Reviewed: 2026-10-04T08:16:53Z_
+_Reviewed: 2026-10-04T17:22:35Z_
 _Reviewer: Claude (gsd-code-reviewer)_
-_Depth: standard_
+_Depth: deep_
