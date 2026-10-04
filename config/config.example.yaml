@@ -1,0 +1,49 @@
+# Sift configuration (version 1)
+#
+# Copy this file to config/config.yaml and edit the copy:
+#
+#   cp config/config.example.yaml config/config.yaml
+#
+# After editing config/config.yaml, apply the changes with:
+#
+#   docker compose run --rm setup
+#
+# Passwords never go in this file. Each mailbox's `password_env` names an
+# environment variable, and that variable's value lives in .env.mailboxes.
+# Check the file at any time with `sift config check`.
+
+version: 1
+
+mailboxes:
+  - slug: personal
+    display_name: Personal
+    imap:
+      host: protonmail-bridge
+      port: 1143
+      username: me@proton.me
+      password_env: SIFT_PERSONAL_IMAP_PASSWORD
+      folder: INBOX
+    labels:
+      apply_as: proton_labels
+
+  - slug: job-search
+    display_name: Job search
+    imap:
+      host: protonmail-bridge
+      port: 1143
+      username: jobs@proton.me
+      password_env: SIFT_JOBS_IMAP_PASSWORD
+      folder: INBOX
+    labels:
+      apply_as: proton_labels
+
+models:
+  provider: ollama
+  # From inside Docker. For host development, set SIFT_MODELS_URL=http://localhost:11434.
+  url: http://host.docker.internal:11434
+  embeddings: nomic-embed-text
+  llm: qwen3:1.7b
+
+worker:
+  # How often each mailbox is checked for new mail, in seconds (10 to 3600).
+  poll_interval_seconds: 60
