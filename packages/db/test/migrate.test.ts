@@ -1,8 +1,24 @@
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, open, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { migrate } from '../src/owner/migrate.ts';
 import { SCOPED_TABLE_NAMES } from '../src/schema/index.ts';
-import { connect, freshDatabase, requireEnv, type TestDatabase } from './support/db.ts';
+import {
+  connect,
+  dropDatabase,
+  freshDatabase,
+  requireEnv,
+  requireTestDb,
+  roleUrl,
+  type TestDatabase,
+} from './support/db.ts';
 import { seedMailboxes, seedScopedRows } from './support/seed.ts';
+
+const REPO_ROOT = path.resolve(import.meta.dirname, '../../..');
+const BACKUP_FILE = /^sift-\d{8}T\d{6}Z-pre-0004_scoped_tables_force_grants\.dump$/;
 
 let db: TestDatabase;
 
@@ -149,7 +165,95 @@ describe('migrate()', () => {
     const result = await migrate({
       ownerUrl: db.ownerUrl,
       appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+      backup: undefined,
     });
-    expect(result.applied).toEqual([]);
+    expect(result).toEqual({ applied: [], backupFile: null });
   });
 });
+
+describe('migrate() backups (D-29, D-66)', () => {
+  it('backs up before applying pending migrations', async (ctx) => {
+    const pgDump = resolvePgDump();
+    if (pgDump === undefined) {
+      const reason = 'no pg_dump 18: set SIFT_PG_DUMP or install PostgreSQL 18 client tools';
+      if (process.env.CI) throw new Error(reason);
+      ctx.skip(reason);
+      return;
+    }
+    const empty = await emptyDatabase();
+    const dir = await mkdtemp(path.join(tmpdir(), 'sift-backup-'));
+    try {
+      const result = await migrate({
+        ownerUrl: empty.ownerUrl,
+        appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+        backup: { url: empty.backupUrl, dir, pgDump },
+      });
+
+      expect(result.applied).toHaveLength(5);
+      expect(result.backupFile).not.toBeNull();
+      const file = result.backupFile ?? '';
+      expect(path.dirname(file)).toBe(dir);
+      expect(path.basename(file)).toMatch(BACKUP_FILE);
+      expect(await readMagic(file)).toBe('PGDMP');
+      expect((await stat(file)).mode & 0o777).toBe(0o600);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+      await empty.drop();
+    }
+  });
+});
+
+interface EmptyDatabase {
+  ownerUrl: string;
+  backupUrl: string;
+  drop(): Promise<void>;
+}
+
+let emptyCounter = 0;
+
+/** An unmigrated database owned by sift_owner. It inherits vector from template1. */
+async function emptyDatabase(): Promise<EmptyDatabase> {
+  const { adminUrl, runId } = requireTestDb();
+  emptyCounter += 1;
+  const name = `sift_test_${runId}_empty_${emptyCounter}`;
+  const admin = await connect(adminUrl);
+  try {
+    await admin.query(`CREATE DATABASE ${pg.escapeIdentifier(name)} OWNER sift_owner`);
+  } finally {
+    await admin.end();
+  }
+  return {
+    ownerUrl: roleUrl(adminUrl, 'sift_owner', name),
+    backupUrl: roleUrl(adminUrl, 'sift_backup', name),
+    drop: () => dropDatabase(adminUrl, name),
+  };
+}
+
+/**
+ * pg_dump 18 for the backup tests: SIFT_PG_DUMP (a path is relative to the
+ * repo root, e.g. scripts/pg-dump-via-compose.sh), else a host pg_dump that
+ * reports version 18, else undefined.
+ */
+function resolvePgDump(): string | undefined {
+  const configured = process.env.SIFT_PG_DUMP?.trim();
+  if (configured) {
+    return configured.includes('/') ? path.resolve(REPO_ROOT, configured) : configured;
+  }
+  return reportsVersion18('pg_dump') ? 'pg_dump' : undefined;
+}
+
+function reportsVersion18(command: string): boolean {
+  const probe = spawnSync(command, ['--version'], { encoding: 'utf8' });
+  return probe.status === 0 && /\b18\.\d+/.test(probe.stdout);
+}
+
+async function readMagic(file: string): Promise<string> {
+  const handle = await open(file, 'r');
+  try {
+    const buffer = Buffer.alloc(5);
+    await handle.read(buffer, 0, 5, 0);
+    return buffer.toString('latin1');
+  } finally {
+    await handle.close();
+  }
+}

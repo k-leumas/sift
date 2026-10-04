@@ -4,6 +4,16 @@ import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate as drizzleMigrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
+import {
+  BACKUP_KEEP,
+  type BackupTarget,
+  backupFileName,
+  ensureWritableDir,
+  pruneBackups,
+  writeBackup,
+} from './backup.ts';
+
+export { BackupFailedError, type BackupTarget } from './backup.ts';
 
 /** Session-level advisory lock held for the whole migrate run (D-30). */
 export const MIGRATE_LOCK_KEY = 815309001;
@@ -22,12 +32,25 @@ export interface MigrateOptions {
   /** Password for sift_app; created or rotated on every run (D-39). Never logged. */
   appPassword: string;
   migrationsFolder?: string;
+  /**
+   * Pre-migration dump (D-29, D-66). A target dumps before applying when
+   * anything is pending; `false` skips it (throwaway test databases only);
+   * `undefined` with pending migrations throws BackupRequiredError.
+   */
+  backup: BackupTarget | false | undefined;
   log?: (line: string) => void;
 }
 
 export interface MigrateResult {
   /** Journal tags applied by this run, in order. Empty when nothing was pending. */
   applied: string[];
+  /** Absolute path of the dump written by this run, or null when none was taken. */
+  backupFile: string | null;
+}
+
+/** Migrations are pending but no backup target was configured. Nothing was changed. */
+export class BackupRequiredError extends Error {
+  override name = 'BackupRequiredError';
 }
 
 interface JournalEntry {
@@ -35,7 +58,10 @@ interface JournalEntry {
 }
 
 /**
- * Apply pending migrations as sift_owner (D-19, D-30, D-39).
+ * Apply pending migrations as sift_owner (D-19, D-29, D-30, D-39, D-66).
+ *
+ * When anything is pending, a custom-format pg_dump taken as sift_backup is
+ * written first and old dumps are pruned to the newest BACKUP_KEEP.
  *
  * One dedicated client runs everything, because the advisory lock is
  * session-level. sift_app is ensured before the migrator runs, since
@@ -60,9 +86,16 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
     await client.query('select pg_advisory_lock($1)', [MIGRATE_LOCK_KEY]);
     locked = true;
 
+    // Everything that can fail before a change runs first: pending detection,
+    // then the required backup. A missing or failed backup leaves the role and
+    // the schema untouched (T-01-32).
+    const before = await appliedCount(client);
+    const pending = tags.slice(before);
+    const backupFile =
+      pending.length === 0 ? null : await backupBeforeApplying(options.backup, pending, log);
+
     await ensureAppRole(client, options.appPassword, log);
 
-    const before = await appliedCount(client);
     await drizzleMigrate(drizzle({ client }), {
       migrationsFolder,
       migrationsTable: MIGRATIONS_TABLE,
@@ -76,7 +109,7 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
         ? 'No pending migrations'
         : `Applied ${applied.length} migration(s): ${applied.join(', ')}`,
     );
-    return { applied };
+    return { applied, backupFile };
   } finally {
     try {
       if (locked) {
@@ -86,6 +119,37 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
       await client.end();
     }
   }
+}
+
+/**
+ * Dump through sift_backup, then prune old dumps (D-29, D-66). Pruning runs only
+ * after the new dump is complete, so a failure never shrinks the history.
+ */
+async function backupBeforeApplying(
+  backup: BackupTarget | false | undefined,
+  pending: readonly string[],
+  log: (line: string) => void,
+): Promise<string | null> {
+  if (backup === false) {
+    return null;
+  }
+  if (backup === undefined) {
+    throw new BackupRequiredError(
+      `SIFT_BACKUP_DATABASE_URL is not set; a backup is required before applying ${pending.length} pending migrations`,
+    );
+  }
+  const target = pending.at(-1);
+  if (target === undefined) {
+    return null;
+  }
+  await ensureWritableDir(backup.dir);
+  const file = await writeBackup(backup, backupFileName(new Date(), target));
+  const removed = await pruneBackups(backup.dir, BACKUP_KEEP);
+  log(`Backup written: ${path.basename(file)}`);
+  if (removed.length > 0) {
+    log(`Pruned ${removed.length} old backup(s)`);
+  }
+  return file;
 }
 
 function readJournalTags(migrationsFolder: string): string[] {

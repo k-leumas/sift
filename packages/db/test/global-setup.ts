@@ -44,6 +44,8 @@ export async function setup(project: TestProject): Promise<void> {
     await migrate({
       ownerUrl: roleUrl(url, 'sift_owner', templateDb),
       appPassword: requireEnv('SIFT_DB_APP_PASSWORD'),
+      // Throwaway template: there is nothing to restore, so no dump is taken.
+      backup: false,
     });
     await terminateConnections(url, templateDb);
   } catch (error) {
