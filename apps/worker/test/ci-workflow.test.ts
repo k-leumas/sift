@@ -96,3 +96,15 @@ describe('.github/workflows/ci.yml compose-smoke job', () => {
     expect(smoke?.run).toContain('--down');
   });
 });
+
+describe('third-party actions (IN-07)', () => {
+  it('pins every action to a full commit SHA with its version in a comment', () => {
+    const lines = readFileSync(WORKFLOW, 'utf8')
+      .split('\n')
+      .filter((line) => /^\s*(-\s*)?uses:/.test(line));
+    expect(lines.length).toBeGreaterThan(0);
+    for (const line of lines) {
+      expect(line).toMatch(/uses: [\w.-]+\/[\w.-]+@[0-9a-f]{40} # v\d+\.\d+\.\d+$/);
+    }
+  });
+});
