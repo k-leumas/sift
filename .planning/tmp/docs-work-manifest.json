@@ -1,0 +1,57 @@
+{
+  "canonical_queue": [
+    {
+      "type": "contributing",
+      "resolved_path": "CONTRIBUTING.md",
+      "mode": "create",
+      "preservation_mode": null,
+      "wave": 2,
+      "status": "verified"
+    }
+  ],
+  "skipped": [
+    {
+      "type": "readme",
+      "reason": "user scoped run to CONTRIBUTING + ADR review (no code yet)"
+    },
+    {
+      "type": "architecture",
+      "reason": "deferred until after Phase 1 execution"
+    },
+    {
+      "type": "configuration",
+      "reason": "deferred until after Phase 1 execution"
+    },
+    {
+      "type": "getting_started",
+      "reason": "deferred until after Phase 1 execution"
+    },
+    {
+      "type": "development",
+      "reason": "deferred until after Phase 1 execution"
+    },
+    {
+      "type": "testing",
+      "reason": "deferred until after Phase 1 execution"
+    }
+  ],
+  "review_queue": [
+    {
+      "path": "docs/adr/0001-multiple-mailboxes-single-owner.md",
+      "type": "hand-written",
+      "status": "verified"
+    },
+    {
+      "path": "docs/adr/0002-tiered-classification.md",
+      "type": "hand-written",
+      "status": "verified"
+    },
+    {
+      "path": "docs/adr/0003-traces-and-mail-app-relabels.md",
+      "type": "hand-written",
+      "status": "verified"
+    }
+  ],
+  "gap_queue": [],
+  "created_at": "2026-10-03T17:30:00Z"
+}

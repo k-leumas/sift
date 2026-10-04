@@ -1,0 +1,33 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": "v0.1 — Classify (README M1, \"M1 on real inbox\")",
+  "phases": [
+    {
+      "number": "1",
+      "name": "Foundation and Isolation",
+      "status": "in_progress"
+    },
+    {
+      "number": "2",
+      "name": "Bridge Spike and IMAP Ingest",
+      "status": "pending"
+    },
+    {
+      "number": "3",
+      "name": "Tiered Classification with Traces",
+      "status": "pending"
+    },
+    {
+      "number": "4",
+      "name": "Labels and Real-Inbox Run",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step (verify)",
+    "reason": "Phase 01 of 4 · ready to verify"
+  },
+  "updated_at": "2026-10-04T08:04:17.118Z"
+}

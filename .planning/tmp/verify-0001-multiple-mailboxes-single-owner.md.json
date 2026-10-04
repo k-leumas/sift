@@ -1,0 +1,20 @@
+{
+  "doc_path": "docs/adr/0001-multiple-mailboxes-single-owner.md",
+  "claims_checked": 2,
+  "claims_passed": 0,
+  "claims_failed": 2,
+  "failures": [
+    {
+      "line": 25,
+      "claim": "data/shared-rules.md",
+      "expected": "file exists",
+      "actual": "file not found at /Users/samuel/dev/sift/data/shared-rules.md (no data/ directory; repo contains only docs/, LICENSE, README.md, tsconfig.json)"
+    },
+    {
+      "line": 27,
+      "claim": "config.yaml",
+      "expected": "file exists",
+      "actual": "file not found at /Users/samuel/dev/sift/config.yaml"
+    }
+  ]
+}

@@ -1,0 +1,776 @@
+{
+  "version": 1,
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-10-03T19:37:25.893Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/01-foundation-and-isolation/01-02-PLAN.md",
+      "root_cause": "Had `sift_app`",
+      "fix": "Changed to `grep -Eic \"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-03T19:37:25.893Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-10-03T22:28:00Z",
+      "error_message": "fatal: pathspec 'package.json pnpm-workspace.yaml ...' did not match any files",
+      "file": "(shell command, no file)",
+      "root_cause": "Agent Bash runs zsh, which does not word-split unquoted $VAR, so a space-separated file list became one pathspec",
+      "fix": "Use a zsh array FILES=(...) and \"${FILES[@]}\"",
+      "tags": [
+        "zsh",
+        "git",
+        "pathspec",
+        "shell"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-03T22:28:00Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-10-04T05:21:18.906Z",
+      "error_message": "error TS18003: No inputs were found in config file tsconfig.json (include [\"*.ts\",\"*.js\"])",
+      "file": "tsconfig.json",
+      "root_cause": "Only root source is commitlint.config.js; tsc ignores .js without allowJs",
+      "fix": "Add allowJs + checkJs to root tsconfig compilerOptions",
+      "tags": [
+        "typescript",
+        "tsconfig",
+        "typecheck"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:21:18.906Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-10-04T05:21:18.906Z",
+      "error_message": "pnpm add --save-exact @types/node@26 wrote \"^26.6.3\"",
+      "file": "package.json",
+      "root_cause": "--save-exact does not override a range spec request in pnpm 12",
+      "fix": "Hand-edit to exact version, then pnpm install to update lockfile specifier",
+      "tags": [
+        "pnpm",
+        "save-exact",
+        "pinning"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:21:18.906Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-10-04T05:21:18.906Z",
+      "error_message": "Biome DEPRECATED: The use of the recommended field has been deprecated ... Use preset instead",
+      "file": "biome.json",
+      "root_cause": "Biome 2.5 replaced linter.rules.recommended:boolean with rules.preset",
+      "fix": "Use \"preset\": \"recommended\"",
+      "tags": [
+        "biome",
+        "config",
+        "deprecation"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:21:18.906Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-10-04T05:21:18.906Z",
+      "error_message": "zsh: no such file or directory: node /Users/samuel/.claude/gsd-core/bin/gsd-tools.cjs",
+      "file": "(shell command)",
+      "root_cause": "zsh does not word-split $G holding a command string",
+      "fix": "Define a function G() { node .../gsd-tools.cjs \"$@\"; }",
+      "tags": [
+        "zsh",
+        "shell",
+        "gsd-tools"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:21:18.906Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-10-04T05:33:17.657Z",
+      "error_message": "Task 1 acceptance negative grep `grep -E \"0\\.0\\.0\\.0\" compose.yaml` matched (FAIL) although ports were loopback-only",
+      "file": "compose.yaml",
+      "root_cause": "A YAML comment contained the literal text 0.0.0.0, and the negative grep scans the whole file including comments",
+      "fix": "Reworded the comment to \"Never publish Postgres on all interfaces\"",
+      "tags": [
+        "compose",
+        "grep",
+        "acceptance-criteria",
+        "comments"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:33:17.657Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-10-04T05:41:10.828Z",
+      "error_message": "Type error",
+      "file": "packages/db/src/schema/scoped.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:41:10.828Z"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-10-04T05:42:17.500Z",
+      "error_message": "Incorrect value in code",
+      "file": "packages/db/test/migrate.test.ts",
+      "root_cause": "Had './support/db.ts'",
+      "fix": "Changed to '../src/schema/index.ts'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:42:17.500Z"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-10-04T05:42:19.300Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/db/test/migrate.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T05:42:19.300Z"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-10-04T05:57:22.070Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/core/src/config/schema.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: function field(value: unknown, key: string): unknown {; return typeof value === 'object' && value !== null ? (value ",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-04T05:57:23.043Z"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-10-04T06:00:00Z",
+      "error_message": "expected messages to include 'mailboxes is required: add at least one mailbox' (got 'mailboxes is required')",
+      "file": "packages/core/src/config/load.ts",
+      "root_cause": "Post-processing replaced every invalid_type-with-undefined message with a generic '<key> is required', overriding schema-level messages",
+      "fix": "Missing-key fallback moved to a per-parse Zod error map returning a sentinel (lowest precedence); only the sentinel is rewritten",
+      "tags": [
+        "zod",
+        "config",
+        "error-map"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:00:00Z"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-10-04T06:00:00Z",
+      "error_message": "tdd-red-evidence INVALID_RED zero_tests_discovered / fixture_or_load_failure for vitest junit",
+      "file": "scratchpad red-evidence.mjs",
+      "root_cause": "Vitest 5 junit writes to .vitest/junit/output.xml (not stdout); checker name regex matches classname, so targetFile basename equals all failures",
+      "fix": "Use --outputFile.junit=<scratch>.xml, omit targetFile, set targetTest to the test file path",
+      "tags": [
+        "vitest",
+        "junit",
+        "tdd",
+        "gsd"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:00:00Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-10-04T06:14:14.590Z",
+      "error_message": "Significant refactor of ",
+      "file": "packages/db/test/isolation.test.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 4\u21923 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:14:14.590Z"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-10-04T06:14:36.001Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/db/test/isolation.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:14:36.001Z"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-10-04T06:31:00Z",
+      "error_message": "BackupFailedError test: migrate() resolved although the sift_backup URL had a wrong password",
+      "file": "scripts/pg-dump-via-compose.sh",
+      "root_cause": "Wrapper rewrote --dbname host to 127.0.0.1:5432; the postgres image pg_hba trusts loopback, so the password was never checked",
+      "fix": "Rewrite host to db:5432 (Compose service name -> container network IP -> host all all all scram-sha-256)",
+      "tags": [
+        "pg_dump",
+        "pg_hba",
+        "docker",
+        "compose",
+        "auth",
+        "backup"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:31:00Z"
+    },
+    {
+      "id": "bug-017",
+      "timestamp": "2026-10-04T06:31:30Z",
+      "error_message": "TS2344: Type 'typeof spawnSync<string>' does not satisfy the constraint '(...args: any) => any'",
+      "file": "packages/db/test/migrate.test.ts",
+      "root_cause": "ReturnType over an instantiation expression of an overloaded function is not allowed",
+      "fix": "Use the exported SpawnSyncReturns<string> type from node:child_process",
+      "tags": [
+        "typescript",
+        "child_process",
+        "types"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-04T08:06:07.236Z"
+    },
+    {
+      "id": "bug-018",
+      "timestamp": "2026-10-04T06:42:35.505Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/db/test/registry.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:42:35.506Z"
+    },
+    {
+      "id": "bug-019",
+      "timestamp": "2026-10-04T06:42:00Z",
+      "error_message": "registry.test.ts CLI rename test: expected 'update mailbox \"job-search\": imap_username ...' to contain 'Mailbox registry already matches config.yaml.'",
+      "file": "packages/db/test/registry.test.ts",
+      "root_cause": "Test YAML derived imap username from the slug, so the post-rename config changed the IMAP account too",
+      "fix": "Map job-search to the jobs account in the test YAML helper so a rename keeps the IMAP identity",
+      "tags": [
+        "test",
+        "registry",
+        "rename",
+        "config-apply"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:42:00Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-10-04T06:39:00Z",
+      "error_message": "packages/db/test/support/db.ts(61,25): error TS2345: Argument of type '\"testDb\"' is not assignable to parameter of type 'never'.",
+      "file": "apps/worker/test/registry-cli.test.ts",
+      "root_cause": "apps/worker tsconfig does not include packages/db/test/global-setup.ts, which holds the vitest ProvidedContext augmentation",
+      "fix": "Add /// <reference path=\"../../../packages/db/test/global-setup.ts\" /> at the top of the worker test",
+      "tags": [
+        "typescript",
+        "vitest",
+        "inject",
+        "tsconfig"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:39:00Z"
+    },
+    {
+      "id": "bug-021",
+      "timestamp": "2026-10-04T06:55:49.079865+00:00",
+      "error_message": "TS2322: Mock<Procedure | Constructable> not assignable to SupervisorLog",
+      "file": "apps/worker/test/supervisor.test.ts",
+      "root_cause": "Bare vi.fn() mocks in Vitest 5 are typed Mock<Procedure | Constructable>, not assignable to a typed method interface",
+      "fix": "Use vi.fn<LogFn>() and Mock<LogFn> with LogFn = (obj: object, msg?: string) => void",
+      "tags": [
+        "vitest",
+        "typescript",
+        "mock",
+        "typecheck"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:55:49.079865+00:00"
+    },
+    {
+      "id": "bug-022",
+      "timestamp": "2026-10-04T06:57:50.315Z",
+      "error_message": "Missing await",
+      "file": "apps/worker/src/commands/worker.ts",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:57:50.315Z"
+    },
+    {
+      "id": "bug-023",
+      "timestamp": "2026-10-04T06:57:54.306Z",
+      "error_message": "Wrong reference: supervisor should be registry",
+      "file": "apps/worker/src/commands/worker.ts",
+      "root_cause": "Used \"supervisor\" instead of \"registry\"",
+      "fix": "Changed supervisor \u2192 registry",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T06:57:54.306Z"
+    },
+    {
+      "id": "bug-024",
+      "timestamp": "2026-10-04T07:00:33.294Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "apps/worker/src/commands/worker.ts",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:00:33.294Z"
+    },
+    {
+      "id": "bug-025",
+      "timestamp": "2026-10-04T07:00:34.192Z",
+      "error_message": "Type error",
+      "file": "apps/worker/src/commands/worker.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:00:34.192Z"
+    },
+    {
+      "id": "bug-026",
+      "timestamp": "2026-10-04T07:02:00Z",
+      "error_message": "Cannot find package 'pg' imported from apps/worker/test/no-secret-leak.test.ts",
+      "file": "apps/worker/test/no-secret-leak.test.ts",
+      "root_cause": "@sift/worker declares no pg dependency; pnpm strict node_modules hides packages/db's pg from apps/worker",
+      "fix": "Dropped the pg import; the pg_tables query returns quote_ident(schemaname)||'.'||quote_ident(tablename)",
+      "tags": [
+        "pnpm",
+        "imports",
+        "worker",
+        "test"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:02:00Z"
+    },
+    {
+      "id": "bug-027",
+      "timestamp": "2026-10-04T07:11:23.259Z",
+      "error_message": "Significant refactor of ",
+      "file": "scripts/compose-smoke.sh",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 3\u21924 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "sh"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:11:23.259Z"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-10-04T07:50:00Z",
+      "error_message": "migrate.test.ts 'throws BackupFailedError ... applies nothing' failed: sift_app verifier changed during the test",
+      "file": "packages/db/test/support/db.ts",
+      "root_cause": "migrate() rotates the cluster-wide sift_app password on every run (new SCRAM salt); the new apps/worker/test/setup.test.ts ran migrate concurrently with migrate.test.ts's verifier comparisons",
+      "fix": "lockAppRole() advisory lock (key 815309101) in the admin DB, held for the whole file by migrate.test.ts and setup.test.ts",
+      "tags": [
+        "vitest",
+        "race",
+        "sift_app",
+        "migrate",
+        "test-isolation"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:50:00Z"
+    },
+    {
+      "id": "bug-029",
+      "timestamp": "2026-10-04T07:50:00Z",
+      "error_message": "open /Users/samuel/dev/sift/.env.mailboxes: no such file or directory (every docker compose command)",
+      "file": "compose.yaml",
+      "root_cause": "Docker Compose v2.2.3 validates every service's env_file at project load; the worker's env_file .env.mailboxes did not exist in the dev checkout",
+      "fix": "Created an empty .env.mailboxes from .env.mailboxes.example (git-ignored); deferred: document the copy step in CONTRIBUTING",
+      "tags": [
+        "docker-compose",
+        "env_file",
+        "v2.2.3"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:50:00Z"
+    },
+    {
+      "id": "bug-030",
+      "timestamp": "2026-10-04T07:50:00Z",
+      "error_message": "worker/drift/no-secret-leak tests timed out (15 s windows) in the full suite after adding setup.test.ts",
+      "file": "apps/worker/test/setup.test.ts",
+      "root_cause": "Five extra Node CLI spawns under a host load average of 50-180 slowed sibling worker spawns",
+      "fix": "Run setup steps in-process via run() with captured IO; keep one CLI spawn",
+      "tags": [
+        "vitest",
+        "flaky",
+        "load",
+        "spawn"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:50:00Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-10-04T07:54:24.540Z",
+      "error_message": "Significant refactor of ",
+      "file": "README.md",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 24\u219269 lines (8 removed) | Also: \u251c\u2500\u2500 config.example.yaml; \u2514\u2500\u2500 .env.example",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-04T07:54:51.539Z"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-10-04T07:54:49.882Z",
+      "error_message": "Incorrect value in code",
+      "file": "README.md",
+      "root_cause": "Had `docker compose restart worker`",
+      "fix": "Changed to `.env.mailboxes`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:54:49.882Z"
+    },
+    {
+      "id": "bug-033",
+      "timestamp": "2026-10-04T07:56:58.324Z",
+      "error_message": "Significant refactor of ",
+      "file": "CONTRIBUTING.md",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 32\u219289 lines (10 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:56:58.324Z"
+    },
+    {
+      "id": "bug-034",
+      "timestamp": "2026-10-04T07:57:27.942Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:57:27.942Z"
+    },
+    {
+      "id": "bug-035",
+      "timestamp": "2026-10-04T07:57:37.935Z",
+      "error_message": "Wrong operator: !== should be ===",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Used \"!==\" instead of \"===\"",
+      "fix": "Changed operator !== \u2192 ===",
+      "tags": [
+        "auto-detected",
+        "operator-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:57:37.935Z"
+    },
+    {
+      "id": "bug-036",
+      "timestamp": "2026-10-04T07:58:28.333Z",
+      "error_message": "Incorrect value in code",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Had 'install'",
+      "fix": "Changed to `pnpm eval`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T07:58:28.333Z"
+    },
+    {
+      "id": "bug-037",
+      "timestamp": "2026-10-04T08:02:23.776Z",
+      "error_message": "Wrong reference: open should be resolved",
+      "file": ".planning/phases/01-foundation-and-isolation/deferred-items.md",
+      "root_cause": "Used \"open\" instead of \"resolved\"",
+      "fix": "Changed open \u2192 resolved",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T08:02:23.776Z"
+    },
+    {
+      "id": "bug-038",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "CR-01: compose-smoke cannot pass on Linux CI (config.yaml 0600 under umask 077; ./backups not writable by uid 1000)",
+      "file": "scripts/compose-smoke.sh",
+      "root_cause": "umask 077 applied to the config.yaml copy; backups/ owned by runner uid 1001; Docker Desktop on macOS hides host uids",
+      "fix": "(umask 022 && cp ...) for config.yaml; on Linux with uid != 1000 chown 1000 backups (as_root/sudo -n) or fail early; README Linux step; compose-smoke.test.ts stubs docker/uname/id/sudo",
+      "tags": [
+        "compose",
+        "linux",
+        "uid",
+        "umask",
+        "ci",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-039",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-01: compose-smoke COMPOSE_PROJECT_NAME did not isolate the db volume; --down could delete sift-pgdata",
+      "file": "scripts/compose-smoke.sh",
+      "root_cause": "compose.yaml pinned volume name sift-pgdata for every project",
+      "fix": "volume name ${SIFT_PGDATA_VOLUME:-sift-pgdata}; smoke exports <project>-pgdata-smoke, refuses sift-pgdata and (outside CI) the default project",
+      "tags": [
+        "compose",
+        "volume",
+        "data-loss",
+        "smoke",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-040",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-02: worker role guard accepted sift_owner (CREATEROLE, owns schema)",
+      "file": "packages/db/src/connect.ts",
+      "root_cause": "guard checked only rolsuper/rolbypassrls",
+      "fix": "guard also rejects CREATEROLE, CREATEDB, owning objects, and membership in any role (pg_has_role MEMBER)",
+      "tags": [
+        "rls",
+        "role",
+        "guard",
+        "security",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-041",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-06: catalog gate missed column-level SELECT/INSERT grants",
+      "file": "packages/db/test/support/catalog.ts",
+      "root_cause": "has_table_privilege is false for column-level grants",
+      "fix": "use has_any_column_privilege for app_select/app_insert/backup_insert",
+      "tags": [
+        "catalog",
+        "grants",
+        "postgres",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-042",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-07: catalog gate did not check sift_app memberships beyond sift_owner",
+      "file": "packages/db/test/support/catalog.ts",
+      "root_cause": "only pg_has_role(sift_app, sift_owner) was checked; NOINHERIT hides membership privileges",
+      "fix": "membershipProblems(client, role) lists every role sift_app is a member of; tested on a throwaway stand-in role (never grant to the shared sift_app in tests)",
+      "tags": [
+        "catalog",
+        "role",
+        "membership",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-043",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-03: shutdown hung when a batch outlived SHUTDOWN_TIMEOUT_MS (pool.end waits for checked-out clients)",
+      "file": "packages/db/src/app-db.ts",
+      "root_cause": "pg-pool end() resolves only after every client is released",
+      "fix": "AppDb.close({ timeoutMs }) ends remaining clients after the timeout (pg Client.end destroys the socket when a query is active); worker uses CLOSE_TIMEOUT_MS 3 s",
+      "tags": [
+        "shutdown",
+        "pg-pool",
+        "d-53",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-044",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-04: migrate counted pending while drizzle compares timestamps; skipped migration reported as none pending",
+      "file": "packages/db/src/owner/migrate.ts",
+      "root_cause": "drizzle applies only migrations with folderMillis > last created_at",
+      "fix": "journal when must strictly increase; pending computed with drizzle's rule; MigrationOrderError before any change; post-apply count check",
+      "tags": [
+        "migrate",
+        "drizzle",
+        "journal",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-045",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-05: rename hint paired removed (sorted) and added (config order) slugs by position",
+      "file": "apps/worker/src/commands/config-apply.ts",
+      "root_cause": "positional pairing of two differently ordered lists",
+      "fix": "findRenameSuspects(changes, rows) returns pairs: 1-1 as is, otherwise unique IMAP identity matches only",
+      "tags": [
+        "registry",
+        "rename",
+        "hint",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    },
+    {
+      "id": "bug-046",
+      "timestamp": "2026-10-04T09:20:52Z",
+      "error_message": "WR-08: poll intervals not multiple of 15 s tick were rounded up",
+      "file": "apps/worker/src/runtime/supervisor.ts",
+      "root_cause": "runs only started on fixed 15 s ticks",
+      "fix": "next tick at min(tickMs, earliest idle nextRunAt); finished runs call wakeAt; failed registry read falls back to tickMs",
+      "tags": [
+        "supervisor",
+        "scheduling",
+        "d-52",
+        "review-fix",
+        "phase-01"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T09:20:52Z"
+    }
+  ]
+}
