@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-04T18:19:41.842Z
-> Files: 177 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-04T19:06:27.572Z
+> Files: 179 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -43,6 +43,10 @@
 ## .claude/rules/
 
 - `openwolf.md` (~313 tok)
+
+## .github/
+
+- `dependabot.yml` (~32 tok)
 
 ## .github/workflows/
 
@@ -143,9 +147,10 @@
 - `backoff.ts` — computeBackoff(failures, intervalMs, random): interval*2^failures, +/-20% jitter, capped at BACKOFF_CAP_MS 900000 (D-51) (~181 tok)
 - `heartbeat.ts` — defaultHeartbeatFile(env) (SIFT_HEARTBEAT_FILE or <tmpdir>/sift/heartbeat); createHeartbeat(file) writes ISO timestamp via temp+rename (D-54) (~310 tok)
 - `mailbox-batch.ts` — createMailboxCallbacks(db, secrets): readRegistry, Phase 1 no-op runBatch (withMailbox requireActive: recordMailboxSeen+recordSyncSuccess), onBatchError (disabled->recordDisabled else redacted recordSyncError), onMailboxStopped (~542 tok)
-- `shutdown.ts` — waitForShutdownSignal(): first SIGTERM/SIGINT; listeners removed so a second signal force-exits (D-53) (~177 tok)
+- `run-until-stopped.ts` — runUntilStopped(supervisor, log, waitForSignal): signal -> exit 0, supervisor.stalled -> one error log line + exit EXIT_HEARTBEAT_STALLED=75 (IN-05); bounded drain either way (~520 tok)
+- `shutdown.ts` — waitForShutdownSignal(abort?): first SIGTERM/SIGINT; listeners removed so a second signal force-exits (D-53); abort removes them too (IN-05) (~260 tok)
 - `startup.ts` — checkDrift(db, config): planRegistryChanges(config, readRegistry).map(describeChange); [] = no drift (D-34) (~180 tok)
-- `supervisor.ts` — createSupervisor(deps): 15s setTimeout-chained ticks; readRegistry -> heartbeat -> run due enabled mailboxes; skip-not-queue, backoff, disable stop, optional redact, stop() bounded drain. SUPERVISOR_TICK_MS, SHUTDOWN_TIMEOUT_MS (~1462 tok)
+- `supervisor.ts` — createSupervisor(deps): 15s setTimeout-chained ticks; readRegistry -> heartbeat -> run due enabled mailboxes; skip-not-queue, backoff, disable stop, optional redact, stop() bounded drain; missed-heartbeat counter + overdue-tick timer -> `stalled` (IN-05). SUPERVISOR_TICK_MS, SHUTDOWN_TIMEOUT_MS, MAX_MISSED_HEARTBEATS (~2400 tok)
 
 ## apps/worker/test/
 
@@ -158,8 +163,9 @@
 - `no-secret-leak.test.ts` — FND-02 / success criterion 2 (automated half, T-01-46): a mailbox password (~2633 tok)
 - `node-version.test.ts` — .nvmrc without the leading "v" and surrounding whitespace, e.g. 26.10.0. (~323 tok)
 - `registry-cli.test.ts` — 01-09 tracer: config apply + mailbox list via spawned CLI with no mailbox secrets in env (~659 tok)
+- `run-until-stopped.test.ts` — IN-05: stall -> exit 75 with the exact pino line (no URL), signal -> exit 0, abortable signal listeners (~1598 tok)
 - `setup.test.ts` — Version-18 check for a host PostgreSQL client binary. (~2096 tok)
-- `supervisor.test.ts` — 01-10: fake-timer tests for computeBackoff and supervisor (first tick, cadence, no overlap, independent failure, backoff, disable, new mailbox, registry failure, redact, drain) (~3418 tok)
+- `supervisor.test.ts` — 01-10: fake-timer tests for computeBackoff and supervisor (first tick, cadence, no overlap, independent failure, backoff, disable, new mailbox, registry failure, redact, drain, missed heartbeats IN-05) (~4500 tok)
 - `user-facing-text.test.ts` — 01-13: D-69 word scan over README, CONTRIBUTING, example env/config, compose.yaml, Dockerfile, apps/worker/src, packages/{core,db}/src; README quick-start and CONTRIBUTING contract assertions; `pnpm <script>` names must exist in package.json (~2400 tok)
 - `worker-errors.test.ts` — IN-04: in-process worker run with SELECT on mailbox revoked; unexpected pg error logged via pino, redacted, SQLSTATE, exit 1, no stderr (~792 tok)
 - `worker.test.ts` — 01-10 tracer: spawns sift worker on freshDatabase (applyConfig first), waits for ok status + heartbeat, SIGTERM exit 0; missing env -> one JSON line, exit 1 (~1768 tok)

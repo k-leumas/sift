@@ -261,3 +261,5 @@
 | 12:57 | Session end: 10 writes across 8 files (01-REVIEW.md, compose.yaml, lint-guard.test.ts, scram.ts, scram.test.ts) | 6 reads | ~37735 tok |
 | 13:06 | Created apps/worker/test/run-until-stopped.test.ts | — | ~1598 |
 | 13:11 | secure-phase 01: auditor SECURED, 55 unique threats (67 rows) closed, threats_open 0; 01-SECURITY.md written; IN-07 dependabot added | .planning/phases/01-*/01-SECURITY.md, .github/dependabot.yml | verified | ~ |
+| 13:11 | Session end: 11 writes across 9 files (01-REVIEW.md, compose.yaml, lint-guard.test.ts, scram.ts, scram.test.ts) | 6 reads | ~39333 tok |
+| 13:20 | IN-05 owner decision: worker exits 75 after 3 missed heartbeats, compose worker restart: on-failure, docs/tests updated; gates green (353 tests) | supervisor.ts, run-until-stopped.ts, shutdown.ts, worker.ts, compose.yaml, README.md, 01-REVIEW-FIX.md | 71feccd, 93f7354 | ~40000 |

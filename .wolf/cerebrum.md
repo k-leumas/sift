@@ -65,6 +65,7 @@
 - pg 8.23: pool option `Client` takes a subclass (used for TrackedClient); Client.end() on a client still in its handshake only half-closes (Terminate + FIN), so destroy client.connection.stream after end(). A connect ended on purpose mid-handshake never settles its promise.
 - SCRAM verifier = `SCRAM-SHA-256$iter:salt$StoredKey:ServerKey` (packages/db/src/owner/scram.ts, node-pg's SASLprep); CREATE/ALTER ROLE ... PASSWORD '<verifier>' stores it as is. Test by reading pg_authid of a throwaway role and recomputing with its salt.
 - Supervisor: disabled mailboxes are recorded once per process (recordedDisabled), even if disabled before start; a run longer than the interval skips the missed slots (D-50).
+- Worker stall exit (IN-05): createSupervisor exposes `stalled` (resolves after MAX_MISSED_HEARTBEATS=3 ticks in a row without a heartbeat; hung ticks count once per tickMs via an overdue timer). runtime/run-until-stopped.ts races it against the signal wait and returns 0 or EXIT_HEARTBEAT_STALLED=75. Test with fake timers; a real spawned worker with SIFT_HEARTBEAT_FILE=/dev/null/x stalls in ~30 s.
 - Docker Desktop may be stopped on this Mac: `open -a Docker`, wait for `docker info`, sift-db-1 comes back (restart policy). DB tests fail with ECONNREFUSED ::1:5432 when it is down.
 
 ## Do-Not-Repeat
@@ -85,6 +86,8 @@
 ## Decision Log
 
 <!-- Significant technical decisions with rationale. Why X was chosen over Y. -->
+- [2026-10-04] IN-05 owner decision (supersedes the doc-only fix below): the worker exits 75 after 3 consecutive missed heartbeats (failed or hung registry read / heartbeat write), logging step, reason, count and the coded redacted error first; compose worker is `restart: on-failure`. No autoheal sidecar (needs the Docker socket), no env/config.yaml override. A slow restart loop while Postgres is down is accepted. To verify: Docker docs say on-failure may not restart a container after a daemon restart/host reboot (unless-stopped does).
+- [2026-10-04] IN-12 accepted. Note for later: a per-attempt connect timeout inside the startup retry loop would still let D-55 startup retries continue — it bounds each attempt, not the loop — so it remains an option if hung connection attempts appear.
 - [2026-10-04] Review fix IN-05: an unhealthy worker is only documented (README, compose comment: `docker compose restart worker`); exiting after missed heartbeats is left to the owner. IN-07: actions pinned to the SHAs their major tags resolved to (checkout v7.0.1, pnpm/action-setup v6.0.10, setup-node v7.0.0); no Dependabot added. IN-12: fixed by tracking clients from construction, not connectionTimeoutMillis (that would change D-55 retry classification and time out pool waits).
 - [2026-10-04] Review fix WR-02/WR-07: the worker refuses any role that is superuser, BYPASSRLS, CREATEROLE, CREATEDB, owns objects, or is a member of any role; the catalog gate fails on any sift_app membership. Name is not required to be sift_app.
 - [2026-10-04] Review fix WR-08: supervisor ticks at min(15 s, next idle mailbox due) instead of a fixed 15 s, so poll_interval_seconds 10..3600 is honoured exactly; heartbeat still at least every 15 s.

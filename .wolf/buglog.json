@@ -1020,6 +1020,25 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-04T18:19:41.880Z"
+    },
+    {
+      "id": "bug-061",
+      "timestamp": "2026-10-04T19:14:05Z",
+      "error_message": "IN-05: a worker whose heartbeat stalls (registry read failing or hung) stays unhealthy forever; Docker restarts only on exit",
+      "file": "apps/worker/src/runtime/supervisor.ts",
+      "root_cause": "Healthcheck only marks the container unhealthy; restart: unless-stopped acts only on exit and nothing in the supervisor exited after missed heartbeats",
+      "fix": "Supervisor counts consecutive missed heartbeats (failed or overdue ticks) and resolves `stalled` at 3; worker logs the reason, drains, exits 75; compose worker restart: on-failure",
+      "tags": [
+        "worker",
+        "heartbeat",
+        "healthcheck",
+        "docker",
+        "restart-policy",
+        "IN-05"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-04T19:14:05Z"
     }
   ]
 }
