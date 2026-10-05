@@ -54,7 +54,11 @@ export interface SupervisorLog {
 
 export interface SupervisorDeps {
   readRegistry(): Promise<MailboxEntry[]>;
-  runBatch(mailbox: MailboxEntry): Promise<void>;
+  /**
+   * One mailbox's batch. `signal` aborts the moment stop() begins, so a
+   * chunked ingest can stop between chunks (D-04, P1 D-53).
+   */
+  runBatch(mailbox: MailboxEntry, signal: AbortSignal): Promise<void>;
   onBatchError(mailbox: MailboxEntry, error: unknown): Promise<void>;
   onMailboxStopped(mailbox: MailboxEntry): Promise<void>;
   heartbeat(): Promise<void>;
@@ -153,6 +157,8 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
   /** Mailboxes nudged while running: one follow-up run after a success (D-28). */
   const nudged = new Set<string>();
   const inFlight = new Set<Promise<void>>();
+  /** Aborted at the start of stop(); every runBatch gets its signal. */
+  const shutdown = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let timerDue = Number.POSITIVE_INFINITY;
   let ticking = false;
@@ -223,7 +229,7 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
     const task = (async () => {
       const startedAt = now();
       try {
-        await deps.runBatch(entry);
+        await deps.runBatch(entry, shutdown.signal);
         state.failures = 0;
         const slots = Math.max(1, Math.ceil((now() - startedAt) / pollIntervalMs));
         state.nextRunAt = startedAt + slots * pollIntervalMs;
@@ -411,6 +417,8 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
     },
 
     async stop(timeoutMs: number = SHUTDOWN_TIMEOUT_MS): Promise<{ drained: boolean }> {
+      // First, so running batches see shutdown while the drain waits for them.
+      shutdown.abort();
       stopped = true;
       if (timer !== undefined) clearTimeout(timer);
       timer = undefined;
