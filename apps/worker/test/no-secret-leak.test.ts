@@ -9,6 +9,7 @@ import { createAppDb } from '@sift/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { connect, freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
 import { createMailboxCallbacks } from '../src/runtime/mailbox-batch.ts';
+import { imapMailbox, recordingLog, siftConfig } from './support/mailbox-harness.ts';
 
 /**
  * FND-02 / success criterion 2 (automated half, T-01-46): a mailbox password
@@ -136,8 +137,10 @@ describe('mailbox secrets never persist (FND-02)', () => {
       if (child.exitCode !== null) {
         throw new Error(`worker exited early (${child.exitCode}):\n${stdout}${stderr}`);
       }
+      // The example config's IMAP host does not exist here, so each mailbox
+      // gets a per-mailbox status from its first run rather than 'ok'.
       const rows = await statusRows();
-      return rows.length === 2 && rows.every((r) => r.state === 'ok');
+      return rows.length === 2 && rows.every((r) => r.state !== null);
     }, 15_000);
 
     child.kill('SIGTERM');
@@ -151,7 +154,11 @@ describe('mailbox secrets never persist (FND-02)', () => {
   it('a mailbox failure quoting the password stores it redacted', async () => {
     const appDb = createAppDb(db.appUrl);
     try {
-      const callbacks = createMailboxCallbacks(appDb, [S, S2]);
+      const callbacks = createMailboxCallbacks(appDb, [S, S2], {
+        config: siftConfig(imapMailbox('personal', 'me@proton.me')),
+        env: {},
+        log: recordingLog(),
+      });
       const personal = (await callbacks.readRegistry()).find((m) => m.slug === 'personal');
       if (personal === undefined) throw new Error('mailbox "personal" is not registered');
       await callbacks.onBatchError(personal, new Error(`IMAP login failed with password ${S}`));

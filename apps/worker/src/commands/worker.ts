@@ -142,7 +142,7 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
     }
 
     const supervisor = createSupervisor({
-      ...createMailboxCallbacks(db, secrets),
+      ...createMailboxCallbacks(db, secrets, { config, env: io.env, log }),
       heartbeat: createHeartbeat(defaultHeartbeatFile(io.env)),
       log,
       pollIntervalMs: config.worker.poll_interval_seconds * 1000,

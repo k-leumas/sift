@@ -31,6 +31,39 @@ export async function seedMailboxes(
   }
 }
 
+/**
+ * Insert one mailbox row with the given IMAP identity as sift_owner and
+ * return its id. The row matches a config entry with the same host, username
+ * and folder (imapIdentityKey), labels_apply_as proton_labels.
+ */
+export async function seedImapMailbox(
+  ownerUrl: string,
+  m: {
+    slug: string;
+    host: string;
+    port: number;
+    username: string;
+    passwordEnv: string;
+    folder?: string;
+  },
+): Promise<string> {
+  const owner = await connect(ownerUrl);
+  try {
+    const { rows } = await owner.query<{ id: string }>(
+      `insert into mailbox
+         (slug, imap_host, imap_port, imap_username, imap_folder, password_env, labels_apply_as)
+       values ($1, $2, $3, $4, $5, $6, 'proton_labels')
+       returning id`,
+      [m.slug, m.host, m.port, m.username, m.folder ?? 'INBOX', m.passwordEnv],
+    );
+    const id = rows[0]?.id;
+    if (id === undefined) throw new Error(`seedImapMailbox: no id returned for "${m.slug}"`);
+    return id;
+  } finally {
+    await owner.end();
+  }
+}
+
 export interface ScopedRowIds {
   messageId: string;
   messageLocationId: string;
