@@ -420,3 +420,20 @@ describe('ownerMessageFor', () => {
     );
   });
 });
+
+describe('unclassified failures', () => {
+  it("stores the database error, not Drizzle's failed query text with its params", async () => {
+    const m = await newMailbox();
+    const { callbacks } = callbacksFor([m]);
+    const pgError = Object.assign(new Error('duplicate key value violates unique constraint'), {
+      code: '23505',
+    });
+    const wrapped = new Error('Failed query: insert into message ... params: Secret subject', {
+      cause: pgError,
+    });
+    await callbacks.onBatchError(m.entry, wrapped);
+    const status = await mailboxStatus(db.adminUrl, m.id);
+    expect(status.state).toBe('error');
+    expect(status.last_error).toBe('duplicate key value violates unique constraint');
+  });
+});
