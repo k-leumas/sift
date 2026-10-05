@@ -36,6 +36,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"gopkg.in/yaml.v3"
 )
 
 // Exit codes, mirrored by bridge/entrypoint.sh.
@@ -217,9 +218,9 @@ func userState(u *bridgegrpc.User) string {
 func configure(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("configure", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	_ = fs.String("config", "/run/sift/config/config.yaml", "Sift config.yaml (read only)")
-	_ = fs.String("env-file", "/run/sift/.env.mailboxes", "env file that receives the IMAP passwords")
-	_ = fs.String("backup", "/run/sift/.env.mailboxes.bak", "pre-created backup file of the env file")
+	configPath := fs.String("config", "/run/sift/config/config.yaml", "Sift config.yaml (read only)")
+	envPath := fs.String("env-file", "/run/sift/.env.mailboxes", "env file that receives the IMAP passwords")
+	backupPath := fs.String("backup", "/run/sift/.env.mailboxes.bak", "pre-created backup file of the env file")
 	grpcConfig := fs.String("grpc-config", defaultGRPCConfig, "Bridge's gRPC server config file")
 	if err := fs.Parse(args); err != nil {
 		return exitUsage
@@ -253,8 +254,76 @@ func configure(args []string, stdout, stderr io.Writer) int {
 		return exitNoAccount
 	}
 
-	fail(stderr, "writing IMAP passwords is not available in this build")
-	return exitFailure
+	mailboxes, err := readMailboxes(*configPath)
+	if err != nil {
+		fail(stderr, err.Error())
+		return exitFailure
+	}
+	plan := PlanMailboxPasswords(mailboxes, accountsOf(users))
+	for _, line := range plan.Skipped {
+		fmt.Fprintln(stdout, line)
+	}
+	if len(plan.Updates) == 0 {
+		fail(stderr, "no configured mailbox matches a Bridge address; nothing written")
+		return exitNoMatch
+	}
+	if err := WriteMailboxPasswords(*envPath, *backupPath, plan.Updates, stdout); err != nil {
+		var ee *ExitError
+		if errors.As(err, &ee) {
+			fail(stderr, ee.Msg)
+			return ee.Code
+		}
+		fail(stderr, "write env file failed")
+		return exitFailure
+	}
+	for _, w := range plan.Writes {
+		fmt.Fprintln(stdout, w.Line())
+	}
+	return exitOK
+}
+
+// accountsOf keeps what matching needs. Only a connected account's password
+// is used: a signed-out or locked account has none to give.
+func accountsOf(users []*bridgegrpc.User) []Account {
+	accounts := make([]Account, 0, len(users))
+	for _, u := range users {
+		a := Account{Addresses: u.GetAddresses()}
+		if u.GetState() == bridgegrpc.UserState_CONNECTED {
+			a.Password = u.GetPassword()
+		}
+		accounts = append(accounts, a)
+	}
+	return accounts
+}
+
+// siftConfig is the lenient slice of config.yaml the helper needs. Sift's
+// own schema validation stays in `sift config check`.
+type siftConfig struct {
+	Mailboxes []struct {
+		Slug string `yaml:"slug"`
+		IMAP struct {
+			Username    string `yaml:"username"`
+			PasswordEnv string `yaml:"password_env"`
+		} `yaml:"imap"`
+	} `yaml:"mailboxes"`
+}
+
+// readMailboxes parses config.yaml. YAML errors can quote values, so they are
+// replaced by a fixed message.
+func readMailboxes(path string) ([]Mailbox, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.New("cannot read config/config.yaml (mounted at /run/sift/config)")
+	}
+	var cfg siftConfig
+	if err := yaml.Unmarshal(raw, &cfg); err != nil {
+		return nil, errors.New("config/config.yaml is not valid YAML or has an unexpected shape; check it with sift config check")
+	}
+	mailboxes := make([]Mailbox, 0, len(cfg.Mailboxes))
+	for _, m := range cfg.Mailboxes {
+		mailboxes = append(mailboxes, Mailbox{Slug: m.Slug, Username: m.IMAP.Username, PasswordEnv: m.IMAP.PasswordEnv})
+	}
+	return mailboxes, nil
 }
 
 func repair(args []string, stdout, stderr io.Writer) int {

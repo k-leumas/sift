@@ -1,5 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 
@@ -13,6 +15,16 @@ const DOCKERFILE = read('bridge/Dockerfile');
 const ENTRYPOINT = read('bridge/entrypoint.sh');
 const COMPOSE = read('compose.yaml');
 const SMOKE = read('scripts/bridge-smoke.sh');
+
+const execFileAsync = promisify(execFile);
+
+/** Body of a shell function `name() { ... }` in the entrypoint. */
+function shellFunction(name: string): string {
+  const start = ENTRYPOINT.indexOf(`\n${name}() {\n`);
+  expect(start, `${name}() in bridge/entrypoint.sh`).toBeGreaterThanOrEqual(0);
+  const end = ENTRYPOINT.indexOf('\n}\n', start + 1);
+  return ENTRYPOINT.slice(start, end);
+}
 
 const RENOVATE_LINE = '# renovate: datasource=github-tags depName=ProtonMail/proton-bridge';
 
@@ -120,7 +132,7 @@ describe('sift-helper is built and tested inside the image (D-39)', () => {
 });
 
 describe('bridge/entrypoint.sh one-shot modes (D-39, D-43, D-73, D-79)', () => {
-  it.each(['configure', 'repair'])('has a %s case', (mode) => {
+  it.each(['init', 'configure', 'cli', 'repair'])('has a %s case', (mode) => {
     expect(ENTRYPOINT).toMatch(new RegExp(`^  ${mode}\\)$`, 'm'));
   });
 
@@ -145,9 +157,70 @@ describe('bridge/entrypoint.sh one-shot modes (D-39, D-43, D-73, D-79)', () => {
     expect(ENTRYPOINT).toContain(message);
   });
 
+  it.each(['init_mode', 'cli_mode'])('%s refuses without a TTY before anything else', (fn) => {
+    const body = shellFunction(fn);
+    const firstStep = body.split('\n').find((line) => /^\s+\S/.test(line));
+    expect(firstStep?.trim()).toMatch(/^require_tty (init|cli)$/);
+  });
+
+  it('checks the terminal with [ -t 0 ] and exits 2', () => {
+    const body = shellFunction('require_tty');
+    expect(body).toContain('[ ! -t 0 ]');
+    expect(body).toContain('exit 2');
+  });
+
+  it("names the owner's command in init's refusal", () => {
+    expect(ENTRYPOINT).toContain(
+      'init needs an interactive terminal: docker compose run --rm bridge-init',
+    );
+  });
+
+  it("init logs in through Bridge's own CLI, then configures", () => {
+    const body = shellFunction('init_mode');
+    expect(body.indexOf('keychain_init')).toBeGreaterThan(0);
+    expect(body.indexOf('run_bridge_cli')).toBeGreaterThan(body.indexOf('keychain_unlock'));
+    expect(body.indexOf('run_configure')).toBeGreaterThan(body.indexOf('run_bridge_cli'));
+    expect(shellFunction('run_bridge_cli')).toContain('as_bridge bridge --cli');
+  });
+
   it('writes no certificate file and keeps nothing of Sift in the vault volume (D-73, D-79)', () => {
     expect(ENTRYPOINT).not.toContain('trusted.pem');
     expect(ENTRYPOINT).not.toContain('/data/sift');
+  });
+});
+
+describe('sift-helper writes the bind-mounted files in place only (D-81)', () => {
+  const helperDir = path.join(REPO_ROOT, 'bridge/helper');
+  const sources = readdirSync(helperDir).filter(
+    (file) => file.endsWith('.go') && !file.endsWith('_test.go'),
+  );
+
+  it('has the helper sources', () => {
+    expect(sources).toEqual(expect.arrayContaining(['envfile.go', 'main.go']));
+  });
+
+  it.each(sources)('%s has no rename, no temp file and no create flag', (file) => {
+    const text = readFileSync(path.join(helperDir, file), 'utf8');
+    expect(text).not.toMatch(/\bRename\b|renameat|CreateTemp|TempFile|O_CREATE|os\.Create\b/);
+  });
+
+  it.each(sources)('%s never exports the TLS key or writes certificate files (D-73)', (file) => {
+    const text = readFileSync(path.join(helperDir, file), 'utf8');
+    expect(text).not.toContain('ExportTLSCertificates');
+    expect(text).not.toContain('trusted.pem');
+    expect(text).not.toContain('/data/sift');
+  });
+
+  it('git ignores the host-side backup at the repository root (T-02-61)', async () => {
+    // -v prints the deciding pattern; a negated (!) match also exits 0.
+    const { stdout } = await execFileAsync(
+      'git',
+      ['check-ignore', '-v', '--no-index', '.env.mailboxes.bak'],
+      { cwd: REPO_ROOT },
+    );
+    const pattern = stdout.split('\t')[0]?.split(':')[2] ?? '';
+    expect(pattern).not.toBe('');
+    expect(pattern.startsWith('!')).toBe(false);
   });
 });
 

@@ -12,6 +12,9 @@
 #   - configure: telemetry and automatic updates off, no account (exit 3), the
 #     pin_sha256 line equal to the served fingerprint, env file untouched,
 #   - repair: triggers Bridge's repair over gRPC without a TTY,
+#   - refuses configure without the env file mount, with a directory there,
+#     and init and cli without a terminal (exit 2),
+#   - never prints a value of the mounted env file (sentinel),
 #   - exits 78 with a wrong passphrase and on a never-initialised volume (D-38).
 #
 # Run from the repository root:  scripts/bridge-smoke.sh
@@ -184,7 +187,12 @@ mailboxes:
       username: smoke@example.test
       password_env: SIFT_SMOKE_IMAP_PASSWORD
 YAML
-printf 'KEEP=1\n' >"$work/env-mailboxes"
+# The sentinel stands in for a secret already in the file: configure must
+# never print it.
+sentinel=sift-smoke-sentinel-$(openssl rand -hex 8)
+env_content="KEEP=1
+SIFT_SMOKE_SENTINEL=$sentinel"
+printf '%s\n' "$env_content" >"$work/env-mailboxes"
 : >"$work/env-mailboxes-bak"
 chmod 600 "$work/env-mailboxes" "$work/env-mailboxes-bak"
 configure_mounts=(
@@ -198,8 +206,35 @@ run_mode "$volume" "$passphrase" configure "${configure_mounts[@]}"
 [ "$run_code" = 3 ] || fail "configure without an account exited $run_code, expected 3: $run_out"
 expect_out configure "telemetry: off" "automatic updates: off" "accounts: 0" \
   "no Bridge account is logged in" "pin_sha256: $expected"
-[ "$(cat "$work/env-mailboxes")" = KEEP=1 ] || fail "configure changed the env file"
+[ "$(cat "$work/env-mailboxes")" = "$env_content" ] || fail "configure changed the env file"
+case $run_out in
+  *"$sentinel"*) fail "configure output contains a value from the env file" ;;
+esac
 echo "bridge-smoke: configure turned telemetry and updates off, printed the pin (exit 3)"
+
+echo "bridge-smoke: configure and init refusals"
+run_mode "$volume" "$passphrase" configure -v "$work/config:/run/sift/config:ro"
+[ "$run_code" = 2 ] || fail "configure without the env file mount exited $run_code, expected 2: $run_out"
+expect_out "configure without the env file mount" \
+  "run this in the bridge-init service: docker compose run --rm bridge-init"
+
+mkdir -p "$work/env-dir"
+run_mode "$volume" "$passphrase" configure -v "$work/config:/run/sift/config:ro" \
+  -v "$work/env-dir:/run/sift/.env.mailboxes"
+[ "$run_code" = 2 ] || fail "configure with a directory as env file exited $run_code, expected 2: $run_out"
+expect_out "configure with a directory as env file" \
+  "create .env.mailboxes first: cp .env.mailboxes.example .env.mailboxes"
+
+# run_mode never allocates a TTY (docker run without -t).
+run_mode "$volume" "$passphrase" init "${configure_mounts[@]}"
+[ "$run_code" = 2 ] || fail "init without a TTY exited $run_code, expected 2: $run_out"
+expect_out "init without a TTY" "init needs an interactive terminal: docker compose run --rm bridge-init"
+
+run_mode "$volume" "$passphrase" cli "${configure_mounts[@]}"
+[ "$run_code" = 2 ] || fail "cli without a TTY exited $run_code, expected 2: $run_out"
+expect_out "cli without a TTY" "cli needs an interactive terminal: docker compose run --rm bridge-init cli"
+[ "$(cat "$work/env-mailboxes")" = "$env_content" ] || fail "a refused mode changed the env file"
+echo "bridge-smoke: missing or directory env file and no-TTY init and cli refused (exit 2)"
 
 echo "bridge-smoke: repair"
 run_mode "$volume" "$passphrase" repair

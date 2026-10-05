@@ -12,14 +12,18 @@
 #                  mounted .env.mailboxes (D-39, D-81)
 #   repair         start Bridge with its gRPC frontend and trigger its repair
 #                  (the live spike's IMAP cache rebuild, D-43)
+#   init           (default of bridge-init, needs a TTY) keychain-init, then
+#                  Bridge's own CLI for `login` (password and 2FA typed without
+#                  echo, D-36), then configure
+#   cli            (needs a TTY) Bridge's own CLI for maintenance such as logout
 #
-# configure and repair run in the one-shot bridge-init service
-# (docker compose run --rm bridge-init configure|repair), the only service
-# that mounts .env.mailboxes, its backup and config (D-79).
+# init, configure, cli and repair run in the one-shot bridge-init service
+# (docker compose run --rm bridge-init [configure|cli|repair]), the only
+# service that mounts .env.mailboxes, its backup and config (D-79).
 #
 # Exit codes: 0 ok, 1 a supervised child exited or Bridge did not start (or the
 # bridge service still runs), 2 .env.mailboxes missing or not a regular file,
-# or its backup cannot be written, 3 no Bridge account is logged in, 4 no
+# its backup cannot be written, or init/cli without a terminal, 3 no Bridge account is logged in, 4 no
 # configured mailbox matches a Bridge address, 64 unknown mode, 78 keychain or
 # vault refusal. Messages are fixed text and never contain a secret.
 #
@@ -50,7 +54,7 @@ readonly ENV_BACKUP=/run/sift/.env.mailboxes.bak
 readonly SIFT_CONFIG=/run/sift/config/config.yaml
 
 usage() {
-  echo "usage: entrypoint.sh [serve|keychain-init|configure|repair]" >&2
+  echo "usage: entrypoint.sh [serve|keychain-init|init|configure|cli|repair]" >&2
 }
 
 # Run a command as the bridge user, in the foreground.
@@ -335,6 +339,49 @@ configure_mode() {
   run_configure
 }
 
+# init and cli attach the owner's terminal to Bridge's own CLI.
+require_tty() {
+  if [ ! -t 0 ]; then
+    if [ "$1" = init ]; then
+      echo "init needs an interactive terminal: docker compose run --rm bridge-init" >&2
+    else
+      echo "$1 needs an interactive terminal: docker compose run --rm bridge-init $1" >&2
+    fi
+    exit 2
+  fi
+}
+
+# Bridge's CLI as the bridge user, attached to the terminal. The keychain
+# passphrase is already unset by keychain_unlock.
+run_bridge_cli() {
+  if ! as_bridge bridge --cli; then
+    echo "Bridge CLI exited with an error" >&2
+    exit 1
+  fi
+}
+
+init_mode() {
+  require_tty init
+  require_passphrase
+  require_env_file
+  require_bridge_stopped
+  keychain_init
+  keychain_unlock
+  echo "Bridge CLI: type login, then your Proton address, password and 2FA code (none of it is shown);"
+  echo "when Bridge says the account was added, type exit (not info: it would show the IMAP password)."
+  echo "Sift then writes the IMAP password into .env.mailboxes itself."
+  run_bridge_cli
+  run_configure
+}
+
+cli_mode() {
+  require_tty cli
+  require_passphrase
+  require_bridge_stopped
+  keychain_unlock
+  run_bridge_cli
+}
+
 repair_mode() {
   local status=0
   require_passphrase
@@ -357,8 +404,14 @@ case $mode in
     keychain_unlock
     echo "Bridge keychain ready"
     ;;
+  init)
+    init_mode
+    ;;
   configure)
     configure_mode
+    ;;
+  cli)
+    cli_mode
     ;;
   repair)
     repair_mode
