@@ -39,6 +39,11 @@ export const BACKFILL_CHUNK_PAUSE_MS = 250;
  * dated up to 15 minutes behind the worker's clock still counts as new; D-83).
  */
 export const FIRST_SYNC_CLOCK_ALLOWANCE_MS = 600_000;
+/**
+ * D-17 "periodic" removal diff: 02-13 passes removalDiff true at most this
+ * often per mailbox, so a normal poll does not search the whole folder.
+ */
+export const REMOVAL_DIFF_INTERVAL_MS = 600_000;
 
 const DAY_MS = 86_400_000;
 
@@ -227,7 +232,9 @@ async function pollNewMail(
   state: FolderState,
   status: FolderStatus,
 ): Promise<
-  { kind: 'done'; stored: number; historical: number } | { kind: 'aborted'; stored: number }
+  | { kind: 'done'; stored: number; historical: number }
+  | { kind: 'aborted'; stored: number }
+  | { kind: 'needs_attention'; candidateNew: number }
 > {
   let stored = 0;
   let historical = 0;
@@ -238,6 +245,15 @@ async function pollNewMail(
   const isNew = (d: { internalDate: Date }) =>
     isCandidateNew(d.internalDate, startWatermark, s.overlapMs);
   const newUids = new Set(dates.filter(isNew).map((d) => d.uid));
+
+  // Volume valve (D-26): checked from dates alone, before any header fetch or write.
+  if (newUids.size > deps.newMailCap) {
+    deps.log.warn(
+      { folder: state.folder, candidateNew: newUids.size, cap: deps.newMailCap },
+      'new mail over cap: mailbox needs attention',
+    );
+    return { kind: 'needs_attention', candidateNew: newUids.size };
+  }
 
   let watermark = startWatermark;
   for (const part of chunk(
@@ -259,6 +275,32 @@ async function pollNewMail(
     historical += records.filter((r) => !r.eligible).length;
   }
   return { kind: 'done', stored, historical };
+}
+
+/**
+ * Removal diff (D-07, D-17): live locations of the current UIDVALIDITY and
+ * generation with UIDs at or below the cycle-start last_uid are compared with
+ * one UID SEARCH over minLiveUid:maxLiveUid; the missing ones are marked
+ * vanished, which deletes their never-classified bodies. A failed search
+ * throws (02-09), so it can never look like every message vanished.
+ */
+async function removedLocations(deps: IngestDeps, state: FolderState): Promise<number> {
+  const live = (await deps.store.liveLocations(state.folder)).filter(
+    (l) =>
+      l.uidValidity === state.uidValidity &&
+      l.generation === state.generation &&
+      l.uid <= state.lastUid,
+  );
+  if (live.length === 0) return 0;
+  const uids = live.map((l) => l.uid);
+  const present = new Set(
+    await deps.source.listUids(
+      `${Math.min(...uids)}:${Math.min(Math.max(...uids), state.lastUid)}`,
+    ),
+  );
+  const gone = live.filter((l) => !present.has(l.uid)).map((l) => l.id);
+  if (gone.length === 0) return 0;
+  return deps.store.markVanished(gone);
 }
 
 /**
@@ -311,7 +353,9 @@ async function backfillSlice(
 
 /**
  * One ingest cycle of one folder: first sync when the folder has no state,
- * then new mail, then a slice of the first backfill.
+ * then new mail (behind the volume valve), the removal diff when due, a slice
+ * of the first backfill, and the body-cache sweep. `aborted.stored` counts the
+ * records this cycle committed before it stopped.
  */
 export async function runIngest(deps: IngestDeps): Promise<IngestOutcome> {
   const s = settings(deps);
@@ -327,24 +371,129 @@ export async function runIngest(deps: IngestDeps): Promise<IngestOutcome> {
   }
 
   const polled = await pollNewMail(deps, s, state, status);
-  if (polled.kind === 'aborted') return polled;
+  if (polled.kind !== 'done') return polled;
+  const committed = polled.stored + polled.historical;
 
+  let vanished = 0;
+  if (deps.removalDiff ?? true) {
+    if (deps.signal.aborted) return { kind: 'aborted', stored: committed };
+    vanished = await removedLocations(deps, state);
+  }
+
+  // The first backfill runs after the cycle's new-mail work and outside the valve (D-75).
   let backfill: BackfillProgress | null = null;
   if (state.backfill !== null) {
-    if (deps.signal.aborted) return { kind: 'aborted', stored: polled.stored + polled.historical };
+    if (deps.signal.aborted) return { kind: 'aborted', stored: committed };
     const slice = await backfillSlice(deps, s, state, state.backfill);
-    if (slice.kind === 'aborted') {
-      return { kind: 'aborted', stored: polled.stored + polled.historical + slice.stored };
-    }
+    if (slice.kind === 'aborted') return { kind: 'aborted', stored: committed + slice.stored };
     backfill = slice.progress;
   }
 
+  await deps.store.deleteExpiredBodies(deps.now());
   return {
     kind: 'synced',
     firstSync: isFirstSync,
     stored: polled.stored,
     historical: polled.historical,
-    vanished: 0,
+    vanished,
     backfill,
   };
+}
+
+/** Why a CLI backfill was refused (D-75). */
+export class BackfillRefusedError extends Error {
+  readonly reason: 'resyncing' | 'not_synced';
+
+  constructor(reason: 'resyncing' | 'not_synced', folder: string) {
+    super(
+      reason === 'resyncing'
+        ? `folder ${folder} is resyncing; run the backfill after the resync completes`
+        : `folder ${folder} has not been synced yet; run the worker first`,
+    );
+    this.name = 'BackfillRefusedError';
+    this.reason = reason;
+  }
+}
+
+/**
+ * What the owner is asked to confirm (D-75): the exact UIDs (ascending) with
+ * INTERNALDATE since `since`, under the UIDVALIDITY they were counted in.
+ */
+export interface BackfillPlan {
+  count: number;
+  since: Date;
+  uids: number[];
+  uidValidity: number;
+}
+
+export type BackfillOutcome =
+  | { kind: 'backfilled'; found: number; inserted: number; existing: number }
+  | { kind: 'aborted'; inserted: number };
+
+/**
+ * The folder state a CLI backfill may run against: synced, not resyncing, and
+ * still under the UIDVALIDITY the folder was synced in (otherwise a resync is
+ * due and the UIDs are stale, D-24).
+ */
+async function backfillState(
+  deps: IngestDeps,
+): Promise<{ state: FolderState; status: FolderStatus }> {
+  const state = await deps.store.getFolder(deps.folder);
+  if (state === null) throw new BackfillRefusedError('not_synced', deps.folder);
+  if (state.state === 'resyncing') throw new BackfillRefusedError('resyncing', deps.folder);
+  const status = await deps.source.examine(deps.folder);
+  if (status.uidValidity !== state.uidValidity) {
+    throw new BackfillRefusedError('resyncing', deps.folder);
+  }
+  return { state, status };
+}
+
+/**
+ * Count step of the CLI backfill (D-75): the messages with INTERNALDATE in the
+ * last `days` days. No store writes; the CLI shows the count and asks first.
+ */
+export async function countBackfill(deps: IngestDeps, days: number): Promise<BackfillPlan> {
+  if (!Number.isInteger(days) || days < 1) {
+    throw new RangeError(`backfill days must be a positive integer, got ${days}`);
+  }
+  const { status } = await backfillState(deps);
+  const since = new Date(deps.now().getTime() - days * DAY_MS);
+  const uids = (await windowSince(deps.source, since)).map((d) => d.uid);
+  return { count: uids.length, since, uids, uidValidity: status.uidValidity };
+}
+
+/**
+ * Run step of the CLI backfill (D-75): exactly the counted UIDs that are still
+ * present, stored as eligible with bodies (promoting historical rows), in
+ * committed chunks with an abort check between them. Not capped, because the
+ * owner confirmed this count; last_uid, the watermark and the first-backfill
+ * cursor do not move.
+ */
+export async function runBackfill(deps: IngestDeps, plan: BackfillPlan): Promise<BackfillOutcome> {
+  const s = settings(deps);
+  const { state } = await backfillState(deps);
+  if (plan.uidValidity !== state.uidValidity) {
+    throw new BackfillRefusedError('resyncing', deps.folder);
+  }
+  let found = 0;
+  let inserted = 0;
+  let existing = 0;
+  const uids = [...new Set(plan.uids)].sort((a, b) => a - b);
+  for (const part of chunk(uids, s.chunkSize)) {
+    if (deps.signal.aborted) return { kind: 'aborted', inserted };
+    const records = await recordsOf(deps, await headersOf(deps.source, part), () => true);
+    if (records.length === 0) continue;
+    const result = await deps.store.commitChunk(
+      state.folder,
+      state.uidValidity,
+      state.generation,
+      records,
+      null,
+      { promoteEligible: true },
+    );
+    found += records.length;
+    inserted += result.inserted;
+    existing += result.existing;
+  }
+  return { kind: 'backfilled', found, inserted, existing };
 }

@@ -262,6 +262,8 @@ describe('first backfill (D-74, D-75)', () => {
       'setBackfill:start',
       'setBackfill:end',
       'progress',
+      'deleteExpiredBodies:start',
+      'deleteExpiredBodies:end',
     ]);
   });
 
