@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-foundation-and-isolation
 source: [01-VERIFICATION.md]
 started: 2026-10-04T20:30:00Z
-updated: 2026-10-04T21:10:00Z
+updated: 2026-10-05T03:40:00Z
 ---
 
 ## Current Test
 
-number: 3
-name: CI on GitHub
-expected: |
-  After a push, the Actions run shows `check` green and `compose-smoke` green, ending in "compose smoke OK".
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -26,18 +22,18 @@ result: pass
 
 ### 3. CI on GitHub
 expected: After a push, the Actions run shows `check` green and `compose-smoke` green, ending in "compose smoke OK".
-result: [pending]
+result: pass
 
 ### 4. Backstop: id-based comparisons in isolation tests
 expected: The assertions in isolation.test.ts and owner-rls.test.ts use only id-set comparisons (sortedIds, arrayContaining, every) and never index query results by position.
-result: [pending]
+result: pass
 
 ## Summary
 
 total: 4
-passed: 2
+passed: 4
 issues: 0
-pending: 2
+pending: 0
 skipped: 0
 blocked: 0
 
