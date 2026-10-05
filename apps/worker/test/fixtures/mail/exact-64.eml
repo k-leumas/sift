@@ -1,0 +1,10 @@
+Message-ID: <exact-64-0001@mail.example.test>
+Date: Sun, 04 Oct 2026 12:00:00 +0000
+From: Sender Example <sender@example.test>
+To: Owner Example <owner@example.test>
+Subject: Boundary
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+Exactly sixty-four bytes of body text for the boundary test...

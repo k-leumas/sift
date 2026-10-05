@@ -1,0 +1,24 @@
+Message-ID: <alternative-0001@shop.example.test>
+Date: Thu, 01 Oct 2026 10:20:30 +0000
+From: Example Shop <orders@shop.example.test>
+Reply-To: support@shop.example.test
+To: Owner Example <owner@example.test>
+Subject: Your order has shipped
+List-Unsubscribe: <mailto:unsubscribe@shop.example.test>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="alt-boundary-0001"
+
+--alt-boundary-0001
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Your order #1042 has shipped =E2=80=94 it should arrive on Monday.
+
+Track it at https://shop.example.test/track/1042
+--alt-boundary-0001
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><body><p>Your order <b>#1042</b> has shipped =E2=80=94 it should arri=
+ve on Monday.</p></body></html>
+--alt-boundary-0001--

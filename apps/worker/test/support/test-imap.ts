@@ -170,6 +170,28 @@ export async function messageFlags(user: string, folder: string): Promise<Map<nu
   return flags;
 }
 
+/** Add `flags` (e.g. ['\\Flagged', '\\Answered']) to message `uid` in `folder` (doveadm flags add). */
+export async function setFlags(
+  user: string,
+  folder: string,
+  uid: number,
+  flags: string[],
+): Promise<void> {
+  if (!Number.isInteger(uid) || uid < 1) throw new Error(`setFlags: invalid uid ${uid}`);
+  if (flags.length === 0) throw new Error('setFlags: no flags given');
+  await doveadm([
+    'flags',
+    'add',
+    '-u',
+    user,
+    flags.join(' '),
+    'mailbox',
+    folder,
+    'uid',
+    String(uid),
+  ]);
+}
+
 async function uidValidity(user: string, folder: string): Promise<number> {
   const output = await doveadm([
     '-f',

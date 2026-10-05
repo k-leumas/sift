@@ -1,0 +1,9 @@
+Date: Tue, 29 Sep 2026 18:45:00 +0000
+From: Old Mailer <mailer@legacy.example.test>
+To: owner@example.test
+Subject: No message id here
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+This synthetic message has no Message-ID header.

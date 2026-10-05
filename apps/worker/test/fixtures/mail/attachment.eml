@@ -1,0 +1,25 @@
+Message-ID: <attachment-0001@billing.example.test>
+Date: Fri, 02 Oct 2026 16:00:00 +0000
+From: Billing <billing@billing.example.test>
+To: Owner Example <owner@example.test>
+Subject: Your October invoice
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="mixed-boundary-0001"
+
+This is a multi-part message in MIME format.
+
+--mixed-boundary-0001
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+Your invoice for October is attached.
+
+--mixed-boundary-0001
+Content-Type: application/pdf; name="invoice-2026-10.pdf"
+Content-Disposition: attachment; filename="invoice-2026-10.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJSBzeW50aGV0aWMgdGVzdCBkb2N1bWVudCBmb3Igc2lmdCBmaXh0dXJlcwoxIDAg
+b2JqIDw8IC9UeXBlIC9DYXRhbG9nID4+IGVuZG9iagp0cmFpbGVyIDw8IC9Sb290IDEgMCBSID4+
+CiUlRU9GCg==
+--mixed-boundary-0001--
