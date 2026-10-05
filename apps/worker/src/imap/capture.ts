@@ -16,10 +16,12 @@
  *   `<tag> STARTTLS`, followed by the TLS handshake;
  * - implicit: the TLS handshake only.
  * No capability request, no client ID, no logout, no login commands and no
- * credentials are ever written; the socket is destroyed as soon as the
- * certificate is read. The login connection in connect.ts verifies the same
- * certificate again, twice (chain against the captured certificate, then the
- * SPKI pin), before anything else crosses it.
+ * credentials are ever written. As soon as the certificate is read the TLS
+ * session is closed with close_notify (a TLS alert, not IMAP data), so the
+ * handshake completes on the server too, and the socket is destroyed if the
+ * server does not close within a second. The login connection in connect.ts
+ * verifies the same certificate again, twice (chain against the captured
+ * certificate, then the SPKI pin), before anything else crosses it.
  *
  * The certificate is returned to the caller and nothing is kept: no module
  * state, no cache, nothing on disk. Every call is a fresh handshake.
@@ -53,6 +55,8 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 const TAG = 'C1';
 /** A greeting or a STARTTLS reply longer than this is not an IMAP server talking. */
 const MAX_PLAINTEXT_BYTES = 16_384;
+/** How long a server may take to close after close_notify before the socket is destroyed. */
+const CLOSE_GRACE_MS = 1_000;
 
 /** An Error with a stable code, for classifyImapError. */
 function codedError(code: string, message: string): Error & { code: string } {
@@ -99,10 +103,26 @@ export function capturePeerCertificate(opts: CaptureOptions): Promise<CapturedCe
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      if (certificate !== undefined && secure !== undefined) {
+        // Destroying at once would drop the client's handshake Finished.
+        // end() sends that and close_notify, and no application data.
+        const session = secure;
+        const force = setTimeout(() => {
+          session.destroy();
+          plain?.destroy();
+        }, CLOSE_GRACE_MS);
+        force.unref();
+        session.once('close', () => {
+          clearTimeout(force);
+          plain?.destroy();
+        });
+        session.end();
+        resolve(certificate);
+        return;
+      }
       secure?.destroy();
       plain?.destroy();
-      if (certificate !== undefined && error === undefined) resolve(certificate);
-      else reject(error);
+      reject(error);
     };
 
     const timer = setTimeout(() => {
