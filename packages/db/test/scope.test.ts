@@ -77,6 +77,15 @@ async function adminCount(sql: string, params: unknown[]): Promise<number> {
   }
 }
 
+async function adminQuery<R extends object>(sql: string, params: unknown[]): Promise<R[]> {
+  const admin = await connect(fresh.adminUrl);
+  try {
+    return (await admin.query<R>(sql, params)).rows;
+  } finally {
+    await admin.end();
+  }
+}
+
 const ids = (rows: readonly { id: string }[]): string[] => rows.map((r) => r.id).sort();
 
 /** The NOT NULL fields of a new message (D-12); identity_key is unique per mailbox. */
@@ -311,6 +320,85 @@ describe('application filter without RLS (superuser connection)', () => {
       expect(await adminRows(table, A), table).toEqual([]);
       expect(await adminRows(table, B), table).toEqual(beforeB);
     }
+  });
+
+  it('insertOrIgnore and upsert under A conflict only with A rows (T-02-21)', async () => {
+    const [bMessage] = await adminQuery<{ identity_key: string; updated_at: Date }>(
+      'select identity_key, updated_at from message where id = $1',
+      [seededB.messageId],
+    );
+    const [bLocation] = await adminQuery<{
+      folder: string;
+      uidvalidity: string;
+      uid: string;
+      generation: number;
+      updated_at: Date;
+    }>(
+      'select folder, uidvalidity, uid, generation, updated_at from message_location where id = $1',
+      [seededB.messageLocationId],
+    );
+    const identityKey = bMessage?.identity_key as string;
+
+    const result = await withMailbox(admin, A, async (s) => ({
+      ignored: await s.message.insertOrIgnore(
+        [{ identityKey, internalDate: new Date(), eligibleForClassification: false }],
+        { target: ['identityKey'] },
+      ),
+      upserted: await s.messageLocation.upsert(
+        [
+          {
+            messageId: seededA.messageId,
+            folder: bLocation?.folder as string,
+            uidvalidity: Number(bLocation?.uidvalidity),
+            uid: Number(bLocation?.uid),
+            generation: 42,
+          },
+        ],
+        { target: ['folder', 'uidvalidity', 'uid'], update: ['generation'] },
+      ),
+    }));
+
+    // B's rows did not count as conflicts: both statements inserted A rows.
+    expect(result.ignored).toHaveLength(1);
+    expect(result.ignored[0]?.mailboxId).toBe(A);
+    expect(result.upserted).toMatchObject([{ mailboxId: A, generation: 42, inserted: true }]);
+    expect(
+      await adminQuery('select identity_key, updated_at from message where id = $1', [
+        seededB.messageId,
+      ]),
+    ).toEqual([bMessage]);
+    expect(
+      await adminQuery(
+        'select folder, uidvalidity, uid, generation, updated_at from message_location where id = $1',
+        [seededB.messageLocationId],
+      ),
+    ).toEqual([bLocation]);
+  });
+
+  it('an array match under A that names B ids finds, updates and deletes only A rows', async () => {
+    const both = [seededA.messageId, seededB.messageId];
+    const beforeB = await adminRows('message', B);
+    const result = await withMailbox(admin, A, async (s) => ({
+      found: ids(await s.message.find({ id: both })),
+      updated: ids(await s.message.update({}, { id: both })),
+      deleted: ids(await s.label.delete({ id: [seededA.labelId, seededB.labelId] })),
+    }));
+    expect(result).toEqual({
+      found: [seededA.messageId],
+      updated: [seededA.messageId],
+      deleted: [],
+    });
+    expect(await adminRows('message', B)).toEqual(beforeB);
+    expect(ids(await adminRows('label', B))).toEqual([seededB.labelId]);
+  });
+
+  it('messageBody.deleteExpired under A leaves expired B bodies alone', async () => {
+    const past = new Date('2000-01-01T00:00:00Z');
+    await withMailbox(admin, B, async (s) => {
+      await s.messageBody.update({ expiresAt: past }, { id: seededB.messageBodyId });
+    });
+    await withMailbox(admin, A, (s) => s.messageBody.deleteExpired(new Date()));
+    expect(ids(await adminRows('message_body', B))).toEqual([seededB.messageBodyId]);
   });
 });
 
@@ -801,6 +889,17 @@ describe('@sift/db export surface', () => {
         'recordSyncSuccess',
         'requireActive',
         'requireDatabaseUrl',
+        'advanceFolderSync',
+        'beginResync',
+        'createFolderSync',
+        'deleteExpiredBodies',
+        'deleteOrphanBodies',
+        'finishResync',
+        'getFolderSync',
+        'knownIdentityKeys',
+        'liveLocations',
+        'markLocationsRemoved',
+        'setFolderBackfill',
         'storeMessages',
         'withMailbox',
       ].sort(),
