@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-10-PLAN.md
-last_updated: "2026-10-05T20:10:31.724Z"
+stopped_at: Completed 02-11-PLAN.md
+last_updated: "2026-10-05T20:33:29.757Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 5dceb4e25bf1c58d4d02d5c53547698d99daa788
+state_head: 9f5c3ddb2348186dac6a46fe9f77dfe523ee8562
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 12 of 19
+Plan: 13 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -81,6 +81,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P18 | 20 min | 3 tasks | 7 files |
 | Phase 02 P09 | 25 min | 2 tasks | 10 files |
 | Phase 02 P10 | 14 min | 3 tasks | 6 files |
+| Phase 02 P11 | 18 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-10: BackfillPlan carries uidValidity; countBackfill/runBackfill refuse (resyncing) under a changed UIDVALIDITY so the confirmed UIDs are the ingested messages
 - [Phase 02]: 02-10: resync is two-pass (write-free count pass with the valve, then commit pass at the pending generation); finishResync takes the recomputed backfill cursor; resync lastUid = max(UIDNEXT-1, highest listed UID)
 - [Phase 02]: 02-10: engine cycle order is examine, getFolder, first sync or resync, poll (valve before header fetch), removal diff when due, backfill slice, deleteExpiredBodies; aborted.stored counts all records committed in the cycle
+- [Phase 02]: 02-11: the probe sends ENABLE CONDSTORE QRESYNC and STATUS HIGHESTMODSEQ raw via ImapFlow exec() and records the tagged status (OK/NO/BAD/none); counts come from client.status() without HIGHESTMODSEQ
+- [Phase 02]: 02-11: the label test expunges only the COPYUID-named label copy, only after the original is re-confirmed, and only with UIDPLUS; otherwise it reports 'label copy not confirmed' and leaves the label for the owner
+- [Phase 02]: 02-11: --uid needs --label-test, --compare - with --label-test is a usage error (both read stdin), --wait-new-seconds is capped at 3600; CommandIO gained optional stdin
 
 ### Pending Todos
 
@@ -184,6 +188,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T20:10:18.087Z
-Stopped at: Completed 02-10-PLAN.md
+Last session: 2026-10-05T20:33:29.679Z
+Stopped at: Completed 02-11-PLAN.md
 Resume file: None
