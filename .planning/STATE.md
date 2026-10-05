@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-10-05T17:27:25.543Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-10-05T17:36:39.417Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 1b9d7b3a14119adcca352799ac344de7f4ab6eb5
+state_head: 14cf408ff78de2b4a1d6054f621753b206d2109e
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 2 of 19
+Plan: 3 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -71,6 +71,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 01 P12 | 37 min | 2 tasks | 14 files |
 | Phase 01 P13 | 8 min | 2 tasks | 3 files |
 | Phase 02 P01 | 18 min | 2 tasks | 9 files |
+| Phase 02 P02 | 6 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-01: bridge entrypoint starts Bridge before socat; on a new vault Bridge's free-port probe also tries the wildcard address, so an early socat on <container IP>:1143 pushed it to 1144
 - [Phase 02]: 02-01: keychain canary runs pass with --pinentry-mode=error under a 30 s timeout so a wrong passphrase exits 78 at once; runtime image adds procps for pkill
 - [Phase 02]: 02-01: compose-smoke builds/starts only db setup worker on <project>-bridge-smoke with SIFT_MAILBOXES_BAK_FILE pointed at a missing path; plain docker compose up now also starts bridge (exit 78 until bridge-init runs)
+- [Phase 02]: 02-02: imap.tls (mode starttls|implicit, optional base64 SHA-256 pin_sha256) and per-mailbox ingest (initial_backfill_days 0-365 default 30, new_mail_cap 1-10000 default 200) added with no config version bump; example config targets host bridge:1143
+- [Phase 02]: 02-02: pin_sha256 is trimmed then shape-checked; block-level 'must be a mapping' errors on strictObject do not override Zod's unrecognized-key message
 
 ### Pending Todos
 
@@ -143,6 +146,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T17:27:25.466Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-10-05T17:36:39.312Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
