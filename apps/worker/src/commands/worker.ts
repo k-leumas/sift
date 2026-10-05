@@ -111,7 +111,11 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
 
   const secrets = secretValues(config, io.env);
   let exitCode = 0;
+  // Each running mailbox holds one connection for its ingest lock and the
+  // lock's transactions (02-12); two more keep the registry read and status
+  // writes from waiting behind them.
   const db = createAppDb(url, {
+    maxConnections: Math.max(4, config.mailboxes.length + 2),
     onPoolError: (e) =>
       log.warn({ code: (e as { code?: string }).code }, 'idle database client error'),
   });
