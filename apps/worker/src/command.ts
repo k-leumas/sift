@@ -69,6 +69,13 @@ export const COMMANDS: readonly CommandSpec[] = [
     summary: 'Measure Proton Bridge IMAP behaviour (spike); prints aggregates only',
   },
   {
+    path: ['bridge', 'trust'],
+    file: 'bridge-trust.ts',
+    usage: 'sift bridge trust <slug>',
+    summary:
+      "Show the IMAP server's certificate fingerprint and compare it with the pin in config.yaml",
+  },
+  {
     path: ['worker'],
     file: 'worker.ts',
     usage: 'sift worker',

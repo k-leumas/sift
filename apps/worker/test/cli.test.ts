@@ -25,6 +25,7 @@ describe('sift CLI shell', () => {
       'sift mailbox rename <old-slug> <new-slug>',
       'sift bridge probe <slug> [--label-test] [--uid <n>] [--wait-new-seconds <n>] ' +
         '[--compare <file|->] [--sample <n>] [--scan-limit <n>]',
+      'sift bridge trust <slug>',
       'sift worker',
     ]) {
       expect(stdout).toContain(usage);
