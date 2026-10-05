@@ -74,7 +74,7 @@ Plans:
   4. A new email sent to the mailbox shows up in the database within one polling interval without restarting anything
   5. After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages
 
-**Plans**: 6/19 plans executed
+**Plans**: 7/19 plans executed
 
 Plans:
 **Wave 1**
@@ -86,7 +86,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [x] 02-06-PLAN.md — Scoped insertOrIgnore/upsert and ingest use-cases in @sift/db, matched by identity key (wave 2)
-- [ ] 02-07-PLAN.md — Ingest contracts, identity keys and message parsing (wave 2)
+- [x] 02-07-PLAN.md — Ingest contracts, identity keys and message parsing (wave 2)
 - [ ] 02-08-PLAN.md — `docker compose run --rm bridge-init`: Go gRPC helper, password upsert with host-side backup, fingerprint to pin, repair mode (wave 2)
 - [ ] 02-18-PLAN.md — Credential-free cert capture (wire-tested, D-80) and the pinned, twice-verified STARTTLS/implicit connection (wave 2)
 
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
-| 2. Bridge Spike and IMAP Ingest | v0.1 | 6/19 | In Progress|  |
+| 2. Bridge Spike and IMAP Ingest | v0.1 | 7/19 | In Progress|  |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 

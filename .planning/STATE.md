@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-10-05T18:39:06.375Z"
+stopped_at: Completed 02-07-PLAN.md
+last_updated: "2026-10-05T18:50:01.113Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 3cc790010af87a5d4c5632645a1c2368b7b656e1
+state_head: e18310407ef309cc87fc6376bfcfbaea20945e4e
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 7 of 19
+Plan: 8 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -76,6 +76,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P04 | 17 min | 3 tasks | 9 files |
 | Phase 02 P05 | 10 min | 2 tasks | 2 files |
 | Phase 02 P06 | 8 min | 2 tasks | 5 files |
+| Phase 02 P07 | 6 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-06: markLocationsRemoved marks only live locations, keeping the first removal time and reason
 - [Phase 02]: 02-06: advanceFolderSync is monotonic in app code, writes nothing when no value moves forward, throws when moving a cursor with no backfill pending
 - [Phase 02]: 02-06: array Match values may not hold null (TypeError); storeMessages leaves supplying an eligible message's body to the caller (02-07)
+- [Phase 02]: 02-07: Message-IDs over 998 UTF-8 bytes fall through to hdr:v1: so identity_key never exceeds the unique-index row limit
+- [Phase 02]: 02-07: the hdr: hash reads raw (undecoded) header values, so a libmime upgrade cannot change stored keys
+- [Phase 02]: 02-07: html-to-text runs with limits.maxDepth 200; deeper HTML nesting overflowed the stack
+- [Phase 02]: 02-07: message/* attached messages are never entered for body selection or attachment listing
 
 ### Pending Todos
 
@@ -161,6 +166,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T18:39:06.302Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-10-05T18:50:01.043Z
+Stopped at: Completed 02-07-PLAN.md
 Resume file: None
