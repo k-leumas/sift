@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-10-05T17:36:39.417Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-10-05T17:51:24.829Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 14cf408ff78de2b4a1d6054f621753b206d2109e
+state_head: ce2e58bb0104b6e489bb371a3d9cf4c3e7fd9168
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 3 of 19
+Plan: 4 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -72,6 +72,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 01 P13 | 8 min | 2 tasks | 3 files |
 | Phase 02 P01 | 18 min | 2 tasks | 9 files |
 | Phase 02 P02 | 6 min | 2 tasks | 7 files |
+| Phase 02 P03 | 11 min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-01: compose-smoke builds/starts only db setup worker on <project>-bridge-smoke with SIFT_MAILBOXES_BAK_FILE pointed at a missing path; plain docker compose up now also starts bridge (exit 78 until bridge-init runs)
 - [Phase 02]: 02-02: imap.tls (mode starttls|implicit, optional base64 SHA-256 pin_sha256) and per-mailbox ingest (initial_backfill_days 0-365 default 30, new_mail_cap 1-10000 default 200) added with no config version bump; example config targets host bridge:1143
 - [Phase 02]: 02-02: pin_sha256 is trimmed then shape-checked; block-level 'must be a mapping' errors on strictObject do not override Zod's unrecognized-key message
+- [Phase 02]: 02-03: message_location_removed_check guards removed_reason is not null; a check accepts NULL, so the planned text let removed_at with no reason pass
+- [Phase 02]: 02-03: migrate() throws MigrationFailedError with the driver error message (drizzle Failed query wrapper kept as cause), so sift migrate prints the 0005 preflight text and mailbox slug
+- [Phase 02]: 02-03: migration counts and tags in migrate.test.ts and setup.test.ts are derived from meta/_journal.json
 
 ### Pending Todos
 
@@ -146,6 +150,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T17:36:39.312Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-10-05T17:51:13.643Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
