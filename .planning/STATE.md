@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-08-PLAN.md
-last_updated: "2026-10-05T19:16:32.401Z"
+stopped_at: Completed 02-18-PLAN.md
+last_updated: "2026-10-05T19:39:53.359Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 57b5f89876e445415b96c2f2665fc0564205e602
+state_head: 3d7b7a14845391afba945ff3f9431479beed64c0
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 9 of 19
+Plan: 10 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -78,6 +78,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P06 | 8 min | 2 tasks | 5 files |
 | Phase 02 P07 | 6 min | 2 tasks | 5 files |
 | Phase 02 P08 | 23 min | 2 tasks | 7 files |
+| Phase 02 P18 | 20 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -150,6 +151,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-08: only CONNECTED Bridge accounts give an IMAP password; signed-out or locked accounts produce a per-mailbox skip line
 - [Phase 02]: 02-08: one-shot Bridge modes probe the single-instance lock with flock -n and refuse while the bridge service runs (exit 1)
 - [Phase 02]: 02-08: configure continues without a fingerprint (stderr message); invalid password_env names exit 1 with nothing written
+- [Phase 02]: 02-18: ImapFlow sends ID before STARTTLS when the server offers it; openImap wraps client.run so only CAPABILITY and STARTTLS cross before TLS (ID re-sent after login over TLS)
+- [Phase 02]: 02-18: peerSpkiSha256 hashes the SPKI from cert.raw; Node's PeerCertificate.pubkey is the bare point for EC keys
+- [Phase 02]: 02-18: the capture ends its TLS session with close_notify (no IMAP data) and a 1 s destroy fallback, so the server sees the handshake complete
+- [Phase 02]: 02-18: classifyImapError reads only codes and ImapFlow flags through cause (5 levels), never message text
 
 ### Pending Todos
 
@@ -171,6 +176,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T19:16:32.333Z
-Stopped at: Completed 02-08-PLAN.md
+Last session: 2026-10-05T19:39:53.269Z
+Stopped at: Completed 02-18-PLAN.md
 Resume file: None
