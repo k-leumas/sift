@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-10-05T18:21:48.055Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-10-05T18:39:06.375Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: c715cc2c4226c020ee068fea2e42a6bbe15e4319
+state_head: 3cc790010af87a5d4c5632645a1c2368b7b656e1
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 6 of 19
+Plan: 7 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -75,6 +75,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P03 | 11 min | 2 tasks | 17 files |
 | Phase 02 P04 | 17 min | 3 tasks | 9 files |
 | Phase 02 P05 | 10 min | 2 tasks | 2 files |
+| Phase 02 P06 | 8 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -135,6 +136,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-04: license check covers --filter '@sift/worker...' and reads SPDX OR/AND; @zone-eu/mailsplit (MIT OR EUPL-1.1+) used under MIT
 - [Phase 02]: 02-05: nudge() on a running mailbox only flags it; one follow-up run after a success, a failed run drops the nudge and keeps D-51 backoff
 - [Phase 02]: 02-05: one AbortController per supervisor; runBatch(entry, shutdown.signal); stop() aborts it before the bounded drain
+- [Phase 02]: 02-06: upsert inserted flag uses RETURNING (xmax = 0); A1 held on PG 18.6 + Drizzle 0.45.3, no select-before-insert fallback
+- [Phase 02]: 02-06: markLocationsRemoved marks only live locations, keeping the first removal time and reason
+- [Phase 02]: 02-06: advanceFolderSync is monotonic in app code, writes nothing when no value moves forward, throws when moving a cursor with no backfill pending
+- [Phase 02]: 02-06: array Match values may not hold null (TypeError); storeMessages leaves supplying an eligible message's body to the caller (02-07)
 
 ### Pending Todos
 
@@ -156,6 +161,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T18:21:47.909Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-10-05T18:39:06.302Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
