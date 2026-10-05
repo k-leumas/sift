@@ -1,3 +1,4 @@
+import { convert, type HtmlToTextOptions } from 'html-to-text';
 import libmime from 'libmime';
 import {
   identityKey,
@@ -157,28 +158,125 @@ export function parseMessage(rec: HeaderRecord, opts: { trustPmHeader: boolean }
     fromDomain: from.domain,
     subject,
     headers,
-    attachments: [],
+    attachments: attachmentsOf(rec.bodyStructure),
     sizeBytes,
-    textPart: null,
+    textPart: selectTextPart(rec.bodyStructure),
   };
 }
 
-/** Placeholder until 02-07 Task 2 GREEN. */
+type TextKind = 'text_plain' | 'text_html';
+
+function lower(value: string | undefined): string {
+  return (value ?? '').trim().toLowerCase();
+}
+
+function isAttachmentDisposition(node: BodyNode): boolean {
+  return lower(node.disposition) === 'attachment';
+}
+
+/** message/rfc822 and friends: their parts belong to the attached message, not this one. */
+function isEmbeddedMessage(node: BodyNode): boolean {
+  return lower(node.type).startsWith('message/');
+}
+
+/**
+ * Nodes in document (depth-first) order, iteratively so a hostile, deeply
+ * nested structure cannot overflow the stack. Embedded messages are yielded
+ * but not entered.
+ */
+function* walk(root: BodyNode): Generator<BodyNode> {
+  const stack: BodyNode[] = [root];
+  for (let node = stack.pop(); node !== undefined; node = stack.pop()) {
+    yield node;
+    if (isEmbeddedMessage(node) || !node.childNodes) continue;
+    for (let i = node.childNodes.length - 1; i >= 0; i -= 1) {
+      const child = node.childNodes[i];
+      if (child) stack.push(child);
+    }
+  }
+}
+
+/**
+ * The body part to download (D-06): the first text/plain part, else the first
+ * text/html part, depth-first. Parts with attachment disposition and parts of
+ * attached messages are never the body. A single-part message without a part
+ * number is part 1 (RFC 3501 BODY[1]).
+ */
 export function selectTextPart(
-  _root: BodyNode | undefined,
-): { part: string; kind: 'text_plain' | 'text_html' } | null {
-  return null;
+  root: BodyNode | undefined,
+): { part: string; kind: TextKind } | null {
+  if (root === undefined) return null;
+  let html: { part: string; kind: TextKind } | null = null;
+  for (const node of walk(root)) {
+    if (isAttachmentDisposition(node)) continue;
+    const part = node.part ?? (node === root ? '1' : undefined);
+    if (part === undefined) continue;
+    const type = lower(node.type);
+    if (type === 'text/plain') return { part, kind: 'text_plain' };
+    if (type === 'text/html' && html === null) html = { part, kind: 'text_html' };
+  }
+  return html;
 }
 
-/** Placeholder until 02-07 Task 2 GREEN. */
-export function attachmentsOf(_root: BodyNode | undefined): AttachmentMeta[] {
-  return [];
+function attachmentName(node: BodyNode): string | null {
+  const raw = node.dispositionParameters?.filename ?? node.parameters?.name;
+  if (raw === undefined) return null;
+  const name = clean(decodeWordsSafe(raw), ATTACHMENT_NAME_MAX_CHARS).trim();
+  return name === '' ? null : name;
 }
 
-/** Placeholder until 02-07 Task 2 GREEN. */
-export function toBodyText(
-  _download: TextPart | null,
-  _kind: 'text_plain' | 'text_html' | null,
-): BodyText {
-  return { text: '', source: 'none', truncated: false };
+/**
+ * Attachment metadata only, never content (D-06): parts with attachment
+ * disposition or a file name, in document order, at most ATTACHMENTS_MAX.
+ */
+export function attachmentsOf(root: BodyNode | undefined): AttachmentMeta[] {
+  if (root === undefined) return [];
+  const out: AttachmentMeta[] = [];
+  for (const node of walk(root)) {
+    if (out.length >= ATTACHMENTS_MAX) break;
+    const name = attachmentName(node);
+    if (!isAttachmentDisposition(node) && name === null) continue;
+    const size = node.size;
+    out.push({
+      name,
+      mimeType: clean(lower(node.type), ATTACHMENT_NAME_MAX_CHARS) || 'application/octet-stream',
+      sizeBytes: typeof size === 'number' && Number.isFinite(size) && size >= 0 ? size : null,
+    });
+  }
+  return out;
+}
+
+/**
+ * HTML nesting depth converted to text. Deeper nodes are dropped: without a
+ * limit, a few thousand nested elements overflow html-to-text's recursion.
+ */
+export const HTML_MAX_DEPTH = 200;
+
+/**
+ * html-to-text options (T-02-25): no wrapping; script, style and images are
+ * skipped explicitly rather than by library default; link targets dropped.
+ */
+const HTML_TO_TEXT_OPTIONS: HtmlToTextOptions = {
+  wordwrap: false,
+  limits: { maxDepth: HTML_MAX_DEPTH, ellipsis: '' },
+  selectors: [
+    { selector: 'img', format: 'skip' },
+    { selector: 'script', format: 'skip' },
+    { selector: 'style', format: 'skip' },
+    { selector: 'a', options: { ignoreHref: true } },
+  ],
+};
+
+/**
+ * Stored body text (D-06): plain text as is, HTML converted to text, then NUL
+ * stripped and capped at BODY_TEXT_MAX_CHARS code points. `truncated` is also
+ * true when the download itself was cut at BODY_DOWNLOAD_MAX_BYTES. No text
+ * part gives source `none` with empty text.
+ */
+export function toBodyText(download: TextPart | null, kind: TextKind | null): BodyText {
+  if (download === null || kind === null) return { text: '', source: 'none', truncated: false };
+  const input = stripNul(download.text);
+  const text = kind === 'text_html' ? convert(input, HTML_TO_TEXT_OPTIONS) : input;
+  const capped = truncateCodePoints(stripNul(text).toWellFormed(), BODY_TEXT_MAX_CHARS);
+  return { text: capped.text, source: kind, truncated: download.truncated || capped.truncated };
 }

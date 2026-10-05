@@ -5,6 +5,7 @@ import {
   attachmentsOf,
   BODY_DOWNLOAD_MAX_BYTES,
   BODY_TEXT_MAX_CHARS,
+  HTML_MAX_DEPTH,
   parseMessage,
   selectTextPart,
   toBodyText,
@@ -129,6 +130,13 @@ describe('toBodyText', () => {
     expect(body.text).not.toContain('color');
     expect(body.text).not.toContain('example.test');
     expect(body.text).not.toContain('pixel');
+  });
+
+  it('converts hostile, deeply nested HTML without overflowing the stack', () => {
+    const html = `top ${'<div>'.repeat(BODY_DOWNLOAD_MAX_BYTES / 5)}deep`;
+    const body = toBodyText({ text: html, truncated: false }, 'text_html');
+    expect(body.text).toContain('top');
+    expect(HTML_MAX_DEPTH).toBe(200);
   });
 
   it('caps the text at exactly BODY_TEXT_MAX_CHARS code points', () => {
