@@ -6,7 +6,14 @@ import {
   stripNul,
   truncateCodePoints,
 } from './identity.ts';
-import type { HeaderRecord, ParsedMessage } from './types.ts';
+import type {
+  AttachmentMeta,
+  BodyNode,
+  BodyText,
+  HeaderRecord,
+  ParsedMessage,
+  TextPart,
+} from './types.ts';
 
 /**
  * Header fields fetched for every message with BODY.PEEK[HEADER.FIELDS (...)]:
@@ -154,4 +161,24 @@ export function parseMessage(rec: HeaderRecord, opts: { trustPmHeader: boolean }
     sizeBytes,
     textPart: null,
   };
+}
+
+/** Placeholder until 02-07 Task 2 GREEN. */
+export function selectTextPart(
+  _root: BodyNode | undefined,
+): { part: string; kind: 'text_plain' | 'text_html' } | null {
+  return null;
+}
+
+/** Placeholder until 02-07 Task 2 GREEN. */
+export function attachmentsOf(_root: BodyNode | undefined): AttachmentMeta[] {
+  return [];
+}
+
+/** Placeholder until 02-07 Task 2 GREEN. */
+export function toBodyText(
+  _download: TextPart | null,
+  _kind: 'text_plain' | 'text_html' | null,
+): BodyText {
+  return { text: '', source: 'none', truncated: false };
 }
