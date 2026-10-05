@@ -59,6 +59,14 @@ export const COMMANDS: readonly CommandSpec[] = [
     summary: 'Rename a mailbox slug, keeping its data',
   },
   {
+    path: ['bridge', 'probe'],
+    file: 'bridge-probe.ts',
+    usage:
+      'sift bridge probe <slug> [--label-test] [--uid <n>] [--wait-new-seconds <n>] ' +
+      '[--compare <file|->] [--sample <n>] [--scan-limit <n>]',
+    summary: 'Measure Proton Bridge IMAP behaviour (spike); prints aggregates only',
+  },
+  {
     path: ['worker'],
     file: 'worker.ts',
     usage: 'sift worker',
