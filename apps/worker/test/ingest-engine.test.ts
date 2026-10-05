@@ -3,10 +3,14 @@ import { isCandidateNew } from '../src/ingest/plan.ts';
 import {
   BACKFILL_CHUNK_PAUSE_MS,
   BACKFILL_SLICE_SIZE,
+  BackfillRefusedError,
   CHUNK_SIZE,
+  countBackfill,
   FIRST_SYNC_CLOCK_ALLOWANCE_MS,
   type IngestDeps,
+  REMOVAL_DIFF_INTERVAL_MS,
   RESYNC_BATCH_SIZE,
+  runBackfill,
   runIngest,
   WATERMARK_OVERLAP_MS,
 } from '../src/ingest/run.ts';
@@ -85,6 +89,7 @@ describe('engine constants', () => {
     expect(BACKFILL_SLICE_SIZE).toBe(200);
     expect(BACKFILL_CHUNK_PAUSE_MS).toBe(250);
     expect(FIRST_SYNC_CLOCK_ALLOWANCE_MS).toBe(600_000);
+    expect(REMOVAL_DIFF_INTERVAL_MS).toBe(600_000);
   });
 });
 
@@ -355,5 +360,342 @@ describe('new mail (ING-02, ING-03, D-04)', () => {
     expect(h.store.locations()).toHaveLength(7);
     expect(new Set(h.store.locations().map((l) => l.uid)).size).toBe(7);
     expect(h.store.folder(FOLDER)?.lastUid).toBe(uids[6]);
+  });
+});
+
+/** A synced folder whose watermark is NOW - 10 minutes (one old message, not stored). */
+async function synced(): Promise<Harness> {
+  const h = harness();
+  h.source.append(fakeMail(ago(90 * DAY)));
+  await runIngest(h.deps());
+  return h;
+}
+
+const WATERMARK = ago(10 * MINUTE);
+const BOUNDARY = new Date(WATERMARK.getTime() - WATERMARK_OVERLAP_MS);
+
+describe('INTERNALDATE gate on polling (D-18..D-21)', () => {
+  it('treats a message exactly at watermark - 5 minutes as historical', async () => {
+    const h = await synced();
+    h.source.append(fakeMail(BOUNDARY));
+    const outcome = await runIngest(h.deps());
+
+    expect(outcome).toMatchObject({ kind: 'synced', stored: 0, historical: 1 });
+    expect(h.store.messages()[0]?.eligible).toBe(false);
+    expect(h.store.bodies()).toHaveLength(0);
+  });
+
+  it('treats a message 1 ms after the boundary as new', async () => {
+    const h = await synced();
+    h.source.append(fakeMail(new Date(BOUNDARY.getTime() + 1)));
+    const outcome = await runIngest(h.deps());
+
+    expect(outcome).toMatchObject({ kind: 'synced', stored: 1, historical: 0 });
+    expect(h.store.messages()[0]?.eligible).toBe(true);
+    expect(h.store.bodies()).toHaveLength(1);
+  });
+
+  it('keeps an old-dated message with a fresh UID historical, with no body', async () => {
+    const h = await synced();
+    h.source.append(fakeMail(ago(3 * DAY)));
+    const outcome = await runIngest(h.deps());
+
+    expect(outcome).toMatchObject({ kind: 'synced', stored: 0, historical: 1 });
+    expect(h.store.messages()[0]?.eligible).toBe(false);
+    expect(h.store.bodies()).toHaveLength(0);
+    expect(h.source.callsOf('downloadText')).toHaveLength(0);
+  });
+
+  it('commits in ascending UID order and never moves the watermark back', async () => {
+    const h = await synced();
+    for (const minutes of [1, 3, 2]) h.source.append(fakeMail(ago(minutes * MINUTE)));
+    await runIngest(h.deps({ chunkSize: 1 }));
+
+    const uids = h.store.commitLog.flatMap((c) => c.uids);
+    expect(uids).toEqual([...uids].sort((a, b) => a - b));
+    const marks = h.store.commitLog.map((c) => c.advance?.watermark?.getTime() ?? 0);
+    expect(marks).toEqual([...marks].sort((a, b) => a - b));
+    expect(h.store.folder(FOLDER)?.watermark).toEqual(ago(MINUTE));
+
+    // Older eligible mail later on does not move it back.
+    h.source.append(fakeMail(ago(4 * MINUTE)));
+    await runIngest(h.deps());
+    expect(h.store.folder(FOLDER)?.watermark).toEqual(ago(MINUTE));
+  });
+});
+
+describe('volume valve on polling (D-26)', () => {
+  it('returns needs_attention and writes nothing above the cap', async () => {
+    const h = await synced();
+    for (let i = 0; i < 4; i += 1) h.source.append(fakeMail(ago(MINUTE)));
+    const commits = h.store.count('commitChunk');
+
+    const outcome = await runIngest(h.deps({ newMailCap: 3 }));
+
+    expect(outcome).toEqual({ kind: 'needs_attention', candidateNew: 4 });
+    expect(h.store.count('commitChunk')).toBe(commits);
+    expect(h.source.callsOf('fetchHeaders')).toHaveLength(0);
+    expect(h.store.messages()).toHaveLength(0);
+    expect(h.store.folder(FOLDER)?.lastUid).toBe(1);
+    expect(h.log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ folder: FOLDER, candidateNew: 4 }),
+      expect.any(String),
+    );
+  });
+
+  it('never counts historical messages toward the cap', async () => {
+    const h = await synced();
+    for (let i = 0; i < 3; i += 1) h.source.append(fakeMail(ago(MINUTE)));
+    for (let i = 0; i < 5; i += 1) h.source.append(fakeMail(ago(30 * DAY)));
+
+    const outcome = await runIngest(h.deps({ newMailCap: 3 }));
+
+    expect(outcome).toMatchObject({ kind: 'synced', stored: 3, historical: 5 });
+  });
+
+  it('never stops the first backfill, which only proceeds in slices (D-75)', async () => {
+    const h = harness();
+    for (let i = 0; i < 500; i += 1) h.source.append(fakeMail(ago(DAY + (500 - i) * MINUTE)));
+    const deps = () => h.deps({ initialBackfillDays: 30, newMailCap: 3 });
+
+    expect(await runIngest(deps())).toMatchObject({
+      kind: 'synced',
+      backfill: { done: 200, total: 500, finished: false },
+    });
+    expect(await runIngest(deps())).toMatchObject({
+      backfill: { done: 400, total: 500, finished: false },
+    });
+    expect(await runIngest(deps())).toMatchObject({
+      backfill: { done: 500, total: 500, finished: true },
+    });
+    expect(eligibleCount(h.store)).toBe(500);
+  });
+});
+
+describe('removal diff (D-07, D-17)', () => {
+  async function threeStored(): Promise<{ h: Harness; uids: number[] }> {
+    const h = await synced();
+    const uids = [1, 2, 3].map(() => h.source.append(fakeMail(ago(MINUTE))));
+    await runIngest(h.deps());
+    return { h, uids };
+  }
+
+  it('marks an expunged location vanished and deletes its never-classified body', async () => {
+    const { h, uids } = await threeStored();
+    h.source.expunge(uids[1] as number);
+    const before = h.source.calls.length;
+
+    const outcome = await runIngest(h.deps());
+
+    expect(outcome).toMatchObject({ kind: 'synced', vanished: 1 });
+    const gone = h.store.locations().find((l) => l.uid === uids[1]);
+    expect(gone?.removedReason).toBe('vanished');
+    expect(h.store.bodyOf(gone?.messageId as string)).toBeUndefined();
+    expect(h.store.bodies()).toHaveLength(2);
+    expect(h.store.messages()).toHaveLength(3);
+    const lists = h.source.calls.slice(before).filter((c) => c.method === 'listUids');
+    expect(lists.map((c) => c.args)).toEqual([[`${uids[0]}:${uids[2]}`]]);
+  });
+
+  it('keeps the body while the message has another live location', async () => {
+    const h = await synced();
+    const a = h.source.append(fakeMail(ago(MINUTE), { messageId: '<twice@example.test>' }));
+    h.source.append(fakeMail(ago(MINUTE), { messageId: '<twice@example.test>' }));
+    await runIngest(h.deps());
+    expect(h.store.messages()).toHaveLength(1);
+
+    h.source.expunge(a);
+    const outcome = await runIngest(h.deps());
+
+    expect(outcome).toMatchObject({ vanished: 1 });
+    expect(h.store.bodies()).toHaveLength(1);
+  });
+
+  it('lists only UIDs at or below the cycle-start last_uid', async () => {
+    const { h, uids } = await threeStored();
+    h.source.append(fakeMail(ago(MINUTE)));
+    const before = h.source.calls.length;
+
+    await runIngest(h.deps());
+
+    const lists = h.source.calls.slice(before).filter((c) => c.method === 'listUids');
+    expect(lists.map((c) => c.args)).toEqual([[`${uids[0]}:${uids[2]}`]]);
+  });
+
+  it('makes no listUids call when there are no live locations', async () => {
+    const h = await synced();
+    await runIngest(h.deps());
+    expect(h.source.callsOf('listUids')).toHaveLength(0);
+  });
+
+  it('skips the diff when removalDiff is false and catches up on the next due cycle', async () => {
+    const { h, uids } = await threeStored();
+    h.source.expunge(uids[0] as number);
+    const before = h.source.calls.length;
+
+    const skipped = await runIngest(h.deps({ removalDiff: false }));
+    expect(skipped).toMatchObject({ kind: 'synced', vanished: 0 });
+    expect(h.source.calls.slice(before).map((c) => c.method)).not.toContain('listUids');
+    expect(h.store.liveLocationsOf(FOLDER)).toHaveLength(3);
+
+    const due = await runIngest(h.deps({ removalDiff: true }));
+    expect(due).toMatchObject({ vanished: 1 });
+    expect(h.store.liveLocationsOf(FOLDER)).toHaveLength(2);
+  });
+});
+
+describe('body-cache sweep (D-07)', () => {
+  it('deletes expired bodies once per synced cycle', async () => {
+    const h = await synced();
+    h.source.append(fakeMail(ago(MINUTE)));
+    await runIngest(h.deps());
+    const [message] = h.store.messages();
+    h.store.setBodyExpiry(message?.id as string, ago(MINUTE));
+    const sweeps = h.store.count('deleteExpiredBodies');
+
+    await runIngest(h.deps());
+
+    expect(h.store.count('deleteExpiredBodies')).toBe(sweeps + 1);
+    expect(h.store.bodies()).toHaveLength(0);
+  });
+
+  it('does not sweep when the valve trips', async () => {
+    const h = await synced();
+    for (let i = 0; i < 2; i += 1) h.source.append(fakeMail(ago(MINUTE)));
+    const sweeps = h.store.count('deleteExpiredBodies');
+    await runIngest(h.deps({ newMailCap: 1 }));
+    expect(h.store.count('deleteExpiredBodies')).toBe(sweeps);
+  });
+});
+
+describe('CLI backfill: count, then run exactly the counted set (D-75)', () => {
+  const WRITES = [
+    'createFolder',
+    'commitChunk',
+    'setBackfill',
+    'markVanished',
+    'beginResync',
+    'finishResync',
+    'deleteExpiredBodies',
+  ];
+
+  function writes(store: FakeIngestStore): number {
+    return WRITES.reduce((sum, m) => sum + store.count(m as never), 0);
+  }
+
+  async function withHistory(): Promise<{ h: Harness; recent: number[] }> {
+    const h = await synced();
+    // Polled after the start point but old-dated: stored historical.
+    const historical = h.source.append(fakeMail(ago(DAY)));
+    await runIngest(h.deps());
+    expect(h.store.messages()[0]?.eligible).toBe(false);
+    h.source.append(fakeMail(ago(5 * DAY)));
+    const recent = h.source.append(fakeMail(ago(36 * 60 * MINUTE)));
+    // Leave the last two unpolled so runBackfill is what stores them.
+    return { h, recent: [historical, recent].sort((a, b) => a - b) };
+  }
+
+  it('countBackfill returns the exact UIDs of the window and writes nothing', async () => {
+    const { h, recent } = await withHistory();
+    const before = writes(h.store);
+
+    const plan = await countBackfill(h.deps(), 2);
+
+    expect(plan.count).toBe(2);
+    expect(plan.uids).toEqual(recent);
+    expect(plan.since).toEqual(ago(2 * DAY));
+    expect(writes(h.store)).toBe(before);
+  });
+
+  it('runBackfill stores exactly the counted set, promotes history and moves no cursor', async () => {
+    const { h, recent } = await withHistory();
+    const plan = await countBackfill(h.deps(), 2);
+    const folderBefore = structuredClone(h.store.folder(FOLDER));
+    // Arrives in the window after the owner saw the count: not part of the run.
+    const late = h.source.append(fakeMail(ago(MINUTE)));
+
+    const outcome = await runBackfill(h.deps(), plan);
+
+    expect(outcome).toEqual({ kind: 'backfilled', found: 2, inserted: 1, existing: 1 });
+    const stored = h.store.locations().map((l) => l.uid);
+    expect(stored).toEqual(expect.arrayContaining(recent));
+    expect(stored).not.toContain(late);
+    expect(h.store.messages().every((m) => m.eligible)).toBe(true);
+    expect(h.store.bodies()).toHaveLength(2);
+    const folderAfter = h.store.folder(FOLDER);
+    expect(folderAfter?.lastUid).toBe(folderBefore?.lastUid);
+    expect(folderAfter?.watermark).toEqual(folderBefore?.watermark);
+    expect(folderAfter?.backfill).toEqual(folderBefore?.backfill);
+  });
+
+  it('skips a planned UID expunged before the run', async () => {
+    const { h, recent } = await withHistory();
+    const plan = await countBackfill(h.deps(), 2);
+    h.source.expunge(recent[1] as number);
+
+    const outcome = await runBackfill(h.deps(), plan);
+
+    expect(outcome).toEqual({ kind: 'backfilled', found: 1, inserted: 0, existing: 1 });
+  });
+
+  it('is not capped: the CLI asked the owner first', async () => {
+    const h = await synced();
+    for (let i = 0; i < 10; i += 1) h.source.append(fakeMail(ago(DAY)));
+    // Not polled yet; the backfill takes them first.
+    const plan = await countBackfill(h.deps({ newMailCap: 1 }), 2);
+    const outcome = await runBackfill(h.deps({ newMailCap: 1 }), plan);
+
+    expect(plan.count).toBe(10);
+    expect(outcome).toEqual({ kind: 'backfilled', found: 10, inserted: 10, existing: 0 });
+    expect(eligibleCount(h.store)).toBe(10);
+  });
+
+  it('stops between chunks on abort', async () => {
+    const h = await synced();
+    for (let i = 0; i < 4; i += 1) h.source.append(fakeMail(ago(DAY)));
+    const plan = await countBackfill(h.deps(), 2);
+    const controller = new AbortController();
+    const commit = h.store.commitChunk.bind(h.store);
+    h.store.commitChunk = async (...args) => {
+      const result = await commit(...args);
+      controller.abort();
+      return result;
+    };
+
+    const outcome = await runBackfill(h.deps({ chunkSize: 3, signal: controller.signal }), plan);
+
+    expect(outcome).toEqual({ kind: 'aborted', inserted: 3 });
+  });
+
+  it('refuses before the first sync', async () => {
+    const h = harness();
+    h.source.append(fakeMail(ago(DAY)));
+    await expect(countBackfill(h.deps(), 2)).rejects.toMatchObject({
+      name: 'BackfillRefusedError',
+      reason: 'not_synced',
+    });
+    await expect(
+      runBackfill(h.deps(), { count: 1, since: ago(2 * DAY), uids: [1], uidValidity: 1000 }),
+    ).rejects.toBeInstanceOf(BackfillRefusedError);
+  });
+
+  it('refuses while the folder is resyncing', async () => {
+    const h = await synced();
+    h.source.append(fakeMail(ago(DAY)));
+    const plan = await countBackfill(h.deps(), 2);
+    await h.store.beginResync(FOLDER, h.source.uidValidity + 1, 2);
+
+    await expect(countBackfill(h.deps(), 2)).rejects.toMatchObject({ reason: 'resyncing' });
+    await expect(runBackfill(h.deps(), plan)).rejects.toMatchObject({ reason: 'resyncing' });
+  });
+
+  it('refuses a plan counted under another UIDVALIDITY', async () => {
+    const h = await synced();
+    h.source.append(fakeMail(ago(DAY)));
+    const plan = await countBackfill(h.deps(), 2);
+    h.source.bumpUidValidity({ renumber: true });
+
+    await expect(runBackfill(h.deps(), plan)).rejects.toMatchObject({ reason: 'resyncing' });
+    expect(h.store.count('commitChunk')).toBe(0);
   });
 });
