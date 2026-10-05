@@ -2,16 +2,29 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { Readable } from 'node:stream';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { CommandIO } from '../src/command.ts';
 import { run } from '../src/commands/bridge-probe.ts';
 import { closeImap, type ImapFlow, openImap } from '../src/imap/connect.ts';
-import { encodeModifiedUtf7, type ProbeReport, runProbe } from '../src/spike/probe.ts';
+import {
+  compareReports,
+  encodeModifiedUtf7,
+  LABEL_TEST_MAX_AGE_MS,
+  labelTest,
+  type ProbeReport,
+  runProbe,
+  SPIKE_LABEL_NAME,
+  waitForNew,
+} from '../src/spike/probe.ts';
 import {
   appendMessage,
+  bumpUidValidity,
   createFolder,
   freshImapUser,
+  messageFlags,
   requireTestImap,
+  setFlags,
   TEST_IMAP,
   testImapPin,
 } from './support/test-imap.ts';
@@ -88,6 +101,7 @@ async function probe(
   user: string,
   args: string[] = [],
   env: Record<string, string | undefined> = {},
+  stdin?: string,
 ): Promise<Result> {
   const config = await writeConfig(user);
   const out: string[] = [];
@@ -97,6 +111,7 @@ async function probe(
     cwd: dir,
     stdout: (line) => out.push(line),
     stderr: (line) => err.push(line),
+    ...(stdin === undefined ? {} : { stdin: Readable.from([stdin]) }),
   };
   const code = await run([SLUG, ...args], io);
   return { code, stdout: out.join('\n'), stderr: err.join('\n') };
@@ -381,5 +396,289 @@ describe('encodeModifiedUtf7', () => {
     expect(encodeModifiedUtf7('Entwürfe')).toBe('Entw&APw-rfe');
     expect(encodeModifiedUtf7('A&B')).toBe('A&-B');
     expect(encodeModifiedUtf7('日本語')).toBe('&ZeVnLIqe-');
+  });
+});
+
+const LABEL_PATH = `Labels/${SPIKE_LABEL_NAME}`;
+
+function planLine(uid: number): string {
+  return (
+    `Label test: copy UID ${uid} from INBOX into ${LABEL_PATH}, then remove it from ` +
+    `${LABEL_PATH} only. Type LABEL to continue:`
+  );
+}
+
+/** Three fresh messages (INTERNALDATE now); uid 2 is the label-test target, uid 3 is flagged. */
+async function seedLabelFixtures(user: string): Promise<void> {
+  await appendMessage(user, 'INBOX', message([`Message-ID: <${SENTINELS[4]}-a@example.test>`]));
+  await appendMessage(
+    user,
+    'INBOX',
+    message([`Message-ID: <${SENTINELS[4]}-target@example.test>`, 'X-Pm-Internal-Id: target42']),
+  );
+  await appendMessage(user, 'INBOX', message([`Message-ID: <${SENTINELS[4]}-c@example.test>`]));
+  await setFlags(user, 'INBOX', 3, ['\\Flagged', '\\Seen']);
+}
+
+/** Whether `folder` exists for `user`, from a fresh read-only LIST. */
+async function folderExists(user: string, folder: string): Promise<boolean> {
+  const client = await connectAs(user);
+  try {
+    return (await client.list()).some((entry) => entry.path === folder);
+  } finally {
+    await closeImap(client);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+describe('sift bridge probe --label-test (SPK-01, D-11)', () => {
+  it('copies only the confirmed UID into the spike label and removes it from there only', async () => {
+    const user = freshImapUser('probe-labeltest');
+    await seedLabelFixtures(user);
+    const before = await messageFlags(user, 'INBOX');
+
+    const result = await probe(user, ['--label-test', '--uid', '2'], {}, 'LABEL\n');
+    const report = reportOf(result);
+    expectPrivate(result);
+
+    expect(report.labelTest).toEqual({
+      performed: true,
+      labelFolderCreated: true,
+      copyUidPlus: true,
+      inboxCopyAfterCopy: true,
+      messageIdBytesEqual: true,
+      pmInternalIdBytesEqual: true,
+      removedFromLabel: true,
+      inboxCopyAfterRemove: true,
+    });
+    // The plan names the folder and the UID, nothing about the message.
+    expect(result.stderr).toContain(planLine(2));
+    // INBOX: same messages, same flags; the label folder is empty again.
+    expect(await messageFlags(user, 'INBOX')).toEqual(before);
+    expect((await messageFlags(user, LABEL_PATH)).size).toBe(0);
+  });
+
+  it('does nothing without the typed word LABEL', async () => {
+    const user = freshImapUser('probe-unconfirmed');
+    await seedLabelFixtures(user);
+    const before = await messageFlags(user, 'INBOX');
+
+    for (const stdin of ['yes\n', 'label\n', ' LABEL\n', undefined]) {
+      const report = reportOf(await probe(user, ['--label-test', '--uid', '2'], {}, stdin));
+      expect(report.labelTest).toEqual({ performed: false, skippedReason: 'not confirmed' });
+    }
+    expect(await folderExists(user, LABEL_PATH)).toBe(false);
+    expect(await messageFlags(user, 'INBOX')).toEqual(before);
+  });
+
+  it.each([
+    [['--label-test']],
+    [['--label-test', '--wait-new-seconds', '5']],
+    [['--uid', '2']],
+    [['--label-test', '--uid', '2', '--compare', '-']],
+  ])('%j exits 2 with the usage', async (args) => {
+    const result = await probe(freshImapUser('probe-labelusage'), args, {}, 'LABEL\n');
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('Usage: sift bridge probe <slug>');
+  });
+
+  it('refuses a target older than one hour, before any write', async () => {
+    const user = freshImapUser('probe-old');
+    const client = await connectAs(user);
+    try {
+      const old = new Date(Date.now() - 2 * LABEL_TEST_MAX_AGE_MS);
+      await client.append('INBOX', message(['X-Pm-Internal-Id: old1']), [], old);
+    } finally {
+      await closeImap(client);
+    }
+    const before = await messageFlags(user, 'INBOX');
+
+    const report = reportOf(await probe(user, ['--label-test', '--uid', '1'], {}, 'LABEL\n'));
+    expect(report.labelTest).toEqual({
+      performed: false,
+      skippedReason: 'target older than one hour',
+    });
+    expect(await folderExists(user, LABEL_PATH)).toBe(false);
+    expect(await messageFlags(user, 'INBOX')).toEqual(before);
+  });
+
+  it('reports a missing target UID, before any write', async () => {
+    const user = freshImapUser('probe-missing');
+    await seedLabelFixtures(user);
+
+    const report = reportOf(await probe(user, ['--label-test', '--uid', '99'], {}, 'LABEL\n'));
+    expect(report.labelTest).toEqual({ performed: false, skippedReason: 'target not found' });
+    expect(await folderExists(user, LABEL_PATH)).toBe(false);
+  });
+
+  it('expunges nothing when COPYUID did not identify the label copy', async () => {
+    const user = freshImapUser('probe-nocopyuid');
+    await seedLabelFixtures(user);
+    const client = await connectAs(user);
+    try {
+      const realCopy = client.messageCopy.bind(client);
+      vi.spyOn(client, 'messageCopy').mockImplementation(async (...args) => {
+        const result = await realCopy(...args);
+        if (result === false) return result;
+        const { uidMap: _dropped, ...rest } = result;
+        return rest;
+      });
+      const deleteSpy = vi.spyOn(client, 'messageDelete');
+
+      const result = await labelTest(client, {
+        folder: 'INBOX',
+        uid: 2,
+        delimiter: '/',
+        confirmed: true,
+      });
+      expect(result).toMatchObject({
+        performed: false,
+        skippedReason: 'label copy not confirmed',
+        copyUidPlus: false,
+        labelCopyMayRemain: true,
+      });
+      expect(deleteSpy).not.toHaveBeenCalled();
+    } finally {
+      await closeImap(client);
+    }
+    // The original is untouched; the label copy is left for the owner.
+    expect((await messageFlags(user, 'INBOX')).has(2)).toBe(true);
+    expect((await messageFlags(user, LABEL_PATH)).size).toBe(1);
+  });
+});
+
+describe('sift bridge probe --wait-new-seconds (D-27, D-43)', () => {
+  it('sees new mail during IDLE and reports its UID; no label test runs', async () => {
+    const user = freshImapUser('probe-idle');
+    await appendMessage(user, 'INBOX', message([]));
+
+    const running = probe(user, ['--wait-new-seconds', '20', '--scan-limit', '0', '--sample', '0']);
+    await sleep(3_000);
+    await appendMessage(user, 'INBOX', message(['X-Pm-Internal-Id: fresh1']));
+    const result = await running;
+    const report = reportOf(result);
+    expectPrivate(result);
+
+    expect(report.idle).toEqual({
+      seconds: 20,
+      existsEventSeen: true,
+      newMessageArrived: true,
+      newUid: 2,
+    });
+    expect(report.labelTest).toBeUndefined();
+  }, 40_000);
+
+  it('reports no new mail when none arrives', async () => {
+    const user = freshImapUser('probe-idle-quiet');
+    await appendMessage(user, 'INBOX', message([]));
+    const client = await connectAs(user);
+    try {
+      const { report, newUid } = await waitForNew(client, 'INBOX', 1);
+      expect(report).toEqual({
+        seconds: 1,
+        existsEventSeen: false,
+        newMessageArrived: false,
+        newUid: null,
+      });
+      expect(newUid).toBeNull();
+    } finally {
+      await closeImap(client);
+    }
+  });
+});
+
+describe('report comparison (SPK-04, D-43)', () => {
+  it('--compare <file> reports a UIDVALIDITY change and matches the sample', async () => {
+    const user = freshImapUser('probe-compare');
+    await seedIdentityFixtures(user);
+    const first = await probe(user);
+    const previous = reportOf(first);
+    const file = path.join(dir, `${user}-previous.json`);
+    await writeFile(file, first.stdout);
+
+    await bumpUidValidity(user, 'INBOX');
+    const report = reportOf(await probe(user, ['--compare', file]));
+    const hashed = previous.sample.filter((s) => s.internalIdSha256 !== null).length;
+    expect(report.compare).toEqual({
+      uidValidityChanged: { INBOX: true },
+      addedFolders: [],
+      missingFolders: [],
+      sampleMatched: hashed,
+      uidChanged: 0,
+      internalDateChanged: 0,
+      sampleMissing: 0,
+    });
+  });
+
+  it('--compare - reads the previous report from stdin', async () => {
+    const user = freshImapUser('probe-compare-stdin');
+    await seedIdentityFixtures(user);
+    const first = await probe(user);
+
+    const report = reportOf(await probe(user, ['--compare', '-'], {}, first.stdout));
+    expect(report.compare?.uidValidityChanged).toEqual({ INBOX: false });
+    expect(report.compare?.sampleMatched).toBe(4);
+  });
+
+  it('unparseable input exits 1 naming the source only', async () => {
+    const user = freshImapUser('probe-compare-bad');
+    const file = path.join(dir, `${user}-garbage.json`);
+    await writeFile(file, `not a report ${SENTINELS[3]}`);
+
+    const fromFile = await probe(user, ['--compare', file]);
+    expect(fromFile.code).toBe(1);
+    expect(fromFile.stderr).toContain(file);
+    expect(fromFile.stdout).toBe('');
+    expectPrivate(fromFile);
+
+    const fromStdin = await probe(
+      user,
+      ['--compare', '-'],
+      {},
+      `{"probeVersion": 2} ${SENTINELS[3]}`,
+    );
+    expect(fromStdin.code).toBe(1);
+    expect(fromStdin.stderr).toContain('stdin');
+    expectPrivate(fromStdin);
+  });
+
+  it('lists folders present in only one report and counts changed sample entries', () => {
+    const base = {
+      probeVersion: 1,
+      at: '2026-10-05T00:00:00.000Z',
+      folder: 'INBOX',
+      sample: [],
+    } as unknown as ProbeReport;
+    const previous: ProbeReport = {
+      ...base,
+      uidValidity: { INBOX: 10, [LABEL_PATH]: 20 },
+      sample: [
+        { uid: 1, internalDate: '2026-10-01T00:00:00.000Z', internalIdSha256: 'a' },
+        { uid: 2, internalDate: '2026-10-02T00:00:00.000Z', internalIdSha256: 'b' },
+        { uid: 3, internalDate: '2026-10-03T00:00:00.000Z', internalIdSha256: 'c' },
+        { uid: 4, internalDate: '2026-10-04T00:00:00.000Z', internalIdSha256: null },
+      ],
+    };
+    const current: ProbeReport = {
+      ...base,
+      uidValidity: { INBOX: 11, Other: 5 },
+      sample: [
+        { uid: 7, internalDate: '2026-10-01T00:00:00.000Z', internalIdSha256: 'a' },
+        { uid: 2, internalDate: '2026-10-09T00:00:00.000Z', internalIdSha256: 'b' },
+      ],
+    };
+    expect(compareReports(previous, current)).toEqual({
+      uidValidityChanged: { INBOX: true },
+      addedFolders: ['Other'],
+      missingFolders: [LABEL_PATH],
+      sampleMatched: 2,
+      uidChanged: 1,
+      internalDateChanged: 1,
+      sampleMissing: 1,
+    });
   });
 });
