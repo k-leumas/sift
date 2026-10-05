@@ -29,19 +29,32 @@ export {
   type CloseResult,
   createAppDb,
 } from './app-db.ts';
+export {
+  type AttachmentMeta,
+  type BodyInput,
+  type LocationInput,
+  type MessageInput,
+  type StoreItem,
+  type StoreOptions,
+  type StoreResult,
+  storeMessages,
+} from './ingest.ts';
 export { type RegistryRow, readRegistry } from './registry-read.ts';
 export {
   type AppendOnlyTableApi,
+  type ConflictRow,
   InvalidMailboxIdError,
   MailboxDisabledError,
   MailboxNotFoundError,
   type MailboxStatusApi,
   type MailboxStatusRow,
   type Match,
+  type MessageBodyApi,
   requireActive,
   type Scope,
   ScopeClosedError,
   type ScopedTableApi,
+  type UniqueKey,
   type WithMailboxOptions,
   withMailbox,
 } from './scope.ts';

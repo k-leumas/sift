@@ -801,6 +801,7 @@ describe('@sift/db export surface', () => {
         'recordSyncSuccess',
         'requireActive',
         'requireDatabaseUrl',
+        'storeMessages',
         'withMailbox',
       ].sort(),
     );
