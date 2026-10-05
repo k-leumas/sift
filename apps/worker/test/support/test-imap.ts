@@ -219,3 +219,9 @@ export async function bumpUidValidity(user: string, folder: string): Promise<num
   await doveadm(['mailbox', 'update', '-u', user, '--uid-validity', String(next), folder]);
   return next;
 }
+
+/** Expunge message `uid` from `folder` of `user` (doveadm expunge), as a mail client would. */
+export async function expungeMessage(user: string, folder: string, uid: number): Promise<void> {
+  if (!Number.isInteger(uid) || uid < 1) throw new Error(`expungeMessage: invalid uid ${uid}`);
+  await doveadm(['expunge', '-u', user, 'mailbox', folder, 'uid', String(uid)]);
+}

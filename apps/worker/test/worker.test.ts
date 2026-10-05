@@ -89,6 +89,7 @@ interface StatusRow {
   state: string | null;
   last_seen_at: Date | null;
   last_sync_at: Date | null;
+  last_error: string | null;
 }
 
 /** Status rows read as the superuser, which bypasses RLS (test inspection only). */
@@ -96,7 +97,7 @@ async function statusRows(): Promise<StatusRow[]> {
   const admin = await connect(db.adminUrl);
   try {
     const { rows } = await admin.query<StatusRow>(
-      `select m.slug, s.state, s.last_seen_at, s.last_sync_at
+      `select m.slug, s.state, s.last_seen_at, s.last_sync_at, s.last_error
          from mailbox m left join mailbox_status s on s.mailbox_id = m.id
         order by m.slug`,
     );
@@ -123,9 +124,15 @@ describe('sift worker (tracer)', () => {
       }
       if (!existsSync(heartbeatFile)) return false;
       const rows = await statusRows();
-      // The example config's IMAP host does not exist here: each mailbox gets
-      // a per-mailbox status, and the worker keeps running.
-      return rows.length === 2 && rows.every((r) => r.state !== null && r.last_seen_at !== null);
+      // The example config's IMAP host does not exist here. Inside the
+      // startup grace that is a per-mailbox `connecting` status with no
+      // error (D-34), never a worker exit.
+      return (
+        rows.length === 2 &&
+        rows.every(
+          (r) => r.state === 'connecting' && r.last_error === null && r.last_seen_at !== null,
+        )
+      );
     }, 15_000);
 
     run.child.kill('SIGTERM');

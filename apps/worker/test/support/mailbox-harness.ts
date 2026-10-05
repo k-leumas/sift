@@ -103,6 +103,8 @@ export function rawMessage(subject: string, body = `Body of ${subject}.`): strin
 
 export interface MailboxCounts {
   messages: number;
+  /** Messages eligible for classification (new mail and the first backfill, D-21). */
+  eligible: number;
   locations: number;
   liveLocations: number;
   bodies: number;
@@ -117,6 +119,8 @@ export async function mailboxCounts(adminUrl: string, mailboxId: string): Promis
     const { rows } = await admin.query<MailboxCounts>(
       `select
          (select count(*)::int from message where mailbox_id = $1) as messages,
+         (select count(*)::int from message
+           where mailbox_id = $1 and eligible_for_classification) as eligible,
          (select count(*)::int from message_location where mailbox_id = $1) as locations,
          (select count(*)::int from message_location
            where mailbox_id = $1 and removed_at is null) as "liveLocations",
