@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-05T06:13:29.190Z
-> Files: 184 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-05T08:56:08.272Z
+> Files: 208 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -15,6 +15,11 @@
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/94ce255b-8898-4053-b508-5955670c177f/scratchpad/
 
 - `linux-repro.sh` — Runs inside a throwaway sift:local container as root. Emulates a GitHub (~490 tok)
+
+## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/cf7bcac0-bbd2-4db4-b2fd-0efe2c1e87fd/scratchpad/
+
+- `nyan-watch.sh` — Nyan-cat watcher for the Sift Phase 2 planner. Read-only: it only looks at file names, (~763 tok)
+- `planner-nyan.html` — Phase 2 Planner Watch (~1345 tok)
 
 ## ../../.claude/projects/-Users-samuel-dev-sift/memory/
 
@@ -62,7 +67,7 @@
 - `INGEST-CONFLICTS.md` — Conflict Detection Report (~252 tok)
 - `PROJECT.md` — Sift (~3473 tok)
 - `REQUIREMENTS.md` — Requirements: Sift (~2759 tok)
-- `ROADMAP.md` — Roadmap: Sift (~2453 tok)
+- `ROADMAP.md` — Roadmap: Sift (~3110 tok)
 - `STATE.md` — Project State (~817 tok)
 
 ## .planning/intel/
@@ -122,8 +127,30 @@
 
 ## .planning/phases/02-bridge-spike-and-imap-ingest/
 
+- `02-01-PLAN.md` (~8095 tok)
+- `02-02-PLAN.md` — Declares Imap (~4051 tok)
+- `02-03-PLAN.md` — type: together (~5386 tok)
+- `02-04-PLAN.md` — Dovecot test server (local + CI step), pin.ts SPKI fingerprint, D-77 dependency install (only lockfile writer) (~3600 tok)
+- `02-05-PLAN.md` — Trust Boundaries (~2330 tok)
+- `02-06-PLAN.md` — Declares UniqueKey (~4622 tok)
+- `02-07-PLAN.md` — and: stripNul, truncateCodePoints, normaliseMessageId + 7 more (~5502 tok)
+- `02-08-PLAN.md` (~6841 tok)
+- `02-09-PLAN.md` — Trust Boundaries (~3454 tok)
+- `02-10-PLAN.md` — CHUNK_SIZE: runIngest, countBackfill, runBackfill (~7127 tok)
+- `02-11-PLAN.md` — SPIKE_LABEL_NAME: preAuthCapabilities, runProbe, waitForNew, labelTest, compareReports (~5342 tok)
+- `02-12-PLAN.md` — Trust Boundaries (~3423 tok)
+- `02-13-PLAN.md` — STARTUP_GRACE_MS: ownerMessageFor, createMailboxCallbacks, createDbStore, seedImapMailbox (~6591 tok)
+- `02-14-PLAN.md` (~5109 tok)
+- `02-15-PLAN.md` — , scripts/bridge-smoke.sh and the workflow file itself; it checks out with actions/checkout pinned t (~3929 tok)
+- `02-16-PLAN.md` — yes: resumeMailbox, backfillMailbox (~4996 tok)
+- `02-17-PLAN.md` (~4833 tok)
+- `02-18-PLAN.md` — split from 02-04: capture.ts (D-80 wire-tested, verification off only here), connect.ts openImap pinned + twice verified, cert-swap and fresh-capture tests (~7556 tok)
 - `02-CONTEXT.md` — Phase 2: Bridge Spike and IMAP Ingest - Context (~5019 tok)
 - `02-DISCUSSION-LOG.md` — Phase 2: Bridge Spike and IMAP Ingest - Discussion Log (~2174 tok)
+- `02-PATTERNS.md` — Phase 2: Bridge Spike and IMAP Ingest - Pattern Map (~4845 tok)
+- `02-RESEARCH.md` — Phase 2: Bridge Spike and IMAP Ingest - Research (~22318 tok)
+- `02-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~1587 tok)
+- `COVERAGE.md` — Phase 2 External API Coverage (~1136 tok)
 
 ## .planning/tmp/
 

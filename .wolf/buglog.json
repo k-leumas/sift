@@ -1039,6 +1039,278 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-04T19:14:05Z"
+    },
+    {
+      "id": "bug-062",
+      "timestamp": "2026-10-05T07:34:39.616Z",
+      "error_message": "Wrong reference: core should be worker",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-02-PLAN.md",
+      "root_cause": "Used \"core\" instead of \"worker\"",
+      "fix": "Changed core → worker",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T07:34:39.616Z"
+    },
+    {
+      "id": "bug-063",
+      "timestamp": "2026-10-05T07:35:58.645Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md",
+      "root_cause": "Had `grep -c '",
+      "fix": "Changed to `grep -c \"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T07:35:58.645Z"
+    },
+    {
+      "id": "bug-064",
+      "timestamp": "2026-10-05T07:37:38.004Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md",
+      "root_cause": "Had `net.Server`",
+      "fix": "Changed to `startFakeImapServer(): Promise<{ port: number; li",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T07:37:38.004Z"
+    },
+    {
+      "id": "bug-065",
+      "timestamp": "2026-10-05T07:51:38.712Z",
+      "error_message": "Wrong reference: files should be apps",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md",
+      "root_cause": "Used \"files\" instead of \"apps\"",
+      "fix": "Changed files → apps",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T07:51:38.712Z"
+    },
+    {
+      "id": "bug-066",
+      "timestamp": "2026-10-05T07:51:41.352Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md",
+      "root_cause": "Had `apps/worker/test/bridge-init.test.ts`",
+      "fix": "Changed to `apps/worker/test/bridge-image.test.ts`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T07:51:41.352Z"
+    },
+    {
+      "id": "bug-067",
+      "timestamp": "2026-10-05T07:53:04.773Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-14-PLAN.md",
+      "root_cause": "Had `Config OK: 1 mailbox`",
+      "fix": "Changed to `Config OK: 1 mailboxes (personal)`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T07:53:04.773Z"
+    },
+    {
+      "id": "bug-068",
+      "timestamp": "2026-10-05T08:03:26.264Z",
+      "error_message": "Wrong reference: five should be seven",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md",
+      "root_cause": "Used \"five\" instead of \"seven\"",
+      "fix": "Changed five → seven",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T08:03:26.264Z"
+    },
+    {
+      "id": "bug-069",
+      "timestamp": "2026-10-05T08:03:30.279Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md",
+      "root_cause": "Had `mailbox_status_state_check`",
+      "fix": "Changed to `folder_sync_backfill_check`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T08:03:30.279Z"
+    },
+    {
+      "id": "bug-070",
+      "timestamp": "2026-10-05T08:05:24.094Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md",
+      "root_cause": "Had \"advanceFolderSync never moves last_uid or the wat",
+      "fix": "Changed to \"advanceFolderSync never moves last_uid, the water",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-05T08:05:34.421Z"
+    },
+    {
+      "id": "bug-071",
+      "timestamp": "2026-10-05T08:05:48.994Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md",
+      "root_cause": "Had `FolderState`",
+      "fix": "Changed to `BackfillState`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-05T08:05:50.805Z"
+    },
+    {
+      "id": "bug-072",
+      "timestamp": "2026-10-05T08:07:08.382Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-09-PLAN.md",
+      "root_cause": "Had `examine('",
+      "fix": "Changed to `tls: { mode: '",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T08:07:08.382Z"
+    },
+    {
+      "id": "bug-073",
+      "timestamp": "2026-10-05T08:08:50.599Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md",
+      "root_cause": "Had `connect.ts`",
+      "fix": "Changed to `probe.ts`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T08:08:50.599Z"
+    },
+    {
+      "id": "bug-074",
+      "timestamp": "2026-10-05T08:08:53.805Z",
+      "error_message": "Missing await",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-05T08:08:53.805Z"
+    },
+    {
+      "id": "bug-075",
+      "timestamp": "2026-10-05T08:09:20.518Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md",
+      "root_cause": "Had \"recordConnecting, recordNeedsAttention, readHold,",
+      "fix": "Changed to \"recordConnecting, recordNeedsAttention, readHold,",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-05T08:09:22.977Z"
+    },
+    {
+      "id": "bug-076",
+      "timestamp": "2026-10-05T08:35:19.583Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 15→11 lines (6 removed) | Also: - \"capturePeerCertificate connects without trustin; - \"openImap with a pin captures the certificate fi | Also: capture.ts (this plan; the ONLY file under apps/wo; export interface CapturedCertificate { pem: string | Also: <task type=\"auto\" tdd=\"true\">; <name>Task 3: Credential-free certificate capture, | Also: | worker -> IMAP server (Bridge) over the Compose ; | capture handshake | A deliberately unverified TL",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 5,
+      "last_seen": "2026-10-05T08:36:47.645Z"
+    },
+    {
+      "id": "bug-077",
+      "timestamp": "2026-10-05T08:40:26.476Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md",
+      "root_cause": "Had \"compose.yaml: bridge publishes 1143 on host loopb",
+      "fix": "Changed to \"compose.yaml: bridge publishes 1143 on host loopb",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-05T08:40:35.037Z"
+    },
+    {
+      "id": "bug-078",
+      "timestamp": "2026-10-05T08:40:47.260Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7→12 lines (2 removed) | Also: - Rename \"defines db, setup and worker\" to include; - Add `describe('bridge service (D-29..D-39, D-72,",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-05T08:41:23.226Z"
     }
   ]
 }

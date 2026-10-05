@@ -294,3 +294,129 @@
 | 00:12 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-CONTEXT.md | — | ~5354 |
 | 00:13 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-DISCUSSION-LOG.md | — | ~2319 |
 | 00:13 | discuss-phase 2: 02-CONTEXT.md (D-01..D-43) + DISCUSSION-LOG committed | .planning/phases/02-bridge-spike-and-imap-ingest/ | b76896d, 0f2d61a | ~60k |
+| 00:14 | Session end: 2 writes across 2 files (02-CONTEXT.md, 02-DISCUSSION-LOG.md) | 1 reads | ~8220 tok |
+
+## Session: 2026-10-05 00:19
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:50 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-RESEARCH.md | — | ~23806 |
+| 00:51 | Researched phase 2 (Bridge source+runtime probes, ImapFlow, TLS pin); wrote 02-RESEARCH.md, cerebrum learnings | .planning/phases/02-bridge-spike-and-imap-ingest/02-RESEARCH.md, .wolf/cerebrum.md | done | ~120000 |
+| 00:52 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-VALIDATION.md | — | ~1693 |
+| 00:52 | Session end: 2 writes across 2 files (02-RESEARCH.md, 02-VALIDATION.md) | 12 reads | ~67025 tok |
+| 00:54 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-PATTERNS.md | — | ~5168 |
+| 01:09 | Session end: 3 writes across 3 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md) | 17 reads | ~78591 tok |
+| 01:33 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | — | ~8560 |
+| 01:34 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-02-PLAN.md | — | ~4439 |
+| 01:34 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-02-PLAN.md | inline fix | ~20 |
+| 01:35 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md | — | ~5508 |
+| 01:35 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md | inline fix | ~36 |
+| 01:37 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | — | ~6447 |
+| 01:37 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | inline fix | ~52 |
+| 01:38 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-05-PLAN.md | — | ~2485 |
+| 01:39 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | — | ~4659 |
+| 01:40 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md | — | ~5716 |
+| 01:42 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | — | ~5983 |
+| 01:42 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | inline fix | ~60 |
+| 01:43 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-09-PLAN.md | — | ~3661 |
+| 01:44 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md | inline fix | ~61 |
+| 01:44 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | modified finishResync() | ~90 |
+| 01:44 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | inline fix | ~122 |
+| 01:46 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-10-PLAN.md | — | ~6358 |
+| 01:47 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md | — | ~5750 |
+| 01:48 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md | — | ~3463 |
+| 01:50 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-13-PLAN.md | — | ~6230 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | 1→3 lines | ~102 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | 1→3 lines | ~81 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | 2→3 lines | ~120 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | 1→2 lines | ~48 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | 1→2 lines | ~94 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | inline fix | ~31 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | inline fix | ~41 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | inline fix | ~59 |
+| 01:51 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | 1→2 lines | ~60 |
+| 01:52 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-14-PLAN.md | — | ~5442 |
+| 01:53 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-14-PLAN.md | inline fix | ~44 |
+| 01:54 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-15-PLAN.md | — | ~3808 |
+| 01:55 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-16-PLAN.md | — | ~4989 |
+| 01:56 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-17-PLAN.md | — | ~4094 |
+| 01:57 | Session end: 37 writes across 20 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 23 reads | ~186793 tok |
+| 01:57 | Session end: 37 writes across 20 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 23 reads | ~186793 tok |
+| 01:59 | Session end: 37 writes across 20 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 23 reads | ~186793 tok |
+| 01:59 | Session end: 37 writes across 20 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 23 reads | ~186793 tok |
+| 02:00 | Session end: 37 writes across 20 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 23 reads | ~186793 tok |
+| 02:02 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | — | ~7738 |
+| 02:03 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-02-PLAN.md | — | ~4321 |
+| 02:03 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md | modified mailbox_status() | ~241 |
+| 02:03 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md | 1→2 lines | ~118 |
+| 02:03 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md | inline fix | ~98 |
+| 02:03 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md | inline fix | ~23 |
+| 02:03 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md | 1→2 lines | ~169 |
+| 02:04 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/cf7bcac0-bbd2-4db4-b2fd-0efe2c1e87fd/scratchpad/planner-nyan.html | — | ~1345 |
+| 02:04 | Session end: 45 writes across 21 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 23 reads | ~201850 tok |
+| 02:05 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | — | ~7944 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | inline fix | ~66 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | modified createFolderSync() | ~158 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | "advanceFolderSync never m" → "advanceFolderSync never m" | ~77 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | 1→2 lines | ~123 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | inline fix | ~41 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | inline fix | ~67 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md | inline fix | ~112 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md | 2→4 lines | ~132 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md | modified createFolder() | ~125 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md | 1→2 lines | ~47 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md | inline fix | ~84 |
+| 02:05 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md | inline fix | ~48 |
+| 02:06 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | — | ~5742 |
+| 02:07 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-09-PLAN.md | inline fix | ~64 |
+| 02:07 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-09-PLAN.md | "examine(" → "tls: { mode: " | ~33 |
+| 02:08 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-10-PLAN.md | — | ~7602 |
+| 02:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md | 1→2 lines | ~81 |
+| 02:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md | — | ~0 |
+| 02:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md | 2→1 lines | ~9 |
+| 02:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md | inline fix | ~51 |
+| 02:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md | inline fix | ~23 |
+| 02:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md | inline fix | ~34 |
+| 02:09 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md | modified readHold() | ~127 |
+| 02:09 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md | 1→2 lines | ~122 |
+| 02:09 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md | 1→2 lines | ~83 |
+| 02:09 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md | 2→2 lines | ~65 |
+| 02:09 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md | inline fix | ~70 |
+| 02:09 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/cf7bcac0-bbd2-4db4-b2fd-0efe2c1e87fd/scratchpad/nyan-watch.sh | — | ~763 |
+| 02:10 | Session end: 74 writes across 22 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 23 reads | ~227445 tok |
+| 02:10 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-13-PLAN.md | — | ~7006 |
+| 02:10 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-13-PLAN.md | 1→2 lines | ~67 |
+| 02:12 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-15-PLAN.md | — | ~4191 |
+| 02:13 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-16-PLAN.md | — | ~5329 |
+| 02:14 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-17-PLAN.md | — | ~4424 |
+| 02:15 | Created .planning/phases/02-bridge-spike-and-imap-ingest/COVERAGE.md | — | ~1211 |
+| 02:17 | Edited .planning/ROADMAP.md | expanded (+30 lines) | ~619 |
+| 02:17 | Edited .planning/ROADMAP.md | inline fix | ~17 |
+| 02:17 | Phase 2 planning: 17 plans revised for D-72..D-77, VALIDATION map filled, COVERAGE.md, ROADMAP plan list | .planning/phases/02-*/ | done | ~120k |
+| 02:26 | Session end: 82 writes across 24 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 29 reads | ~280641 tok |
+| 02:30 | Session end: 82 writes across 24 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 31 reads | ~288718 tok |
+| 02:35 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | 15→11 lines | ~61 |
+| 02:35 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | 8→4 lines | ~175 |
+| 02:35 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | removed 8 lines | ~31 |
+| 02:35 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | modified shared() | ~397 |
+| 02:35 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | removed 28 lines | ~19 |
+| 02:35 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | inline fix | ~23 |
+| 02:36 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | reduced (-30 lines) | ~415 |
+| 02:36 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md | reduced (-7 lines) | ~750 |
+| 02:39 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-18-PLAN.md | — | ~8060 |
+| 02:40 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | 2→3 lines | ~263 |
+| 02:40 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | 3→3 lines | ~59 |
+| 02:40 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | 5→8 lines | ~104 |
+| 02:40 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | "docker compose run --rm b" → "bridge" | ~84 |
+| 02:40 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | modified service() | ~194 |
+| 02:40 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | modified bridge() | ~298 |
+| 02:41 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | expanded (+7 lines) | ~412 |
+| 02:41 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | expanded (+8 lines) | ~404 |
+| 02:41 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md | 8→9 lines | ~247 |
+| 02:44 | Edited .planning/ROADMAP.md | 14→15 lines | ~315 |
+| 02:46 | Revised phase 2 plans: split 02-04 -> 02-04 + 02-18 (D-80 capture tests), D-79 bridge-init service across 01/08/13/14/15/17, D-78 cite in 02; VALIDATION/COVERAGE/ROADMAP synced; backup-transport conflict raised | .planning/phases/02-*/ | revision done, 1 conflict | ~60000 |
+| 02:51 | Session end: 101 writes across 25 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 32 reads | ~307580 tok |
+| 02:55 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md | 2→4 lines | ~111 |
+| 02:56 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-17-PLAN.md | 1→2 lines | ~105 |
+| 02:57 | Applied D-81 to phase 2 plans: long-syntax .env.mailboxes.bak bind on bridge-init (02-01, compose convert check), in-place writes + inode tests + refusal naming touch/chmod (02-08), quick-start touch/chmod step (02-17), backup file prep (02-14), VALIDATION rows | .planning/phases/02-*/ | done | ~15000 |
+| 02:57 | Session end: 103 writes across 25 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 32 reads | ~307811 tok |

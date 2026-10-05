@@ -74,7 +74,38 @@ Plans:
   4. A new email sent to the mailbox shows up in the database within one polling interval without restarting anything
   5. After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages
 
-**Plans**: TBD
+**Plans**: 18 plans
+
+Plans:
+**Wave 1**
+- [ ] 02-01-PLAN.md — Proton Bridge image from the pinned release, fail-closed keychain, Compose bridge and one-shot bridge-init services, isolated smoke (wave 1)
+- [ ] 02-02-PLAN.md — Config keys imap.tls.mode/pin_sha256 and the per-mailbox ingest block, example config (wave 1)
+- [ ] 02-03-PLAN.md — Schema: message identity, message_location, message_body, folder_sync watermarks and backfill cursor, new mailbox states (wave 1)
+- [ ] 02-04-PLAN.md — IMAP test server (local and CI), SPKI pin function, D-77 dependency install with license/tree checks (wave 1)
+- [ ] 02-05-PLAN.md — Supervisor nudge() and shutdown AbortSignal (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 02-06-PLAN.md — Scoped upsert and ingest use-cases in @sift/db (wave 2)
+- [ ] 02-07-PLAN.md — Ingest contracts, identity keys and message parsing (wave 2)
+- [ ] 02-08-PLAN.md — `docker compose run --rm bridge-init`: Go gRPC helper, password upsert with host-side backup, fingerprint to pin, repair mode (wave 2)
+- [ ] 02-18-PLAN.md — Credential-free cert capture (wire-tested, D-80) and the pinned, twice-verified STARTTLS/implicit connection (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 02-09-PLAN.md — Read-only ImapFlow FolderSource adapter against Dovecot (wave 3)
+- [ ] 02-10-PLAN.md — Sync engine: throttled first backfill, polling, valve, removals, generation resync, CLI backfill entry points (wave 3)
+- [ ] 02-11-PLAN.md — `sift bridge probe` spike tool (aggregates only, confirmed label test) (wave 3)
+- [ ] 02-12-PLAN.md — Cross-process ingest lock and status use-cases (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 02-13-PLAN.md — Worker integration: lock, pinned connect, engine, owner-visible states, end-to-end tests (wave 4)
+- [ ] 02-14-PLAN.md — Live spike on the owner's Proton mailbox, findings document and ADR-0003 addendum (wave 4, owner checkpoint)
+- [ ] 02-15-PLAN.md — `sift bridge trust <slug>`, Renovate for the Bridge pin, Bridge image CI (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 02-16-PLAN.md — `sift mailbox resume`, `sift mailbox list` states, count-and-confirm `sift mailbox backfill` (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 02-17-PLAN.md — README and CONTRIBUTING for Bridge setup, pinning, ingest, security and privacy (wave 6)
 
 ### Phase 3: Tiered Classification with Traces
 
@@ -113,7 +144,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
-| 2. Bridge Spike and IMAP Ingest | v0.1 | 0/0 | Not started | - |
+| 2. Bridge Spike and IMAP Ingest | v0.1 | 0/17 | Planned | - |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
