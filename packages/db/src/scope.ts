@@ -422,24 +422,23 @@ export async function requireActive(scope: Scope): Promise<void> {
   if (row.disabledAt !== null) throw new MailboxDisabledError(row.slug);
 }
 
+/** True when `mailboxId` is a UUID string; callers check before any query runs. */
+export function isMailboxId(mailboxId: unknown): mailboxId is string {
+  return typeof mailboxId === 'string' && UUID.test(mailboxId);
+}
+
 /**
- * Run `fn` inside one transaction scoped to `mailboxId` (D-42).
- *
- * `app.mailbox_id` is set transaction-locally, so a pooled connection never
- * carries a mailbox to its next user. `fn` receives only per-table helpers,
- * never the transaction, pool or Drizzle instance; the Scope stops working
- * once `fn` settles.
+ * @internal The transaction body behind withMailbox and IngestSession.run:
+ * one transaction on `orm` with `app.mailbox_id` set transaction-locally and a
+ * frozen Scope that stops working once `fn` settles. The caller has already
+ * validated `mailboxId`.
  */
-export async function withMailbox<T>(
-  db: AppDb,
+export async function runScoped<T>(
+  orm: NodePgDatabase,
   mailboxId: string,
   fn: (scope: Scope) => Promise<T>,
-  options: WithMailboxOptions = {},
+  options: WithMailboxOptions,
 ): Promise<T> {
-  if (typeof mailboxId !== 'string' || !UUID.test(mailboxId)) {
-    throw new InvalidMailboxIdError();
-  }
-  const { orm } = internalsOf(db);
   return orm.transaction(async (tx) => {
     await tx.execute(sql`select set_config('app.mailbox_id', ${mailboxId}, true)`);
     let open = true;
@@ -470,4 +469,22 @@ export async function withMailbox<T>(
       open = false;
     }
   });
+}
+
+/**
+ * Run `fn` inside one transaction scoped to `mailboxId` (D-42).
+ *
+ * `app.mailbox_id` is set transaction-locally, so a pooled connection never
+ * carries a mailbox to its next user. `fn` receives only per-table helpers,
+ * never the transaction, pool or Drizzle instance; the Scope stops working
+ * once `fn` settles.
+ */
+export async function withMailbox<T>(
+  db: AppDb,
+  mailboxId: string,
+  fn: (scope: Scope) => Promise<T>,
+  options: WithMailboxOptions = {},
+): Promise<T> {
+  if (!isMailboxId(mailboxId)) throw new InvalidMailboxIdError();
+  return runScoped(internalsOf(db).orm, mailboxId, fn, options);
 }

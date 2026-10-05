@@ -877,6 +877,8 @@ describe('@sift/db export surface', () => {
   it('exports exactly the scoped API and nothing that yields a pool, client or orm', () => {
     expect(Object.keys(api).sort()).toEqual(
       [
+        'INGEST_LOCK_SEED',
+        'IngestSessionBusyError',
         'InvalidMailboxIdError',
         'MailboxDisabledError',
         'MailboxNotFoundError',
@@ -901,6 +903,7 @@ describe('@sift/db export surface', () => {
         'markLocationsRemoved',
         'setFolderBackfill',
         'storeMessages',
+        'withIngestLock',
         'withMailbox',
       ].sort(),
     );

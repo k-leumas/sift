@@ -54,6 +54,13 @@ export {
   setFolderBackfill,
   storeMessages,
 } from './ingest.ts';
+export {
+  INGEST_LOCK_SEED,
+  type IngestLockResult,
+  type IngestSession,
+  IngestSessionBusyError,
+  withIngestLock,
+} from './lock.ts';
 export { type RegistryRow, readRegistry } from './registry-read.ts';
 export {
   type AppendOnlyTableApi,
