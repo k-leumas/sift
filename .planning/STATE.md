@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-07-PLAN.md
-last_updated: "2026-10-05T18:50:01.113Z"
+stopped_at: Completed 02-08-PLAN.md
+last_updated: "2026-10-05T19:16:32.401Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: e18310407ef309cc87fc6376bfcfbaea20945e4e
+state_head: 57b5f89876e445415b96c2f2665fc0564205e602
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 8 of 19
+Plan: 9 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -77,6 +77,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P05 | 10 min | 2 tasks | 2 files |
 | Phase 02 P06 | 8 min | 2 tasks | 5 files |
 | Phase 02 P07 | 6 min | 2 tasks | 5 files |
+| Phase 02 P08 | 23 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -145,6 +146,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-07: the hdr: hash reads raw (undecoded) header values, so a libmime upgrade cannot change stored keys
 - [Phase 02]: 02-07: html-to-text runs with limits.maxDepth 200; deeper HTML nesting overflowed the stack
 - [Phase 02]: 02-07: message/* attached messages are never entered for body selection or attachment listing
+- [Phase 02]: 02-08: sift-helper uses Bridge's own service.Config loader and the server-token metadata; the entrypoint deletes a stale grpcServerConfig.json before each gRPC start
+- [Phase 02]: 02-08: only CONNECTED Bridge accounts give an IMAP password; signed-out or locked accounts produce a per-mailbox skip line
+- [Phase 02]: 02-08: one-shot Bridge modes probe the single-instance lock with flock -n and refuse while the bridge service runs (exit 1)
+- [Phase 02]: 02-08: configure continues without a fingerprint (stderr message); invalid password_env names exit 1 with nothing written
 
 ### Pending Todos
 
@@ -166,6 +171,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T18:50:01.043Z
-Stopped at: Completed 02-07-PLAN.md
+Last session: 2026-10-05T19:16:32.333Z
+Stopped at: Completed 02-08-PLAN.md
 Resume file: None
