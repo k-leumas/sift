@@ -7,6 +7,7 @@ import { type TLSSocket, connect as tlsConnect } from 'node:tls';
 import { promisify } from 'node:util';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { peerSpkiSha256, pemFromDer, spkiSha256 } from '../src/imap/pin.ts';
+import { makeTestCertificates, startFakeImapServer } from './support/fake-imap-server.ts';
 import {
   appendMessage,
   bumpUidValidity,
@@ -157,6 +158,28 @@ describe('SPKI pin against the STARTTLS test server (D-40, D-73)', () => {
       expect(pemFromDer(peer.raw).trim()).toBe(pem.trim());
     } finally {
       secure.destroy();
+    }
+  });
+
+  it('peerSpkiSha256 of an EC peer certificate equals spkiSha256 of its PEM', async () => {
+    // Node's `pubkey` is the bare curve point for EC keys, not the SPKI.
+    const { captured } = await makeTestCertificates();
+    const server = await startFakeImapServer({ mode: 'implicit', certificates: [captured] });
+    const secure = tlsConnect({
+      host: '127.0.0.1',
+      port: server.port,
+      ca: [captured.pem],
+      checkServerIdentity: () => undefined,
+    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        secure.once('secureConnect', resolve);
+        secure.once('error', reject);
+      });
+      expect(peerSpkiSha256(secure.getPeerCertificate())).toBe(captured.spkiSha256);
+    } finally {
+      secure.destroy();
+      await server.close();
     }
   });
 
