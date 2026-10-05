@@ -32,8 +32,10 @@ interface Harness {
   supervisor: Supervisor;
   /** What readRegistry returns on the next tick. */
   registry: MailboxEntry[];
-  /** Per-slug batch body; default resolves at once. */
-  batch: Map<string, () => Promise<void>>;
+  /** Per-slug batch body; default resolves at once. Gets the shutdown signal. */
+  batch: Map<string, (signal: AbortSignal) => Promise<void>>;
+  /** The signal the latest runBatch call received, per slug. */
+  signals: Map<string, AbortSignal>;
   /** Fake-clock times of each runBatch call, per slug. */
   runs: Map<string, number[]>;
   errors: { slug: string; error: unknown }[];
@@ -46,7 +48,8 @@ interface Harness {
 function harness(initial: MailboxEntry[], overrides: Partial<SupervisorDeps> = {}): Harness {
   const h = {
     registry: initial,
-    batch: new Map<string, () => Promise<void>>(),
+    batch: new Map<string, (signal: AbortSignal) => Promise<void>>(),
+    signals: new Map<string, AbortSignal>(),
     runs: new Map<string, number[]>(),
     errors: [] as { slug: string; error: unknown }[],
     stopped: [] as string[],
@@ -67,11 +70,12 @@ function harness(initial: MailboxEntry[], overrides: Partial<SupervisorDeps> = {
       }
       return h.registry.map((e) => ({ ...e }));
     },
-    async runBatch(m) {
+    async runBatch(m, signal) {
       const times = h.runs.get(m.slug) ?? [];
       times.push(Date.now());
       h.runs.set(m.slug, times);
-      await (h.batch.get(m.slug) ?? (async () => {}))();
+      h.signals.set(m.slug, signal);
+      await (h.batch.get(m.slug) ?? (async () => {}))(signal);
     },
     async onBatchError(m, error) {
       h.errors.push({ slug: m.slug, error });
@@ -575,6 +579,127 @@ describe('createSupervisor', () => {
       expect(h.runs.get('a')).toEqual([0, 5_000, 65_000]);
       expect(h.runs.get('b')).toEqual([0, 60_000]);
       await stopAll(h);
+    });
+
+    it('a nudge while running never overlaps; one more run starts right after a success', async () => {
+      const h = harness([entry(A, 'a')]);
+      let calls = 0;
+      h.batch.set('a', () => {
+        calls += 1;
+        return calls === 1
+          ? new Promise<void>((resolve) => setTimeout(resolve, 20_000))
+          : Promise.resolve();
+      });
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(h.supervisor.nudge(A)).toBe(true);
+      expect(h.supervisor.nudge(A)).toBe(true);
+
+      await vi.advanceTimersByTimeAsync(14_999);
+      expect(h.runs.get('a')).toEqual([0]);
+
+      // The run ends at 20 s; the follow-up starts at once (a 0 ms timer set
+      // inside a timer callback fires 1 ms later).
+      await vi.advanceTimersByTimeAsync(2);
+      const followUp = h.runs.get('a')?.[1] ?? Number.NaN;
+      expect(runCount(h, 'a')).toBe(2);
+      expect(followUp - 20_000).toBeLessThanOrEqual(1);
+      expect(followUp).toBeGreaterThanOrEqual(20_000);
+      // Exactly one follow-up, however many nudges: then the plain interval.
+      await vi.advanceTimersByTimeAsync(followUp + POLL_MS - 1 - Date.now());
+      expect(runCount(h, 'a')).toBe(2);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(h.runs.get('a')).toEqual([0, followUp, followUp + POLL_MS]);
+      await stopAll(h);
+    });
+
+    it('a failed run drops a pending nudge and keeps its backoff (D-51)', async () => {
+      const h = harness([entry(A, 'a')]);
+      let calls = 0;
+      h.batch.set('a', () => {
+        calls += 1;
+        return calls === 1
+          ? new Promise<void>((_, reject) =>
+              setTimeout(() => reject(new Error('bridge down')), 20_000),
+            )
+          : Promise.resolve();
+      });
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(h.supervisor.nudge(A)).toBe(true);
+
+      const retryAt = 20_000 + computeBackoff(1, POLL_MS, () => 0.5);
+      await vi.advanceTimersByTimeAsync(retryAt - 1 - 5_000);
+      expect(h.errors).toHaveLength(1);
+      expect(h.runs.get('a')).toEqual([0]);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(h.runs.get('a')).toEqual([0, retryAt]);
+      await stopAll(h);
+    });
+
+    it('returns false and runs nothing for an unknown or disabled mailbox, or after stop', async () => {
+      const h = harness([entry(A, 'a'), entry(D, 'd', true)]);
+      expect(h.supervisor.nudge(A)).toBe(false);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      expect(h.supervisor.nudge(C)).toBe(false);
+      expect(h.supervisor.nudge(D)).toBe(false);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(runCount(h, 'd')).toBe(0);
+      expect(h.runs.get('a')).toEqual([0]);
+
+      await stopAll(h);
+      expect(h.supervisor.nudge(A)).toBe(false);
+      await vi.advanceTimersByTimeAsync(2 * POLL_MS);
+      expect(h.runs.get('a')).toEqual([0]);
+    });
+  });
+
+  describe('shutdown signal (D-04, P1 D-53)', () => {
+    it('runBatch gets a signal that aborts as soon as stop() is called, before the drain', async () => {
+      const h = harness([entry(A, 'a')]);
+      h.batch.set('a', never);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(POLL_MS);
+      const signal = h.signals.get('a');
+      expect(signal?.aborted).toBe(false);
+
+      let result: { drained: boolean } | undefined;
+      const stopping = h.supervisor.stop(20_000).then((r) => {
+        result = r;
+      });
+      expect(signal?.aborted).toBe(true);
+      expect(result).toBeUndefined();
+      await vi.advanceTimersByTimeAsync(20_000);
+      await stopping;
+      expect(result).toEqual({ drained: false });
+    });
+
+    it('a batch that stops on abort lets stop() drain', async () => {
+      const h = harness([entry(A, 'a')]);
+      let endedByAbort = false;
+      h.batch.set(
+        'a',
+        (signal) =>
+          new Promise<void>((resolve) => {
+            signal.addEventListener(
+              'abort',
+              () => {
+                endedByAbort = true;
+                resolve();
+              },
+              { once: true },
+            );
+          }),
+      );
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const stopping = h.supervisor.stop(20_000);
+      await vi.advanceTimersByTimeAsync(0);
+      await expect(stopping).resolves.toEqual({ drained: true });
+      expect(endedByAbort).toBe(true);
+      expect(h.errors).toEqual([]);
     });
   });
 });
