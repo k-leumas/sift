@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
-current_phase_name: bridge-spike-and-imap-ingest
+current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-10-05T10:29:38.473Z"
-last_activity: 2026-10-04
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 45a500e7cc991b8b3426ceca533d272faf143db6
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-10-05T17:27:25.543Z"
+last_activity: 2026-10-05
+last_activity_desc: Phase 02 execution started
+state_head: 1b9d7b3a14119adcca352799ac344de7f4ab6eb5
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** Every incoming email is auto-labelled correctly or explicitly held for the owner, entirely on local hardware, with a decision trace explaining why.
-**Current focus:** Phase 2 — Bridge Spike and IMAP Ingest
+**Current focus:** Phase 02 — Bridge Spike and IMAP Ingest
 
 ## Current Position
 
-Phase: 02 (bridge-spike-and-imap-ingest) — READY TO EXECUTE
-Plan: Not started
+Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
+Plan: 2 of 19
 Status: Ready to execute
-Last activity: 2026-10-04 — Phase 01 complete, transitioned to Phase 2
+Last activity: 2026-10-05 — Phase 02 execution started
 
 Progress: [███░░░░░░░] 25%
 
@@ -70,6 +70,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 01 P11 | 6 min | 3 tasks | 6 files |
 | Phase 01 P12 | 37 min | 2 tasks | 14 files |
 | Phase 01 P13 | 8 min | 2 tasks | 3 files |
+| Phase 02 P01 | 18 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-13: README tells owners to recreate the worker (up -d --force-recreate worker) after adding a mailbox password; env_file is read only at container creation
 - [Phase 01]: 01-13: user-facing-text.test.ts enforces D-69 over docs, example env/config, compose.yaml, Dockerfile and shipped src; update it when the deferred command ships
 - [Phase 01]: UAT 4/4 passed 2026-10-05 (target bring-up, real-password grep, GitHub CI incl. compose-smoke, id-based isolation asserts); Nyquist-compliant
+- [Phase 02]: 02-01: bridge entrypoint starts Bridge before socat; on a new vault Bridge's free-port probe also tries the wildcard address, so an early socat on <container IP>:1143 pushed it to 1144
+- [Phase 02]: 02-01: keychain canary runs pass with --pinentry-mode=error under a 30 s timeout so a wrong passphrase exits 78 at once; runtime image adds procps for pkill
+- [Phase 02]: 02-01: compose-smoke builds/starts only db setup worker on <project>-bridge-smoke with SIFT_MAILBOXES_BAK_FILE pointed at a missing path; plain docker compose up now also starts bridge (exit 78 until bridge-init runs)
 
 ### Pending Todos
 
@@ -139,6 +143,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T06:13:39.219Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-bridge-spike-and-imap-ingest/02-CONTEXT.md
+Last session: 2026-10-05T17:27:25.466Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
