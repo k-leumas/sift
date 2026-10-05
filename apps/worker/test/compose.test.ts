@@ -77,7 +77,7 @@ const PRIVILEGED = ['SIFT_DB_OWNER_PASSWORD', 'SIFT_DB_BACKUP_PASSWORD', 'POSTGR
 
 describe('compose.yaml services', () => {
   it('defines db, setup and worker', () => {
-    expect(Object.keys(compose.services ?? {}).sort()).toEqual(['db', 'setup', 'worker']);
+    expect(Object.keys(compose.services ?? {}).sort()).toEqual(['bridge', 'db', 'setup', 'worker']);
   });
 
   it('runs setup and worker from the same locally built image', () => {

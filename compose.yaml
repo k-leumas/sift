@@ -12,10 +12,19 @@
 # No top-level `name:` and no healthcheck `start_interval`: the dev machine
 # runs Docker Compose v2.2.3.
 #
+# Before the first `docker compose up`, create the Bridge volume once:
+#   docker volume create sift-bridge
+# Compose v2.2.3 fails every command, for every service, while an external
+# volume is missing.
+#
+# SIFT_BRIDGE_PORT moves Bridge's published host port, for example when the
+# desktop Proton Mail Bridge app already holds 127.0.0.1:1143.
+#
 # SIFT_IMAGE, SIFT_CONFIG_HOST_DIR, SIFT_MAILBOXES_ENV_FILE, SIFT_BACKUP_HOST_DIR
 # and SIFT_PGDATA_VOLUME exist only so scripts/compose-smoke.sh can run a
-# throwaway stack that shares none of your files, image or volume. Leave them
-# unset.
+# throwaway stack that shares none of your files, image or volume. Likewise
+# SIFT_BRIDGE_IMAGE and SIFT_BRIDGE_VOLUME exist only for the smoke scripts.
+# Leave them unset.
 
 services:
   db:
@@ -112,8 +121,42 @@ services:
     stop_grace_period: 30s
     restart: unless-stopped
 
+  # Proton Mail Bridge, built from source at a pinned release (bridge/Dockerfile).
+  # The worker reaches it at bridge:1143 and does not wait for it: a Bridge
+  # outage is a mailbox error, not a stack failure.
+  bridge:
+    build:
+      context: ./bridge
+    image: ${SIFT_BRIDGE_IMAGE:-sift-bridge:local}
+    environment:
+      # Unlocks the GPG key that protects Bridge's vault in the sift-bridge
+      # volume. Only the Bridge services receive it.
+      SIFT_BRIDGE_KEYCHAIN_PASSPHRASE: ${SIFT_BRIDGE_KEYCHAIN_PASSPHRASE:?set in .env}
+    volumes:
+      # The vault volume only. This service never sees .env.mailboxes or
+      # config; the one-shot bridge-init service is the only one that does.
+      - sift-bridge:/data
+    ports:
+      # Loopback only. Never publish Bridge on all interfaces.
+      - "127.0.0.1:${SIFT_BRIDGE_PORT:-1143}:1143"
+    healthcheck:
+      # Probes the socat listener on the container IP, the address the
+      # published port and other containers reach. `$$` keeps the substitution
+      # for the container shell instead of Compose interpolation.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/$$(hostname -i | cut -d' ' -f1)/1143"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
 volumes:
   sift-pgdata:
     # Your database. SIFT_PGDATA_VOLUME exists only so scripts/compose-smoke.sh
     # can run a throwaway stack on its own volume; leave it unset.
     name: ${SIFT_PGDATA_VOLUME:-sift-pgdata}
+  sift-bridge:
+    # Bridge's session vault. Create it once with `docker volume create
+    # sift-bridge`. SIFT_BRIDGE_VOLUME exists only for the smoke scripts.
+    name: ${SIFT_BRIDGE_VOLUME:-sift-bridge}
+    external: true
