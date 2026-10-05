@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-12-PLAN.md
-last_updated: "2026-10-05T20:47:16.520Z"
+stopped_at: Completed 02-13-PLAN.md
+last_updated: "2026-10-05T21:08:34.411Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 565ea8b92efa7773a44db1037d61d56903a61006
+state_head: 2f49827685004392fd52874867781e96acc61e18
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 14 of 19
+Plan: 15 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -83,6 +83,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P10 | 14 min | 3 tasks | 6 files |
 | Phase 02 P11 | 18 min | 2 tasks | 6 files |
 | Phase 02 P12 | 11 min | 2 tasks | 7 files |
+| Phase 02 P13 | 14 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-12: withIngestLock error precedence: fn error wins, else a dead-connection or unlock error; a dead or possibly-locked client is discarded, a clean fn throw keeps the connection pooled
 - [Phase 02]: 02-12: IngestSession.run is not re-entrant (IngestSessionBusyError before any SQL); withIngestLock waits for a run left in flight before unlocking
 - [Phase 02]: 02-12: recordNeedsAttention clears approved_new_count and its last_error carries only the count and the sift mailbox resume command; recordSyncSuccess clears held and approved counts
+- [Phase 02]: 02-13: removal-diff time set only after a run that diffed (or resynced); setting it after every synced run would postpone the diff forever under 60 s polls
+- [Phase 02]: 02-13: only FolderSource and connect errors become MailboxSyncError (owner texts); database errors keep the redacted path with the coded pg error, never Drizzle's query text with mail params
+- [Phase 02]: 02-13: a held mailbox (needs_attention, approved null) is skipped without connecting; an approved run uses approved + new_mail_cap
 
 ### Pending Todos
 
@@ -193,6 +197,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T20:47:06.317Z
-Stopped at: Completed 02-12-PLAN.md
+Last session: 2026-10-05T21:08:34.339Z
+Stopped at: Completed 02-13-PLAN.md
 Resume file: None
