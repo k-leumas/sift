@@ -36,6 +36,27 @@
       "when": 1791092491899,
       "tag": "0004_scoped_tables_force_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791222016728,
+      "tag": "0005_ingest_preflight",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791222019655,
+      "tag": "0006_ingest_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791222022511,
+      "tag": "0007_ingest_tables_force_grants",
+      "breakpoints": true
     }
   ]
 }

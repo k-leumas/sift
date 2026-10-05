@@ -64,6 +64,29 @@ export class MigrationOrderError extends Error {
   override name = 'MigrationOrderError';
 }
 
+/**
+ * A migration statement failed. The migrator runs every pending migration in
+ * one transaction, so nothing from the run was applied. The message is the
+ * database's own (for example the 0005 preflight's fixed text), not drizzle's
+ * "Failed query: <whole migration SQL>" wrapper, which is kept as `cause`.
+ */
+export class MigrationFailedError extends Error {
+  override name = 'MigrationFailedError';
+}
+
+/** The driver error (it carries a SQLSTATE) inside drizzle's wrapper, if any. */
+function migrationFailure(error: unknown): unknown {
+  let current: unknown = error;
+  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
+    const code: unknown = (current as { code?: unknown }).code;
+    if (typeof code === 'string') {
+      return new MigrationFailedError(current.message, { cause: error });
+    }
+    current = current.cause;
+  }
+  return error;
+}
+
 interface JournalEntry {
   tag: string;
 }
@@ -130,11 +153,15 @@ export async function migrate(options: MigrateOptions): Promise<MigrateResult> {
 
     await ensureAppRole(client, options.appPassword, log);
 
-    await drizzleMigrate(drizzle({ client }), {
-      migrationsFolder,
-      migrationsTable: MIGRATIONS_TABLE,
-      migrationsSchema: MIGRATIONS_SCHEMA,
-    });
+    try {
+      await drizzleMigrate(drizzle({ client }), {
+        migrationsFolder,
+        migrationsTable: MIGRATIONS_TABLE,
+        migrationsSchema: MIGRATIONS_SCHEMA,
+      });
+    } catch (error) {
+      throw migrationFailure(error);
+    }
     const after = await appliedCount(client);
     if (after - before !== pending.length) {
       throw new MigrationOrderError(

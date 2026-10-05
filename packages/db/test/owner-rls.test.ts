@@ -15,11 +15,16 @@ type ScopedTable = (typeof SCOPED_TABLE_NAMES)[number];
 type Counts = Record<ScopedTable, number>;
 
 /** Children first, so a RESTRICT foreign key never blocks a parent delete. */
-const CHILD_FIRST: readonly ScopedTable[] = [
+const MESSAGE_CHILDREN_THEN_MESSAGE: readonly ScopedTable[] = [
   'label',
   'decision',
+  'message_location',
+  'message_body',
   'message',
-  ...SCOPED_TABLE_NAMES.filter((t) => !['label', 'decision', 'message'].includes(t)),
+];
+const CHILD_FIRST: readonly ScopedTable[] = [
+  ...MESSAGE_CHILDREN_THEN_MESSAGE,
+  ...SCOPED_TABLE_NAMES.filter((t) => !MESSAGE_CHILDREN_THEN_MESSAGE.includes(t)),
 ];
 
 let db: TestDatabase;

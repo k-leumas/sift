@@ -11,6 +11,7 @@ import {
   BackupRequiredError,
   MIGRATE_LOCK_KEY,
   MIGRATIONS_FOLDER,
+  MigrationFailedError,
   MigrationOrderError,
   migrate,
 } from '../src/owner/migrate.ts';
@@ -28,7 +29,18 @@ import {
 import { seedMailboxes, seedScopedRows } from './support/seed.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../../..');
-const BACKUP_FILE = /^sift-\d{8}T\d{6}Z-pre-0004_scoped_tables_force_grants\.dump$/;
+// Counts and names come from the committed journal, so adding migrations in
+// later phases does not break these tests.
+const JOURNAL_TAGS = (
+  JSON.parse(readFileSyncBuffer(path.join(MIGRATIONS_FOLDER, 'meta', '_journal.json'), 'utf8')) as {
+    entries: { tag: string }[];
+  }
+).entries.map((entry) => entry.tag);
+const MIGRATION_COUNT = JOURNAL_TAGS.length;
+const LAST_TAG = JOURNAL_TAGS.at(-1) ?? '';
+/** The trivial migration withExtraMigration appends after the committed ones. */
+const EXTRA_TAG = `${String(MIGRATION_COUNT).padStart(4, '0')}_test_extra`;
+const BACKUP_FILE = new RegExp(`^sift-\\d{8}T\\d{6}Z-pre-${LAST_TAG}\\.dump$`);
 
 let db: TestDatabase;
 let releaseAppRole: (() => Promise<void>) | undefined;
@@ -55,7 +67,7 @@ describe('migrate()', () => {
       const { rows } = await owner.query<{ n: number }>(
         'select count(*)::int as n from drizzle.__drizzle_migrations',
       );
-      expect(rows[0]?.n).toBe(5);
+      expect(rows[0]?.n).toBe(MIGRATION_COUNT);
     } finally {
       await owner.end();
     }
@@ -94,7 +106,9 @@ describe('migrate()', () => {
       await app.query('begin');
       await app.query("select set_config('app.mailbox_id', $1, true)", [mailboxId]);
       const inserted = await app.query<{ id: string }>(
-        'insert into message (mailbox_id) values ($1) returning id',
+        `insert into message (mailbox_id, identity_key, internal_date, eligible_for_classification)
+         values ($1, 'mid:migrate-test@example.test', now(), true)
+         returning id`,
         [mailboxId],
       );
       const messageId = inserted.rows[0]?.id;
@@ -219,8 +233,8 @@ describe('migrate() ordering (drizzle applies only migrations newer than the las
         backup: { url: fresh.backupUrl, dir: folder, pgDump: 'sift-pg-dump-must-not-run' },
       });
       await expect(run).rejects.toThrow(MigrationOrderError);
-      await expect(run).rejects.toThrow(/0005_test_extra is dated no later than 0004_/);
-      expect(await appliedTags(fresh.ownerUrl)).toBe(5);
+      await expect(run).rejects.toThrow(`${EXTRA_TAG} is dated no later than ${LAST_TAG}`);
+      expect(await appliedTags(fresh.ownerUrl)).toBe(MIGRATION_COUNT);
     } finally {
       await rm(folder, { recursive: true, force: true });
       await fresh.drop();
@@ -234,7 +248,7 @@ describe('migrate() ordering (drizzle applies only migrations newer than the las
       const when = Date.now();
       await withExtraMigration(folder, when);
       // The database already ran a migration from another branch dated later
-      // than 0005_test_extra (the rebase case): drizzle would skip 0005.
+      // than the extra test migration (the rebase case): drizzle would skip it.
       const owner = await connect(fresh.ownerUrl);
       try {
         await owner.query(
@@ -256,7 +270,7 @@ describe('migrate() ordering (drizzle applies only migrations newer than the las
       ).rejects.toThrow(
         /1 migration\(s\) in the journal are older than the last applied one and would never be applied/,
       );
-      expect(await appliedTags(fresh.ownerUrl)).toBe(5);
+      expect(await appliedTags(fresh.ownerUrl)).toBe(MIGRATION_COUNT);
     } finally {
       await rm(folder, { recursive: true, force: true });
       await fresh.drop();
@@ -283,13 +297,14 @@ describe('migrate() decides skipped migrations by identity, not by count (WR-04)
     try {
       const when = Date.now();
       await withExtraMigration(folder, when);
-      // feat-1 applied its own 0005 (dated later) to this database; on feat-2
-      // the journal has 0005_test_extra instead. 6 rows, 6 journal entries.
+      // feat-1 applied its own next migration (dated later) to this database;
+      // on feat-2 the journal has the extra test migration instead, so the
+      // row count and the journal length match.
       const owner = await connect(fresh.ownerUrl);
       try {
         await owner.query(
           'insert into drizzle.__drizzle_migrations (hash, created_at) values ($1, $2)',
-          ['hash-of-0005-from-another-branch', when + 60_000],
+          ['hash-of-a-migration-from-another-branch', when + 60_000],
         );
       } finally {
         await owner.end();
@@ -302,8 +317,10 @@ describe('migrate() decides skipped migrations by identity, not by count (WR-04)
           migrationsFolder: folder,
           backup: { url: fresh.backupUrl, dir: folder, pgDump: 'sift-pg-dump-must-not-run' },
         }),
-      ).rejects.toThrow(/1 migration\(s\) .* would never be applied \(0005_test_extra\)/);
-      expect(await appliedRows(fresh.ownerUrl)).toBe(6);
+      ).rejects.toThrow(
+        new RegExp(`1 migration\\(s\\) .* would never be applied \\(${EXTRA_TAG}\\)`),
+      );
+      expect(await appliedRows(fresh.ownerUrl)).toBe(MIGRATION_COUNT + 1);
     } finally {
       await rm(folder, { recursive: true, force: true });
       await fresh.drop();
@@ -315,7 +332,7 @@ describe('migrate() decides skipped migrations by identity, not by count (WR-04)
     const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
     try {
       await cp(MIGRATIONS_FOLDER, folder, { recursive: true });
-      const edited = path.join(folder, '0004_scoped_tables_force_grants.sql');
+      const edited = path.join(folder, `${LAST_TAG}.sql`);
       await writeFile(
         edited,
         `${await readFile(edited, 'utf8')}\n-- edited after it was applied\n`,
@@ -328,11 +345,80 @@ describe('migrate() decides skipped migrations by identity, not by count (WR-04)
           migrationsFolder: folder,
           backup: { url: fresh.backupUrl, dir: folder, pgDump: 'sift-pg-dump-must-not-run' },
         }),
-      ).rejects.toThrow(/\(0004_scoped_tables_force_grants\)/);
-      expect(await appliedRows(fresh.ownerUrl)).toBe(5);
+      ).rejects.toThrow(`(${LAST_TAG})`);
+      expect(await appliedRows(fresh.ownerUrl)).toBe(MIGRATION_COUNT);
     } finally {
       await rm(folder, { recursive: true, force: true });
       await fresh.drop();
+    }
+  });
+});
+
+/** Phase 1 shipped 0000-0004; 0005_ingest_preflight is the first Phase 2 migration. */
+const PHASE1_MIGRATION_COUNT = 5;
+
+describe('migrate() preflight for the Phase 2 ingest schema (T-02-63)', () => {
+  it('refuses a database whose message table already has rows and applies nothing', async () => {
+    const empty = await emptyDatabase();
+    const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
+    try {
+      // A Phase 1 database: only the migrations before the preflight.
+      await cp(MIGRATIONS_FOLDER, folder, { recursive: true });
+      const journalPath = path.join(folder, 'meta', '_journal.json');
+      const journal = JSON.parse(await readFile(journalPath, 'utf8')) as {
+        entries: { tag: string }[];
+      };
+      const preflight = journal.entries.findIndex((e) => e.tag === '0005_ingest_preflight');
+      expect(preflight).toBe(PHASE1_MIGRATION_COUNT);
+      journal.entries = journal.entries.slice(0, preflight);
+      await writeFile(journalPath, JSON.stringify(journal, null, 2));
+      const appPassword = requireEnv('SIFT_DB_APP_PASSWORD');
+      await migrate({
+        ownerUrl: empty.ownerUrl,
+        appPassword,
+        migrationsFolder: folder,
+        backup: false,
+      });
+
+      // A Phase 1 shaped row, written by hand as the owner under app.mailbox_id.
+      const { legacy } = await seedMailboxes(empty.ownerUrl, ['legacy']);
+      if (legacy === undefined) {
+        throw new Error('seedMailboxes returned no id for "legacy"');
+      }
+      const owner = await connect(empty.ownerUrl);
+      try {
+        await owner.query('begin');
+        await owner.query("select set_config('app.mailbox_id', $1, true)", [legacy]);
+        await owner.query('insert into message (mailbox_id) values ($1)', [legacy]);
+        await owner.query('commit');
+      } finally {
+        await owner.end();
+      }
+
+      const run = migrate({ ownerUrl: empty.ownerUrl, appPassword, backup: false });
+      await expect(run).rejects.toThrow(MigrationFailedError);
+      await expect(run).rejects.toThrow(
+        /^Sift's Phase 2 schema needs empty message and folder_sync tables/,
+      );
+      await expect(run).rejects.toThrow('mailbox legacy already has rows');
+
+      const check = await connect(empty.ownerUrl);
+      try {
+        const applied = await check.query<{ n: number }>(
+          'select count(*)::int as n from drizzle.__drizzle_migrations',
+        );
+        expect(applied.rows[0]?.n).toBe(PHASE1_MIGRATION_COUNT);
+        const column = await check.query<{ n: number }>(
+          `select count(*)::int as n from information_schema.columns
+            where table_schema = 'public' and table_name = 'message' and column_name = 'identity_key'`,
+        );
+        expect(column.rows[0]?.n).toBe(0);
+      } finally {
+        await check.end();
+      }
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+      await empty.drop();
     }
   });
 });
@@ -350,7 +436,7 @@ describe('migrate() backups (D-29, D-66)', () => {
         backup: { url: empty.backupUrl, dir, pgDump },
       });
 
-      expect(result.applied).toHaveLength(5);
+      expect(result.applied).toHaveLength(MIGRATION_COUNT);
       expect(result.backupFile).not.toBeNull();
       const file = result.backupFile ?? '';
       expect(path.dirname(file)).toBe(dir);
@@ -423,7 +509,7 @@ describe('migrate() backups (D-29, D-66)', () => {
           backup: undefined,
         }),
       ).rejects.toThrow(
-        'SIFT_BACKUP_DATABASE_URL is not set; a backup is required before applying 5 pending migrations',
+        `SIFT_BACKUP_DATABASE_URL is not set; a backup is required before applying ${MIGRATION_COUNT} pending migrations`,
       );
       expect(await migrationsTableExists(empty.ownerUrl)).toBe(false);
       expect(await appVerifier()).toBe(verifier);
@@ -575,9 +661,11 @@ describe('migrate() backups (D-29, D-66)', () => {
         migrationsFolder: folder,
         backup: { url: fresh.backupUrl, dir, pgDump },
       });
-      expect(result.applied).toEqual(['0005_test_extra']);
+      expect(result.applied).toEqual([EXTRA_TAG]);
       const file = result.backupFile ?? '';
-      expect(path.basename(file)).toMatch(/^sift-\d{8}T\d{6}Z-pre-0005_test_extra\.dump$/);
+      expect(path.basename(file)).toMatch(
+        new RegExp(`^sift-\\d{8}T\\d{6}Z-pre-${EXTRA_TAG}\\.dump$`),
+      );
       expect(await readMagic(file)).toBe('PGDMP');
 
       const restore = resolvePgRestore();
@@ -680,20 +768,20 @@ function checked(result: SpawnSyncReturns<string>): string {
   return result.stdout;
 }
 
-/** Copy the committed migrations and append a trivial 0005_test_extra dated `when`. */
+/** Copy the committed migrations and append the trivial EXTRA_TAG migration dated `when`. */
 async function withExtraMigration(folder: string, when: number = Date.now()): Promise<void> {
   await cp(MIGRATIONS_FOLDER, folder, { recursive: true });
   const journalPath = path.join(folder, 'meta', '_journal.json');
   const journal = JSON.parse(await readFile(journalPath, 'utf8')) as { entries: object[] };
   journal.entries.push({
-    idx: 5,
+    idx: journal.entries.length,
     version: '7',
     when,
-    tag: '0005_test_extra',
+    tag: EXTRA_TAG,
     breakpoints: true,
   });
   await writeFile(journalPath, JSON.stringify(journal, null, 2));
-  await writeFile(path.join(folder, '0005_test_extra.sql'), 'select 1;\n');
+  await writeFile(path.join(folder, `${EXTRA_TAG}.sql`), 'select 1;\n');
 }
 
 /** sift_app's stored SCRAM verifier, read with the superuser test URL. */

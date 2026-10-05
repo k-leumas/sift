@@ -3,6 +3,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -21,6 +22,12 @@ const REPO_ROOT = path.resolve(import.meta.dirname, '../../..');
 const CLI = path.join(REPO_ROOT, 'apps/worker/src/cli.ts');
 const EXAMPLE_CONFIG = path.join(REPO_ROOT, 'config/config.example.yaml');
 const TIMEOUT = 120_000;
+/** Committed migrations, from the journal, so new migrations do not break this test. */
+const MIGRATION_COUNT = (
+  JSON.parse(
+    readFileSync(path.join(REPO_ROOT, 'packages/db/migrations/meta/_journal.json'), 'utf8'),
+  ) as { entries: unknown[] }
+).entries.length;
 
 interface EmptyDatabase {
   name: string;
@@ -177,7 +184,7 @@ describe('sift setup (D-27, D-28, D-33)', () => {
       const { status, stdout, stderr } = await setup(EXAMPLE_CONFIG, pgDump);
       expect(stderr).toBe('');
       expect(status).toBe(0);
-      expect(stdout).toContain('Applied 5 migrations');
+      expect(stdout).toContain(`Applied ${MIGRATION_COUNT} migrations`);
       expect(stdout).toContain('add mailbox "personal"');
       expect(stdout).toContain('add mailbox "job-search"');
       expect(stdout).not.toContain(db.ownerUrl);
@@ -185,7 +192,7 @@ describe('sift setup (D-27, D-28, D-33)', () => {
       const migrations = await ownerQuery<{ n: number }>(
         'select count(*)::int as n from drizzle.__drizzle_migrations',
       );
-      expect(migrations?.n).toBe(5);
+      expect(migrations?.n).toBe(MIGRATION_COUNT);
       const mailboxes = await ownerQuery<{ slugs: string }>(
         "select string_agg(slug, ',' order by slug) as slugs from mailbox",
       );

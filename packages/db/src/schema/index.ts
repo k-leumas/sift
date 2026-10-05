@@ -6,8 +6,12 @@ export {
   folderSync,
   label,
   labelEvent,
+  type MessageAttachment,
   mailboxStatus,
   message,
+  messageBody,
+  messageLocation,
+  type ResyncSummary,
   ruleSet,
 } from './scoped.ts';
 
@@ -15,6 +19,8 @@ export {
 export const SCOPED_TABLE_NAMES = [
   'mailbox_status',
   'message',
+  'message_location',
+  'message_body',
   'label',
   'decision',
   'folder_sync',

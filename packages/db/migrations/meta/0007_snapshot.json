@@ -1,0 +1,1265 @@
+{
+  "id": "d718e1c2-a988-4d35-ad8f-f92173910035",
+  "prevId": "fe43f2e9-730d-4ac7-b5f2-83e49626dc11",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.decision": {
+      "name": "decision",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "decision_mailbox_id_mailbox_id_fk": {
+          "name": "decision_mailbox_id_mailbox_id_fk",
+          "tableFrom": "decision",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        },
+        "decision_message_fk": {
+          "name": "decision_message_fk",
+          "tableFrom": "decision",
+          "columnsFrom": [
+            "mailbox_id",
+            "message_id"
+          ],
+          "tableTo": "message",
+          "columnsTo": [
+            "mailbox_id",
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "decision_mailbox_id_id_key": {
+          "name": "decision_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.folder_sync": {
+      "name": "folder_sync",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "folder": {
+          "name": "folder",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uidvalidity": {
+          "name": "uidvalidity",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_uid": {
+          "name": "last_uid",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "internal_date_watermark": {
+          "name": "internal_date_watermark",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "generation": {
+          "name": "generation",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ok'"
+        },
+        "pending_uidvalidity": {
+          "name": "pending_uidvalidity",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pending_generation": {
+          "name": "pending_generation",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_resync_at": {
+          "name": "last_resync_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_resync_summary": {
+          "name": "last_resync_summary",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "backfill_since": {
+          "name": "backfill_since",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "backfill_cursor_uid": {
+          "name": "backfill_cursor_uid",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "backfill_until_uid": {
+          "name": "backfill_until_uid",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "backfill_total": {
+          "name": "backfill_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "folder_sync_mailbox_id_mailbox_id_fk": {
+          "name": "folder_sync_mailbox_id_mailbox_id_fk",
+          "tableFrom": "folder_sync",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "folder_sync_mailbox_id_id_key": {
+          "name": "folder_sync_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        },
+        "folder_sync_mailbox_id_folder_key": {
+          "name": "folder_sync_mailbox_id_folder_key",
+          "columns": [
+            "mailbox_id",
+            "folder"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {
+        "folder_sync_state_check": {
+          "name": "folder_sync_state_check",
+          "value": "\"folder_sync\".\"state\" in ('ok', 'resyncing')"
+        },
+        "folder_sync_pending_check": {
+          "name": "folder_sync_pending_check",
+          "value": "(\"folder_sync\".\"state\" = 'resyncing') = (\"folder_sync\".\"pending_uidvalidity\" is not null and \"folder_sync\".\"pending_generation\" is not null)"
+        },
+        "folder_sync_backfill_check": {
+          "name": "folder_sync_backfill_check",
+          "value": "num_nonnulls(\"folder_sync\".\"backfill_since\", \"folder_sync\".\"backfill_cursor_uid\", \"folder_sync\".\"backfill_until_uid\", \"folder_sync\".\"backfill_total\") in (0, 4)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.label": {
+      "name": "label",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "label_mailbox_id_mailbox_id_fk": {
+          "name": "label_mailbox_id_mailbox_id_fk",
+          "tableFrom": "label",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        },
+        "label_message_fk": {
+          "name": "label_message_fk",
+          "tableFrom": "label",
+          "columnsFrom": [
+            "mailbox_id",
+            "message_id"
+          ],
+          "tableTo": "message",
+          "columnsTo": [
+            "mailbox_id",
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "label_mailbox_id_id_key": {
+          "name": "label_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.label_event": {
+      "name": "label_event",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "label_event_mailbox_id_mailbox_id_fk": {
+          "name": "label_event_mailbox_id_mailbox_id_fk",
+          "tableFrom": "label_event",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "label_event_mailbox_id_id_key": {
+          "name": "label_event_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.mailbox": {
+      "name": "mailbox",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "imap_host": {
+          "name": "imap_host",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "imap_port": {
+          "name": "imap_port",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "imap_username": {
+          "name": "imap_username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "imap_folder": {
+          "name": "imap_folder",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_env": {
+          "name": "password_env",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "labels_apply_as": {
+          "name": "labels_apply_as",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "disabled_at": {
+          "name": "disabled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "mailbox_slug_unique": {
+          "name": "mailbox_slug_unique",
+          "columns": [
+            "slug"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "mailbox_slug_format": {
+          "name": "mailbox_slug_format",
+          "value": "\"mailbox\".\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(\"mailbox\".\"slug\") <= 40"
+        },
+        "mailbox_imap_port_range": {
+          "name": "mailbox_imap_port_range",
+          "value": "\"mailbox\".\"imap_port\" BETWEEN 1 AND 65535"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.mailbox_status": {
+      "name": "mailbox_status",
+      "schema": "",
+      "columns": {
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ok'"
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_sync_at": {
+          "name": "last_sync_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "held_new_count": {
+          "name": "held_new_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_new_count": {
+          "name": "approved_new_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "backfill_done": {
+          "name": "backfill_done",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "backfill_total": {
+          "name": "backfill_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "mailbox_status_mailbox_id_mailbox_id_fk": {
+          "name": "mailbox_status_mailbox_id_mailbox_id_fk",
+          "tableFrom": "mailbox_status",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {
+        "mailbox_status_state_check": {
+          "name": "mailbox_status_state_check",
+          "value": "\"mailbox_status\".\"state\" in ('ok', 'error', 'disabled', 'connecting', 'needs_attention')"
+        },
+        "mailbox_status_held_check": {
+          "name": "mailbox_status_held_check",
+          "value": "\"mailbox_status\".\"state\" <> 'needs_attention' or \"mailbox_status\".\"held_new_count\" is not null"
+        },
+        "mailbox_status_backfill_check": {
+          "name": "mailbox_status_backfill_check",
+          "value": "(\"mailbox_status\".\"backfill_done\" is null) = (\"mailbox_status\".\"backfill_total\" is null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.message": {
+      "name": "message",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "identity_key": {
+          "name": "identity_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id_header": {
+          "name": "message_id_header",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "internal_date": {
+          "name": "internal_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "from_address": {
+          "name": "from_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "from_domain": {
+          "name": "from_domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "headers": {
+          "name": "headers",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "attachments": {
+          "name": "attachments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "size_bytes": {
+          "name": "size_bytes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "eligible_for_classification": {
+          "name": "eligible_for_classification",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "message_mailbox_id_mailbox_id_fk": {
+          "name": "message_mailbox_id_mailbox_id_fk",
+          "tableFrom": "message",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "message_mailbox_id_id_key": {
+          "name": "message_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        },
+        "message_mailbox_id_identity_key_key": {
+          "name": "message_mailbox_id_identity_key_key",
+          "columns": [
+            "mailbox_id",
+            "identity_key"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {
+        "message_identity_key_check": {
+          "name": "message_identity_key_check",
+          "value": "\"message\".\"identity_key\" ~ '^(pm:.+|mid:.+|hdr:v[0-9]+:[0-9a-f]{64})$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.message_body": {
+      "name": "message_body",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body_text": {
+          "name": "body_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "truncated": {
+          "name": "truncated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "message_body_expires_at_idx": {
+          "name": "message_body_expires_at_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "message_body_mailbox_id_mailbox_id_fk": {
+          "name": "message_body_mailbox_id_mailbox_id_fk",
+          "tableFrom": "message_body",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        },
+        "message_body_message_fk": {
+          "name": "message_body_message_fk",
+          "tableFrom": "message_body",
+          "columnsFrom": [
+            "mailbox_id",
+            "message_id"
+          ],
+          "tableTo": "message",
+          "columnsTo": [
+            "mailbox_id",
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "message_body_mailbox_id_id_key": {
+          "name": "message_body_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        },
+        "message_body_mailbox_id_message_id_key": {
+          "name": "message_body_mailbox_id_message_id_key",
+          "columns": [
+            "mailbox_id",
+            "message_id"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {
+        "message_body_source_check": {
+          "name": "message_body_source_check",
+          "value": "\"message_body\".\"source\" in ('text_plain', 'text_html', 'none')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.message_location": {
+      "name": "message_location",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "folder": {
+          "name": "folder",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uidvalidity": {
+          "name": "uidvalidity",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uid": {
+          "name": "uid",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "generation": {
+          "name": "generation",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "removed_at": {
+          "name": "removed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "removed_reason": {
+          "name": "removed_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "message_location_message_idx": {
+          "name": "message_location_message_idx",
+          "columns": [
+            {
+              "expression": "mailbox_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "message_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "message_location_live_idx": {
+          "name": "message_location_live_idx",
+          "columns": [
+            {
+              "expression": "mailbox_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "folder",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "where": "removed_at is null",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "message_location_mailbox_id_mailbox_id_fk": {
+          "name": "message_location_mailbox_id_mailbox_id_fk",
+          "tableFrom": "message_location",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        },
+        "message_location_message_fk": {
+          "name": "message_location_message_fk",
+          "tableFrom": "message_location",
+          "columnsFrom": [
+            "mailbox_id",
+            "message_id"
+          ],
+          "tableTo": "message",
+          "columnsTo": [
+            "mailbox_id",
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "message_location_mailbox_id_id_key": {
+          "name": "message_location_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        },
+        "message_location_mailbox_id_folder_uidvalidity_uid_key": {
+          "name": "message_location_mailbox_id_folder_uidvalidity_uid_key",
+          "columns": [
+            "mailbox_id",
+            "folder",
+            "uidvalidity",
+            "uid"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {
+        "message_location_removed_check": {
+          "name": "message_location_removed_check",
+          "value": "(\"message_location\".\"removed_at\" is null and \"message_location\".\"removed_reason\" is null) or (\"message_location\".\"removed_at\" is not null and \"message_location\".\"removed_reason\" in ('vanished', 'superseded'))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.rule_set": {
+      "name": "rule_set",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "mailbox_id": {
+          "name": "mailbox_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rule_set_mailbox_id_mailbox_id_fk": {
+          "name": "rule_set_mailbox_id_mailbox_id_fk",
+          "tableFrom": "rule_set",
+          "columnsFrom": [
+            "mailbox_id"
+          ],
+          "tableTo": "mailbox",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rule_set_mailbox_id_id_key": {
+          "name": "rule_set_mailbox_id_id_key",
+          "columns": [
+            "mailbox_id",
+            "id"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {
+        "mailbox_isolation": {
+          "name": "mailbox_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "sift_app",
+            "sift_owner"
+          ],
+          "using": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid",
+          "withCheck": "mailbox_id = nullif(current_setting('app.mailbox_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

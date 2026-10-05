@@ -33,6 +33,8 @@ export async function seedMailboxes(
 
 export interface ScopedRowIds {
   messageId: string;
+  messageLocationId: string;
+  messageBodyId: string;
   labelId: string;
   decisionId: string;
   folderSyncId: string;
@@ -60,9 +62,27 @@ export async function seedScopedRows(ownerUrl: string, mailboxId: string): Promi
       return id;
     };
 
-    const messageId = await insertId('insert into message (mailbox_id) values ($1) returning id', [
-      mailboxId,
-    ]);
+    // identity_key and folder are unique per mailbox, so every call gets
+    // fresh values and repeated calls for one mailbox still succeed.
+    const messageId = await insertId(
+      `insert into message (mailbox_id, identity_key, internal_date, eligible_for_classification)
+       values ($1, 'mid:seed-' || gen_random_uuid() || '@seed.test', now(), true)
+       returning id`,
+      [mailboxId],
+    );
+    const messageLocationId = await insertId(
+      `insert into message_location (mailbox_id, message_id, folder, uidvalidity, uid, generation)
+       select $1::uuid, $2::uuid, 'INBOX', 1, coalesce(max(uid), 0) + 1, 1
+         from message_location where mailbox_id = $1::uuid
+       returning id`,
+      [mailboxId, messageId],
+    );
+    const messageBodyId = await insertId(
+      `insert into message_body (mailbox_id, message_id, body_text, source, truncated)
+       values ($1, $2, 'seed body', 'text_plain', false)
+       returning id`,
+      [mailboxId, messageId],
+    );
     const labelId = await insertId(
       'insert into label (mailbox_id, message_id) values ($1, $2) returning id',
       [mailboxId, messageId],
@@ -72,7 +92,9 @@ export async function seedScopedRows(ownerUrl: string, mailboxId: string): Promi
       [mailboxId, messageId],
     );
     const folderSyncId = await insertId(
-      'insert into folder_sync (mailbox_id) values ($1) returning id',
+      `insert into folder_sync (mailbox_id, folder, uidvalidity, last_uid, internal_date_watermark)
+       values ($1, 'seed-' || gen_random_uuid(), 1, 0, now())
+       returning id`,
       [mailboxId],
     );
     const labelEventId = await insertId(
@@ -89,7 +111,16 @@ export async function seedScopedRows(ownerUrl: string, mailboxId: string): Promi
     );
 
     await owner.query('commit');
-    return { messageId, labelId, decisionId, folderSyncId, labelEventId, ruleSetId };
+    return {
+      messageId,
+      messageLocationId,
+      messageBodyId,
+      labelId,
+      decisionId,
+      folderSyncId,
+      labelEventId,
+      ruleSetId,
+    };
   } catch (error) {
     await owner.query('rollback').catch(() => {});
     throw error;
