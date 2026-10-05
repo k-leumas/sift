@@ -27,8 +27,10 @@ function mailbox(
       username: `${slug}@proton.me`,
       password_env: 'SIFT_TEST_IMAP_PASSWORD',
       folder: 'INBOX',
+      tls: { mode: 'starttls' },
       ...overrides.imap,
     },
+    ingest: { initial_backfill_days: 30, new_mail_cap: 200 },
     labels: { apply_as: 'proton_labels' },
   };
 }

@@ -10,6 +10,29 @@ export const DEFAULT_POLL_INTERVAL_SECONDS = 60;
 export const MIN_POLL_INTERVAL_SECONDS = 10;
 export const MAX_POLL_INTERVAL_SECONDS = 3600;
 
+/**
+ * IMAP TLS modes (D-74). There is deliberately no plaintext mode: Sift never
+ * connects or logs in without TLS (D-42).
+ */
+export const TLS_MODES = ['starttls', 'implicit'] as const;
+export type TlsMode = (typeof TLS_MODES)[number];
+
+/**
+ * Shape of `imap.tls.pin_sha256` (D-73): the base64 SHA-256 of the server's
+ * public key, i.e. 43 base64 characters followed by one `=` (32 bytes).
+ */
+export const PIN_SHA256_PATTERN = /^[A-Za-z0-9+/]{43}=$/;
+
+/** First-sync backfill window in days (D-74); 0 means only mail arriving after the first sync. */
+export const DEFAULT_INITIAL_BACKFILL_DAYS = 30;
+export const MIN_INITIAL_BACKFILL_DAYS = 0;
+export const MAX_INITIAL_BACKFILL_DAYS = 365;
+
+/** New messages one check may ingest before the mailbox pauses (D-26, D-74). */
+export const DEFAULT_NEW_MAIL_CAP = 200;
+export const MIN_NEW_MAIL_CAP = 1;
+export const MAX_NEW_MAIL_CAP = 10_000;
+
 /** Shape rule for `password_env` (D-62): an environment variable name. */
 export const ENV_VAR_NAME_PATTERN = /^[A-Z_][A-Z0-9_]*$/;
 
@@ -58,13 +81,60 @@ const PasswordEnv = z
     'password_env must be an environment variable name: A-Z, 0-9 and _, not starting with a digit (^[A-Z_][A-Z0-9_]*$)',
   );
 
+/**
+ * TLS settings of one IMAP connection (D-73, D-74). `mode` has no plaintext
+ * value (D-42). `pin_sha256` is optional: a server with a public-CA
+ * certificate uses normal chain and hostname verification instead.
+ */
+export const ImapTls = z.strictObject(
+  {
+    mode: z
+      .enum(TLS_MODES, {
+        error: unlessMissing(
+          `mode must be ${TLS_MODES.join(' or ')}; Sift never connects without TLS`,
+        ),
+      })
+      .default('starttls'),
+    pin_sha256: z
+      .string({ error: unlessMissing('pin_sha256 must be text') })
+      .trim()
+      .regex(
+        PIN_SHA256_PATTERN,
+        'pin_sha256 must be the base64 SHA-256 fingerprint printed by docker compose run --rm bridge-init or sift bridge trust <slug> (44 characters ending in =)',
+      )
+      .optional(),
+  },
+  { error: unlessMissing('tls must be a mapping') },
+);
+
 export const Imap = z.strictObject({
   host: nonEmpty('host'),
   port: Port,
   username: nonEmpty('username'),
   password_env: PasswordEnv,
   folder: nonEmpty('folder').default('INBOX'),
+  tls: ImapTls.default({ mode: 'starttls' }),
 });
+
+const initialBackfillDaysMessage = `initial_backfill_days must be a whole number of days from ${MIN_INITIAL_BACKFILL_DAYS} to ${MAX_INITIAL_BACKFILL_DAYS}`;
+const newMailCapMessage = `new_mail_cap must be a whole number from ${MIN_NEW_MAIL_CAP} to ${MAX_NEW_MAIL_CAP}`;
+
+/** Per-mailbox ingest settings (D-74, placement D-78). */
+export const Ingest = z.strictObject(
+  {
+    initial_backfill_days: z
+      .int({ error: unlessMissing(initialBackfillDaysMessage) })
+      .min(MIN_INITIAL_BACKFILL_DAYS, initialBackfillDaysMessage)
+      .max(MAX_INITIAL_BACKFILL_DAYS, initialBackfillDaysMessage)
+      .default(DEFAULT_INITIAL_BACKFILL_DAYS),
+    new_mail_cap: z
+      .int({ error: unlessMissing(newMailCapMessage) })
+      .min(MIN_NEW_MAIL_CAP, newMailCapMessage)
+      .max(MAX_NEW_MAIL_CAP, newMailCapMessage)
+      .default(DEFAULT_NEW_MAIL_CAP),
+  },
+  { error: unlessMissing('ingest must be a mapping') },
+);
 
 export const Labels = z.strictObject({
   apply_as: z.enum(['proton_labels'], {
@@ -91,6 +161,10 @@ export const Mailbox = z.strictObject({
     .max(80, 'display_name must be at most 80 characters')
     .optional(),
   imap: Imap,
+  ingest: Ingest.default({
+    initial_backfill_days: DEFAULT_INITIAL_BACKFILL_DAYS,
+    new_mail_cap: DEFAULT_NEW_MAIL_CAP,
+  }),
   labels: Labels,
 });
 
@@ -222,6 +296,8 @@ export const Config = z.strictObject(
 );
 
 export type ImapConfig = z.output<typeof Imap>;
+export type ImapTlsConfig = z.output<typeof ImapTls>;
+export type IngestConfig = z.output<typeof Ingest>;
 export type MailboxConfig = z.output<typeof Mailbox>;
 export type ModelsConfig = z.output<typeof Models>;
 export type WorkerConfig = z.output<typeof Worker>;

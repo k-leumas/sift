@@ -18,22 +18,54 @@ mailboxes:
   - slug: personal
     display_name: Personal
     imap:
-      host: protonmail-bridge
+      # The Compose bridge service; use localhost for host development.
+      host: bridge
       port: 1143
       username: me@proton.me
       password_env: SIFT_PERSONAL_IMAP_PASSWORD
       folder: INBOX
+      tls:
+        # starttls (the default) or implicit. Sift never connects without TLS.
+        mode: starttls
+        # Paste the fingerprint printed by `docker compose run --rm bridge-init`.
+        # `sift bridge trust <slug>` shows the one the worker sees, to compare.
+        # The value is base64 (letters, digits, + and /, ending in =); YAML reads
+        # it as plain text, so quoting it is optional.
+        # pin_sha256: <fingerprint printed by docker compose run --rm bridge-init>
+    ingest:
+      # The first sync reads this many days back, slowly in the background.
+      # 0 means only new mail. Changing it after the first sync does nothing.
+      initial_backfill_days: 30
+      # More new messages than this in one check pauses the mailbox until
+      # `sift mailbox resume <slug>`.
+      new_mail_cap: 200
     labels:
       apply_as: proton_labels
 
   - slug: job-search
     display_name: Job search
     imap:
-      host: protonmail-bridge
+      # The Compose bridge service; use localhost for host development.
+      host: bridge
       port: 1143
       username: jobs@proton.me
       password_env: SIFT_JOBS_IMAP_PASSWORD
       folder: INBOX
+      tls:
+        # starttls (the default) or implicit. Sift never connects without TLS.
+        mode: starttls
+        # Paste the fingerprint printed by `docker compose run --rm bridge-init`.
+        # `sift bridge trust <slug>` shows the one the worker sees, to compare.
+        # The value is base64 (letters, digits, + and /, ending in =); YAML reads
+        # it as plain text, so quoting it is optional.
+        # pin_sha256: <fingerprint printed by docker compose run --rm bridge-init>
+    ingest:
+      # The first sync reads this many days back, slowly in the background.
+      # 0 means only new mail. Changing it after the first sync does nothing.
+      initial_backfill_days: 30
+      # More new messages than this in one check pauses the mailbox until
+      # `sift mailbox resume <slug>`.
+      new_mail_cap: 200
     labels:
       apply_as: proton_labels
 

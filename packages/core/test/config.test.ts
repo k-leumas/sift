@@ -235,10 +235,10 @@ describe('literal secrets (D-57)', () => {
 
 describe('structure', () => {
   it('reports an unknown key with its line number', () => {
-    const text = configYaml([mailbox({ imapExtra: ['      tls: true'] })]);
+    const text = configYaml([mailbox({ imapExtra: ['      starttls: true'] })]);
     const issues = issuesOf(text);
     expect(issues).toHaveLength(1);
-    expect(formatPath(issues[0]?.path ?? [])).toBe('mailboxes[0].imap.tls');
+    expect(formatPath(issues[0]?.path ?? [])).toBe('mailboxes[0].imap.starttls');
     expect(issues[0]?.message).toContain('unrecognized key');
     expect(issues[0]?.line).toBe(10);
     expect(issues[0]?.column).toBe(7);
