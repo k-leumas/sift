@@ -1,5 +1,12 @@
 import { BODY_DOWNLOAD_MAX_BYTES, parseMessage, selectTextPart, toBodyText } from './message.ts';
-import { aboveLastUid, backfillWindow, chunk, isCandidateNew } from './plan.ts';
+import {
+  aboveLastUid,
+  backfillWindow,
+  chunk,
+  formatResyncLine,
+  isCandidateNew,
+  pendingGenerationFor,
+} from './plan.ts';
 import type {
   BackfillState,
   BodyText,
@@ -11,6 +18,7 @@ import type {
   IngestOutcome,
   IngestStore,
   MessageRecord,
+  ResyncCounts,
   UidDate,
 } from './types.ts';
 
@@ -98,8 +106,17 @@ function laterOf(a: Date, b: Date): Date {
   return b.getTime() > a.getTime() ? b : a;
 }
 
-function maxOf(values: readonly number[]): number {
-  return values.reduce((max, v) => (v > max ? v : max), Number.NEGATIVE_INFINITY);
+/** Largest value; a loop, because spreading a folder's UIDs into Math.max can overflow the stack. */
+function maxOf(values: Iterable<number>): number {
+  let max = Number.NEGATIVE_INFINITY;
+  for (const v of values) if (v > max) max = v;
+  return max;
+}
+
+function minOf(values: Iterable<number>): number {
+  let min = Number.POSITIVE_INFINITY;
+  for (const v of values) if (v < min) min = v;
+  return min;
 }
 
 /**
@@ -109,7 +126,7 @@ function maxOf(values: readonly number[]): number {
 async function datesOf(source: FolderSource, uids: readonly number[]): Promise<UidDate[]> {
   if (uids.length === 0) return [];
   const wanted = new Set(uids);
-  const fetched = await source.fetchDates(`${Math.min(...wanted)}:${Math.max(...wanted)}`);
+  const fetched = await source.fetchDates(`${minOf(wanted)}:${maxOf(wanted)}`);
   const byUid = new Map<number, UidDate>();
   for (const d of fetched) if (wanted.has(d.uid) && !byUid.has(d.uid)) byUid.set(d.uid, d);
   return [...byUid.values()].sort((a, b) => a.uid - b.uid);
@@ -294,9 +311,7 @@ async function removedLocations(deps: IngestDeps, state: FolderState): Promise<n
   if (live.length === 0) return 0;
   const uids = live.map((l) => l.uid);
   const present = new Set(
-    await deps.source.listUids(
-      `${Math.min(...uids)}:${Math.min(Math.max(...uids), state.lastUid)}`,
-    ),
+    await deps.source.listUids(`${minOf(uids)}:${Math.min(maxOf(uids), state.lastUid)}`),
   );
   const gone = live.filter((l) => !present.has(l.uid)).map((l) => l.id);
   if (gone.length === 0) return 0;
@@ -352,10 +367,141 @@ async function backfillSlice(
 }
 
 /**
+ * UIDVALIDITY resync (D-22..D-26, D-75), all-or-nothing through generations.
+ *
+ * beginResync (skipped on a retry toward the same UIDVALIDITY) writes only the
+ * folder's resyncing flag and pending columns. Then:
+ * 1. Count pass, no writes: INTERNALDATE for every listed UID; headers and
+ *    knownIdentities only for the date candidates. Unknown candidates above
+ *    the cap stop here, so generation N stays the only live generation.
+ * 2. Commit pass: headers of every UID in batches; known keys gain a location
+ *    at the pending generation, unknown old mail is stored historical, unknown
+ *    candidate-new UIDs are collected.
+ * 3. The new mail is processed like polled mail (bodies), in chunks.
+ * 4. finishResync switches generations in one transaction, together with the
+ *    first-backfill cursor recomputed under the new UIDVALIDITY.
+ * A failure or abort at any point leaves the previous generation in charge;
+ * the next run starts over. Rows an earlier attempt stored are known by then
+ * and count as matched, so matched + new + older still equals the mail seen.
+ * Nothing is reclassified: eligibility of stored messages never changes here.
+ */
+async function resync(
+  deps: IngestDeps,
+  s: Settings,
+  state: FolderState,
+  status: FolderStatus,
+): Promise<IngestOutcome> {
+  const folder = state.folder;
+  const uidValidity = status.uidValidity;
+  const { generation, reuse } = pendingGenerationFor(state, uidValidity);
+  if (!reuse) await deps.store.beginResync(folder, uidValidity, generation);
+
+  // 1. Count pass (no store writes).
+  const listed = [...new Set(await deps.source.listUids('1:*'))].sort((a, b) => a - b);
+  const listedSet = new Set(listed);
+  const byUid = new Map<number, UidDate>();
+  if (listed.length > 0) {
+    for (const d of await deps.source.fetchDates('1:*')) {
+      if (listedSet.has(d.uid) && !byUid.has(d.uid)) byUid.set(d.uid, d);
+    }
+  }
+  const dates = [...byUid.values()].sort((a, b) => a.uid - b.uid);
+  const candidates = new Set(
+    dates
+      .filter((d) => isCandidateNew(d.internalDate, state.watermark, s.overlapMs))
+      .map((d) => d.uid),
+  );
+  let candidateNew = 0;
+  for (const [i, part] of chunk([...candidates], s.resyncBatchSize).entries()) {
+    if (i > 0) await s.sleep(s.backfillPauseMs);
+    if (deps.signal.aborted) return { kind: 'aborted', stored: 0 };
+    const parsed = (await headersOf(deps.source, part)).map((rec) =>
+      parseMessage(rec, { trustPmHeader: deps.trustPmHeader }),
+    );
+    const known = await deps.store.knownIdentities(parsed.map((p) => p.identityKey));
+    candidateNew += parsed.filter((p) => !known.has(p.identityKey)).length;
+  }
+  if (candidateNew > deps.newMailCap) {
+    deps.log.warn(
+      { folder, candidateNew, cap: deps.newMailCap },
+      'resync over new-mail cap: mailbox needs attention',
+    );
+    return { kind: 'needs_attention', candidateNew };
+  }
+
+  // 2. Commit pass: locations for known mail, historical rows for unknown old mail.
+  const counts: Omit<ResyncCounts, 'gone'> = { matched: 0, new: 0, older: 0 };
+  const newUids: number[] = [];
+  let committed = 0;
+  for (const [i, part] of chunk(listed, s.resyncBatchSize).entries()) {
+    if (i > 0) await s.sleep(s.backfillPauseMs);
+    if (deps.signal.aborted) return { kind: 'aborted', stored: committed };
+    const headers = await headersOf(deps.source, part);
+    const parsed = headers.map((rec) => parseMessage(rec, { trustPmHeader: deps.trustPmHeader }));
+    const known = await deps.store.knownIdentities(parsed.map((p) => p.identityKey));
+    const records: MessageRecord[] = [];
+    for (const [j, rec] of headers.entries()) {
+      const message = parsed[j] as (typeof parsed)[number];
+      if (known.has(message.identityKey)) counts.matched += 1;
+      else if (candidates.has(rec.uid)) {
+        newUids.push(rec.uid);
+        continue;
+      } else counts.older += 1;
+      records.push({ parsed: message, uid: rec.uid, eligible: false, body: null });
+    }
+    if (records.length === 0) continue;
+    await deps.store.commitChunk(folder, uidValidity, generation, records, null);
+    committed += records.length;
+  }
+
+  // 3. New mail, with bodies.
+  let watermark = state.watermark;
+  for (const part of chunk(newUids, s.chunkSize)) {
+    if (deps.signal.aborted) return { kind: 'aborted', stored: committed };
+    const records = await recordsOf(deps, await headersOf(deps.source, part), () => true);
+    for (const r of records) watermark = laterOf(watermark, r.parsed.internalDate);
+    await deps.store.commitChunk(folder, uidValidity, generation, records, null);
+    counts.new += records.length;
+    committed += records.length;
+  }
+
+  // 4. A pending first backfill restarts under the new UIDVALIDITY, in the same transaction.
+  let backfill: { backfill: BackfillState | null } | Record<string, never> = {};
+  if (state.backfill !== null) {
+    const window = backfillWindow(dates, state.backfill.since);
+    const first = window[0];
+    backfill = {
+      backfill:
+        first === undefined
+          ? null
+          : {
+              since: state.backfill.since,
+              cursorUid: first - 1,
+              untilUid: status.uidNext - 1,
+              total: window.length,
+            },
+    };
+  }
+
+  if (deps.signal.aborted) return { kind: 'aborted', stored: committed };
+  const result = await deps.store.finishResync(folder, {
+    uidValidity,
+    generation,
+    lastUid: Math.max(status.uidNext - 1, maxOf(listed)),
+    watermark,
+    counts,
+    ...backfill,
+  });
+  deps.log.info({ folder, ...result }, formatResyncLine(folder, result));
+  return { kind: 'resynced', counts: result };
+}
+
+/**
  * One ingest cycle of one folder: first sync when the folder has no state,
- * then new mail (behind the volume valve), the removal diff when due, a slice
- * of the first backfill, and the body-cache sweep. `aborted.stored` counts the
- * records this cycle committed before it stopped.
+ * a resync when UIDVALIDITY changed or a resync is pending, otherwise new mail
+ * (behind the volume valve), the removal diff when due, a slice of the first
+ * backfill, and the body-cache sweep. `aborted.stored` counts the records this
+ * cycle committed before it stopped.
  */
 export async function runIngest(deps: IngestDeps): Promise<IngestOutcome> {
   const s = settings(deps);
@@ -367,7 +513,7 @@ export async function runIngest(deps: IngestDeps): Promise<IngestOutcome> {
   if (state === null) state = await firstSync(deps, status);
 
   if (state.state === 'resyncing' || state.uidValidity !== status.uidValidity) {
-    throw new Error(`folder ${deps.folder} needs a resync`);
+    return resync(deps, s, state, status);
   }
 
   const polled = await pollNewMail(deps, s, state, status);
