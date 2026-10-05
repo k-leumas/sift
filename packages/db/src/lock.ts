@@ -1,4 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
+import type pg from 'pg';
 import { type AppDb, internalsOf } from './app-db.ts';
 import {
   InvalidMailboxIdError,
@@ -41,6 +42,50 @@ export interface IngestSession {
 
 export type IngestLockResult<T> = { acquired: true; value: T } | { acquired: false };
 
+function asError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
+/**
+ * Run `fn` with a session whose transactions use `client`. Resolves only
+ * after `fn` and any run it left in flight have settled, so the caller never
+ * unlocks or releases the client under an open transaction.
+ */
+async function holdSession<T>(
+  client: pg.PoolClient,
+  mailboxId: string,
+  fn: (session: IngestSession) => Promise<T>,
+): Promise<T> {
+  const orm = drizzle({ client });
+  let open = true;
+  let inFlight: Promise<unknown> | undefined;
+  const session: IngestSession = Object.freeze({
+    mailboxId,
+    async run<R>(
+      runFn: (scope: Scope) => Promise<R>,
+      options: WithMailboxOptions = {},
+    ): Promise<R> {
+      if (!open) throw new ScopeClosedError();
+      // Checked and set before any await: a nested or overlapping call is
+      // refused before it can send a second BEGIN on the lock connection.
+      if (inFlight !== undefined) throw new IngestSessionBusyError();
+      const running = runScoped(orm, mailboxId, runFn, options);
+      inFlight = running;
+      try {
+        return await running;
+      } finally {
+        inFlight = undefined;
+      }
+    },
+  });
+  try {
+    return await fn(session);
+  } finally {
+    open = false;
+    if (inFlight !== undefined) await Promise.allSettled([inFlight]);
+  }
+}
+
 /**
  * Run `fn` while holding the mailbox's ingest lock, or return
  * `{ acquired: false }` at once, without calling `fn`, when another session
@@ -50,9 +95,14 @@ export type IngestLockResult<T> = { acquired: true; value: T } | { acquired: fal
  * connection, and every `session.run` transaction uses that same connection,
  * so one active mailbox holds exactly one connection and concurrent mailboxes
  * cannot exhaust the pool waiting for each other (RESEARCH Pattern 6,
- * Pitfall 9). The lock is released when `fn` settles, including on throw.
- * Postgres also releases session locks when the connection ends, so a crashed
- * process never wedges the mailbox.
+ * Pitfall 9). `session.run` is not re-entrant (IngestSessionBusyError).
+ *
+ * The lock is released when `fn` settles, including on throw. Postgres also
+ * releases session locks when the connection ends, so a crashed process or a
+ * terminated backend never wedges the mailbox. A connection that failed, or
+ * whose unlock failed, is discarded instead of returning to the pool. `fn`'s
+ * own error wins over an unlock error; when `fn` succeeded but the unlock
+ * failed, that error is thrown.
  */
 export async function withIngestLock<T>(
   db: AppDb,
@@ -61,46 +111,52 @@ export async function withIngestLock<T>(
 ): Promise<IngestLockResult<T>> {
   if (!isMailboxId(mailboxId)) throw new InvalidMailboxIdError();
   const client = await internalsOf(db).pool.connect();
-  let locked = false;
+  // A checked-out client has no pool error listener. Without this one, the
+  // server ending the session would surface as an uncaught 'error' event.
+  let broken: Error | undefined;
+  const onError = (error: Error): void => {
+    broken ??= error;
+  };
+  client.on('error', onError);
+
+  let result: IngestLockResult<T> = { acquired: false };
+  let failure: { error: unknown } | undefined;
+  /** Whether this connection may hold the lock (true until the try query says no). */
+  let mayHoldLock = true;
+  /** False while a failure could have come from the lock query itself. */
+  let lockKnown = false;
   try {
     const { rows } = await client.query<{ locked: boolean }>(
       'select pg_try_advisory_lock(hashtextextended($1, $2)) as locked',
       [mailboxId, INGEST_LOCK_SEED],
     );
-    locked = rows[0]?.locked === true;
-    if (!locked) return { acquired: false };
-
-    const orm = drizzle({ client });
-    let open = true;
-    let busy = false;
-    const session: IngestSession = Object.freeze({
-      mailboxId,
-      async run<R>(
-        runFn: (scope: Scope) => Promise<R>,
-        options: WithMailboxOptions = {},
-      ): Promise<R> {
-        if (!open) throw new ScopeClosedError();
-        if (busy) throw new IngestSessionBusyError();
-        busy = true;
-        try {
-          return await runScoped(orm, mailboxId, runFn, options);
-        } finally {
-          busy = false;
-        }
-      },
-    });
-    try {
-      return { acquired: true, value: await fn(session) };
-    } finally {
-      open = false;
-    }
-  } finally {
-    if (locked) {
-      await client.query('select pg_advisory_unlock(hashtextextended($1, $2))', [
-        mailboxId,
-        INGEST_LOCK_SEED,
-      ]);
-    }
-    client.release();
+    mayHoldLock = rows[0]?.locked === true;
+    lockKnown = true;
+    if (mayHoldLock) result = { acquired: true, value: await holdSession(client, mailboxId, fn) };
+  } catch (error) {
+    failure = { error };
   }
+
+  let unlockError: Error | undefined;
+  if (mayHoldLock && broken === undefined) {
+    try {
+      const { rows } = await client.query<{ unlocked: boolean }>(
+        'select pg_advisory_unlock(hashtextextended($1, $2)) as unlocked',
+        [mailboxId, INGEST_LOCK_SEED],
+      );
+      if (rows[0]?.unlocked !== true) unlockError = new Error('ingest lock was not held at unlock');
+    } catch (error) {
+      unlockError = asError(error);
+    }
+  }
+  client.removeListener('error', onError);
+  // Never return a dead connection, or one that may still hold the lock, to the pool.
+  const discard =
+    broken ?? unlockError ?? (!lockKnown && failure ? asError(failure.error) : undefined);
+  client.release(discard ?? false);
+
+  if (failure !== undefined) throw failure.error;
+  const releaseError = broken ?? unlockError;
+  if (result.acquired && releaseError !== undefined) throw releaseError;
+  return result;
 }

@@ -205,13 +205,21 @@ describe('IngestSession.run (Pitfall 9)', () => {
 
 describe('withIngestLock never wedges a mailbox', () => {
   it('rethrows when fn throws, and the lock is free at once', async () => {
-    const boom = new Error('ingest failed');
-    await expect(
-      withIngestLock(a, M1, async () => {
-        throw boom;
-      }),
-    ).rejects.toBe(boom);
-    expect(await acquiredWithin(M1, 0)).toBeLessThan(1_000);
+    const holder = createAppDb(fresh.appUrl);
+    try {
+      const boom = new Error('ingest failed');
+      await expect(
+        withIngestLock(holder, M1, async () => {
+          throw boom;
+        }),
+      ).rejects.toBe(boom);
+      expect(await acquiredWithin(M1, 0)).toBeLessThan(1_000);
+      // The unlock succeeded, so the healthy connection went back to the pool.
+      const { pool } = internalsOf(holder);
+      expect([pool.totalCount, pool.idleCount]).toEqual([1, 1]);
+    } finally {
+      await holder.close();
+    }
   });
 
   it('frees the lock when the holder backend is terminated; the holder rejects and discards its client', async () => {

@@ -81,8 +81,13 @@ export {
   withMailbox,
 } from './scope.ts';
 export {
+  type HoldStatus,
+  readHold,
+  recordBackfillProgress,
+  recordConnecting,
   recordDisabled,
   recordMailboxSeen,
+  recordNeedsAttention,
   recordSyncError,
   recordSyncSuccess,
 } from './status.ts';
