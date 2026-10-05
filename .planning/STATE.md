@@ -2,43 +2,44 @@
 gsd_state_version: "1.0"
 milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
-current_phase: 01
-current_phase_name: Foundation and Isolation
-status: verifying
-stopped_at: Completed 01-13-PLAN.md
-last_updated: "2026-10-04T08:04:56.966Z"
-last_activity: 2026-10-03
-last_activity_desc: Phase 01 execution started
-state_head: 0a02986e7124276b0f8c14e222d2f160a5922747
+current_phase: 2
+current_phase_name: Bridge Spike and IMAP Ingest
+status: planning
+stopped_at: Phase 01 complete, ready to plan Phase 2
+last_updated: "2026-10-05T03:41:01.053Z"
+last_activity: 2026-10-04
+last_activity_desc: Phase 01 complete, transitioned to Phase 2
+state_head: efd2e417a99518977f6d24f348b58e7205809331
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 13
   completed_plans: 13
+  percent: 25
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-02)
+See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** Every incoming email is auto-labelled correctly or explicitly held for the owner, entirely on local hardware, with a decision trace explaining why.
-**Current focus:** Phase 01 — Foundation and Isolation
+**Current focus:** Phase 2 — Bridge Spike and IMAP Ingest
 
 ## Current Position
 
-Phase: 01 (Foundation and Isolation) — EXECUTING
-Plan: 13 of 13
-Status: Phase complete — ready for verification
-Last activity: 2026-10-03 — Phase 01 execution started
+Phase: 2 — Bridge Spike and IMAP Ingest
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-04 — Phase 01 complete, transitioned to Phase 2
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
+- Total plans completed: 13
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -46,7 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01 | 13 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -117,6 +118,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-12: worker env_file .env.mailboxes must exist for any docker compose command on Compose v2.2.3; developers copy .env.mailboxes.example
 - [Phase 01]: 01-13: README tells owners to recreate the worker (up -d --force-recreate worker) after adding a mailbox password; env_file is read only at container creation
 - [Phase 01]: 01-13: user-facing-text.test.ts enforces D-69 over docs, example env/config, compose.yaml, Dockerfile and shipped src; update it when the deferred command ships
+- [Phase 01]: UAT 4/4 passed 2026-10-05 (target bring-up, real-password grep, GitHub CI incl. compose-smoke, id-based isolation asserts); Nyquist-compliant
 
 ### Pending Todos
 
@@ -127,7 +129,6 @@ None yet.
 - [Phase 2]: Proton Bridge CONDSTORE/QRESYNC support and Message-ID consistency across label folders are unverified; polling fallback must work without either
 - [Phase 3]: Raw LLM prompt retention limit (ADR-0003 open item) to decide when the `decision` table shape is set
 - [Later]: How shared rules and synthetic eval runs fit under non-null `mailbox_id` (INGEST-CONFLICTS INFO) is deferred to M4/M5 planning
-- [Init]: No `.planning/config.json` exists; roadmap assumed `standard` granularity and `sequential` phase IDs
 
 ## Deferred Items
 
@@ -139,6 +140,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-04T08:04:56.641Z
-Stopped at: Completed 01-13-PLAN.md
+Last session: 2026-10-05
+Stopped at: Phase 01 complete, ready to plan Phase 2
 Resume file: None

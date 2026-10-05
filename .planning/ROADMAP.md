@@ -16,7 +16,7 @@ M1 takes Sift from an empty repository to one real Proton mailbox auto-labelled 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation and Isolation** - Compose stack, config, and a mailbox-scoped schema with RLS proven by a two-mailbox test
+- [x] **Phase 1: Foundation and Isolation** - Compose stack, config, and a mailbox-scoped schema with RLS proven by a two-mailbox test (completed 2026-10-04)
 - [ ] **Phase 2: Bridge Spike and IMAP Ingest** - Proton Bridge behaviour answered and recorded; one mailbox ingested idempotently
 - [ ] **Phase 3: Tiered Classification with Traces** - Exact rules, then the local LLM, every classification traced
 - [ ] **Phase 4: Labels and Real-Inbox Run** - Labels applied in Proton, uncertain mail held, changes recorded, end-to-end on a real inbox
@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A schema check fails the build if any table holding mail-derived data lacks a non-null `mailbox_id`
   4. With two seeded mailboxes, queries run under mailbox A's `app.mailbox_id` return and modify none of mailbox B's rows, even with the application-level filter removed; with no `app.mailbox_id` set, they return nothing
 
-**Plans**: 13/13 plans executed
+**Plans**: 13/13 plans complete
 
 Plans:
 **Wave 1**
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundation and Isolation | v0.1 | 13/13 | In Progress|  |
+| 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 0/0 | Not started | - |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |

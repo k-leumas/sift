@@ -22,14 +22,13 @@ M1 has no UI, no classifier, no learning, and hardcoded exact rules. It exists t
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Foundation: Compose stack (Postgres + pgvector, worker), Drizzle schema and migrations, per-mailbox config with credentials from environment variables — Phase 1
+- ✓ Isolation: non-null `mailbox_id` on every mail-derived table, Postgres RLS keyed on `app.mailbox_id`, automated two-mailbox RLS test — Phase 1
 
 ### Active
 
 M1 scope. Full IDs and wording in `.planning/REQUIREMENTS.md`.
 
-- [ ] Foundation: Compose stack (Postgres + pgvector, worker), Drizzle schema and migrations, per-mailbox config with credentials from environment variables
-- [ ] Isolation: non-null `mailbox_id` on every mail-derived table, Postgres RLS keyed on `app.mailbox_id`, automated two-mailbox RLS test
 - [ ] Proton Bridge spike answered and recorded (label folders, CONDSTORE/QRESYNC, Message-ID consistency, UIDVALIDITY behaviour)
 - [ ] IMAP ingest of one mailbox into the database, idempotent, resumable
 - [ ] Hardcoded exact rules and the local LLM (Ollama, JSON-schema constrained output, fenced untrusted email)
@@ -107,13 +106,15 @@ Locked by accepted ADRs. Do not revise without a superseding ADR.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Mailbox is the isolation unit; RLS keyed on `app.mailbox_id` from M1 (ADR-0001, locked) | Retrofitting isolation later is a rewrite; ADR wins over README "shared"/"synthetic" wording | — Pending |
+| Mailbox is the isolation unit; RLS keyed on `app.mailbox_id` from M1 (ADR-0001, locked) | Retrofitting isolation later is a rewrite; ADR wins over README "shared"/"synthetic" wording | ✓ Good — Phase 1: FORCE RLS on every scoped table, two-mailbox isolation and owner-delete tests green, catalog check fails the build on drift |
 | Three-tier classification; the classifier trains only on owner-confirmed labels (ADR-0002, locked) | Keeps spot checks meaningful: the classifier and the LLM learn from different sources | — Pending |
 | Decision trace for every classification, stored in DB, never in the mailbox (ADR-0003, locked) | Debuggability and replay; trace shape must exist from the first classification | — Pending |
 | Relabel learning via IMAP polling, Message-ID identity (ADR-0003, locked) | Works without Bridge-specific features; spike in M1 confirms assumptions | — Pending |
 | Scope the current milestone to README M1; M2-M7 are backlog | README roadmap is the only statement of scope; M1 is a self-contained real-inbox proof | — Pending |
 | Bridge spike runs early in M1 (Phase 2), before ingest and label application are finalised | Spike findings decide how labels are applied and how message identity is tracked | — Pending |
 | M1 exact rules are hardcoded per mailbox (versioned `rule_set` row with non-null `mailbox_id`) | `rules.md` and the interpretation step are M3; versioning needed for trace replay | — Pending |
+| Apps reach the DB only through the scoped `@sift/db` API; `pg`/`drizzle-orm` imports banned in `apps/**` by Biome (Phase 1) | Application-level mailbox filtering backs up RLS, and a lint rule keeps it the only path | ✓ Good |
+| `sift migrate` takes a `pg_dump` as `sift_backup` (the only non-superuser BYPASSRLS role) before pending migrations, keeps 5 (Phase 1) | Restorable backup of every mailbox before schema changes without giving the app role RLS bypass | ✓ Good |
 | M1 pipeline runs exact rules, then the LLM; traces include a classifier span marked skipped ("not trained") | The classifier is not trained yet and ADR-0002 passes the email on when it is not; a reserved span keeps the trace layout fixed when M2 adds the classifier | — Pending |
 
 ## Evolution
@@ -134,4 +135,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-02 after initialization from ingested ADRs and README*
+*Last updated: 2026-10-05 after Phase 1*
