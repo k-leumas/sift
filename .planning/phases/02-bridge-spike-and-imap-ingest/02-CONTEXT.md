@@ -18,7 +18,7 @@ Numbering: decisions below are this phase's D-01..; Phase 1 decisions are cited 
 ## Implementation Decisions
 
 ### Backfill and first sync
-- **D-01:** By default a mailbox's first sync ingests **only new mail**: the folder's starting point is recorded (current UIDNEXT, and start time as the date watermark) and only mail arriving after it is ingested.
+- **D-01:** By default a mailbox's first sync ingests **only new mail**: the folder's starting point is recorded (current UIDNEXT, and start time as the date watermark) and only mail arriving after it is ingested. — **Superseded by D-74 (2026-10-05): first sync now backfills `ingest.initial_backfill_days` (default 30).** [informational]
 - **D-02:** Opt-in bounded backfill, for trying out configurations, in two forms:
   - per-mailbox config key `initial_backfill_days` (optional; absent = new mail only). It applies **only on the first sync of a folder** (no `folder_sync` row yet); changing it later does nothing.
   - a CLI one-shot that backfills N days (flag default 3) without touching config.
@@ -81,14 +81,14 @@ Numbering: decisions below are this phase's D-01..; Phase 1 decisions are cited 
 - **D-35:** M1 documents **combined address mode**, one Sift mailbox per Proton account. Split mode is deferred (M5).
 
 ### Bridge login, vault and secrets
-- **D-36:** One-time interactive setup: `sift bridge init` (running the Bridge container interactively) — the owner types the Proton password and 2FA without echo; Sift never stores the Proton password.
+- **D-36:** One-time interactive setup: `sift bridge init` (running the Bridge container interactively) — the owner types the Proton password and 2FA without echo; Sift never stores the Proton password. — **Command form superseded by D-72 (2026-10-05).** [informational]
 - **D-37:** Bridge's session vault and keychain (e.g. `pass` with a GPG key generated at init) live in a named volume `sift-bridge`, declared `external: true` (survives `docker compose down -v`) and excluded from backups. The vault's session tokens are as sensitive as the password; docs say so precisely ("Sift never stores your Proton password; Bridge stores session tokens in the `sift-bridge` volume").
 - **D-38:** The GPG key protecting the vault has a passphrase from `SIFT_BRIDGE_KEYCHAIN_PASSPHRASE`, given **only** to the Bridge container and unlocked at startup, so a copied volume alone is useless.
 - **D-39:** The Bridge-generated IMAP password never appears in the terminal: init captures it inside the container and **upserts** `NAME=value` into `.env.mailboxes` for each configured mailbox whose IMAP host is Bridge, using that mailbox's `password_env` name. It replaces an existing line rather than appending, keeps a backup of the previous file, creates/keeps the file at mode 0600, and prints only e.g. `wrote SIFT_PERSONAL_IMAP_PASSWORD to .env.mailboxes (mailbox "personal")`. `.env.mailboxes` is bind-mounted read-write into the init run only. Research must find the cleanest extraction route (Bridge's gRPC frontend API preferred over scraping CLI `info` output).
 
 ### Bridge TLS
 - **D-40:** The worker verifies Bridge by **SPKI public-key pin**, not hostname: a custom `checkServerIdentity` compares the certificate's public-key fingerprint with the pinned one and ignores the hostname (Bridge's cert is for 127.0.0.1/localhost, the worker connects to `bridge` or `localhost`). Only that exact key is accepted. The same pin works for host development.
-- **D-41:** Bridge init exports its certificate to a small shared volume, writable by Bridge, read-only for the worker. When Bridge's certificate changes (expiry, reinstall), the worker fails closed: "Bridge's certificate changed. Run `sift bridge trust` to review the new fingerprint and accept it." No blind trust-on-first-use. (Importing an owner-generated cert into Bridge is a possible alternative; exporting Bridge's is the chosen path.)
+- **D-41:** Bridge init exports its certificate to a small shared volume, writable by Bridge, read-only for the worker. When Bridge's certificate changes (expiry, reinstall), the worker fails closed: "Bridge's certificate changed. Run `sift bridge trust` to review the new fingerprint and accept it." No blind trust-on-first-use. (Importing an owner-generated cert into Bridge is a possible alternative; exporting Bridge's is the chosen path.) — **Superseded by D-73 (2026-10-05): pin lives in config, no shared cert volume.** [informational]
 - **D-42:** STARTTLS is required, with no plaintext fallback: the IMAP client refuses to log in unless the STARTTLS upgrade succeeded (check ImapFlow's exact option name in its docs). A test with a fake server that doesn't offer STARTTLS asserts the connection fails before any credentials are sent.
 
 ### Spike additions (beyond SPK-01..04 as written)
@@ -99,6 +99,20 @@ Numbering: decisions below are this phase's D-01..; Phase 1 decisions are cited 
   - **whether INTERNALDATE survives a UIDVALIDITY reset / Bridge cache rebuild** — record several INTERNALDATEs, force a cache reset or resync, compare. If it does not survive, the D-18/D-22 design must change, and the findings say how;
   - whether QRESYNC `VANISHED` works for removals (D-17) and whether IDLE works (D-27, for later);
   - confirmation that combined mode behaves as D-35 assumes.
+
+### Owner answers to research open questions (2026-10-05, after research)
+- **D-72:** Bridge init runs **in the Bridge container**: `docker compose run --rm bridge init` (an `init` mode of the Bridge image's entrypoint). Only that container mounts the vault. The `sift bridge …` namespace is kept for worker-side commands such as `sift bridge trust`.
+- **D-73:** The trusted Bridge certificate is a **SPKI SHA-256 fingerprint in `config.yaml`** at `imap.tls.pin_sha256` — not a shared certificate file or volume, not a DB table. `bridge init` prints the fingerprint; `sift bridge trust` connects and shows the fingerprint the worker actually sees; the owner compares and pastes it into config. A regenerated Bridge certificate therefore fails closed (D-40 pin check) instead of being trusted automatically. — **Reversibility:** one-way (config key name, strict schema).
+- **D-74:** New config keys, all **optional with defaults, so no config version bump**:
+  - `imap.tls.mode`: `starttls` | `implicit` (default `starttls`; D-42 still forbids any plaintext fallback);
+  - `imap.tls.pin_sha256`: optional (needed for Bridge; may be omitted for servers with a public-CA certificate, which then use normal chain + hostname verification);
+  - `ingest.initial_backfill_days`: default **30** (replaces D-01's "new mail only" default and fixes D-02's placement);
+  - `ingest.new_mail_cap`: default **200** (the D-26 cap);
+  - `worker.poll_interval_seconds`: default **60** (D-27).
+  — **Reversibility:** one-way — strict config validation makes these names part of every owner's config. Extend the strict schema, the example config and its CI test (P1 D-61).
+- **D-75:** Backfill vs the cap: the **first** backfill of a folder (from `ingest.initial_backfill_days`) is **not** stopped by `ingest.new_mail_cap`, but runs **throttled at low priority** and reports progress in `mailbox_status`. Any later backfill is an **explicit CLI command that shows the message count and asks for confirmation first**. Everything else — normal polling and UIDVALIDITY resyncs — stays under the cap (D-26). This answers D-26's "state whether the CLI backfill bypasses the cap".
+- **D-76:** `sift mailbox sync <slug>` is **deferred**. The internal `nudge(mailboxId)` hook (D-28) is still built.
+- **D-77:** Dependencies: imapflow and libmime are **approved**, with conditions: pin **exact** versions (no ranges); verify licenses (expected MIT) of them and their transitive tree; block install scripts by keeping pnpm's `onlyBuiltDependencies` allow-list excluding them; review the resolved dependency tree before committing the lockfile. A **MIME body parser is chosen now** for Phase 3: **`postal-mime`** (zero runtime dependencies, MIT-0) over `mailparser` (whose current release pulls a second libmime/mailsplit version plus nodemailer, linkify-it, tlds, he). Same conditions apply (exact pin, version older than the repo's 7-day release gate, license check).
 
 ### Claude's Discretion
 - **Header set** stored per message (user said "you decide"): must cover Phase 3 exact rules (sender, domain, phrase in subject/body) and the `hdr:` identity fallback; typed columns vs JSONB is the planner's.
