@@ -420,3 +420,4 @@
 | 02:56 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-17-PLAN.md | 1→2 lines | ~105 |
 | 02:57 | Applied D-81 to phase 2 plans: long-syntax .env.mailboxes.bak bind on bridge-init (02-01, compose convert check), in-place writes + inode tests + refusal naming touch/chmod (02-08), quick-start touch/chmod step (02-17), backup file prep (02-14), VALIDATION rows | .planning/phases/02-*/ | done | ~15000 |
 | 02:57 | Session end: 103 writes across 25 files (02-RESEARCH.md, 02-VALIDATION.md, 02-PATTERNS.md, 02-01-PLAN.md, 02-02-PLAN.md) | 32 reads | ~307811 tok |
+| 03:00 | plan-phase 2 complete: 18 plans/6 waves, checker passed (2 passes), owner decisions D-72..D-81 recorded, gates 8/8 req + 49/49 decisions | .planning/phases/02-*/ | committed 715ff15, d100fe5 | ~ |
