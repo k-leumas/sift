@@ -4,6 +4,8 @@ export interface CommandIO {
   cwd: string;
   stdout(line: string): void;
   stderr(line: string): void;
+  /** Standard input, for the few commands that read it (bridge probe). Absent means empty. */
+  stdin?: AsyncIterable<string | Buffer>;
 }
 
 /** A command module under ./commands/. `run` resolves to the process exit code. */

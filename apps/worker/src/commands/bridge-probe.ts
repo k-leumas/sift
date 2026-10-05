@@ -1,10 +1,23 @@
+import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { resolveConfigPath } from '@sift/core';
 import { applyEnvOverrides, formatIssue, loadConfig } from '@sift/core/config';
 import { redactText } from '@sift/core/log';
 import type { CommandIO } from '../command.ts';
 import { classifyImapError, closeImap, type ImapFlow, openImap } from '../imap/connect.ts';
-import { type ProbeReport, preAuthCapabilities, runProbe } from '../spike/probe.ts';
+import {
+  compareReports,
+  isLabelConfirmation,
+  labelTest,
+  labelTestPlan,
+  type ProbeReport,
+  parseProbeReport,
+  preAuthCapabilities,
+  runProbe,
+  SPIKE_LABEL_NAME,
+  spikeLabelPath,
+  waitForNew,
+} from '../spike/probe.ts';
 
 const COMMAND = 'sift bridge probe';
 export const USAGE =
@@ -17,6 +30,10 @@ const DEFAULT_SCAN_LIMIT = 500;
 const MAX_SCAN_LIMIT = 10_000;
 const MAX_UID = 0xffff_ffff;
 const MAX_WAIT_SECONDS = 3_600;
+/** Largest earlier report --compare reads (a 200-entry sample is far smaller). */
+const MAX_REPORT_BYTES = 4 * 1024 * 1024;
+/** Longest confirmation line read from stdin. */
+const MAX_LINE_CHARS = 1_024;
 
 interface ProbeArgs {
   slug: string;
@@ -36,6 +53,50 @@ function wholeNumber(raw: string | undefined, min: number, max: number): number 
 }
 
 class UsageError extends Error {}
+
+function text(chunk: string | Buffer): string {
+  return typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+}
+
+/** One line from stdin without its line ending, or null on empty input or an over-long line. */
+async function readLine(stdin: CommandIO['stdin']): Promise<string | null> {
+  if (stdin === undefined) return null;
+  let buffered = '';
+  for await (const chunk of stdin) {
+    buffered += text(chunk);
+    const end = buffered.indexOf('\n');
+    if (end >= 0) return buffered.slice(0, end).replace(/\r$/, '');
+    if (buffered.length > MAX_LINE_CHARS) return null;
+  }
+  return buffered === '' ? null : buffered.replace(/\r$/, '');
+}
+
+/** All of stdin, or null past MAX_REPORT_BYTES. */
+async function readAll(stdin: CommandIO['stdin']): Promise<string | null> {
+  if (stdin === undefined) return '';
+  let buffered = '';
+  for await (const chunk of stdin) {
+    buffered += text(chunk);
+    if (buffered.length > MAX_REPORT_BYTES) return null;
+  }
+  return buffered;
+}
+
+/** The earlier report named by --compare, or null. Its content is never printed. */
+async function readPreviousReport(source: string, io: CommandIO): Promise<ProbeReport | null> {
+  let raw: string | null;
+  try {
+    if (source === '-') {
+      raw = await readAll(io.stdin);
+    } else {
+      const bytes = await readFile(source);
+      raw = bytes.length > MAX_REPORT_BYTES ? null : bytes.toString('utf8');
+    }
+  } catch {
+    return null;
+  }
+  return raw === null ? null : parseProbeReport(raw);
+}
 
 const OPTIONS = {
   'label-test': { type: 'boolean' },
@@ -76,10 +137,19 @@ function parseProbeArgs(args: readonly string[]): ProbeArgs {
     return value;
   };
 
+  const labelTest = values['label-test'] === true;
+  const uid = optional('uid', MAX_UID);
+  // The label test needs an explicit target; the wait never chooses one (T-02-68).
+  if (labelTest && uid === null) throw new UsageError('--label-test needs --uid <n>');
+  if (!labelTest && uid !== null) throw new UsageError('--uid is only used with --label-test');
+  if (labelTest && values.compare === '-') {
+    throw new UsageError('--compare - and --label-test both read stdin; pass --compare <file>');
+  }
+
   return {
     slug,
-    labelTest: values['label-test'] === true,
-    uid: optional('uid', MAX_UID),
+    labelTest,
+    uid,
     waitNewSeconds: optional('wait-new-seconds', MAX_WAIT_SECONDS),
     compare: values.compare ?? null,
     sample: bounded('sample', DEFAULT_SAMPLE, MAX_SAMPLE),
@@ -90,7 +160,8 @@ function parseProbeArgs(args: readonly string[]): ProbeArgs {
 /**
  * `sift bridge probe <slug>` (SPK-01..04, D-43): measure the mailbox's IMAP
  * server over the same STARTTLS and pin path as the worker, and print one JSON
- * report of aggregates on stdout. Read-only. Progress on stderr holds counts only;
+ * report of aggregates on stdout. Read-only unless --label-test is given with an
+ * explicit --uid and the owner types LABEL (D-11). Progress on stderr holds counts only;
  * no mail content, address or personal folder name is ever printed (Pitfall 13).
  */
 export async function run(args: readonly string[], io: CommandIO): Promise<number> {
@@ -130,6 +201,17 @@ export async function run(args: readonly string[], io: CommandIO): Promise<numbe
   }
   const secrets = [pass];
 
+  // Read the earlier report before connecting, so bad input changes nothing.
+  let previous: ProbeReport | null = null;
+  if (opts.compare !== null) {
+    previous = await readPreviousReport(opts.compare, io);
+    if (previous === null) {
+      const source = opts.compare === '-' ? 'stdin' : opts.compare;
+      io.stderr(`${COMMAND}: could not read a probe report from ${source}`);
+      return 1;
+    }
+  }
+
   let client: ImapFlow | undefined;
   try {
     // Plaintext pre-login capabilities exist only on a STARTTLS port; an
@@ -162,6 +244,31 @@ export async function run(args: readonly string[], io: CommandIO): Promise<numbe
     io.stderr(
       `${COMMAND}: scanned ${report.identity.scanned} messages, sampled ${report.sample.length}`,
     );
+
+    // Order: probe, wait, label test, compare.
+    if (opts.waitNewSeconds !== null) {
+      io.stderr(`${COMMAND}: waiting up to ${opts.waitNewSeconds} s for new mail (IDLE)`);
+      report.idle = (await waitForNew(client, imap.folder, opts.waitNewSeconds)).report;
+    }
+    if (opts.labelTest && opts.uid !== null) {
+      const delimiter = report.folders.delimiter ?? '/';
+      const labelPath = spikeLabelPath(delimiter);
+      io.stderr(labelTestPlan(imap.folder, opts.uid, labelPath));
+      const confirmed = isLabelConfirmation(await readLine(io.stdin));
+      report.labelTest = await labelTest(client, {
+        folder: imap.folder,
+        uid: opts.uid,
+        delimiter,
+        confirmed,
+      });
+      if (report.labelTest.labelCopyMayRemain === true) {
+        io.stderr(
+          `${COMMAND}: a copy may remain in ${labelPath}; remove the ${SPIKE_LABEL_NAME} label ` +
+            'from that message in the Proton client',
+        );
+      }
+    }
+    if (previous !== null) report.compare = compareReports(previous, report);
 
     io.stdout(JSON.stringify(report, null, 2));
     return 0;

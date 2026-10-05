@@ -451,3 +451,325 @@ export async function runProbe(
     sample,
   };
 }
+
+/** The label test only touches mail that arrived in the last hour: the owner's fresh test email (T-02-68). */
+export const LABEL_TEST_MAX_AGE_MS = 3_600_000;
+
+/** The exact line the owner types to allow the label test (D-11). */
+export const LABEL_CONFIRMATION = 'LABEL';
+
+/** What the label test will do, shown before the confirmation. Folder and UID only, never content. */
+export function labelTestPlan(folder: string, uid: number, labelPath: string): string {
+  return (
+    `Label test: copy UID ${uid} from ${folder} into ${labelPath}, then remove it from ` +
+    `${labelPath} only. Type ${LABEL_CONFIRMATION} to continue:`
+  );
+}
+
+/** True only for the exact confirmation word (no case folding, no surrounding spaces). */
+export function isLabelConfirmation(line: string | null): boolean {
+  return line === LABEL_CONFIRMATION;
+}
+
+/** EXAMINE `folder`; fail closed if the server grants read-write (D-11). */
+async function examine(client: ImapFlow, folder: string): Promise<void> {
+  const mailbox = await client.mailboxOpen(folder, { readOnly: true });
+  if (mailbox?.readOnly === false) throw new Error('the server opened a folder read-write');
+}
+
+async function uidPresent(client: ImapFlow, folder: string, uid: number): Promise<boolean> {
+  await examine(client, folder);
+  const found = await client.search({ uid: String(uid) }, { uid: true });
+  // search() gives false when SEARCH failed: not proof of presence.
+  return Array.isArray(found) && found.includes(uid);
+}
+
+/**
+ * Raw value bytes (everything after the colon, folding kept) of each field
+ * named `name` in a header block, concatenated; null when absent.
+ */
+function rawHeaderValue(block: Buffer, name: string): Buffer | null {
+  const parts: Buffer[] = [];
+  const lower = name.toLowerCase();
+  let start = 0;
+  while (start < block.length) {
+    let end = start;
+    // A field ends at a line break not followed by folding whitespace.
+    for (;;) {
+      const lf = block.indexOf(0x0a, end);
+      if (lf < 0) {
+        end = block.length;
+        break;
+      }
+      const next = block[lf + 1];
+      end = lf + 1;
+      if (next !== 0x20 && next !== 0x09) break;
+    }
+    const field = block.subarray(start, end);
+    const colon = field.indexOf(0x3a);
+    if (colon > 0 && field.subarray(0, colon).toString('latin1').trim().toLowerCase() === lower) {
+      parts.push(field.subarray(colon + 1));
+    }
+    start = end;
+  }
+  return parts.length === 0 ? null : Buffer.concat(parts);
+}
+
+async function identityHeaderBytes(
+  client: ImapFlow,
+  uid: number,
+): Promise<{ messageId: Buffer | null; pmInternalId: Buffer | null } | null> {
+  const msg = await client.fetchOne(
+    String(uid),
+    { uid: true, headers: ['message-id', 'x-pm-internal-id'] },
+    { uid: true },
+  );
+  if (msg === false || msg === undefined || msg.uid !== uid) return null;
+  const block = Buffer.isBuffer(msg.headers) ? msg.headers : Buffer.alloc(0);
+  return {
+    messageId: rawHeaderValue(block, 'message-id'),
+    pmInternalId: rawHeaderValue(block, 'x-pm-internal-id'),
+  };
+}
+
+/** Byte equality of one header across two copies; undefined when neither copy has it. */
+function bytesEqual(a: Buffer | null, b: Buffer | null): boolean | undefined {
+  if (a === null && b === null) return undefined;
+  return a !== null && b !== null && a.equals(b);
+}
+
+/**
+ * The bounded label test (SPK-01, D-11, T-02-68). With `confirmed`, it COPYs
+ * exactly `uid` from `folder` into `Labels<delim>Sift Spike` (created if
+ * missing), compares the raw Message-ID and X-Pm-Internal-Id bytes of both
+ * copies, and then removes the copy from the label folder only (\Deleted plus
+ * UID EXPUNGE of the one copied UID). The removal happens only when COPYUID
+ * named the label-folder copy and the original is confirmed still present;
+ * otherwise nothing is expunged and the owner removes the label in the Proton
+ * client. A target older than LABEL_TEST_MAX_AGE_MS, or missing, stops the
+ * test before any write. `folder` itself is only ever EXAMINEd.
+ */
+export async function labelTest(
+  client: ImapFlow,
+  opts: { folder: string; uid: number; delimiter: string; confirmed: boolean },
+): Promise<NonNullable<ProbeReport['labelTest']>> {
+  if (!opts.confirmed) return { performed: false, skippedReason: 'not confirmed' };
+  const { folder, uid } = opts;
+  const labelPath = spikeLabelPath(opts.delimiter);
+
+  await examine(client, folder);
+  const target = await client.fetchOne(
+    String(uid),
+    { uid: true, internalDate: true },
+    { uid: true },
+  );
+  if (target === false || target === undefined || target.uid !== uid) {
+    return { performed: false, skippedReason: 'target not found' };
+  }
+  const internalDate =
+    target.internalDate instanceof Date
+      ? target.internalDate
+      : new Date(String(target.internalDate));
+  if (Number.isNaN(internalDate.getTime())) {
+    return { performed: false, skippedReason: 'target not found' };
+  }
+  if (Date.now() - internalDate.getTime() > LABEL_TEST_MAX_AGE_MS) {
+    return { performed: false, skippedReason: 'target older than one hour' };
+  }
+
+  // Writes start here: from now on a copy may exist in the label folder.
+  const notConfirmed = (
+    partial: NonNullable<ProbeReport['labelTest']>,
+  ): NonNullable<ProbeReport['labelTest']> => ({
+    ...partial,
+    performed: false,
+    skippedReason: 'label copy not confirmed',
+    labelCopyMayRemain: true,
+  });
+
+  const exists = (await client.list()).some((entry) => entry.path === labelPath);
+  let labelFolderCreated = false;
+  if (!exists) labelFolderCreated = (await client.mailboxCreate(labelPath)).created === true;
+
+  await examine(client, folder);
+  const original = await identityHeaderBytes(client, uid);
+  const copy = await client.messageCopy(String(uid), labelPath, { uid: true });
+  const labelUid = copy === false ? undefined : copy.uidMap?.get(uid);
+  const copyUidPlus = labelUid !== undefined;
+  const inboxCopyAfterCopy = await uidPresent(client, folder, uid);
+
+  const result: NonNullable<ProbeReport['labelTest']> = {
+    performed: false,
+    labelFolderCreated,
+    copyUidPlus,
+    inboxCopyAfterCopy,
+  };
+  if (labelUid !== undefined) {
+    await examine(client, labelPath);
+    const labelled = await identityHeaderBytes(client, labelUid);
+    if (original !== null && labelled !== null) {
+      const mid = bytesEqual(original.messageId, labelled.messageId);
+      const pm = bytesEqual(original.pmInternalId, labelled.pmInternalId);
+      if (mid !== undefined) result.messageIdBytesEqual = mid;
+      if (pm !== undefined) result.pmInternalIdBytesEqual = pm;
+    }
+  }
+
+  // Expunge only the COPYUID-named copy, only while the original is still there,
+  // and only with UID EXPUNGE (UIDPLUS): a plain EXPUNGE would also remove any
+  // other \Deleted message in the label folder.
+  if (labelUid === undefined || !inboxCopyAfterCopy || !client.capabilities.has('UIDPLUS')) {
+    return notConfirmed(result);
+  }
+  const opened = await client.mailboxOpen(labelPath);
+  if (opened?.path !== labelPath || opened.readOnly === true) return notConfirmed(result);
+  const removedFromLabel = (await client.messageDelete(String(labelUid), { uid: true })) === true;
+  const inboxCopyAfterRemove = await uidPresent(client, folder, uid);
+
+  return {
+    ...result,
+    performed: true,
+    removedFromLabel,
+    inboxCopyAfterRemove,
+    ...(removedFromLabel ? {} : { labelCopyMayRemain: true }),
+  };
+}
+
+/**
+ * IDLE on `folder` for up to `seconds` (D-27, D-43): records whether an EXISTS
+ * arrived, and whether UIDNEXT grew. It stops at the first EXISTS. The new UID
+ * is the highest UID at or above the old UIDNEXT. It only reports the UID; it
+ * never chooses a label-test target.
+ */
+export async function waitForNew(
+  client: ImapFlow,
+  folder: string,
+  seconds: number,
+): Promise<{ report: NonNullable<ProbeReport['idle']>; newUid: number | null }> {
+  const mailbox = await client.mailboxOpen(folder, { readOnly: true });
+  if (mailbox?.readOnly === false) throw new Error('the server opened a folder read-write');
+  const uidNextBefore = toNumber(mailbox?.uidNext) ?? 1;
+
+  let existsEventSeen = false;
+  let wake: () => void = () => {};
+  const woken = new Promise<void>((resolve) => {
+    wake = resolve;
+  });
+  const onExists = (event: { path?: string } | undefined) => {
+    if (event?.path !== undefined && event.path !== folder) return;
+    existsEventSeen = true;
+    wake();
+  };
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  client.on('exists', onExists);
+  try {
+    const idling = client.idle().catch(() => undefined);
+    await Promise.race([
+      woken,
+      new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, seconds * 1000);
+      }),
+    ]);
+    // A NOOP ends IDLE (ImapFlow sends DONE first) and collects pending updates.
+    await client.noop();
+    await idling;
+  } finally {
+    clearTimeout(timer);
+    client.off('exists', onExists);
+  }
+
+  const status = await statusOf(client, folder);
+  const newMessageArrived = status.uidNext !== null && status.uidNext > uidNextBefore;
+  let newUid: number | null = null;
+  if (newMessageArrived) {
+    const found = await client.search({ uid: `${uidNextBefore}:*` }, { uid: true });
+    const fresh = Array.isArray(found) ? found.filter((u) => u >= uidNextBefore) : [];
+    newUid = fresh.length === 0 ? null : Math.max(...fresh);
+  }
+  return { report: { seconds, existsEventSeen, newMessageArrived, newUid }, newUid };
+}
+
+/**
+ * Compare an earlier report with this one (SPK-04, D-43): per folder whether
+ * UIDVALIDITY changed, folders present in only one report, and for sampled
+ * messages matched by internal-ID hash how many changed UID or INTERNALDATE.
+ */
+export function compareReports(
+  previous: ProbeReport,
+  current: ProbeReport,
+): NonNullable<ProbeReport['compare']> {
+  const before = new Map(Object.entries(previous.uidValidity));
+  const after = new Map(Object.entries(current.uidValidity));
+  const changed: [string, boolean][] = [];
+  const missingFolders: string[] = [];
+  for (const [folder, value] of before) {
+    if (after.has(folder)) changed.push([folder, after.get(folder) !== value]);
+    else missingFolders.push(folder);
+  }
+  const addedFolders = [...after.keys()].filter((folder) => !before.has(folder));
+
+  const byHash = new Map<string, ProbeReport['sample'][number]>();
+  for (const entry of current.sample) {
+    if (entry.internalIdSha256 !== null) byHash.set(entry.internalIdSha256, entry);
+  }
+  let sampleMatched = 0;
+  let uidChanged = 0;
+  let internalDateChanged = 0;
+  let sampleMissing = 0;
+  for (const entry of previous.sample) {
+    if (entry.internalIdSha256 === null) continue;
+    const match = byHash.get(entry.internalIdSha256);
+    if (match === undefined) {
+      sampleMissing += 1;
+      continue;
+    }
+    sampleMatched += 1;
+    if (match.uid !== entry.uid) uidChanged += 1;
+    if (match.internalDate !== entry.internalDate) internalDateChanged += 1;
+  }
+
+  return {
+    uidValidityChanged: Object.fromEntries(changed),
+    addedFolders: addedFolders.sort(),
+    missingFolders: missingFolders.sort(),
+    sampleMatched,
+    uidChanged,
+    internalDateChanged,
+    sampleMissing,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * An earlier probe report from JSON text, or null when the text is not one.
+ * Only the fields compareReports reads are checked.
+ */
+export function parseProbeReport(text: string): ProbeReport | null {
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!isRecord(value) || value.probeVersion !== 1) return null;
+  const { uidValidity, sample } = value;
+  if (!isRecord(uidValidity) || !Object.values(uidValidity).every((v) => typeof v === 'number')) {
+    return null;
+  }
+  if (
+    !Array.isArray(sample) ||
+    !sample.every(
+      (s) =>
+        isRecord(s) &&
+        typeof s.uid === 'number' &&
+        typeof s.internalDate === 'string' &&
+        (s.internalIdSha256 === null || typeof s.internalIdSha256 === 'string'),
+    )
+  ) {
+    return null;
+  }
+  return value as unknown as ProbeReport;
+}

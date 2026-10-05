@@ -80,6 +80,7 @@ if (import.meta.main) {
     cwd: process.cwd(),
     stdout: (line) => process.stdout.write(`${line}\n`),
     stderr: (line) => process.stderr.write(`${line}\n`),
+    stdin: process.stdin,
   };
   // Set exitCode instead of calling process.exit so buffered output is flushed.
   process.exitCode = await main(process.argv.slice(2), io);
