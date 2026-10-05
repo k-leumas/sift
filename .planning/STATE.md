@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-18-PLAN.md
-last_updated: "2026-10-05T19:39:53.359Z"
+stopped_at: Completed 02-09-PLAN.md
+last_updated: "2026-10-05T19:52:46.005Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 3d7b7a14845391afba945ff3f9431479beed64c0
+state_head: e5a2c33fc2e607fcf67f618964a4f759f3fe5924
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 10 of 19
+Plan: 11 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -79,6 +79,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P07 | 6 min | 2 tasks | 5 files |
 | Phase 02 P08 | 23 min | 2 tasks | 7 files |
 | Phase 02 P18 | 20 min | 3 tasks | 7 files |
+| Phase 02 P09 | 25 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-18: peerSpkiSha256 hashes the SPKI from cert.raw; Node's PeerCertificate.pubkey is the bare point for EC keys
 - [Phase 02]: 02-18: the capture ends its TLS session with close_notify (no IMAP data) and a 1 s destroy fallback, so the server sees the handshake complete
 - [Phase 02]: 02-18: classifyImapError reads only codes and ImapFlow flags through cause (5 levels), never message text
+- [Phase 02]: 02-09: downloadText computes truncated from a maxBytes+1 download (decoded length > maxBytes); ImapFlow 2.1.0 expectedSize is the whole message's RFC822.SIZE and BODYSTRUCTURE sizes are encoded, so neither can tell whether decoded text was cut
+- [Phase 02]: 02-09: FolderSource.listUids/searchSince throw when ImapFlow returns false (failed SEARCH) instead of returning [], so the 02-10 removal diff cannot mark every message vanished; downloadText throws on a missing part
+- [Phase 02]: 02-09: FolderSource methods require client.mailbox to be the exact object examine opened; examine fails closed on an explicit READ-WRITE grant
 
 ### Pending Todos
 
@@ -176,6 +180,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T19:39:53.269Z
-Stopped at: Completed 02-18-PLAN.md
+Last session: 2026-10-05T19:52:38.233Z
+Stopped at: Completed 02-09-PLAN.md
 Resume file: None
