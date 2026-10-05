@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-04T19:06:27.572Z
-> Files: 179 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-05T02:15:18.882Z
+> Files: 182 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -11,6 +11,10 @@
 - `make-dev-env.sh` — Creates /Users/samuel/dev/sift/.env.development from .env.development.example, (~386 tok)
 - `mk-mailboxes-env.sh` — Create the repo's mailbox env file from the committed example (empty values, (~113 tok)
 - `red-evidence.mjs` — Usage: node red-evidence.mjs <testFile> <targetTestName> <expected> <actual> <outJson> (~256 tok)
+
+## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/94ce255b-8898-4053-b508-5955670c177f/scratchpad/
+
+- `linux-repro.sh` — Runs inside a throwaway sift:local container as root. Emulates a GitHub (~490 tok)
 
 ## ../../.claude/projects/-Users-samuel-dev-sift/memory/
 
@@ -110,8 +114,9 @@
 - `01-RESEARCH.md` — Phase 1: Foundation and Isolation - Research (~20122 tok)
 - `01-REVIEW-FIX.md` — Phase 1: Code Review Fix Report (~4733 tok)
 - `01-REVIEW.md` — Phase 1: Code Review Report (re-review after CR-01, WR-01..WR-08 fixes) (~4924 tok)
+- `01-UAT.md` — Current Test (~347 tok)
 - `01-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~1563 tok)
-- `01-VERIFICATION.md` — Phase 1: Foundation and Isolation Verification Report (~7681 tok)
+- `01-VERIFICATION.md` — Phase 1: Foundation and Isolation Verification Report (~6725 tok)
 - `COVERAGE.md` (~43 tok)
 - `deferred-items.md` — Deferred Items (~227 tok)
 

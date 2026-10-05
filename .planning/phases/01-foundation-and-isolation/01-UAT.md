@@ -3,27 +3,26 @@ status: testing
 phase: 01-foundation-and-isolation
 source: [01-VERIFICATION.md]
 started: 2026-10-04T20:30:00Z
-updated: 2026-10-04T20:30:00Z
+updated: 2026-10-04T21:10:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Target-machine bring-up (SC1)
+number: 3
+name: CI on GitHub
 expected: |
-  On the Mac mini or Linux mini PC, follow README quick start steps 1-5 (on Linux with `id -u` != 1000, run `sudo chown 1000 backups` first), then `docker compose up -d`.
-  db is healthy; setup exits 0 after writing a dump to ./backups and recording 5 migrations; worker is healthy.
+  After a push, the Actions run shows `check` green and `compose-smoke` green, ending in "compose smoke OK".
 awaiting: user response
 
 ## Tests
 
 ### 1. Target-machine bring-up (SC1)
 expected: db healthy; setup exits 0 after writing a dump to ./backups and recording 5 migrations; worker healthy.
-result: [pending]
+result: pass
 
 ### 2. Real-password grep (SC2 manual half)
 expected: After a real bring-up, grepping config/ and a pg_dump of `sift` for each real Bridge password finds no match.
-result: [pending]
+result: pass
 
 ### 3. CI on GitHub
 expected: After a push, the Actions run shows `check` green and `compose-smoke` green, ending in "compose smoke OK".
@@ -36,9 +35,9 @@ result: [pending]
 ## Summary
 
 total: 4
-passed: 0
+passed: 2
 issues: 0
-pending: 4
+pending: 2
 skipped: 0
 blocked: 0
 

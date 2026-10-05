@@ -68,6 +68,8 @@
 - Worker stall exit (IN-05): createSupervisor exposes `stalled` (resolves after MAX_MISSED_HEARTBEATS=3 ticks in a row without a heartbeat; hung ticks count once per tickMs via an overdue timer). runtime/run-until-stopped.ts races it against the signal wait and returns 0 or EXIT_HEARTBEAT_STALLED=75. Test with fake timers; a real spawned worker with SIFT_HEARTBEAT_FILE=/dev/null/x stalls in ~30 s.
 - Docker Desktop may be stopped on this Mac: `open -a Docker`, wait for `docker info`, sift-db-1 comes back (restart policy). DB tests fail with ECONNREFUSED ::1:5432 when it is down.
 
+- Linux uid repro of compose-smoke without CI: in `docker run --rm --user root --entrypoint bash sift:local`, useradd -u 1001 runner, run the real script as runner with CI=true and /shim docker (ps -> empty, else exit 1) and sudo (log args) shims, apply the logged chown as root, then `su node` to run `sift config check --schema-only` and a write probe. The pre-fix script (`git show 3249ce5~1:...`) is a working negative control.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
