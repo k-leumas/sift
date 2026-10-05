@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-09-PLAN.md
-last_updated: "2026-10-05T19:52:46.005Z"
+stopped_at: Completed 02-10-PLAN.md
+last_updated: "2026-10-05T20:10:31.724Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: e5a2c33fc2e607fcf67f618964a4f759f3fe5924
+state_head: 5dceb4e25bf1c58d4d02d5c53547698d99daa788
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 11 of 19
+Plan: 12 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -80,6 +80,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P08 | 23 min | 2 tasks | 7 files |
 | Phase 02 P18 | 20 min | 3 tasks | 7 files |
 | Phase 02 P09 | 25 min | 2 tasks | 10 files |
+| Phase 02 P10 | 14 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-09: downloadText computes truncated from a maxBytes+1 download (decoded length > maxBytes); ImapFlow 2.1.0 expectedSize is the whole message's RFC822.SIZE and BODYSTRUCTURE sizes are encoded, so neither can tell whether decoded text was cut
 - [Phase 02]: 02-09: FolderSource.listUids/searchSince throw when ImapFlow returns false (failed SEARCH) instead of returning [], so the 02-10 removal diff cannot mark every message vanished; downloadText throws on a missing part
 - [Phase 02]: 02-09: FolderSource methods require client.mailbox to be the exact object examine opened; examine fails closed on an explicit READ-WRITE grant
+- [Phase 02]: 02-10: BackfillPlan carries uidValidity; countBackfill/runBackfill refuse (resyncing) under a changed UIDVALIDITY so the confirmed UIDs are the ingested messages
+- [Phase 02]: 02-10: resync is two-pass (write-free count pass with the valve, then commit pass at the pending generation); finishResync takes the recomputed backfill cursor; resync lastUid = max(UIDNEXT-1, highest listed UID)
+- [Phase 02]: 02-10: engine cycle order is examine, getFolder, first sync or resync, poll (valve before header fetch), removal diff when due, backfill slice, deleteExpiredBodies; aborted.stored counts all records committed in the cycle
 
 ### Pending Todos
 
@@ -180,6 +184,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T19:52:38.233Z
-Stopped at: Completed 02-09-PLAN.md
+Last session: 2026-10-05T20:10:18.087Z
+Stopped at: Completed 02-10-PLAN.md
 Resume file: None
