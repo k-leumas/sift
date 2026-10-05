@@ -28,7 +28,7 @@ CREATE TABLE "message_location" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "message_location_mailbox_id_id_key" UNIQUE("mailbox_id","id"),
 	CONSTRAINT "message_location_mailbox_id_folder_uidvalidity_uid_key" UNIQUE("mailbox_id","folder","uidvalidity","uid"),
-	CONSTRAINT "message_location_removed_check" CHECK (("message_location"."removed_at" is null and "message_location"."removed_reason" is null) or ("message_location"."removed_at" is not null and "message_location"."removed_reason" in ('vanished', 'superseded')))
+	CONSTRAINT "message_location_removed_check" CHECK (("message_location"."removed_at" is null and "message_location"."removed_reason" is null) or ("message_location"."removed_at" is not null and "message_location"."removed_reason" is not null and "message_location"."removed_reason" in ('vanished', 'superseded')))
 );
 --> statement-breakpoint
 ALTER TABLE "message_location" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint

@@ -19,6 +19,8 @@ import {
   mailbox,
   mailboxStatus,
   message,
+  messageBody,
+  messageLocation,
   ruleSet,
 } from './schema/index.ts';
 
@@ -61,6 +63,10 @@ export interface MailboxStatusApi {
 export interface Scope {
   readonly mailboxId: string;
   readonly message: ScopedTableApi<typeof message>;
+  /** Where each message sits on the server (D-15). */
+  readonly messageLocation: ScopedTableApi<typeof messageLocation>;
+  /** The short-lived body cache (D-06). */
+  readonly messageBody: ScopedTableApi<typeof messageBody>;
   readonly label: ScopedTableApi<typeof label>;
   readonly folderSync: ScopedTableApi<typeof folderSync>;
   readonly ruleSet: ScopedTableApi<typeof ruleSet>;
@@ -275,6 +281,8 @@ export async function withMailbox<T>(
     const scope: Scope = Object.freeze({
       mailboxId,
       message: scopedTable(ctx, message),
+      messageLocation: scopedTable(ctx, messageLocation),
+      messageBody: scopedTable(ctx, messageBody),
       label: scopedTable(ctx, label),
       folderSync: scopedTable(ctx, folderSync),
       ruleSet: scopedTable(ctx, ruleSet),

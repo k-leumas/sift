@@ -1170,7 +1170,7 @@
       "checkConstraints": {
         "message_location_removed_check": {
           "name": "message_location_removed_check",
-          "value": "(\"message_location\".\"removed_at\" is null and \"message_location\".\"removed_reason\" is null) or (\"message_location\".\"removed_at\" is not null and \"message_location\".\"removed_reason\" in ('vanished', 'superseded'))"
+          "value": "(\"message_location\".\"removed_at\" is null and \"message_location\".\"removed_reason\" is null) or (\"message_location\".\"removed_at\" is not null and \"message_location\".\"removed_reason\" is not null and \"message_location\".\"removed_reason\" in ('vanished', 'superseded'))"
         }
       },
       "isRLSEnabled": false

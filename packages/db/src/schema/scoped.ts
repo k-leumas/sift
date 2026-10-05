@@ -171,7 +171,9 @@ export const messageLocation = pgTable(
     index('message_location_live_idx').on(t.mailboxId, t.folder).where(sql`removed_at is null`),
     check(
       'message_location_removed_check',
-      sql`(${t.removedAt} is null and ${t.removedReason} is null) or (${t.removedAt} is not null and ${t.removedReason} in ('vanished', 'superseded'))`,
+      // removed_reason is not null is needed: `null in (...)` is NULL, and a
+      // check constraint accepts NULL, so removed_at alone would pass.
+      sql`(${t.removedAt} is null and ${t.removedReason} is null) or (${t.removedAt} is not null and ${t.removedReason} is not null and ${t.removedReason} in ('vanished', 'superseded'))`,
     ),
     mailboxIsolation(),
   ],
