@@ -10,6 +10,8 @@ interface MailboxYaml {
   folder?: string;
   /** Extra raw lines appended inside the imap mapping (6-space indent). */
   imapExtra?: string[];
+  /** Extra raw lines appended inside the mailbox mapping after imap (4-space indent). */
+  mailboxExtra?: string[];
 }
 
 /** One mailbox list item. Values are inserted raw, so tests control YAML quoting. */
@@ -23,6 +25,7 @@ function mailbox(m: MailboxYaml = {}): string {
     `      password_env: ${m.passwordEnv ?? 'SIFT_PERSONAL_IMAP_PASSWORD'}`,
     `      folder: ${m.folder ?? 'INBOX'}`,
     ...(m.imapExtra ?? []),
+    ...(m.mailboxExtra ?? []),
     '    labels:',
     '      apply_as: proton_labels',
   ].join('\n');
@@ -59,6 +62,12 @@ function issuesOf(text: string): ConfigIssue[] {
 function expectValid(text: string): void {
   const result = parseConfigText(text, 'config.yaml');
   if (!result.ok) throw new Error(`expected a valid config: ${JSON.stringify(result.issues)}`);
+}
+
+function parsed(text: string) {
+  const result = parseConfigText(text, 'config.yaml');
+  if (!result.ok) throw new Error(`expected a valid config: ${JSON.stringify(result.issues)}`);
+  return result.config;
 }
 
 /** Messages of the issues located at `path` (YAML-style, e.g. `mailboxes[0].slug`). */
@@ -134,6 +143,191 @@ describe('numeric boundaries', () => {
   it.each(['9', '3601', '60.5'])('rejects poll_interval_seconds %s', (value) => {
     const text = configYaml(undefined, { worker: `worker:\n  poll_interval_seconds: ${value}` });
     expect(messagesAt(text, 'worker.poll_interval_seconds')).toHaveLength(1);
+  });
+});
+
+/** A mailbox whose imap mapping ends with a `tls:` block of the given lines (8-space indent). */
+function withTls(...lines: string[]): string {
+  return mailbox({ imapExtra: ['      tls:', ...lines.map((line) => `        ${line}`)] });
+}
+
+/** A mailbox with an `ingest:` block of the given lines (6-space indent). */
+function withIngest(...lines: string[]): string {
+  return mailbox({ mailboxExtra: ['    ingest:', ...lines.map((line) => `      ${line}`)] });
+}
+
+const PIN = '47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=';
+const PIN_MESSAGE =
+  'pin_sha256 must be the base64 SHA-256 fingerprint printed by docker compose run --rm bridge-init or sift bridge trust <slug> (44 characters ending in =)';
+const BACKFILL_MESSAGE = 'initial_backfill_days must be a whole number of days from 0 to 365';
+const CAP_MESSAGE = 'new_mail_cap must be a whole number from 1 to 10000';
+
+describe('imap.tls and ingest defaults (D-74, D-78)', () => {
+  it('parses a Phase 1 config with no tls and no ingest block to the defaults', () => {
+    const config = parsed(configYaml());
+    const [first] = config.mailboxes;
+    expect(first?.imap.tls).toEqual({ mode: 'starttls' });
+    expect(first?.imap.tls.pin_sha256).toBeUndefined();
+    expect(first?.ingest).toEqual({ initial_backfill_days: 30, new_mail_cap: 200 });
+    expect(config.version).toBe(1);
+  });
+
+  it('fills the defaults inside empty-keyed tls and ingest blocks', () => {
+    const text = configYaml([
+      mailbox({
+        imapExtra: ['      tls: {}'],
+        mailboxExtra: ['    ingest: {}'],
+      }),
+    ]);
+    const [first] = parsed(text).mailboxes;
+    expect(first?.imap.tls).toEqual({ mode: 'starttls' });
+    expect(first?.ingest).toEqual({ initial_backfill_days: 30, new_mail_cap: 200 });
+  });
+
+  it('keeps each mailbox its own ingest block', () => {
+    const text = configYaml([
+      mailbox({
+        slug: 'personal',
+        username: 'a@x',
+        mailboxExtra: ['    ingest:', '      new_mail_cap: 50'],
+      }),
+      mailbox({
+        slug: 'work',
+        username: 'b@x',
+        mailboxExtra: ['    ingest:', '      initial_backfill_days: 0'],
+      }),
+    ]);
+    const ingest = parsed(text).mailboxes.map((m) => m.ingest);
+    expect(ingest).toEqual([
+      { initial_backfill_days: 30, new_mail_cap: 50 },
+      { initial_backfill_days: 0, new_mail_cap: 200 },
+    ]);
+  });
+
+  it('keeps worker.poll_interval_seconds at its default of 60', () => {
+    const text = configYaml(undefined, { worker: 'worker: {}' });
+    expect(parsed(text).worker.poll_interval_seconds).toBe(60);
+  });
+});
+
+describe('imap.tls.mode (D-74, D-42)', () => {
+  it.each(['starttls', 'implicit'])('accepts %s', (mode) => {
+    const [first] = parsed(configYaml([withTls(`mode: ${mode}`)])).mailboxes;
+    expect(first?.imap.tls.mode).toBe(mode);
+  });
+
+  it.each(['plain', 'none', 'tls', 'STARTTLS', 'false'])(
+    'rejects %s and lists the two allowed modes',
+    (mode) => {
+      const messages = messagesAt(
+        configYaml([withTls(`mode: ${mode}`)]),
+        'mailboxes[0].imap.tls.mode',
+      );
+      expect(messages).toHaveLength(1);
+      expect(messages[0]).toContain('starttls');
+      expect(messages[0]).toContain('implicit');
+      expect(messages[0]).toContain('Sift never connects without TLS');
+    },
+  );
+
+  it('rejects a tls value that is not a mapping', () => {
+    const text = configYaml([mailbox({ imapExtra: ['      tls: starttls'] })]);
+    expect(messagesAt(text, 'mailboxes[0].imap.tls')).toEqual(['tls must be a mapping']);
+  });
+});
+
+describe('imap.tls.pin_sha256 (D-73)', () => {
+  it('accepts a base64 SHA-256 fingerprint, quoted or not', () => {
+    for (const value of [PIN, `"${PIN}"`, `'${PIN}'`]) {
+      const [first] = parsed(
+        configYaml([withTls('mode: starttls', `pin_sha256: ${value}`)]),
+      ).mailboxes;
+      expect(first?.imap.tls).toEqual({ mode: 'starttls', pin_sha256: PIN });
+    }
+  });
+
+  it('accepts a pin without an explicit mode and defaults the mode to starttls', () => {
+    const [first] = parsed(configYaml([withTls(`pin_sha256: ${PIN}`)])).mailboxes;
+    expect(first?.imap.tls).toEqual({ mode: 'starttls', pin_sha256: PIN });
+  });
+
+  it.each([
+    ['64 hex characters', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'],
+    ['a value missing the trailing =', PIN.slice(0, -1)],
+    ['a value with an inner space', `"${PIN.slice(0, 20)} ${PIN.slice(20)}"`],
+    ['a PEM header', '"-----BEGIN CERTIFICATE-----"'],
+    ['a value one character too long', `A${PIN}`],
+  ])('rejects %s with the fingerprint message', (_label, value) => {
+    const text = configYaml([withTls(`pin_sha256: ${value}`)]);
+    expect(messagesAt(text, 'mailboxes[0].imap.tls.pin_sha256')).toEqual([PIN_MESSAGE]);
+  });
+
+  it('rejects a non-text pin', () => {
+    const text = configYaml([withTls('pin_sha256: 12345')]);
+    expect(messagesAt(text, 'mailboxes[0].imap.tls.pin_sha256')).toEqual([
+      'pin_sha256 must be text',
+    ]);
+  });
+});
+
+describe('ingest bounds (D-26, D-74, D-75)', () => {
+  it.each(['0', '30', '365'])('accepts initial_backfill_days %s', (value) => {
+    const [first] = parsed(configYaml([withIngest(`initial_backfill_days: ${value}`)])).mailboxes;
+    expect(first?.ingest.initial_backfill_days).toBe(Number(value));
+  });
+
+  it.each(['-1', '366', '2.5', '"30"'])(
+    'rejects initial_backfill_days %s with the range message',
+    (value) => {
+      const text = configYaml([withIngest(`initial_backfill_days: ${value}`)]);
+      expect(messagesAt(text, 'mailboxes[0].ingest.initial_backfill_days')).toEqual([
+        BACKFILL_MESSAGE,
+      ]);
+    },
+  );
+
+  it.each(['1', '10000'])('accepts new_mail_cap %s', (value) => {
+    const [first] = parsed(configYaml([withIngest(`new_mail_cap: ${value}`)])).mailboxes;
+    expect(first?.ingest.new_mail_cap).toBe(Number(value));
+  });
+
+  it.each(['0', '10001', '1.5', '"200"'])(
+    'rejects new_mail_cap %s with the range message',
+    (value) => {
+      const text = configYaml([withIngest(`new_mail_cap: ${value}`)]);
+      expect(messagesAt(text, 'mailboxes[0].ingest.new_mail_cap')).toEqual([CAP_MESSAGE]);
+    },
+  );
+
+  it('rejects an ingest value that is not a mapping', () => {
+    const text = configYaml([mailbox({ mailboxExtra: ['    ingest: 30'] })]);
+    expect(messagesAt(text, 'mailboxes[0].ingest')).toEqual(['ingest must be a mapping']);
+  });
+});
+
+describe('strictness of the new blocks (P1 D-57/D-59)', () => {
+  it('rejects the unknown key tls.pin', () => {
+    const issues = issuesOf(configYaml([withTls(`pin: ${PIN}`)]));
+    expect(issues).toHaveLength(1);
+    expect(formatPath(issues[0]?.path ?? [])).toBe('mailboxes[0].imap.tls.pin');
+    expect(issues[0]?.message).toContain('unrecognized key');
+  });
+
+  it('rejects the unknown key ingest.cap', () => {
+    const issues = issuesOf(configYaml([withIngest('cap: 200')]));
+    expect(issues).toHaveLength(1);
+    expect(formatPath(issues[0]?.path ?? [])).toBe('mailboxes[0].ingest.cap');
+    expect(issues[0]?.message).toContain('unrecognized key');
+  });
+
+  it('rejects ingest placed under worker instead of the mailbox', () => {
+    const text = configYaml(undefined, {
+      worker: 'worker:\n  poll_interval_seconds: 60\n  ingest:\n    new_mail_cap: 200',
+    });
+    const issues = issuesOf(text);
+    expect(issues).toHaveLength(1);
+    expect(formatPath(issues[0]?.path ?? [])).toBe('worker.ingest');
+    expect(issues[0]?.message).toContain('unrecognized key');
   });
 });
 
