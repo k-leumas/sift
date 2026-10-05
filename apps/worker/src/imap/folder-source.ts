@@ -144,18 +144,29 @@ function toBodyStructure(root: MessageStructureObject | undefined): BodyNode | u
   return top;
 }
 
-/** Find a part's BODYSTRUCTURE node by part number. */
-function findPart(
-  root: MessageStructureObject | undefined,
-  part: string,
-): MessageStructureObject | undefined {
-  if (root === undefined) return undefined;
-  const stack: MessageStructureObject[] = [root];
-  for (let node = stack.pop(); node !== undefined; node = stack.pop()) {
-    if ((node.part ?? (node === root ? '1' : undefined)) === part) return node;
-    if (Array.isArray(node.childNodes)) stack.push(...node.childNodes);
+/**
+ * The longest prefix of `bytes` of at most `max` bytes that ends on a UTF-8
+ * character boundary, so a cut never leaves half a character.
+ */
+function utf8Prefix(bytes: Buffer, max: number): Buffer {
+  if (bytes.length <= max) return bytes;
+  let end = max;
+  // Step back over continuation bytes (10xxxxxx) to the lead byte of the last character.
+  let lead = end - 1;
+  while (lead > 0 && ((bytes[lead] as number) & 0xc0) === 0x80 && end - lead < 4) lead -= 1;
+  const first = bytes[lead] as number;
+  const width = first >= 0xf0 ? 4 : first >= 0xe0 ? 3 : first >= 0xc0 ? 2 : 1;
+  if (lead + width > end) end = lead;
+  return bytes.subarray(0, end);
+}
+
+function sortedUids(found: number[] | false | undefined, method: string, folder: string): number[] {
+  if (!Array.isArray(found)) {
+    // ImapFlow reports a failed SEARCH as false. Reading that as "no messages"
+    // would let a removal diff mark every message vanished.
+    throw new Error(`FolderSource.${method}: UID SEARCH failed in ${folder}`);
   }
-  return undefined;
+  return [...found].sort((a, b) => a - b);
 }
 
 /**
@@ -165,23 +176,39 @@ function findPart(
  * runs only while the examined folder is the open one.
  */
 export function createFolderSource(client: ImapFlow): FolderSource {
+  /** The folder last passed to examine, and the mailbox object it opened (null until it succeeds). */
   let examined: string | null = null;
-  let openedPath: string | null = null;
+  let opened: object | null = null;
 
-  function requireExamined(method: string): void {
+  /** The examined folder's name, when it is still the client's open mailbox. */
+  function requireExamined(method: string): string {
     if (examined === null) throw new Error(`FolderSource.${method}: no folder examined yet`);
-    const mailbox = client.mailbox;
-    if (openedPath === null || mailbox === false || mailbox.path !== openedPath) {
-      throw new Error(`FolderSource.${method}: ${examined} is not the examined folder`);
+    if (opened === null) {
+      throw new Error(`FolderSource.${method}: examining ${examined} did not succeed`);
     }
+    // ImapFlow replaces its mailbox object on every SELECT/EXAMINE and clears it on
+    // close or disconnect, so identity tells whether our EXAMINE is still in effect.
+    if (client.mailbox !== opened) {
+      throw new Error(
+        `FolderSource.${method}: the open folder is not ${examined}, the examined folder`,
+      );
+    }
+    return examined;
   }
 
   return {
     async examine(folder: string): Promise<FolderStatus> {
       examined = folder;
-      openedPath = null;
+      opened = null;
       const mailbox = await client.mailboxOpen(folder, { readOnly: true });
-      openedPath = mailbox.path;
+      if (mailbox === undefined || mailbox === null) {
+        throw new Error(`FolderSource.examine: ${folder} could not be opened`);
+      }
+      // EXAMINE must be granted read-only (D-11); fail closed on an explicit READ-WRITE.
+      if (mailbox.readOnly === false) {
+        throw new Error(`FolderSource.examine: the server opened ${folder} read-write`);
+      }
+      opened = mailbox;
       return {
         uidValidity: Number(mailbox.uidValidity),
         uidNext: mailbox.uidNext,
@@ -233,33 +260,53 @@ export function createFolderSource(client: ImapFlow): FolderSource {
     },
 
     async listUids(range: string): Promise<number[]> {
-      requireExamined('listUids');
-      const found = await client.search({ uid: range }, { uid: true });
-      return found === false || found === undefined ? [] : [...found].sort((a, b) => a - b);
+      const folder = requireExamined('listUids');
+      return sortedUids(await client.search({ uid: range }, { uid: true }), 'listUids', folder);
     },
 
+    /**
+     * UIDs of messages whose INTERNALDATE falls on or after the day of `since`.
+     * IMAP SINCE is day-granular (and ImapFlow sends the UTC date), so this can
+     * return messages from before `since`; exact windows come from INTERNALDATE
+     * filtering in the engine (02-10 backfillWindow).
+     */
     async searchSince(since: Date): Promise<number[]> {
-      requireExamined('searchSince');
-      const found = await client.search({ since }, { uid: true });
-      return found === false || found === undefined ? [] : [...found].sort((a, b) => a - b);
+      const folder = requireExamined('searchSince');
+      if (!(since instanceof Date) || Number.isNaN(since.getTime())) {
+        throw new Error('FolderSource.searchSince: since is not a valid date');
+      }
+      return sortedUids(await client.search({ since }, { uid: true }), 'searchSince', folder);
     },
 
+    /**
+     * Decoded text of one part (transfer encoding and charset handled by
+     * ImapFlow, output UTF-8), at most `maxBytes` bytes, cut on a character
+     * boundary. ImapFlow's maxBytes caps the decoded output, while the sizes it
+     * reports are encoded (BODYSTRUCTURE) or whole-message (download
+     * expectedSize), so neither can say whether the decoded part was cut. The
+     * download therefore asks for one byte more than `maxBytes`: `truncated` is
+     * true exactly when the decoded part is longer than `maxBytes`.
+     */
     async downloadText(uid: number, part: string, maxBytes: number): Promise<TextPart> {
-      requireExamined('downloadText');
+      const folder = requireExamined('downloadText');
       assertUid(uid);
-      const download = await client.download(String(uid), part, { uid: true, maxBytes });
-      if (download.content === undefined) return { text: '', truncated: false };
-      const bytes = await buffer(download.content);
-      let size = download.meta.expectedSize;
-      if (size === undefined) {
-        const [msg] = await client.fetchAll(
-          String(uid),
-          { uid: true, bodyStructure: true },
-          { uid: true },
-        );
-        size = findPart(msg?.bodyStructure, part)?.size;
+      if (!Number.isInteger(maxBytes) || maxBytes < 1) {
+        throw new Error(`FolderSource.downloadText: maxBytes must be a positive integer`);
       }
-      return { text: bytes.toString('utf8'), truncated: size !== undefined && size > maxBytes };
+      const download = await client.download(String(uid), part, {
+        uid: true,
+        maxBytes: maxBytes + 1,
+      });
+      if (download.content === undefined) {
+        throw new Error(
+          `FolderSource.downloadText: uid ${uid} part ${part} not found in ${folder}`,
+        );
+      }
+      const bytes = await buffer(download.content);
+      return {
+        text: utf8Prefix(bytes, maxBytes).toString('utf8'),
+        truncated: bytes.length > maxBytes,
+      };
     },
   };
 }
