@@ -42,6 +42,8 @@ let seededB: ScopedRowIds;
 /** Scoped tables reachable through Scope, with their SQL names. */
 const SCOPE_TABLES = [
   ['message', 'message'],
+  ['messageLocation', 'message_location'],
+  ['messageBody', 'message_body'],
   ['label', 'label'],
   ['folderSync', 'folder_sync'],
   ['ruleSet', 'rule_set'],
@@ -77,6 +79,24 @@ async function adminCount(sql: string, params: unknown[]): Promise<number> {
 
 const ids = (rows: readonly { id: string }[]): string[] => rows.map((r) => r.id).sort();
 
+/** The NOT NULL fields of a new message (D-12); identity_key is unique per mailbox. */
+const newMessage = () => ({
+  identityKey: `mid:${randomUUID()}@scope.test`,
+  internalDate: new Date(),
+  eligibleForClassification: true,
+});
+
+/** The NOT NULL fields of a new folder_sync row (D-18); folder is unique per mailbox. */
+const newFolderSync = () => ({
+  folder: `scope-${randomUUID()}`,
+  uidvalidity: 1,
+  lastUid: 0,
+  internalDateWatermark: new Date(),
+});
+
+/** Largest unsigned 32-bit value: the top of the UID and UIDVALIDITY range (SPK-04). */
+const MAX_U32 = 4_294_967_295;
+
 beforeAll(async () => {
   fresh = await freshDatabase();
   const slugs = await seedMailboxes(fresh.ownerUrl, ['scope-a', 'scope-b', 'scope-c', 'scope-d']);
@@ -111,7 +131,7 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
   });
 
   it('writes a message under A and reads it back only under A', async () => {
-    const inserted = await withMailbox(app, A, (s) => s.message.insert([{}]));
+    const inserted = await withMailbox(app, A, (s) => s.message.insert([newMessage()]));
     expect(inserted).toHaveLength(1);
     expect(inserted[0]?.mailboxId).toBe(A);
     const insertedId = inserted[0]?.id as string;
@@ -135,6 +155,8 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
       'mailboxId',
       'mailboxStatus',
       'message',
+      'messageBody',
+      'messageLocation',
       'ruleSet',
     ]);
     expect(Object.keys(app)).toEqual(['close']);
@@ -143,7 +165,7 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
   it('keeps cross-mailbox writes and append-only mutations out of the types', async () => {
     await withMailbox(app, A, async (s) => {
       // @ts-expect-error mailbox_id is filled from the scope, never from input (D-44)
-      const [row] = await s.message.insert([{ mailboxId: B }]);
+      const [row] = await s.message.insert([{ ...newMessage(), mailboxId: B }]);
       expect(row?.mailboxId).toBe(A);
 
       // @ts-expect-error update cannot move a row to another mailbox
@@ -162,12 +184,18 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
 
   it('inserts into append-only tables and every other scoped table under the scope', async () => {
     const rows = await withMailbox(app, A, async (s) => {
-      const [msg] = await s.message.insert([{}]);
+      const [msg] = await s.message.insert([newMessage()]);
       const messageId = msg?.id as string;
       return {
         label: await s.label.insert([{ messageId }]),
         decision: await s.decision.insert([{ messageId }]),
-        folderSync: await s.folderSync.insert([{}]),
+        messageLocation: await s.messageLocation.insert([
+          { messageId, folder: 'INBOX', uidvalidity: 7, uid: 1, generation: 1 },
+        ]),
+        messageBody: await s.messageBody.insert([
+          { messageId, bodyText: '', source: 'none', truncated: false },
+        ]),
+        folderSync: await s.folderSync.insert([newFolderSync()]),
         labelEvent: await s.labelEvent.insert([{}]),
         ruleSet: await s.ruleSet.insert([{}]),
       };
@@ -216,15 +244,38 @@ describe('application filter without RLS (superuser connection)', () => {
       updated: await s.folderSync.update({}, { id: seededB.folderSyncId }),
       deleted: await s.label.delete({ id: seededB.labelId }),
       appendOnly: await s.decision.find({ id: seededB.decisionId }),
+      location: await s.messageLocation.update(
+        { removedAt: new Date(), removedReason: 'vanished' },
+        { id: seededB.messageLocationId },
+      ),
+      body: await s.messageBody.delete({ id: seededB.messageBodyId }),
     }));
-    expect(result).toEqual({ found: [], updated: [], deleted: [], appendOnly: [] });
+    expect(result).toEqual({
+      found: [],
+      updated: [],
+      deleted: [],
+      appendOnly: [],
+      location: [],
+      body: [],
+    });
     expect(ids(await adminRows('label', B))).toEqual([seededB.labelId]);
+    expect(ids(await adminRows('message_location', B))).toEqual([seededB.messageLocationId]);
+    expect(ids(await adminRows('message_body', B))).toEqual([seededB.messageBodyId]);
   });
 
   it('update({}) under A touches only A rows', async () => {
-    const mutable = ['message', 'label', 'folderSync', 'ruleSet'] as const;
+    const mutable = [
+      'message',
+      'messageLocation',
+      'messageBody',
+      'label',
+      'folderSync',
+      'ruleSet',
+    ] as const;
     const tables = {
       message: 'message',
+      messageLocation: 'message_location',
+      messageBody: 'message_body',
       label: 'label',
       folderSync: 'folder_sync',
       ruleSet: 'rule_set',
@@ -243,6 +294,8 @@ describe('application filter without RLS (superuser connection)', () => {
 
   it('delete() under A removes only A rows', async () => {
     const deletable = [
+      ['messageLocation', 'message_location'],
+      ['messageBody', 'message_body'],
       ['label', 'label'],
       ['folderSync', 'folder_sync'],
       ['ruleSet', 'rule_set'],
@@ -293,7 +346,7 @@ describe('pooled connections', () => {
       let insertedId: string | undefined;
       await expect(
         withMailbox(db, A, async (s) => {
-          const [row] = await s.message.insert([{}]);
+          const [row] = await s.message.insert([newMessage()]);
           insertedId = row?.id;
           throw new Error('boom');
         }),
@@ -535,6 +588,199 @@ describe('readRegistry', () => {
       expect(rows.find((r) => r.id === A)?.disabledAt).toBeNull();
     } finally {
       await app.close();
+    }
+  });
+});
+
+describe('ingest columns and constraint edges (D-12, D-15, D-18, D-23..D-26, D-34, D-75)', () => {
+  /**
+   * Run one statement as sift_owner under app.mailbox_id = A (the owner is
+   * subject to FORCE RLS) and always roll it back, so cases never interfere.
+   */
+  async function ownerAttempt(sql: string, params: unknown[] = []): Promise<number | null> {
+    const owner = await connect(fresh.ownerUrl);
+    try {
+      await owner.query('begin');
+      await owner.query("select set_config('app.mailbox_id', $1, true)", [A]);
+      return (await owner.query(sql, params)).rowCount;
+    } finally {
+      await owner.query('rollback').catch(() => {});
+      await owner.end();
+    }
+  }
+
+  const CHECK_VIOLATION = { code: '23514' };
+
+  const insertLocation = (removedAt: string, removedReason: string) =>
+    ownerAttempt(
+      `insert into message_location
+         (mailbox_id, message_id, folder, uidvalidity, uid, generation, removed_at, removed_reason)
+       values ($1, $2, 'INBOX', 99, 99, 1, ${removedAt}, ${removedReason})`,
+      [A, seededA.messageId],
+    );
+
+  const insertFolderSync = (extraColumns: string, extraValues: string) =>
+    ownerAttempt(
+      `insert into folder_sync
+         (mailbox_id, folder, uidvalidity, last_uid, internal_date_watermark${extraColumns})
+       values ($1, 'edge-' || gen_random_uuid(), 1, 0, now()${extraValues})`,
+      [A],
+    );
+
+  const insertMessage = (identityKeySql: string) =>
+    ownerAttempt(
+      `insert into message (mailbox_id, identity_key, internal_date, eligible_for_classification)
+       values ($1, ${identityKeySql}, now(), true)`,
+      [A],
+    );
+
+  const updateStatus = (set: string) =>
+    ownerAttempt(`update mailbox_status set ${set} where mailbox_id = $1`, [A]);
+
+  it('round-trips UID and UIDVALIDITY 4294967295 through bigint columns as numbers (SPK-04)', async () => {
+    const app = createAppDb(fresh.appUrl);
+    try {
+      const { location, sync } = await withMailbox(app, A, async (s) => {
+        const [msg] = await s.message.insert([newMessage()]);
+        const [inserted] = await s.messageLocation.insert([
+          {
+            messageId: msg?.id as string,
+            folder: 'INBOX',
+            uidvalidity: MAX_U32,
+            uid: MAX_U32,
+            generation: 1,
+          },
+        ]);
+        const [folder] = await s.folderSync.insert([
+          { ...newFolderSync(), uidvalidity: MAX_U32, lastUid: MAX_U32 },
+        ]);
+        return {
+          location: await s.messageLocation.find({ id: inserted?.id as string }),
+          sync: await s.folderSync.find({ id: folder?.id as string }),
+        };
+      });
+      expect(location).toHaveLength(1);
+      expect(location[0]?.uid).toBe(MAX_U32);
+      expect(location[0]?.uidvalidity).toBe(MAX_U32);
+      expect(typeof location[0]?.uid).toBe('number');
+      expect(sync[0]?.uidvalidity).toBe(MAX_U32);
+      expect(sync[0]?.lastUid).toBe(MAX_U32);
+      expect(
+        await adminCount(
+          "select count(*)::int as n from message_location where id = $1 and uid::text = '4294967295'",
+          [location[0]?.id],
+        ),
+      ).toBe(1);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('rejects removed_at without removed_reason, and the reverse (D-17)', async () => {
+    await expect(insertLocation('now()', 'null')).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(insertLocation('null', "'vanished'")).rejects.toMatchObject(CHECK_VIOLATION);
+  });
+
+  it("rejects removed_reason 'deleted' and accepts vanished and superseded (D-17, D-23)", async () => {
+    await expect(insertLocation('now()', "'deleted'")).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(insertLocation('now()', "'vanished'")).resolves.toBe(1);
+    await expect(insertLocation('now()', "'superseded'")).resolves.toBe(1);
+    await expect(insertLocation('null', 'null')).resolves.toBe(1);
+  });
+
+  it("rejects folder_sync state 'resyncing' without both pending columns, and pending with 'ok' (D-24)", async () => {
+    await expect(insertFolderSync(', state', ", 'resyncing'")).rejects.toMatchObject(
+      CHECK_VIOLATION,
+    );
+    await expect(
+      insertFolderSync(', state, pending_uidvalidity', ", 'resyncing', 5"),
+    ).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(
+      insertFolderSync(', state, pending_uidvalidity, pending_generation', ", 'ok', 5, 2"),
+    ).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(
+      insertFolderSync(', state, pending_uidvalidity, pending_generation', ", 'resyncing', 5, 2"),
+    ).resolves.toBe(1);
+    await expect(insertFolderSync(', state', ", 'paused'")).rejects.toMatchObject(CHECK_VIOLATION);
+  });
+
+  it('rejects a partial first-backfill cursor on folder_sync (D-75)', async () => {
+    await expect(insertFolderSync(', backfill_since', ', now()')).rejects.toMatchObject(
+      CHECK_VIOLATION,
+    );
+    await expect(
+      insertFolderSync(
+        ', backfill_since, backfill_until_uid, backfill_total',
+        ", now() - interval '30 days', 500, 120",
+      ),
+    ).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(
+      insertFolderSync(
+        ', backfill_since, backfill_cursor_uid, backfill_until_uid, backfill_total',
+        ", now() - interval '30 days', 0, 500, 120",
+      ),
+    ).resolves.toBe(1);
+  });
+
+  it("rejects mailbox_status 'needs_attention' without held_new_count and backfill_done alone (D-26, D-75)", async () => {
+    await expect(updateStatus("state = 'needs_attention'")).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(updateStatus('backfill_done = 10')).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(updateStatus('backfill_total = 10')).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(updateStatus("state = 'paused'")).rejects.toMatchObject(CHECK_VIOLATION);
+  });
+
+  it("accepts mailbox_status 'connecting', 'needs_attention' with held_new_count 250 and backfill progress (D-34, D-26, D-75)", async () => {
+    await expect(updateStatus("state = 'connecting'")).resolves.toBe(1);
+    await expect(updateStatus("state = 'needs_attention', held_new_count = 250")).resolves.toBe(1);
+    await expect(updateStatus('backfill_done = 10, backfill_total = 120')).resolves.toBe(1);
+  });
+
+  it('rejects identity keys outside pm:, mid: and versioned hdr:v<n>:<64 hex> (D-12, D-82)', async () => {
+    await expect(insertMessage("'x:1'")).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(insertMessage("'hdr:' || repeat('a', 64)")).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(insertMessage("'hdr:v1:xyz'")).rejects.toMatchObject(CHECK_VIOLATION);
+    await expect(insertMessage("'hdr:v1:' || repeat('A', 64)")).rejects.toMatchObject(
+      CHECK_VIOLATION,
+    );
+    await expect(insertMessage("'pm:'")).rejects.toMatchObject(CHECK_VIOLATION);
+  });
+
+  it('accepts pm:, mid: and hdr:v1: identity keys', async () => {
+    await expect(insertMessage("'hdr:v1:' || repeat('a', 64)")).resolves.toBe(1);
+    await expect(insertMessage("'pm:' || gen_random_uuid()")).resolves.toBe(1);
+    await expect(insertMessage("'mid:<' || gen_random_uuid() || '@x.test>'")).resolves.toBe(1);
+  });
+
+  it('rejects a second message with the same identity key in one mailbox (D-12)', async () => {
+    await expect(
+      ownerAttempt(
+        `insert into message (mailbox_id, identity_key, internal_date, eligible_for_classification)
+         values ($1, 'mid:dup@x.test', now(), true), ($1, 'mid:dup@x.test', now(), true)`,
+        [A],
+      ),
+    ).rejects.toMatchObject({ code: '23505' });
+  });
+
+  it('rejects a message_body source other than text_plain, text_html or none (D-06)', async () => {
+    const owner = await connect(fresh.ownerUrl);
+    try {
+      await owner.query('begin');
+      await owner.query("select set_config('app.mailbox_id', $1, true)", [A]);
+      const { rows } = await owner.query<{ id: string }>(
+        `insert into message (mailbox_id, identity_key, internal_date, eligible_for_classification)
+         values ($1, 'mid:body-edge@x.test', now(), true) returning id`,
+        [A],
+      );
+      await expect(
+        owner.query(
+          `insert into message_body (mailbox_id, message_id, body_text, source, truncated)
+           values ($1, $2, '', 'markdown', false)`,
+          [A, rows[0]?.id],
+        ),
+      ).rejects.toMatchObject(CHECK_VIOLATION);
+    } finally {
+      await owner.query('rollback').catch(() => {});
+      await owner.end();
     }
   });
 });

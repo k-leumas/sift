@@ -17,12 +17,20 @@ const APPEND_ONLY = new Set<string>(APPEND_ONLY_TABLE_NAMES);
 const MUTABLE_TABLES = SCOPED_TABLE_NAMES.filter((t) => !APPEND_ONLY.has(t));
 
 /** Children first, so a RESTRICT foreign key never masks the RLS result. */
-const CHILD_FIRST: readonly ScopedTable[] = [
+const MESSAGE_CHILDREN_THEN_MESSAGE: readonly ScopedTable[] = [
   'label',
   'decision',
+  'message_location',
+  'message_body',
   'message',
-  ...SCOPED_TABLE_NAMES.filter((t) => !['label', 'decision', 'message'].includes(t)),
 ];
+const CHILD_FIRST: readonly ScopedTable[] = [
+  ...MESSAGE_CHILDREN_THEN_MESSAGE,
+  ...SCOPED_TABLE_NAMES.filter((t) => !MESSAGE_CHILDREN_THEN_MESSAGE.includes(t)),
+];
+
+/** Tables that reference a message through (mailbox_id, message_id) (D-04). */
+const MESSAGE_CHILDREN = ['label', 'decision', 'message_location', 'message_body'] as const;
 
 /** mailbox_status is keyed by mailbox_id; every other scoped table has an id. */
 function selectSql(table: ScopedTable): string {
@@ -41,16 +49,56 @@ const sortedIds = (rows: readonly { id: string }[]): string[] => rows.map((r) =>
 
 const idColumn = (table: ScopedTable): string => (table === 'mailbox_status' ? 'mailbox_id' : 'id');
 
-/** label and decision reference a message through (mailbox_id, message_id) (D-04). */
+/** Distinct UIDs for inserted locations, so (folder, uidvalidity, uid) never collides. */
+let nextUid = 1_000;
+
+/**
+ * An insert that supplies every NOT NULL column of `table`, with unique
+ * values where the table has a UNIQUE key, so the only check that can fail
+ * is the one a test is about (RLS, or the composite FK). Child tables
+ * reference `messageId` through (mailbox_id, message_id) (D-04).
+ */
 function insertStatement(
   table: ScopedTable,
   mailboxId: string | null,
   messageId: string,
 ): [string, unknown[]] {
-  return table === 'label' || table === 'decision'
-    ? [`insert into ${table} (mailbox_id, message_id) values ($1, $2)`, [mailboxId, messageId]]
-    : [`insert into ${table} (mailbox_id) values ($1)`, [mailboxId]];
+  switch (table) {
+    case 'message':
+      return [MESSAGE_INSERT, [mailboxId]];
+    case 'label':
+    case 'decision':
+      return [
+        `insert into ${table} (mailbox_id, message_id) values ($1, $2)`,
+        [mailboxId, messageId],
+      ];
+    case 'message_location':
+      nextUid += 1;
+      return [
+        `insert into message_location (mailbox_id, message_id, folder, uidvalidity, uid, generation)
+         values ($1, $2, 'INBOX', 1, $3, 1)`,
+        [mailboxId, messageId, nextUid],
+      ];
+    case 'message_body':
+      return [
+        `insert into message_body (mailbox_id, message_id, body_text, source, truncated)
+         values ($1, $2, '', 'none', false)`,
+        [mailboxId, messageId],
+      ];
+    case 'folder_sync':
+      return [
+        `insert into folder_sync (mailbox_id, folder, uidvalidity, last_uid, internal_date_watermark)
+         values ($1, 'iso-' || gen_random_uuid(), 1, 0, now())`,
+        [mailboxId],
+      ];
+    default:
+      return [`insert into ${table} (mailbox_id) values ($1)`, [mailboxId]];
+  }
 }
+
+/** A complete message row for mailbox $1; identity_key is unique per call (D-12). */
+const MESSAGE_INSERT = `insert into message (mailbox_id, identity_key, internal_date, eligible_for_classification)
+  values ($1, 'mid:iso-' || gen_random_uuid() || '@iso.test', now(), true)`;
 
 /**
  * Run `fn` in a transaction with app.mailbox_id set transaction-locally, the
@@ -179,9 +227,7 @@ describe('mailbox isolation as sift_app with no application filter (ISO-03)', ()
       const { rows } = await fresh.query(selectSql(table));
       expect(rows, table).toHaveLength(0);
     }
-    await expect(
-      fresh.query('insert into message (mailbox_id) values ($1)', [A]),
-    ).rejects.toMatchObject({ code: '42501' });
+    await expect(fresh.query(MESSAGE_INSERT, [A])).rejects.toMatchObject({ code: '42501' });
   });
 });
 
@@ -191,7 +237,7 @@ describe('cross-mailbox writes and scope edges (D-48)', () => {
 
   it('inserting a row for B under A fails the RLS check on every scoped table', async () => {
     for (const table of SCOPED_TABLE_NAMES) {
-      // label and decision point at A's own message, so RLS, not the FK, is what fails.
+      // Message children point at A's own message, so RLS, not the FK, is what fails.
       const [sql, params] = insertStatement(table, B, aMessage());
       await expect(
         inScope(app, A, (c) => c.query(sql, params)),
@@ -215,12 +261,11 @@ describe('cross-mailbox writes and scope edges (D-48)', () => {
     }
   });
 
-  it("an A label or decision pointing at B's message fails the composite FK (D-04)", async () => {
-    for (const table of ['label', 'decision'] as const) {
+  it("an A row in any message child table pointing at B's message fails the composite FK (D-04)", async () => {
+    for (const table of MESSAGE_CHILDREN) {
+      const [sql, params] = insertStatement(table, A, bMessage());
       await expect(
-        inScope(app, A, (c) =>
-          c.query(`insert into ${table} (mailbox_id, message_id) values ($1, $2)`, [A, bMessage()]),
-        ),
+        inScope(app, A, (c) => c.query(sql, params)),
         table,
       ).rejects.toMatchObject({ code: '23503' });
     }
@@ -239,9 +284,7 @@ describe('cross-mailbox writes and scope edges (D-48)', () => {
       const result = await reused.query(selectSql(table));
       expect(result.rows, table).toHaveLength(0);
     }
-    await expect(
-      reused.query('insert into message (mailbox_id) values ($1)', [A]),
-    ).rejects.toMatchObject({ code: '42501' });
+    await expect(reused.query(MESSAGE_INSERT, [A])).rejects.toMatchObject({ code: '42501' });
   });
 
   it('a non-UUID app.mailbox_id errors with 22P02 and never returns rows', async () => {
@@ -306,11 +349,13 @@ describe('cross-mailbox writes and scope edges (D-48)', () => {
   });
 
   it('a NULL mailbox_id fails RLS as sift_app and NOT NULL as the superuser (ISO-01)', async () => {
-    await expect(
-      inScope(app, A, (c) => c.query('insert into message (mailbox_id) values (null)')),
-    ).rejects.toMatchObject({ code: '42501' });
-    await expect(
-      admin.query('insert into message (mailbox_id) values (null)'),
-    ).rejects.toMatchObject({ code: '23502' });
+    // Every other column is valid, so only the NULL mailbox_id can fail.
+    await expect(inScope(app, A, (c) => c.query(MESSAGE_INSERT, [null]))).rejects.toMatchObject({
+      code: '42501',
+    });
+    await expect(admin.query(MESSAGE_INSERT, [null])).rejects.toMatchObject({
+      code: '23502',
+      column: 'mailbox_id',
+    });
   });
 });
