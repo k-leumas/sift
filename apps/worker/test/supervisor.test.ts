@@ -557,4 +557,24 @@ describe('createSupervisor', () => {
       await stopAll(h);
     });
   });
+
+  describe('nudge (D-28)', () => {
+    it('runs an idle mailbox now, then returns to the interval measured from that run', async () => {
+      const h = harness([entry(A, 'a'), entry(B, 'b')]);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(h.runs.get('a')).toEqual([0]);
+
+      expect(h.supervisor.nudge(A)).toBe(true);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(h.runs.get('a')).toEqual([0, 5_000]);
+      // Only the nudged mailbox runs early.
+      expect(h.runs.get('b')).toEqual([0]);
+
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(h.runs.get('a')).toEqual([0, 5_000, 65_000]);
+      expect(h.runs.get('b')).toEqual([0, 60_000]);
+      await stopAll(h);
+    });
+  });
 });

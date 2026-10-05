@@ -76,6 +76,15 @@ export interface Supervisor {
   start(): void;
   stop(timeoutMs?: number): Promise<{ drained: boolean }>;
   /**
+   * Make a mailbox due now instead of at its next poll slot (D-28). A mailbox
+   * that is running is never started twice (D-50): it runs once more right
+   * after the current run succeeds; a failed run drops the nudge and keeps
+   * its backoff (D-51). Returns false, starting nothing, for an unknown,
+   * disabled or removed mailbox and after stop(). Nothing calls it in Phase 2;
+   * a future IDLE listener or sync command uses it.
+   */
+  nudge(mailboxId: string): boolean;
+  /**
    * Resolves once maxMissedHeartbeats heartbeats in a row were missed (IN-05).
    * Never rejects, and stays pending while the heartbeat is written.
    */
@@ -141,6 +150,8 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
    */
   const recordedDisabled = new Set<string>();
   const running = new Map<string, Promise<void>>();
+  /** Mailboxes nudged while running: one follow-up run after a success (D-28). */
+  const nudged = new Set<string>();
   const inFlight = new Set<Promise<void>>();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let timerDue = Number.POSITIVE_INFINITY;
@@ -216,8 +227,12 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
         state.failures = 0;
         const slots = Math.max(1, Math.ceil((now() - startedAt) / pollIntervalMs));
         state.nextRunAt = startedAt + slots * pollIntervalMs;
+        // A nudge during this run: run once more now, never concurrently (D-28).
+        if (nudged.delete(entry.id)) state.nextRunAt = now();
         wakeAt(state.nextRunAt);
       } catch (error) {
+        // A failed run drops a pending nudge, so it cannot cut the backoff (D-51).
+        nudged.delete(entry.id);
         state.failures += 1;
         const retryInMs = computeBackoff(state.failures, pollIntervalMs, random);
         state.nextRunAt = now() + retryInMs;
@@ -379,6 +394,20 @@ export function createSupervisor(deps: SupervisorDeps): Supervisor {
       if (started) throw new Error('Supervisor already started');
       started = true;
       loop();
+    },
+
+    nudge(mailboxId: string): boolean {
+      if (stopped) return false;
+      const state = states.get(mailboxId);
+      if (state === undefined) return false;
+      if (running.has(mailboxId)) {
+        // D-50: never a second concurrent run; runMailbox reschedules on success.
+        nudged.add(mailboxId);
+        return true;
+      }
+      state.nextRunAt = now();
+      wakeAt(state.nextRunAt);
+      return true;
     },
 
     async stop(timeoutMs: number = SHUTDOWN_TIMEOUT_MS): Promise<{ drained: boolean }> {
