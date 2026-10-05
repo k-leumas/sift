@@ -12,7 +12,7 @@ External surfaces: Proton Bridge's IMAP server (gluon) and Bridge's local gRPC f
 | IMAP LIST | INTEGRATE | Probe folder summary, label prefixes and delimiter (SPK-01); 02-11 |
 | IMAP EXAMINE | INTEGRATE | The only way ingest opens a folder (read-only, D-11); 02-09 |
 | IMAP SELECT | INTEGRATE | Only the probe's confirmed label test opens the spike label folder read-write to remove the test copy; 02-11 |
-| IMAP STATUS (UIDNEXT, UIDVALIDITY, MESSAGES, HIGHESTMODSEQ) | INTEGRATE | Probe UIDVALIDITY comparisons and HIGHESTMODSEQ check (SPK-02, SPK-04); 02-11 |
+| IMAP STATUS (UIDNEXT, UIDVALIDITY, MESSAGES, HIGHESTMODSEQ) | INTEGRATE | Probe UIDVALIDITY comparisons, HIGHESTMODSEQ check and folderStatus counts (SPK-02, SPK-04); the live run's new-mail timing reads UIDNEXT from it; 02-11, 02-19 |
 | IMAP UID FETCH (INTERNALDATE, RFC822.SIZE, ENVELOPE, BODYSTRUCTURE, BODY.PEEK[HEADER.FIELDS]) | INTEGRATE | Ingest metadata and identity headers, never setting \Seen; 02-09 |
 | IMAP UID FETCH BODY.PEEK[part] (download with maxBytes) | INTEGRATE | Bounded text-part download for the body cache (D-06); 02-09 |
 | IMAP UID SEARCH (UID range, SINCE) | INTEGRATE | Removal diff, backfill window and CLI backfill count (D-17, D-75); 02-09, 02-10 |
@@ -30,7 +30,7 @@ External surfaces: Proton Bridge's IMAP server (gluon) and Bridge's local gRPC f
 | Bridge gRPC SetIsTelemetryDisabled / IsTelemetryDisabled | INTEGRATE | Telemetry off and verified at init (PROJECT no-telemetry); 02-08 |
 | Bridge gRPC SetIsAutomaticUpdateOn / IsAutomaticUpdateOn | INTEGRATE | Auto-update off and verified at init (D-30); 02-08 |
 | Bridge gRPC GetUserList | INTEGRATE | Reads the IMAP password and address mode inside the container only (D-35, D-39); 02-08 |
-| Bridge gRPC TriggerRepair | INTEGRATE | Spike-only cache rebuild, behind owner approval (D-43); 02-08, 02-14 |
+| Bridge gRPC TriggerRepair | INTEGRATE | Cache rebuild behind owner approval: the spike's UIDVALIDITY measurement (D-43) and, when the spike shows it changes UIDVALIDITY, the live resync check; 02-08, 02-14, 02-19 |
 | Bridge gRPC Quit | INTEGRATE | Clean stop after configure and repair; 02-08 |
 | Bridge gRPC ExportTLSCertificates | OPT-OUT | Writes the private key to disk; the certificate is read from the TLS handshake instead and pinned by fingerprint in config (D-73) |
 | Bridge gRPC Login / Login2FA / LoginAbort | OPT-OUT | Login runs in Bridge's own CLI, which handles 2FA, FIDO and human verification (D-36, RESEARCH Don't Hand-Roll) |
