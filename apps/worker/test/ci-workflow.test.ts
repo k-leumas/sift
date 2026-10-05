@@ -72,6 +72,16 @@ describe('.github/workflows/ci.yml (D-26)', () => {
     expect(test).toBeGreaterThan(typecheck);
   });
 
+  it('starts the IMAP test server after the bootstrap and before the tests', () => {
+    const named = (name: string) => steps.findIndex((s) => s.name === name);
+    const imap = named('Start IMAP test server');
+    expect(imap).toBeGreaterThanOrEqual(0);
+    expect(steps[imap]?.run?.trim()).toBe('scripts/test-imap.sh up');
+    expect(imap).toBeGreaterThan(named('Bootstrap roles and extensions'));
+    expect(named('Bootstrap roles and extensions')).toBeGreaterThanOrEqual(0);
+    expect(imap).toBeLessThan(named('Test'));
+  });
+
   it('defines CI and SIFT_TEST_ADMIN_URL so DB tests run instead of failing', () => {
     expect(job.env?.CI).toBe('true');
     expect(typeof job.env?.SIFT_TEST_ADMIN_URL).toBe('string');

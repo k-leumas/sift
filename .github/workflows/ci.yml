@@ -71,6 +71,12 @@ jobs:
           ${{ job.services.postgres.id }}
           psql -v ON_ERROR_STOP=1 -U postgres -f - < db/bootstrap.sql
 
+      # Dovecot with STARTTLS on 127.0.0.1:31143 for the IMAP adapter tests
+      # (Bridge is not available in CI). A step, not a service: the script
+      # copies a fresh certificate into the container before it starts.
+      - name: Start IMAP test server
+        run: scripts/test-imap.sh up
+
       - name: Lint
         run: pnpm lint
 
