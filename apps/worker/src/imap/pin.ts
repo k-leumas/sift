@@ -14,14 +14,17 @@ export function spkiSha256(pem: string): string {
 }
 
 /**
- * The same fingerprint for a certificate seen during a TLS handshake: Node's
- * `pubkey` is the DER SubjectPublicKeyInfo.
+ * The same fingerprint for a certificate seen during a TLS handshake, computed
+ * from the DER certificate (`raw`). Node's `pubkey` is the DER
+ * SubjectPublicKeyInfo only for RSA keys; for EC keys it is the bare curve
+ * point, whose hash would never match the pin.
  */
 export function peerSpkiSha256(cert: PeerCertificate): string {
-  if (!cert || !Buffer.isBuffer(cert.pubkey) || cert.pubkey.length === 0) {
+  if (!cert || !Buffer.isBuffer(cert.raw) || cert.raw.length === 0) {
     throw new Error('peer certificate has no public key');
   }
-  return createHash('sha256').update(cert.pubkey).digest('base64');
+  const spki = new X509Certificate(cert.raw).publicKey.export({ type: 'spki', format: 'der' });
+  return createHash('sha256').update(spki).digest('base64');
 }
 
 /** PEM text of a DER certificate (e.g. PeerCertificate.raw). Throws on a non-certificate. */
