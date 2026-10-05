@@ -37,6 +37,23 @@ const ALLOWED_LICENSES = new Set([
   'Apache-2.0',
 ]);
 
+/**
+ * Whether an SPDX license expression lets us use the package under allowlisted
+ * terms: an `OR` needs one fully allowed alternative (we choose it), an `AND`
+ * needs every part. Anything else, including nested parentheses, fails closed.
+ */
+function licenseAllowed(expression: string | undefined): boolean {
+  if (expression === undefined) return false;
+  let text = expression.trim();
+  if (text.startsWith('(') && text.endsWith(')')) text = text.slice(1, -1).trim();
+  if (text === '' || /[()]/.test(text)) return false;
+  return text
+    .split(/\s+OR\s+/)
+    .some((alternative) =>
+      alternative.split(/\s+AND\s+/).every((term) => ALLOWED_LICENSES.has(term.trim())),
+    );
+}
+
 /** A bare version: no range operator, tag, URL or workspace protocol. */
 const EXACT_VERSION = /^\d+\.\d+\.\d+$/;
 
@@ -100,9 +117,21 @@ describe('licenses of the production tree', () => {
 
   it('has only allowlisted licenses', () => {
     const outside = entries
-      .filter((entry) => !ALLOWED_LICENSES.has(entry.license ?? ''))
+      .filter((entry) => !licenseAllowed(entry.license))
       .map((entry) => `${entry.name}@${entry.versions.join(',')}: ${entry.license ?? 'none'}`);
     expect(outside).toEqual([]);
+  });
+
+  it('reads SPDX expressions: one allowed OR alternative, every AND part, else fail', () => {
+    expect(licenseAllowed('MIT')).toBe(true);
+    expect(licenseAllowed('(MIT OR EUPL-1.1+)')).toBe(true);
+    expect(licenseAllowed('(MIT AND ISC)')).toBe(true);
+    expect(licenseAllowed('(MIT AND GPL-3.0)')).toBe(false);
+    expect(licenseAllowed('GPL-3.0 OR EUPL-1.1+')).toBe(false);
+    expect(licenseAllowed('((MIT OR ISC) AND GPL-3.0)')).toBe(false);
+    expect(licenseAllowed('Unknown')).toBe(false);
+    expect(licenseAllowed('')).toBe(false);
+    expect(licenseAllowed(undefined)).toBe(false);
   });
 
   it('has one libmime version, the one imapflow pins', () => {
