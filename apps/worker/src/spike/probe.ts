@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { connect } from 'node:net';
-import type { FetchMessageObject, ListResponse } from 'imapflow';
+import type { FetchMessageObject, ListResponse, MailboxObject } from 'imapflow';
 import type { ImapFlow } from '../imap/connect.ts';
 import { normaliseMessageId, stripNul } from '../ingest/identity.ts';
 import { parseHeaderBlock } from '../ingest/message.ts';
@@ -256,6 +256,19 @@ function folderSummary(entries: ListResponse[]): ProbeReport['folders'] {
   };
 }
 
+/** EXAMINE `folder`; fail closed if the server grants read-write (D-11). */
+async function examine(client: ImapFlow, folder: string): Promise<MailboxObject> {
+  const mailbox = await client.mailboxOpen(folder, { readOnly: true });
+  if (mailbox?.readOnly === false) throw new Error('the server opened a folder read-write');
+  return mailbox;
+}
+
+/** A fetched INTERNALDATE as a valid Date, or null. */
+function internalDateOf(value: unknown): Date | null {
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function toNumber(value: unknown): number | null {
   if (typeof value === 'bigint') return Number(value);
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -311,9 +324,8 @@ interface ScannedMessage {
 
 function scanned(msg: FetchMessageObject): ScannedMessage | null {
   const uid = msg.uid;
-  const internalDate =
-    msg.internalDate instanceof Date ? msg.internalDate : new Date(String(msg.internalDate));
-  if (typeof uid !== 'number' || Number.isNaN(internalDate.getTime())) return null;
+  const internalDate = internalDateOf(msg.internalDate);
+  if (typeof uid !== 'number' || internalDate === null) return null;
   const headers = parseHeaderBlock(Buffer.isBuffer(msg.headers) ? msg.headers : Buffer.alloc(0));
   const rawDate = firstValue(headers, 'date');
   const date = rawDate === null ? null : new Date(rawDate);
@@ -402,7 +414,7 @@ export async function runProbe(
 
   const folders = folderSummary(await client.list());
 
-  const mailbox = await client.mailboxOpen(opts.folder, { readOnly: true });
+  const mailbox = await examine(client, opts.folder);
   const exists = typeof mailbox?.exists === 'number' ? mailbox.exists : 0;
   const window = Math.min(exists, Math.max(opts.scanLimit, opts.sample));
   let newest: ScannedMessage[] = [];
@@ -469,12 +481,6 @@ export function labelTestPlan(folder: string, uid: number, labelPath: string): s
 /** True only for the exact confirmation word (no case folding, no surrounding spaces). */
 export function isLabelConfirmation(line: string | null): boolean {
   return line === LABEL_CONFIRMATION;
-}
-
-/** EXAMINE `folder`; fail closed if the server grants read-write (D-11). */
-async function examine(client: ImapFlow, folder: string): Promise<void> {
-  const mailbox = await client.mailboxOpen(folder, { readOnly: true });
-  if (mailbox?.readOnly === false) throw new Error('the server opened a folder read-write');
 }
 
 async function uidPresent(client: ImapFlow, folder: string, uid: number): Promise<boolean> {
@@ -566,13 +572,8 @@ export async function labelTest(
   if (target === false || target === undefined || target.uid !== uid) {
     return { performed: false, skippedReason: 'target not found' };
   }
-  const internalDate =
-    target.internalDate instanceof Date
-      ? target.internalDate
-      : new Date(String(target.internalDate));
-  if (Number.isNaN(internalDate.getTime())) {
-    return { performed: false, skippedReason: 'target not found' };
-  }
+  const internalDate = internalDateOf(target.internalDate);
+  if (internalDate === null) return { performed: false, skippedReason: 'target not found' };
   if (Date.now() - internalDate.getTime() > LABEL_TEST_MAX_AGE_MS) {
     return { performed: false, skippedReason: 'target older than one hour' };
   }
@@ -646,8 +647,7 @@ export async function waitForNew(
   folder: string,
   seconds: number,
 ): Promise<{ report: NonNullable<ProbeReport['idle']>; newUid: number | null }> {
-  const mailbox = await client.mailboxOpen(folder, { readOnly: true });
-  if (mailbox?.readOnly === false) throw new Error('the server opened a folder read-write');
+  const mailbox = await examine(client, folder);
   const uidNextBefore = toNumber(mailbox?.uidNext) ?? 1;
 
   let existsEventSeen = false;
