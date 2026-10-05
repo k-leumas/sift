@@ -1,4 +1,8 @@
+import type { InferSelectModel } from 'drizzle-orm';
+import type { folderSync, ResyncSummary } from './schema/index.ts';
 import type { Scope } from './scope.ts';
+
+export type { ResyncSummary } from './schema/index.ts';
 
 /**
  * Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23).
@@ -250,4 +254,314 @@ export async function storeMessages(
   result.existingMessages = keys.length - insertedKeys.size;
   result.insertedBodies = insertedBodies.length;
   return result;
+}
+
+export type FolderSyncRow = InferSelectModel<typeof folderSync>;
+
+/** A pending first backfill of a folder (D-75): all four columns are set together. */
+export interface BackfillCursor {
+  since: Date;
+  cursorUid: number;
+  untilUid: number;
+  total: number;
+}
+
+/** The four backfill columns for a cursor, or all null. */
+function backfillColumns(backfill: BackfillCursor | null) {
+  return {
+    backfillSince: backfill?.since ?? null,
+    backfillCursorUid: backfill?.cursorUid ?? null,
+    backfillUntilUid: backfill?.untilUid ?? null,
+    backfillTotal: backfill?.total ?? null,
+  };
+}
+
+/** Thrown when a folder has no folder_sync row; names the folder only. */
+function missingFolder(folder: string): Error {
+  return new Error(`folder_sync row missing for folder "${folder}"`);
+}
+
+/**
+ * The folder's sync state, or null before its first sync (D-18).
+ * Runs in the caller's transaction (the scope).
+ */
+export async function getFolderSync(scope: Scope, folder: string): Promise<FolderSyncRow | null> {
+  const [row] = await scope.folderSync.find({ folder });
+  return row ?? null;
+}
+
+/**
+ * Create the folder's sync state at its first sync (D-18), with the first
+ * backfill cursor when one is pending (D-75). Generation starts at 1.
+ * Runs in the caller's transaction (the scope).
+ */
+export async function createFolderSync(
+  scope: Scope,
+  init: {
+    folder: string;
+    uidvalidity: number;
+    lastUid: number;
+    internalDateWatermark: Date;
+    backfill: BackfillCursor | null;
+  },
+): Promise<FolderSyncRow> {
+  const [row] = await scope.folderSync.insert([
+    {
+      folder: init.folder,
+      uidvalidity: init.uidvalidity,
+      lastUid: init.lastUid,
+      internalDateWatermark: init.internalDateWatermark,
+      ...backfillColumns(init.backfill),
+    },
+  ]);
+  if (row === undefined) throw new Error('folder_sync insert returned no row');
+  return row;
+}
+
+/**
+ * Move the folder's watermarks forward after a committed chunk (D-04, D-18).
+ * Each given value only ever moves forward (a lower one is ignored), and a
+ * call that changes nothing writes nothing. Moving the backfill cursor needs
+ * a pending backfill (D-75).
+ * Runs in the caller's transaction (the scope; the ingest lock, D-03, keeps
+ * other writers of this mailbox out between the read and the write).
+ */
+export async function advanceFolderSync(
+  scope: Scope,
+  folder: string,
+  to: { lastUid?: number; internalDateWatermark?: Date; backfillCursorUid?: number },
+): Promise<void> {
+  const row = await getFolderSync(scope, folder);
+  if (row === null) throw missingFolder(folder);
+  const set: {
+    lastUid?: number;
+    internalDateWatermark?: Date;
+    backfillCursorUid?: number;
+  } = {};
+  if (to.lastUid !== undefined && to.lastUid > row.lastUid) set.lastUid = to.lastUid;
+  if (
+    to.internalDateWatermark !== undefined &&
+    to.internalDateWatermark.getTime() > row.internalDateWatermark.getTime()
+  ) {
+    set.internalDateWatermark = to.internalDateWatermark;
+  }
+  if (to.backfillCursorUid !== undefined) {
+    if (row.backfillCursorUid === null) {
+      throw new Error(`no backfill pending for folder "${folder}"`);
+    }
+    if (to.backfillCursorUid > row.backfillCursorUid) set.backfillCursorUid = to.backfillCursorUid;
+  }
+  if (Object.keys(set).length === 0) return;
+  await scope.folderSync.update(set, { id: row.id });
+}
+
+/**
+ * Start, restart (after a resync) or finish (null) the folder's first
+ * backfill (D-75). All four backfill columns are written together.
+ * Runs in the caller's transaction (the scope).
+ */
+export async function setFolderBackfill(
+  scope: Scope,
+  folder: string,
+  backfill: BackfillCursor | null,
+): Promise<void> {
+  const rows = await scope.folderSync.update(backfillColumns(backfill), { folder });
+  if (rows.length === 0) throw missingFolder(folder);
+}
+
+/** A location that is still on the server (removed_at is null). */
+export interface LiveLocation {
+  id: string;
+  uid: number;
+  uidvalidity: number;
+  generation: number;
+  messageId: string;
+}
+
+/**
+ * The folder's live locations, of any UIDVALIDITY and generation (D-15,
+ * D-17). Used for the removal diff and the resync.
+ *
+ * While folder_sync.state is 'resyncing', two generations can be live at
+ * once, so readers that act on mailbox state (Phase 4 label application)
+ * must treat a resyncing folder as "do not act" (D-24).
+ *
+ * Runs in the caller's transaction (the scope).
+ */
+export async function liveLocations(scope: Scope, folder: string): Promise<LiveLocation[]> {
+  const rows = await scope.messageLocation.find({ folder, removedAt: null });
+  return rows.map((row) => ({
+    id: row.id,
+    uid: row.uid,
+    uidvalidity: row.uidvalidity,
+    generation: row.generation,
+    messageId: row.messageId,
+  }));
+}
+
+/**
+ * Mark live locations removed (D-17 'vanished', D-23 'superseded'). The
+ * message row stays. Already-removed locations keep their first removal.
+ * Returns the number of locations marked.
+ * Runs in the caller's transaction (the scope).
+ */
+export async function markLocationsRemoved(
+  scope: Scope,
+  ids: readonly string[],
+  reason: 'vanished' | 'superseded',
+  at: Date = new Date(),
+): Promise<number> {
+  const rows = await scope.messageLocation.update(
+    { removedAt: at, removedReason: reason },
+    { id: ids, removedAt: null },
+  );
+  return rows.length;
+}
+
+/**
+ * Delete the cached body of each given message that has no live location in
+ * any folder and no decision row (D-07: mail that left before it was ever
+ * classified keeps no body). Returns the number of bodies deleted.
+ * Runs in the caller's transaction (the scope).
+ */
+export async function deleteOrphanBodies(
+  scope: Scope,
+  messageIds: readonly string[],
+): Promise<number> {
+  const candidates = [...new Set(messageIds)];
+  if (candidates.length === 0) return 0;
+  const keep = new Set<string>();
+  for (const row of await scope.messageLocation.find({
+    messageId: candidates,
+    removedAt: null,
+  })) {
+    keep.add(row.messageId);
+  }
+  for (const row of await scope.decision.find({ messageId: candidates })) {
+    keep.add(row.messageId);
+  }
+  const orphans = candidates.filter((id) => !keep.has(id));
+  const deleted = await scope.messageBody.delete({ messageId: orphans });
+  return deleted.length;
+}
+
+/**
+ * Which of the given identity keys are stored, with their message id and
+ * eligibility (D-12, D-19 dedup). Unknown keys are absent from the map.
+ * Runs in the caller's transaction (the scope).
+ */
+export async function knownIdentityKeys(
+  scope: Scope,
+  keys: readonly string[],
+): Promise<Map<string, { id: string; eligible: boolean }>> {
+  const rows = await scope.message.find({ identityKey: [...new Set(keys)] });
+  return new Map(
+    rows.map((row) => [row.identityKey, { id: row.id, eligible: row.eligibleForClassification }]),
+  );
+}
+
+/**
+ * Mark the folder 'resyncing' toward a new UIDVALIDITY and generation
+ * (D-23, D-24). The current generation stays authoritative until
+ * finishResync; a failed resync restarts from here.
+ * Runs in the caller's transaction (the scope).
+ */
+export async function beginResync(
+  scope: Scope,
+  folder: string,
+  pending: { pendingUidvalidity: number; pendingGeneration: number },
+): Promise<void> {
+  const rows = await scope.folderSync.update(
+    {
+      state: 'resyncing',
+      pendingUidvalidity: pending.pendingUidvalidity,
+      pendingGeneration: pending.pendingGeneration,
+    },
+    { folder },
+  );
+  if (rows.length === 0) throw missingFolder(folder);
+}
+
+/**
+ * Complete a resync (D-23, D-25, D-75).
+ *
+ * Every live location of the folder outside the new generation is marked
+ * 'superseded' when its message has a live new-generation location in this
+ * folder, and 'vanished' otherwise; the vanished messages' bodies are
+ * deleted when they are orphans (D-07). Then folder_sync takes the new
+ * UIDVALIDITY, generation, last UID and watermark, state 'ok' with the
+ * pending columns cleared, last_resync_at and last_resync_summary (whose
+ * `gone` is the number of distinct messages marked vanished). `backfill`
+ * replaces the four backfill columns, null clears them, undefined leaves
+ * them as they are.
+ *
+ * Several statements: atomic only because the caller runs it in one scope
+ * (02-13 maps IngestStore.finishResync to exactly one session.run), so a
+ * crash can never leave a backfill cursor from the old UIDVALIDITY next to
+ * the new one. It opens no transaction of its own.
+ */
+export async function finishResync(
+  scope: Scope,
+  folder: string,
+  done: {
+    uidvalidity: number;
+    generation: number;
+    lastUid: number;
+    internalDateWatermark: Date;
+    summary: Omit<ResyncSummary, 'gone'>;
+    backfill?: BackfillCursor | null;
+    at?: Date;
+  },
+): Promise<{ superseded: number; vanished: number; summary: ResyncSummary }> {
+  const at = done.at ?? new Date();
+  const live = await liveLocations(scope, folder);
+  const current = new Set(
+    live.filter((l) => l.generation === done.generation).map((l) => l.messageId),
+  );
+  const old = live.filter((l) => l.generation !== done.generation);
+  const superseded = old.filter((l) => current.has(l.messageId));
+  const vanished = old.filter((l) => !current.has(l.messageId));
+
+  const supersededCount = await markLocationsRemoved(
+    scope,
+    superseded.map((l) => l.id),
+    'superseded',
+    at,
+  );
+  const vanishedCount = await markLocationsRemoved(
+    scope,
+    vanished.map((l) => l.id),
+    'vanished',
+    at,
+  );
+  const goneMessages = [...new Set(vanished.map((l) => l.messageId))];
+  await deleteOrphanBodies(scope, goneMessages);
+
+  const summary: ResyncSummary = { ...done.summary, gone: goneMessages.length };
+  const rows = await scope.folderSync.update(
+    {
+      uidvalidity: done.uidvalidity,
+      generation: done.generation,
+      lastUid: done.lastUid,
+      internalDateWatermark: done.internalDateWatermark,
+      state: 'ok',
+      pendingUidvalidity: null,
+      pendingGeneration: null,
+      lastResyncAt: at,
+      lastResyncSummary: summary,
+      ...(done.backfill === undefined ? {} : backfillColumns(done.backfill)),
+    },
+    { folder },
+  );
+  if (rows.length === 0) throw missingFolder(folder);
+  return { superseded: supersededCount, vanished: vanishedCount, summary };
+}
+
+/**
+ * The body-cache sweep (D-07): delete this mailbox's bodies whose expires_at
+ * is at or before `at`. Returns the count.
+ * Runs in the caller's transaction (the scope).
+ */
+export async function deleteExpiredBodies(scope: Scope, at: Date = new Date()): Promise<number> {
+  return scope.messageBody.deleteExpired(at);
 }

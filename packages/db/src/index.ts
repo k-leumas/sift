@@ -31,12 +31,27 @@ export {
 } from './app-db.ts';
 export {
   type AttachmentMeta,
+  advanceFolderSync,
+  type BackfillCursor,
   type BodyInput,
+  beginResync,
+  createFolderSync,
+  deleteExpiredBodies,
+  deleteOrphanBodies,
+  type FolderSyncRow,
+  finishResync,
+  getFolderSync,
+  knownIdentityKeys,
+  type LiveLocation,
   type LocationInput,
+  liveLocations,
   type MessageInput,
+  markLocationsRemoved,
+  type ResyncSummary,
   type StoreItem,
   type StoreOptions,
   type StoreResult,
+  setFolderBackfill,
   storeMessages,
 } from './ingest.ts';
 export { type RegistryRow, readRegistry } from './registry-read.ts';
