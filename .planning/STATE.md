@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-11-PLAN.md
-last_updated: "2026-10-05T20:33:29.757Z"
+stopped_at: Completed 02-12-PLAN.md
+last_updated: "2026-10-05T20:47:16.520Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 9f5c3ddb2348186dac6a46fe9f77dfe523ee8562
+state_head: 565ea8b92efa7773a44db1037d61d56903a61006
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 13 of 19
+Plan: 14 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -82,6 +82,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P09 | 25 min | 2 tasks | 10 files |
 | Phase 02 P10 | 14 min | 3 tasks | 6 files |
 | Phase 02 P11 | 18 min | 2 tasks | 6 files |
+| Phase 02 P12 | 11 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-11: the probe sends ENABLE CONDSTORE QRESYNC and STATUS HIGHESTMODSEQ raw via ImapFlow exec() and records the tagged status (OK/NO/BAD/none); counts come from client.status() without HIGHESTMODSEQ
 - [Phase 02]: 02-11: the label test expunges only the COPYUID-named label copy, only after the original is re-confirmed, and only with UIDPLUS; otherwise it reports 'label copy not confirmed' and leaves the label for the owner
 - [Phase 02]: 02-11: --uid needs --label-test, --compare - with --label-test is a usage error (both read stdin), --wait-new-seconds is capped at 3600; CommandIO gained optional stdin
+- [Phase 02]: 02-12: Ingest lock key is hashtextextended(mailbox_id, 815309), 64-bit, one session advisory lock per mailbox on a dedicated pooled client that also runs IngestSession.run transactions
+- [Phase 02]: 02-12: withIngestLock error precedence: fn error wins, else a dead-connection or unlock error; a dead or possibly-locked client is discarded, a clean fn throw keeps the connection pooled
+- [Phase 02]: 02-12: IngestSession.run is not re-entrant (IngestSessionBusyError before any SQL); withIngestLock waits for a run left in flight before unlocking
+- [Phase 02]: 02-12: recordNeedsAttention clears approved_new_count and its last_error carries only the count and the sift mailbox resume command; recordSyncSuccess clears held and approved counts
 
 ### Pending Todos
 
@@ -188,6 +193,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T20:33:29.679Z
-Stopped at: Completed 02-11-PLAN.md
+Last session: 2026-10-05T20:47:06.317Z
+Stopped at: Completed 02-12-PLAN.md
 Resume file: None

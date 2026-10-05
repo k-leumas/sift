@@ -74,7 +74,7 @@ Plans:
   4. A new email sent to the mailbox shows up in the database within one polling interval without restarting anything
   5. After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages
 
-**Plans**: 12/19 plans executed
+**Plans**: 13/19 plans executed
 
 Plans:
 **Wave 1**
@@ -94,7 +94,7 @@ Plans:
 - [x] 02-09-PLAN.md — Read-only ImapFlow FolderSource adapter against Dovecot (wave 3)
 - [x] 02-10-PLAN.md — Sync engine: throttled first backfill, polling, valve (before any resync write), removals, generation resync, CLI backfill entry points (wave 3)
 - [x] 02-11-PLAN.md — `sift bridge probe` spike tool (aggregates only, confirmed label test) (wave 3)
-- [ ] 02-12-PLAN.md — Cross-process ingest lock and status use-cases (wave 3)
+- [x] 02-12-PLAN.md — Cross-process ingest lock and status use-cases (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 02-13-PLAN.md — Worker integration: lock, pinned connect, engine, owner-visible states, end-to-end tests (wave 4)
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
-| 2. Bridge Spike and IMAP Ingest | v0.1 | 12/19 | In Progress|  |
+| 2. Bridge Spike and IMAP Ingest | v0.1 | 13/19 | In Progress|  |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
