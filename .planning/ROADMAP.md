@@ -74,7 +74,7 @@ Plans:
   4. A new email sent to the mailbox shows up in the database within one polling interval without restarting anything
   5. After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages
 
-**Plans**: 4/19 plans executed
+**Plans**: 5/19 plans executed
 
 Plans:
 **Wave 1**
@@ -82,7 +82,7 @@ Plans:
 - [x] 02-02-PLAN.md — Config keys imap.tls.mode/pin_sha256 and the per-mailbox ingest block, example config (wave 1)
 - [x] 02-03-PLAN.md — Schema: message identity, message_location, message_body, folder_sync watermarks and backfill cursor, new mailbox states, preflight migration and fixture updates (wave 1)
 - [x] 02-04-PLAN.md — IMAP test server (local and CI), SPKI pin function, D-77 dependency install with license/tree checks (wave 1)
-- [ ] 02-05-PLAN.md — Supervisor nudge() and shutdown AbortSignal (wave 1)
+- [x] 02-05-PLAN.md — Supervisor nudge() and shutdown AbortSignal (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 02-06-PLAN.md — Scoped insertOrIgnore/upsert and ingest use-cases in @sift/db, matched by identity key (wave 2)
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
-| 2. Bridge Spike and IMAP Ingest | v0.1 | 4/19 | In Progress|  |
+| 2. Bridge Spike and IMAP Ingest | v0.1 | 5/19 | In Progress|  |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 

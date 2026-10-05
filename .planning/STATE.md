@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-10-05T18:10:24.448Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-10-05T18:21:48.055Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 4441a1a91bbe8036a259a0e9d9c72759b631fc2a
+state_head: c715cc2c4226c020ee068fea2e42a6bbe15e4319
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 5 of 19
+Plan: 6 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -74,6 +74,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P02 | 6 min | 2 tasks | 7 files |
 | Phase 02 P03 | 11 min | 2 tasks | 17 files |
 | Phase 02 P04 | 17 min | 3 tasks | 9 files |
+| Phase 02 P05 | 10 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-03: migration counts and tags in migrate.test.ts and setup.test.ts are derived from meta/_journal.json
 - [Phase 02]: 02-04: test IMAP server makes its own CA:TRUE cert per container (image snakeoil is CA:FALSE with a public key); container sift-test-imap-<port>
 - [Phase 02]: 02-04: license check covers --filter '@sift/worker...' and reads SPDX OR/AND; @zone-eu/mailsplit (MIT OR EUPL-1.1+) used under MIT
+- [Phase 02]: 02-05: nudge() on a running mailbox only flags it; one follow-up run after a success, a failed run drops the nudge and keeps D-51 backoff
+- [Phase 02]: 02-05: one AbortController per supervisor; runBatch(entry, shutdown.signal); stop() aborts it before the bounded drain
 
 ### Pending Todos
 
@@ -153,6 +156,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T18:10:12.491Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-10-05T18:21:47.909Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
