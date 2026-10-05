@@ -1,4 +1,4 @@
-# Sift stack: db -> setup (one-shot) -> worker.
+# Sift stack: db -> setup (one-shot) -> worker, plus bridge (and the one-shot bridge-init).
 #
 # Before the first `docker compose up -d`, copy the three example files:
 #   .env.example                -> .env             (database passwords)
@@ -23,8 +23,8 @@
 # SIFT_IMAGE, SIFT_CONFIG_HOST_DIR, SIFT_MAILBOXES_ENV_FILE, SIFT_BACKUP_HOST_DIR
 # and SIFT_PGDATA_VOLUME exist only so scripts/compose-smoke.sh can run a
 # throwaway stack that shares none of your files, image or volume. Likewise
-# SIFT_BRIDGE_IMAGE and SIFT_BRIDGE_VOLUME exist only for the smoke scripts.
-# Leave them unset.
+# SIFT_BRIDGE_IMAGE, SIFT_BRIDGE_VOLUME and SIFT_MAILBOXES_BAK_FILE exist only
+# for the smoke scripts. Leave them unset.
 
 services:
   db:
@@ -149,6 +149,35 @@ services:
       retries: 3
       start_period: 60s
     restart: unless-stopped
+
+  # One-time Bridge login and mailbox password setup:
+  #   docker compose run --rm bridge-init
+  # Other one-shot modes: docker compose run --rm bridge-init configure|cli|repair
+  # Stop the bridge service first (docker compose stop bridge): Bridge allows
+  # one instance per vault. This is the only service that sees .env.mailboxes
+  # and config, so the long-running bridge never does. `docker compose up`
+  # never starts it (profile tools); `docker compose run` needs no --profile.
+  bridge-init:
+    build:
+      context: ./bridge
+    image: ${SIFT_BRIDGE_IMAGE:-sift-bridge:local}
+    profiles: ["tools"]
+    command: ["init"]
+    environment:
+      SIFT_BRIDGE_KEYCHAIN_PASSPHRASE: ${SIFT_BRIDGE_KEYCHAIN_PASSPHRASE:?set in .env}
+    volumes:
+      - sift-bridge:/data
+      - ${SIFT_MAILBOXES_ENV_FILE:-./.env.mailboxes}:/run/sift/.env.mailboxes
+      - ${SIFT_CONFIG_HOST_DIR:-./config}:/run/sift/config:ro
+      # Backup of .env.mailboxes, written in place by init before it changes
+      # the file. Create it once: touch .env.mailboxes.bak && chmod 600
+      # .env.mailboxes.bak (README quick start). The long syntax makes a missing
+      # file stop Compose with "bind source path does not exist" instead of
+      # silently creating a directory.
+      - type: bind
+        source: ${SIFT_MAILBOXES_BAK_FILE:-./.env.mailboxes.bak}
+        target: /run/sift/.env.mailboxes.bak
+    restart: "no"
 
 volumes:
   sift-pgdata:

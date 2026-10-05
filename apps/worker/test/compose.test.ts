@@ -9,12 +9,26 @@ function read(file: string): string {
   return readFileSync(path.join(REPO_ROOT, file), 'utf8');
 }
 
+/** A long-syntax volume entry (`type: bind`, `source`, `target`, ...). */
+interface LongVolume {
+  type?: string;
+  source?: string;
+  target?: string;
+  read_only?: boolean;
+  bind?: Record<string, unknown>;
+}
+
+/** Volume entries can be short strings or long-syntax objects. */
+type VolumeEntry = string | LongVolume;
+
 interface Service {
+  build?: { context?: string; args?: Record<string, string> } | string;
   image?: string;
   command?: string[];
+  profiles?: string[];
   environment?: Record<string, unknown> | string[];
   env_file?: string | string[];
-  volumes?: string[];
+  volumes?: VolumeEntry[];
   ports?: string[];
   depends_on?: Record<string, { condition?: string }>;
   restart?: string;
@@ -26,7 +40,7 @@ interface Service {
 interface ComposeFile {
   name?: unknown;
   services?: Record<string, Service>;
-  volumes?: Record<string, { name?: string } | null>;
+  volumes?: Record<string, { name?: string; external?: boolean } | null>;
 }
 
 const compose = parse(read('compose.yaml')) as ComposeFile;
@@ -49,6 +63,24 @@ function env(svc: Service): Record<string, string> {
     );
   }
   return Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, String(v ?? '')]));
+}
+
+/** Source and target of a volume entry in either syntax. */
+function mount(entry: VolumeEntry): { source: string; target: string } {
+  if (typeof entry !== 'string') return { source: entry.source ?? '', target: entry.target ?? '' };
+  const [source = '', target = ''] = entry.split(':');
+  // `${VAR:-default}` holds a colon of its own: split after the closing brace.
+  const close = entry.indexOf('}');
+  if (entry.startsWith('${') && close !== -1) {
+    const rest = entry.slice(close + 1).split(':');
+    return { source: entry.slice(0, close + 1) + (rest[0] ?? ''), target: rest[1] ?? '' };
+  }
+  return { source, target };
+}
+
+/** Short-syntax volume strings of a service (long-syntax entries skipped). */
+function shortVolumes(svc: Service): string[] {
+  return (svc.volumes ?? []).filter((v): v is string => typeof v === 'string');
 }
 
 function envFiles(svc: Service): string[] | undefined {
@@ -76,8 +108,14 @@ const WORKER_ENV_ALLOWED = new Set([
 const PRIVILEGED = ['SIFT_DB_OWNER_PASSWORD', 'SIFT_DB_BACKUP_PASSWORD', 'POSTGRES_PASSWORD'];
 
 describe('compose.yaml services', () => {
-  it('defines db, setup and worker', () => {
-    expect(Object.keys(compose.services ?? {}).sort()).toEqual(['bridge', 'db', 'setup', 'worker']);
+  it('defines db, setup, worker, bridge and bridge-init', () => {
+    expect(Object.keys(compose.services ?? {}).sort()).toEqual([
+      'bridge',
+      'bridge-init',
+      'db',
+      'setup',
+      'worker',
+    ]);
   });
 
   it('runs setup and worker from the same locally built image', () => {
@@ -209,7 +247,7 @@ describe('ordering and lifecycle (D-27, D-53, D-54, D-60)', () => {
 
   it('mounts the config directory read-only', () => {
     for (const name of ['setup', 'worker']) {
-      const mounts = (service(name).volumes ?? []).filter((v) => v.includes(':/config'));
+      const mounts = shortVolumes(service(name)).filter((v) => v.includes(':/config'));
       // Only compose-smoke sets SIFT_CONFIG_HOST_DIR (IN-08); owners mount ./config.
       // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
       const expected = '${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro';
@@ -225,5 +263,134 @@ describe('.env.mailboxes.example', () => {
     };
     const expected = config.mailboxes.map((m) => m.imap.password_env).sort();
     expect(dotenvKeys('.env.mailboxes.example').sort()).toEqual(expected);
+  });
+});
+
+// biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+const BRIDGE_PORT = '127.0.0.1:${SIFT_BRIDGE_PORT:-1143}:1143';
+const BRIDGE_PASSPHRASE = 'SIFT_BRIDGE_KEYCHAIN_PASSPHRASE';
+
+describe('bridge service (D-29..D-38, D-73, D-79)', () => {
+  const bridge = service('bridge');
+
+  it('publishes IMAP on host loopback only', () => {
+    expect(bridge.ports).toEqual([BRIDGE_PORT]);
+  });
+
+  it('mounts the vault volume and nothing else', () => {
+    expect(bridge.volumes).toEqual(['sift-bridge:/data']);
+    for (const entry of bridge.volumes ?? []) {
+      const { source, target } = mount(entry);
+      expect(target.startsWith('/run/sift')).toBe(false);
+      expect(source).not.toContain('.env.mailboxes');
+      expect(source).not.toContain('config');
+    }
+  });
+
+  it('has no profile, so docker compose up starts it', () => {
+    expect(bridge.profiles).toBeUndefined();
+  });
+
+  it('restarts unless stopped and has a healthcheck', () => {
+    expect(bridge.restart).toBe('unless-stopped');
+    expect(bridge.healthcheck?.test).toBeDefined();
+  });
+
+  it('builds the image from ./bridge', () => {
+    // Only the smoke scripts set SIFT_BRIDGE_IMAGE.
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    expect(bridge.image).toBe('${SIFT_BRIDGE_IMAGE:-sift-bridge:local}');
+    expect(bridge.build).toEqual({ context: './bridge' });
+  });
+});
+
+describe('bridge-init service (D-39, D-72, D-79, D-81)', () => {
+  const init = service('bridge-init');
+
+  it('runs only on demand, in init mode', () => {
+    expect(init.profiles).toEqual(['tools']);
+    expect(init.command).toEqual(['init']);
+  });
+
+  it('uses the same build and image as bridge', () => {
+    expect(init.build).toEqual(service('bridge').build);
+    expect(init.image).toBe(service('bridge').image);
+  });
+
+  it('mounts the vault, the mailbox env file, config read-only and the backup file', () => {
+    expect(init.volumes).toEqual([
+      'sift-bridge:/data',
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+      '${SIFT_MAILBOXES_ENV_FILE:-./.env.mailboxes}:/run/sift/.env.mailboxes',
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+      '${SIFT_CONFIG_HOST_DIR:-./config}:/run/sift/config:ro',
+      {
+        type: 'bind',
+        // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+        source: '${SIFT_MAILBOXES_BAK_FILE:-./.env.mailboxes.bak}',
+        target: '/run/sift/.env.mailboxes.bak',
+      },
+    ]);
+    // No `bind` key, so no create_host_path: a missing backup file stops Compose.
+    const long = (init.volumes ?? []).filter((v): v is LongVolume => typeof v !== 'string');
+    expect(long).toHaveLength(1);
+    expect(long[0]).not.toHaveProperty('bind');
+  });
+
+  it('publishes no ports and never restarts', () => {
+    expect(init.ports).toBeUndefined();
+    expect(init.restart).toBe('no');
+  });
+});
+
+describe('Bridge vault, secrets and mounts across services (D-32, D-37, D-38, D-79)', () => {
+  const services = compose.services ?? {};
+
+  it('declares sift-bridge as an external volume with a name variable', () => {
+    const volume = compose.volumes?.['sift-bridge'];
+    expect(volume?.external).toBe(true);
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    expect(volume?.name).toBe('${SIFT_BRIDGE_VOLUME:-sift-bridge}');
+  });
+
+  it('mounts sift-bridge only in bridge and bridge-init', () => {
+    const users = Object.entries(services)
+      .filter(([, svc]) => (svc.volumes ?? []).some((v) => mount(v).source === 'sift-bridge'))
+      .map(([name]) => name)
+      .sort();
+    expect(users).toEqual(['bridge', 'bridge-init']);
+  });
+
+  it('mounts anything under /run/sift only in bridge-init', () => {
+    const users = Object.entries(services)
+      .filter(([, svc]) => (svc.volumes ?? []).some((v) => mount(v).target.startsWith('/run/sift')))
+      .map(([name]) => name);
+    expect(users).toEqual(['bridge-init']);
+    expect(service('bridge').volumes).toEqual(['sift-bridge:/data']);
+  });
+
+  it('gives the keychain passphrase to bridge and bridge-init only', () => {
+    for (const [name, svc] of Object.entries(services)) {
+      const holds = Object.keys(env(svc)).includes(BRIDGE_PASSPHRASE);
+      const mentions = JSON.stringify(svc).includes(BRIDGE_PASSPHRASE);
+      const expected = name === 'bridge' || name === 'bridge-init';
+      expect(holds, `${name} environment`).toBe(expected);
+      expect(mentions, `${name} definition`).toBe(expected);
+    }
+  });
+
+  it('never makes the worker wait for Bridge', () => {
+    const dependsOn = Object.keys(service('worker').depends_on ?? {});
+    expect(dependsOn).not.toContain('bridge');
+    expect(dependsOn).not.toContain('bridge-init');
+  });
+
+  it('leaves the worker and setup mounts as in Phase 1 (no certificate mount)', () => {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    const config = '${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro';
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    const backups = '${SIFT_BACKUP_HOST_DIR:-./backups}:/backups';
+    expect(service('worker').volumes).toEqual([config]);
+    expect(service('setup').volumes).toEqual([config, backups]);
   });
 });

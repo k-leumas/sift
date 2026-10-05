@@ -2,6 +2,8 @@
 # Full-stack smoke test: build the image, bring up db -> setup -> worker, and
 # check that setup exited 0, the worker is healthy, and migrations and the
 # mailbox registry were applied. Used locally and by the CI job compose-smoke.
+# It builds and starts only db, setup and worker; the Bridge image is checked
+# separately by scripts/bridge-smoke.sh.
 #
 # Run from the repository root:
 #   scripts/compose-smoke.sh           leave the stack running afterwards
@@ -23,12 +25,20 @@
 # publishes 5432). In CI too, it refuses a project that already has containers
 # unless they are an earlier smoke stack on the same volume.
 #
+# The Bridge volume is external, and Compose fails every command while it is
+# missing, so the smoke stack creates its own, <project>-bridge-smoke
+# (SIFT_BRIDGE_VOLUME), never sift-bridge, and fills its own throwaway
+# SIFT_BRIDGE_KEYCHAIN_PASSPHRASE. It also points bridge-init's backup file
+# (SIFT_MAILBOXES_BAK_FILE) at a path that does not exist, proving the base
+# stack starts without it.
+#
 # Pre-migration dumps go to .smoke/<project>/backups (SIFT_BACKUP_HOST_DIR),
 # never to ./backups: every smoke run migrates a fresh database, and the dump
 # prune would otherwise delete your own pre-migration backups.
 #
-# --down runs `docker compose down -v`, which deletes the smoke volume. It only
-# runs when CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes is set.
+# --down runs `docker compose down -v`, which deletes the smoke volume, and
+# removes the smoke Bridge volume (down -v never removes external volumes). It
+# only runs when CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes is set.
 #
 # Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME, SIFT_DB_PORT
 # (beats the smoke .env), SIFT_BACKUP_HOST_DIR.
@@ -52,6 +62,8 @@ default_project=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_
 project=${COMPOSE_PROJECT_NAME:-$default_project}
 volume=${SIFT_PGDATA_VOLUME:-$project-pgdata-smoke}
 export SIFT_PGDATA_VOLUME=$volume
+bridge_volume=${SIFT_BRIDGE_VOLUME:-$project-bridge-smoke}
+export SIFT_BRIDGE_VOLUME=$bridge_volume
 
 refuse() {
   echo "compose-smoke: $*" >&2
@@ -60,6 +72,9 @@ refuse() {
 
 if [ "$volume" = sift-pgdata ]; then
   refuse "refusing to run on sift-pgdata, the database volume of your own stack; unset SIFT_PGDATA_VOLUME."
+fi
+if [ "$bridge_volume" = sift-bridge ]; then
+  refuse "refusing to run on sift-bridge, the Bridge volume of your own stack; unset SIFT_BRIDGE_VOLUME."
 fi
 if [ "${CI:-}" != true ] && [ "$project" = "$default_project" ]; then
   refuse "outside CI, set COMPOSE_PROJECT_NAME (and SIFT_DB_PORT if 5432 is taken) so the smoke stack does not replace your own containers."
@@ -108,15 +123,28 @@ fi
 SIFT_BACKUP_HOST_DIR=$(real_dir "$backup_dir")
 export SIFT_BACKUP_HOST_DIR
 
+# bridge-init's backup bind source (D-81). It must not exist: every smoke run
+# then proves `up` of db, setup and worker ignores the missing file.
+SIFT_MAILBOXES_BAK_FILE=$smoke_dir/no-such-backup
+if [ -e "$SIFT_MAILBOXES_BAK_FILE" ]; then
+  refuse "$SIFT_MAILBOXES_BAK_FILE exists; remove it, the smoke stack needs that path missing."
+fi
+export SIFT_MAILBOXES_BAK_FILE
+
 smoke_env=$smoke_dir/.env
 if [ ! -f "$smoke_env" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
     case $line in
-      *_PASSWORD=) printf '%s%s\n' "$line" "$(openssl rand -hex 24)" ;;
+      *_PASSWORD= | *_PASSPHRASE=) printf '%s%s\n' "$line" "$(openssl rand -hex 24)" ;;
       *) printf '%s\n' "$line" ;;
     esac
   done < .env.example > "$smoke_env"
   echo "compose-smoke: created $smoke_env from .env.example (random passwords)"
+fi
+# A smoke .env from before Bridge lacks the keychain passphrase.
+if ! grep -q '^SIFT_BRIDGE_KEYCHAIN_PASSPHRASE=' "$smoke_env"; then
+  printf 'SIFT_BRIDGE_KEYCHAIN_PASSPHRASE=%s\n' "$(openssl rand -hex 24)" >> "$smoke_env"
+  echo "compose-smoke: added SIFT_BRIDGE_KEYCHAIN_PASSPHRASE to $smoke_env"
 fi
 
 while IFS= read -r line || [ -n "$line" ]; do
@@ -152,6 +180,7 @@ fi
 cleanup() {
   if [ "$down" = true ]; then
     dc down -v --remove-orphans || true
+    docker volume rm "$SIFT_BRIDGE_VOLUME" >/dev/null || true
   fi
 }
 trap cleanup EXIT
@@ -170,8 +199,9 @@ container() {
     --filter "label=com.docker.compose.oneoff=False" | head -n 1
 }
 
-dc build || fail "docker compose build"
-dc up -d || fail "docker compose up -d"
+docker volume create "$SIFT_BRIDGE_VOLUME" >/dev/null || fail "docker volume create $SIFT_BRIDGE_VOLUME"
+dc build setup worker || fail "docker compose build setup worker"
+dc up -d db setup worker || fail "docker compose up -d db setup worker"
 
 deadline=$((SECONDS + timeout))
 setup_done=false

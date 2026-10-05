@@ -35,6 +35,7 @@ let sudoLog: string;
 let dockerLog: string;
 let envLog: string;
 let psLog: string;
+let bridgeEnvLog: string;
 
 function shim(name: string, body: string): void {
   const file = path.join(bin, name);
@@ -44,9 +45,10 @@ function shim(name: string, body: string): void {
 
 /**
  * Run the file-preparation half of compose-smoke.sh in a scratch copy of the
- * repository. `docker` is stubbed to fail, so the script stops at its first
- * docker call; `uname`, `id` and `sudo` are stubbed to emulate a Linux CI
- * runner whose uid is not 1000.
+ * repository. `docker` is stubbed: `docker volume ...` succeeds, every compose
+ * call fails (unless SHIM_BUILD_OK lets `compose ... build` pass), so the
+ * script stops at its first compose call; `uname`, `id` and `sudo` are stubbed
+ * to emulate a Linux CI runner whose uid is not 1000.
  */
 function runSmoke(
   os: string,
@@ -68,6 +70,9 @@ function runSmoke(
       'fi',
       `echo "$SIFT_PGDATA_VOLUME $*" >> '${dockerLog}'`,
       `echo "$SIFT_BACKUP_HOST_DIR|$SIFT_CONFIG_HOST_DIR|$SIFT_MAILBOXES_ENV_FILE|$SIFT_IMAGE" >> '${envLog}'`,
+      `echo "$SIFT_BRIDGE_VOLUME|$SIFT_MAILBOXES_BAK_FILE" >> '${bridgeEnvLog}'`,
+      '[ "$1" != volume ] || exit 0',
+      'case "$*" in *" build "*) [ -z "$SHIM_BUILD_OK" ] || exit 0 ;; esac',
       'exit 1',
     ].join('\n'),
   );
@@ -95,7 +100,7 @@ function smokeBackups(project = 'smoketest'): string {
 
 /** The first `docker compose build` call the script makes for a project. */
 function composeBuild(project = 'smoketest'): string {
-  return `${project}-pgdata-smoke compose --env-file ${smokeDir(project)}/.env build`;
+  return `${project}-pgdata-smoke compose --env-file ${smokeDir(project)}/.env build setup worker`;
 }
 
 interface ExportedEnv {
@@ -118,10 +123,30 @@ function exportedBackupDir(): string | undefined {
   return exportedEnv()?.backupDir;
 }
 
-/** First docker invocation other than `docker ps`, as "<SIFT_PGDATA_VOLUME> <args>". */
+/** Docker invocations other than `docker ps`, as "<SIFT_PGDATA_VOLUME> <args>". */
+function dockerCalls(): string[] {
+  if (!existsSync(dockerLog)) return [];
+  return readFileSync(dockerLog, 'utf8')
+    .split('\n')
+    .filter((line) => line !== '');
+}
+
+/** First docker invocation other than `docker ps`, or undefined. */
 function firstDockerCall(): string | undefined {
-  if (!existsSync(dockerLog)) return undefined;
-  return readFileSync(dockerLog, 'utf8').split('\n')[0];
+  return dockerCalls()[0];
+}
+
+/** First `docker compose` invocation, or undefined. */
+function firstComposeCall(): string | undefined {
+  return dockerCalls().find((line) => line.includes(' compose '));
+}
+
+/** SIFT_BRIDGE_VOLUME and SIFT_MAILBOXES_BAK_FILE as seen by the first docker call. */
+function exportedBridgeEnv(): { volume: string; bakFile: string } | undefined {
+  if (!existsSync(bridgeEnvLog)) return undefined;
+  const [volume = '', bakFile = ''] =
+    readFileSync(bridgeEnvLog, 'utf8').split('\n')[0]?.split('|') ?? [];
+  return { volume, bakFile };
 }
 
 beforeEach(() => {
@@ -131,6 +156,7 @@ beforeEach(() => {
   dockerLog = path.join(work, 'docker.log');
   envLog = path.join(work, 'env.log');
   psLog = path.join(work, 'ps.log');
+  bridgeEnvLog = path.join(work, 'bridge-env.log');
   mkdirSync(bin);
   for (const file of INPUTS) {
     mkdirSync(path.dirname(path.join(work, file)), { recursive: true });
@@ -185,7 +211,7 @@ describe('scripts/compose-smoke.sh never touches the owner database (WR-01)', ()
   it('runs the stack on its own volume, named after the project', () => {
     const { status } = runSmoke('Darwin', '501');
     expect(status).toBe(1);
-    expect(firstDockerCall()).toBe(composeBuild());
+    expect(firstComposeCall()).toBe(composeBuild());
   });
 
   it('refuses the default project outside CI, before creating any file', () => {
@@ -199,7 +225,7 @@ describe('scripts/compose-smoke.sh never touches the owner database (WR-01)', ()
   it('allows the default project in CI, still on a separate volume', () => {
     runSmoke('Darwin', '501', undefined, { CI: 'true' });
     const project = path.basename(work).toLowerCase();
-    expect(firstDockerCall()).toBe(composeBuild(project));
+    expect(firstComposeCall()).toBe(composeBuild(project));
   });
 
   it('refuses to run on sift-pgdata, even in CI', () => {
@@ -300,12 +326,12 @@ describe('scripts/compose-smoke.sh checks Docker state, not only env vars (WR-09
       SHIM_PS_SMOKE: 'aaa',
     });
     expect(status).toBe(1); // stopped at the stubbed docker build
-    expect(firstDockerCall()).toBe(composeBuild());
+    expect(firstComposeCall()).toBe(composeBuild());
   });
 
   it('accepts a project with no containers, as on a fresh CI runner', () => {
     runSmoke('Darwin', '501', undefined, { CI: 'true' });
-    expect(firstDockerCall()).toBe(composeBuild(path.basename(work).toLowerCase()));
+    expect(firstComposeCall()).toBe(composeBuild(path.basename(work).toLowerCase()));
   });
 
   it('refuses when docker ps fails', () => {
@@ -339,7 +365,7 @@ describe('scripts/compose-smoke.sh shares no files or image with the owner stack
     for (const [file, text] of Object.entries(OWNER_FILES)) {
       expect(readFileSync(path.join(work, file), 'utf8'), file).toBe(text);
     }
-    expect(firstDockerCall()).toBe(composeBuild());
+    expect(firstComposeCall()).toBe(composeBuild());
     expect(exportedEnv()).toEqual({
       backupDir: smokeBackups(),
       configDir: path.join(smokeDir(), 'config'),
@@ -385,5 +411,83 @@ describe('scripts/compose-smoke.sh shares no files or image with the owner stack
     const first = readFileSync(path.join(smokeDir(), '.env'), 'utf8');
     runSmoke('Darwin', '501');
     expect(readFileSync(path.join(smokeDir(), '.env'), 'utf8')).toBe(first);
+  });
+});
+
+describe('scripts/compose-smoke.sh keeps Bridge out of the smoke stack (D-79, D-81)', () => {
+  it('creates its own Bridge volume before the first compose call', () => {
+    runSmoke('Darwin', '501', undefined, {
+      COMPOSE_PROJECT_NAME: 'smoketest',
+      SHIM_BUILD_OK: '1',
+    });
+    const calls = dockerCalls();
+    const create = calls.indexOf('smoketest-pgdata-smoke volume create smoketest-bridge-smoke');
+    const firstCompose = calls.findIndex((line) => line.includes(' compose '));
+    const firstUp = calls.findIndex((line) => / compose .* up /.test(line));
+    expect(create).toBeGreaterThanOrEqual(0);
+    expect(firstCompose).toBeGreaterThan(create);
+    expect(firstUp).toBeGreaterThan(create);
+    expect(exportedBridgeEnv()?.volume).toBe('smoketest-bridge-smoke');
+  });
+
+  it('builds and starts only db, setup and worker, never bridge', () => {
+    runSmoke('Darwin', '501', undefined, {
+      COMPOSE_PROJECT_NAME: 'smoketest',
+      SHIM_BUILD_OK: '1',
+    });
+    const env = `--env-file ${smokeDir()}/.env`;
+    const composeArgs = dockerCalls()
+      .filter((line) => line.includes(' compose '))
+      .map((line) => line.slice(line.indexOf(env) + env.length).trim());
+    const build = composeArgs.filter((args) => args.startsWith('build'));
+    const up = composeArgs.filter((args) => args.startsWith('up'));
+    expect(build).toEqual(['build setup worker']);
+    expect(up).toEqual(['up -d db setup worker']);
+    for (const args of [...build, ...up]) expect(args).not.toContain('bridge');
+  });
+
+  it('refuses to run on sift-bridge, even in CI', () => {
+    const { status, stderr } = runSmoke('Darwin', '501', undefined, {
+      CI: 'true',
+      SIFT_BRIDGE_VOLUME: 'sift-bridge',
+    });
+    expect(status).toBe(2);
+    expect(stderr).toContain('sift-bridge');
+    expect(firstDockerCall()).toBeUndefined();
+  });
+
+  it('fills a throwaway Bridge keychain passphrase in the generated smoke .env', () => {
+    runSmoke('Darwin', '501');
+    const text = readFileSync(path.join(smokeDir(), '.env'), 'utf8');
+    expect(text).toMatch(/^SIFT_BRIDGE_KEYCHAIN_PASSPHRASE=[0-9a-f]{48}$/m);
+  });
+
+  it('appends the passphrase to an older smoke .env and keeps its other lines', () => {
+    mkdirSync(smokeDir(), { recursive: true });
+    const old = 'POSTGRES_PASSWORD=kept-value\nSIFT_DB_PORT=55433\n';
+    writeFileSync(path.join(smokeDir(), '.env'), old, { mode: 0o600 });
+    runSmoke('Darwin', '501');
+    const text = readFileSync(path.join(smokeDir(), '.env'), 'utf8');
+    expect(text.startsWith(old)).toBe(true);
+    expect(text).toMatch(/^SIFT_BRIDGE_KEYCHAIN_PASSPHRASE=[0-9a-f]{48}$/m);
+    expect(text.match(/^SIFT_BRIDGE_KEYCHAIN_PASSPHRASE=/gm)).toHaveLength(1);
+  });
+
+  it('points the bridge-init backup source at a missing path under .smoke/<project>/', () => {
+    const { status } = runSmoke('Darwin', '501');
+    expect(status).toBe(1); // stopped at the stubbed docker build
+    const bakFile = exportedBridgeEnv()?.bakFile ?? '';
+    expect(bakFile.startsWith(`${smokeDir()}/`)).toBe(true);
+    expect(existsSync(bakFile)).toBe(false);
+    expect(firstComposeCall()).toBe(composeBuild());
+  });
+
+  it('refuses a run where that backup path exists', () => {
+    mkdirSync(smokeDir(), { recursive: true });
+    writeFileSync(path.join(smokeDir(), 'no-such-backup'), '');
+    const { status, stderr } = runSmoke('Darwin', '501');
+    expect(status).toBe(2);
+    expect(stderr).toContain('no-such-backup');
+    expect(firstDockerCall()).toBeUndefined();
   });
 });
