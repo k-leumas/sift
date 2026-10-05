@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-13-PLAN.md
-last_updated: "2026-10-05T21:08:34.411Z"
+stopped_at: Completed 02-15-PLAN.md
+last_updated: "2026-10-05T21:18:16.491Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 2f49827685004392fd52874867781e96acc61e18
+state_head: 2818ba11544e104640f7ec8b40c2e7b6a0041cb1
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 15 of 19
+Plan: 16 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -84,6 +84,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P11 | 18 min | 2 tasks | 6 files |
 | Phase 02 P12 | 11 min | 2 tasks | 7 files |
 | Phase 02 P13 | 14 min | 3 tasks | 10 files |
+| Phase 02 P15 | 6min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -176,6 +177,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-13: removal-diff time set only after a run that diffed (or resynced); setting it after every synced run would postpone the diff forever under 60 s polls
 - [Phase 02]: 02-13: only FolderSource and connect errors become MailboxSyncError (owner texts); database errors keep the redacted path with the coded pg error, never Drizzle's query text with mail params
 - [Phase 02]: 02-13: a held mailbox (needs_attention, approved null) is skipped without connecting; an approved run uses approved + new_mail_cap
+- [Phase 02]: 02-15: sift bridge trust exits 1 for both no pin and a differing pin, prints the pin_sha256 line to paste, never reads password_env, logs in or writes; failures print one fixed text per classifyImapError class
+- [Phase 02]: 02-15: renovate.json enables only custom.regex over bridge/Dockerfile; assumption A2 (github-tags fills currentDigest) is unobserved; the Dockerfile commit check plus a prBodyNotes entry are the fail-safe; bridge-image CI smoke-tests every Bridge change (45 min)
 
 ### Pending Todos
 
@@ -197,6 +200,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T21:08:34.339Z
-Stopped at: Completed 02-13-PLAN.md
+Last session: 2026-10-05T21:18:16.417Z
+Stopped at: Completed 02-15-PLAN.md
 Resume file: None
