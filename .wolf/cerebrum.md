@@ -10,6 +10,8 @@
 
 <!-- How the user likes things done. Code style, tools, patterns, communication. -->
 
+- 2026-10-05 (plan-phase 2): when an option needs a precondition, the user answers "option N as long as …" or writes their own design (e.g. a separate `bridge-init` one-shot service instead of either offered mount option). Record such answers verbatim as decisions; prefer stating a security rule in its precise form ("never send credentials or data over an unverified connection") over listing exceptions to a blunter rule.
+
 - 2026-10-05 (discuss-phase 2): user often answers "option N with: …" and adds detailed refinements; capture every refinement verbatim as its own decision. Strong preferences: fail closed (volume caps, cert pins, no plaintext fallback), secrets never shown in terminal/scrollback, never a misleading error on a routine start, rare events logged with counts.
 - 2026-10-05: privacy stance: IMAP is source of truth; email bodies only in a short-lived cache (classified + 7 d); traces store the prompt recipe, not raw prompts.
 
@@ -80,6 +82,11 @@
 
 - Linux uid repro of compose-smoke without CI: in `docker run --rm --user root --entrypoint bash sift:local`, useradd -u 1001 runner, run the real script as runner with CI=true and /shim docker (ps -> empty, else exit 1) and sudo (log args) shims, apply the logged chown as root, then `su node` to run `sift config check --schema-only` and a write probe. The pre-fix script (`git show 3249ce5~1:...`) is a working negative control.
 
+- Phase 2 planning (2026-10-05): a fingerprint-only TLS pin (D-73, pin in config, no cert file) cannot verify Bridge's self-signed cert through Node's normal path, because checkServerIdentity runs only after chain verification. Design: capture the presented cert on a credential-free handshake (the only place chain verification is off: apps/worker/src/imap/capture.ts), compare its SPKI with the pin, then log in with `ca: [captured]` plus an SPKI checkServerIdentity.
+- `docker compose run --rm <svc> <mode>` takes its mounts from the service definition; per-run read-write mounts need `-v`. Plans that fix the command form (D-72) therefore mount init-time files on the service permanently.
+- GSD worktree executors do not see gitignored files (the real env files, config/config.yaml): owner-facing Docker steps such as the live Bridge spike must run from the main checkout.
+- Owner answers 2026-10-05 (D-72..D-77): `docker compose run --rm bridge init`; pin at mailboxes[].imap.tls.pin_sha256; ingest.initial_backfill_days default 30 (throttled first backfill, uncapped, progress in mailbox_status); ingest.new_mail_cap default 200; postal-mime 4.0.0 (MIT-0) added; npm deps approved with license/tree checks instead of a human checkpoint.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -96,6 +103,9 @@
 - [2026-10-04] Splitting two findings' hunks in one file: if a commit fails (biome), the files stay staged; re-check `git diff --cached` before restoring working copies.
 
 ## Decision Log
+
+- [2026-10-05] Phase 2 D-80 TLS rule: **never send credentials or data over an unverified connection.** The pin-capture handshake (`apps/worker/src/imap/capture.ts`) may disable cert verification because it writes nothing beyond TLS/STARTTLS (wire-level test asserts no LOGIN/AUTHENTICATE/other commands); the login connection uses `ca: [capturedPem]` + an SPKI-re-checking `checkServerIdentity`; captured cert lives in memory only and is recaptured on reconnect/cert error. Do not "fix" capture.ts by removing it; do not disable verification anywhere else.
+- [2026-10-05] Phase 2 D-79: Bridge init is a separate one-shot Compose service `bridge-init` (profile `tools`) that alone mounts `.env.mailboxes` and `./config`; the long-running `bridge` service mounts only `sift-bridge`. Backup `.env.mailboxes.bak` (0600) on the host.
 
 <!-- Significant technical decisions with rationale. Why X was chosen over Y. -->
 - [2026-10-04] IN-05 owner decision (supersedes the doc-only fix below): the worker exits 75 after 3 consecutive missed heartbeats (failed or hung registry read / heartbeat write), logging step, reason, count and the coded redacted error first; compose worker was first `restart: on-failure`, then switched by the owner to `restart: unless-stopped` so it also returns after a daemon restart/host reboot (exit 75 still restarts). No autoheal sidecar (needs the Docker socket), no env/config.yaml override. A slow restart loop while Postgres is down is accepted.
