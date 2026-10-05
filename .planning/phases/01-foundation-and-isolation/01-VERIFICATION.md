@@ -1,73 +1,48 @@
 ---
 phase: 01-foundation-and-isolation
-verified: 2026-10-04T08:30:22Z
-status: gaps_found
-score: 98/103 must-haves verified (roadmap success criteria 3/4; SC1 needs the target machine)
-covered_files: [".dockerignore", ".env.development.example", ".env.example", ".env.mailboxes.example", ".github/workflows/ci.yml", ".gitignore", ".nvmrc", ".planning/phases/01-foundation-and-isolation/01-01-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-01-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-02-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-02-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-03-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-03-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-04-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-04-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-05-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-05-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-06-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-06-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-07-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-07-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-08-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-08-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-09-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-09-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-10-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-10-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-11-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-11-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-12-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-12-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-13-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-13-SUMMARY.md", "CONTRIBUTING.md", "Dockerfile", "README.md", "apps/worker/package.json", "apps/worker/src/cli.ts", "apps/worker/src/command.ts", "apps/worker/src/commands/config-apply.ts", "apps/worker/src/commands/config-check.ts", "apps/worker/src/commands/mailbox-list.ts", "apps/worker/src/commands/mailbox-rename.ts", "apps/worker/src/commands/migrate.ts", "apps/worker/src/commands/setup.ts", "apps/worker/src/commands/worker.ts", "apps/worker/src/runtime/backoff.ts", "apps/worker/src/runtime/heartbeat.ts", "apps/worker/src/runtime/mailbox-batch.ts", "apps/worker/src/runtime/shutdown.ts", "apps/worker/src/runtime/startup.ts", "apps/worker/src/runtime/supervisor.ts", "apps/worker/test/ci-workflow.test.ts", "apps/worker/test/cli.test.ts", "apps/worker/test/compose.test.ts", "apps/worker/test/drift.test.ts", "apps/worker/test/no-secret-leak.test.ts", "apps/worker/test/node-version.test.ts", "apps/worker/test/registry-cli.test.ts", "apps/worker/test/setup.test.ts", "apps/worker/test/supervisor.test.ts", "apps/worker/test/user-facing-text.test.ts", "apps/worker/test/worker.test.ts", "apps/worker/tsconfig.json", "backups/.gitkeep", "biome.json", "commitlint.config.js", "compose.yaml", "config/config.example.yaml", "db/bootstrap.sql", "docs/adr/0003-traces-and-mail-app-relabels.md", "lefthook.yml", "package.json", "packages/core/package.json", "packages/core/src/config/env.ts", "packages/core/src/config/errors.ts", "packages/core/src/config/index.ts", "packages/core/src/config/load.ts", "packages/core/src/config/schema.ts", "packages/core/src/config/slug.ts", "packages/core/src/index.ts", "packages/core/src/log.ts", "packages/core/test/config.test.ts", "packages/core/test/env.test.ts", "packages/core/test/example-config.test.ts", "packages/core/test/log.test.ts", "packages/core/tsconfig.json", "packages/db/drizzle.config.ts", "packages/db/migrations/0000_extensions.sql", "packages/db/migrations/0001_registry_and_message.sql", "packages/db/migrations/0002_message_force_grants.sql", "packages/db/migrations/0003_scoped_tables.sql", "packages/db/migrations/0004_scoped_tables_force_grants.sql", "packages/db/migrations/meta/0000_snapshot.json", "packages/db/migrations/meta/0001_snapshot.json", "packages/db/migrations/meta/0002_snapshot.json", "packages/db/migrations/meta/0003_snapshot.json", "packages/db/migrations/meta/0004_snapshot.json", "packages/db/migrations/meta/_journal.json", "packages/db/package.json", "packages/db/src/app-db.ts", "packages/db/src/connect.ts", "packages/db/src/index.ts", "packages/db/src/owner/backup.ts", "packages/db/src/owner/migrate.ts", "packages/db/src/owner/registry.ts", "packages/db/src/registry-plan.ts", "packages/db/src/registry-read.ts", "packages/db/src/rls.ts", "packages/db/src/schema/index.ts", "packages/db/src/schema/mailbox.ts", "packages/db/src/schema/scoped.ts", "packages/db/src/scope.ts", "packages/db/src/status.ts", "packages/db/test/catalog.test.ts", "packages/db/test/connect.test.ts", "packages/db/test/global-setup.ts", "packages/db/test/isolation.test.ts", "packages/db/test/migrate.test.ts", "packages/db/test/owner-rls.test.ts", "packages/db/test/registry-plan.test.ts", "packages/db/test/registry.test.ts", "packages/db/test/scope.test.ts", "packages/db/test/support/catalog.ts", "packages/db/test/support/db.ts", "packages/db/test/support/seed.ts", "packages/db/tsconfig.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "scripts/compose-smoke.sh", "scripts/pg-dump-via-compose.sh", "tsconfig.base.json", "tsconfig.json", "vitest.config.ts"]
-covered_digest: "v2:sha256:636f9eee2b0b9dac660963249e7e29f8a156470a2ab7a96adee637bfb28f75c2"
+verified: 2026-10-05T02:12:30Z
+status: human_needed
+score: 100/103 must-haves verified (roadmap success criteria 3/4; SC1 needs the target machine)
+covered_files: [".dockerignore", ".env.development.example", ".env.example", ".env.mailboxes.example", ".github/dependabot.yml", ".github/workflows/ci.yml", ".gitignore", ".nvmrc", ".planning/phases/01-foundation-and-isolation/01-01-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-01-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-02-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-02-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-03-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-03-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-04-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-04-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-05-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-05-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-06-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-06-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-07-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-07-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-08-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-08-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-09-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-09-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-10-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-10-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-11-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-11-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-12-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-12-SUMMARY.md", ".planning/phases/01-foundation-and-isolation/01-13-PLAN.md", ".planning/phases/01-foundation-and-isolation/01-13-SUMMARY.md", "CONTRIBUTING.md", "Dockerfile", "README.md", "apps/worker/package.json", "apps/worker/src/cli.ts", "apps/worker/src/command.ts", "apps/worker/src/commands/config-apply.ts", "apps/worker/src/commands/config-check.ts", "apps/worker/src/commands/mailbox-list.ts", "apps/worker/src/commands/mailbox-rename.ts", "apps/worker/src/commands/migrate.ts", "apps/worker/src/commands/setup.ts", "apps/worker/src/commands/worker.ts", "apps/worker/src/runtime/backoff.ts", "apps/worker/src/runtime/heartbeat.ts", "apps/worker/src/runtime/mailbox-batch.ts", "apps/worker/src/runtime/run-until-stopped.ts", "apps/worker/src/runtime/shutdown.ts", "apps/worker/src/runtime/startup.ts", "apps/worker/src/runtime/supervisor.ts", "apps/worker/test/ci-workflow.test.ts", "apps/worker/test/cli.test.ts", "apps/worker/test/compose-smoke.test.ts", "apps/worker/test/compose.test.ts", "apps/worker/test/drift.test.ts", "apps/worker/test/lint-guard.test.ts", "apps/worker/test/no-secret-leak.test.ts", "apps/worker/test/node-version.test.ts", "apps/worker/test/registry-cli.test.ts", "apps/worker/test/run-until-stopped.test.ts", "apps/worker/test/setup.test.ts", "apps/worker/test/supervisor.test.ts", "apps/worker/test/user-facing-text.test.ts", "apps/worker/test/worker-errors.test.ts", "apps/worker/test/worker.test.ts", "apps/worker/tsconfig.json", "backups/.gitkeep", "biome.json", "commitlint.config.js", "compose.yaml", "config/config.example.yaml", "db/bootstrap.sql", "docs/adr/0003-traces-and-mail-app-relabels.md", "lefthook.yml", "package.json", "packages/core/package.json", "packages/core/src/config/env.ts", "packages/core/src/config/errors.ts", "packages/core/src/config/index.ts", "packages/core/src/config/load.ts", "packages/core/src/config/schema.ts", "packages/core/src/config/slug.ts", "packages/core/src/index.ts", "packages/core/src/log.ts", "packages/core/test/config.test.ts", "packages/core/test/env.test.ts", "packages/core/test/example-config.test.ts", "packages/core/test/log.test.ts", "packages/core/tsconfig.json", "packages/db/drizzle.config.ts", "packages/db/migrations/0000_extensions.sql", "packages/db/migrations/0001_registry_and_message.sql", "packages/db/migrations/0002_message_force_grants.sql", "packages/db/migrations/0003_scoped_tables.sql", "packages/db/migrations/0004_scoped_tables_force_grants.sql", "packages/db/migrations/meta/0000_snapshot.json", "packages/db/migrations/meta/0001_snapshot.json", "packages/db/migrations/meta/0002_snapshot.json", "packages/db/migrations/meta/0003_snapshot.json", "packages/db/migrations/meta/0004_snapshot.json", "packages/db/migrations/meta/_journal.json", "packages/db/package.json", "packages/db/src/app-db.ts", "packages/db/src/connect.ts", "packages/db/src/index.ts", "packages/db/src/owner/backup.ts", "packages/db/src/owner/migrate.ts", "packages/db/src/owner/registry.ts", "packages/db/src/owner/scram.ts", "packages/db/src/registry-plan.ts", "packages/db/src/registry-read.ts", "packages/db/src/rls.ts", "packages/db/src/schema/index.ts", "packages/db/src/schema/mailbox.ts", "packages/db/src/schema/scoped.ts", "packages/db/src/scope.ts", "packages/db/src/status.ts", "packages/db/test/catalog.test.ts", "packages/db/test/connect.test.ts", "packages/db/test/global-setup.ts", "packages/db/test/isolation.test.ts", "packages/db/test/migrate.test.ts", "packages/db/test/owner-rls.test.ts", "packages/db/test/registry-plan.test.ts", "packages/db/test/registry.test.ts", "packages/db/test/scope.test.ts", "packages/db/test/scram.test.ts", "packages/db/test/support/catalog.ts", "packages/db/test/support/db.ts", "packages/db/test/support/seed.ts", "packages/db/tsconfig.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "scripts/compose-smoke.sh", "scripts/pg-dump-via-compose.sh", "tsconfig.base.json", "tsconfig.json", "vitest.config.ts"]
+covered_digest: "v2:sha256:8b84619e4d7dd310a725274a401c3c0650c7f6f11d5113eef5754155bbf67e7f"
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "CI job compose-smoke builds and runs the full stack with scripts/compose-smoke.sh and fails the build when setup exits non-zero or the worker never becomes healthy (01-12; supports SC1 / FND-01)"
-    status: failed
-    reason: "Review finding CR-01, reproduced. The job can never pass on GitHub's Linux runners, so the build is always red. scripts/compose-smoke.sh:43 sets `umask 077` before line 66 runs `cp config/config.example.yaml config/config.yaml`, which makes the file mode 0600 and owned by the runner (uid 1001). setup and worker run as node (uid 1000) with ./config bind-mounted read-only, so loadConfig gets EACCES. Separately, ./backups comes from checkout as 0755 owned by uid 1001. On a fresh DB all 5 migrations are pending, so migrate() calls ensureWritableDir('/backups') (packages/db/src/owner/migrate.ts:145), which throws. Reproduced in a throwaway sift:local container with 1001-owned paths: 'config read: EACCES' and 'backup directory /sim/backups is not writable; on Linux run: chown 1000 /sim/backups'. The 01-12 summary lists both CI jobs green after a push as still pending, so this has never run on Linux. Docker Desktop on macOS hides it."
-    artifacts:
-      - path: "scripts/compose-smoke.sh"
-        issue: "umask 077 applies to the config.yaml copy (line 43 -> 66); backups/ is never made writable for uid 1000"
-      - path: ".github/workflows/ci.yml"
-        issue: "compose-smoke job has no chown/chmod step for ./config and ./backups before the script"
-      - path: "README.md"
-        issue: "The quick start has no Linux step to make ./backups writable by uid 1000. On a Linux mini PC (a stated target) where the owner's uid is not 1000, setup fails on the first migration. The error text gives the container path /backups, not the host path ./backups."
-    missing:
-      - "In compose-smoke.sh, create config.yaml with a readable mode, e.g. (umask 022 && cp ...)"
-      - "Make ./backups writable by uid 1000 in the smoke script or a CI step (chmod o+rwx backups, or sudo chown 1000 backups)"
-      - "A README quick-start note for Linux hosts: chown 1000 ./backups when your uid is not 1000"
-      - "Push and confirm both CI jobs (check, compose-smoke) are green"
-  - truth: "SIGTERM or SIGINT stops scheduling, waits up to 20 s for in-flight batches, closes the pool and exits 0 (01-10, D-53)"
-    status: partial
-    reason: "Review finding WR-03, confirmed against the code. This is a warning, not a phase-goal blocker. The normal path works: worker.test.ts SIGTERM -> exit 0 passes. In apps/worker/src/commands/worker.ts:122-129, when supervisor.stop() returns drained:false, the finally block awaits db.close() (pool.end()) with no bound. In pg-pool 3.14.0 (index.js:127-143), end() resolves only when _clients is empty, so a batch stuck in a query keeps shutdown waiting until Compose sends SIGKILL at 30 s. No test covers close after a drain timeout. Phase 1 batches are a single status write, so the risk is low now and grows with Phase 2 IMAP batches."
-    artifacts:
-      - path: "apps/worker/src/commands/worker.ts"
-        issue: "db.close() is not bounded after a drain timeout"
-    missing:
-      - "Bound or force the pool close after drained:false (Promise.race with a timeout, or destroy remaining clients)"
-      - "Optionally set statement_timeout / idle_in_transaction_session_timeout on the app pool"
-      - "A test for shutdown with a never-resolving batch"
-  - truth: "The per-mailbox interval is worker.poll_interval_seconds (default 60) (01-10, D-52)"
-    status: partial
-    reason: "Review finding WR-08, confirmed. This is a warning. The schema accepts 10..3600 s (packages/core/src/config/schema.ts:10-11), and config.example.yaml documents '10 to 3600'. But the supervisor only starts runs on a fixed SUPERVISOR_TICK_MS = 15000 tick, so the effective interval is ceil(n/15)*15: 10 runs every 15 s and 20 every 30 s. The default of 60 is honoured exactly."
-    artifacts:
-      - path: "apps/worker/src/runtime/supervisor.ts"
-        issue: "Runs are scheduled only on the 15 s tick, so intervals that are not multiples of 15 are rounded up"
-    missing:
-      - "Schedule from nextRunAt (tick timeout = min(tickMs, earliest nextRunAt - now)), or require multiples of 15 with a minimum of 15"
+re_verification:
+  previous_status: gaps_found
+  previous_score: 98/103
+  gaps_closed:
+    - "CR-01: compose-smoke prepares config.yaml (0644, dir 0755) and a backup dir owned by uid 1000 on Linux; reproduced fixed in a real Linux container with uid 1001 vs 1000 (the pre-fix script fails the same check). The GitHub run itself remains a human item."
+    - "WR-03: SIGTERM shutdown closes the pool within a bound after a drain timeout (AppDb.close({ timeoutMs }) ends stuck clients; worker.ts passes CLOSE_TIMEOUT_MS = 3 s)"
+    - "WR-08: the per-mailbox interval is worker.poll_interval_seconds exactly (tick at min(15 s, next idle mailbox due))"
+  gaps_remaining: []
+  regressions: []
 deferred:
   - truth: "FND-02: the config declares the LLM confidence threshold"
     addressed_in: "Phase 3"
     evidence: "Phase 3 success criterion 3: 'An LLM result below the confidence threshold is marked for review rather than given a category'; CLS-04 (default 0.75). CONTEXT D-59/D-71 place `tiers` thresholds in Phase 3. ROADMAP SC2 for Phase 1 does not include the threshold."
 human_verification:
-  - test: "On the target home machine (Mac mini or Linux mini PC), follow the README quick start: copy the three example files, fill in passwords, run `docker compose up -d`"
+  - test: "On the target home machine (Mac mini or Linux mini PC), follow the README quick start: copy the three example files, fill in passwords, on Linux with `id -u` != 1000 run `sudo chown 1000 backups`, then `docker compose up -d`"
     expected: "db healthy, setup exits 0 (backup written to ./backups, 5 rows in drizzle.__drizzle_migrations, mailboxes registered), worker reaches healthy"
-    why_human: "SC1 is defined on the owner's target machine. On Linux with owner uid != 1000, expect the ./backups failure described in gap 1 until it is fixed."
+    why_human: "SC1 is defined on the owner's target machine. No full db+setup+worker stack was started during verification (verifier does not start services)."
   - test: "After a real bring-up with real Bridge passwords: grep -r for each real password in config/, and in a pg_dump of the sift database"
     expected: "No match anywhere"
-    why_human: "The automated half (sentinel test) passes. The real secrets exist only on the owner's machine."
-  - test: "Push to GitHub and check the Actions run"
-    expected: "Job `check` is green (lint, typecheck, catalog + isolation + all tests against the PG18 service). Job `compose-smoke` is green once gap 1 is fixed."
-    why_human: "CI on GitHub-hosted runners cannot be observed from here. SC3's 'fails the build' depends on the check job actually running there."
-  - test: "Confirm the 01-06 backstop truth: every isolation assertion in packages/db/test/isolation.test.ts and owner-rls.test.ts compares row sets by id (sortedIds / arrayContaining), never by position"
+    why_human: "The automated half (no-secret-leak sentinel test) passes. The real secrets exist only on the owner's machine."
+  - test: "Push main to GitHub and check the Actions run"
+    expected: "Job `check` is green (lint, typecheck, catalog + isolation + all tests against the PG18 service). Job `compose-smoke` is green: setup exits 0, worker healthy, 'compose smoke OK'."
+    why_human: "GitHub-hosted runners cannot be observed from here. The CR-01 mechanism is fixed in a Linux container reproduction, but the job has never run on a runner (image build, sudo -n chown, full stack)."
+  - test: "Confirm the 01-06 backstop truth: every isolation assertion in packages/db/test/isolation.test.ts and owner-rls.test.ts compares row sets by id (sortedIds / arrayContaining / every), never by position, and no Phase 1 query depends on row order"
     expected: "No positional comparison of query results"
-    why_human: "Non-inferable (verification: backstop) truth. A static read found only sortedIds()/arrayContaining/every-based comparisons, but the protocol requires explicit evidence, which a static read does not provide."
+    why_human: "Non-inferable (verification: backstop) truth. A scan for positional indexing found only two single-row reads (owner-rls.test.ts:40 count(*) row, isolation.test.ts:237 current_setting row), neither a row-set comparison; the protocol still requires explicit evidence, which a static read does not provide."
 ---
 
 # Phase 1: Foundation and Isolation Verification Report
 
 **Phase Goal:** The owner can start the stack on the home machine and the database enforces mailbox isolation before any mail-derived data exists.
-**Verified:** 2026-10-04T08:30:22Z
-**Status:** gaps_found
-**Re-verification:** No. This is the initial verification.
+**Verified:** 2026-10-05T02:12:30Z
+**Status:** human_needed
+**Re-verification:** Yes, after gap closure (previous: gaps_found, 98/103, 2026-10-04T08:30:22Z)
 
-The database half of the goal is achieved and proven by behavioural tests: schema, forced RLS, catalog gate, two-mailbox isolation, the scoped API and secret handling. The "start the stack" half has one confirmed blocker. The CI full-stack smoke job cannot pass on Linux (CR-01, reproduced), and the same root cause, `./backups` not being writable by uid 1000, can stop the first `docker compose up` on a Linux home machine whose owner uid is not 1000. Bring-up on the real target machine still needs a human.
+All three earlier gaps are closed. I checked the code and tests for each one myself rather than relying on the commit messages. CR-01 is also fixed in a real Linux kernel reproduction. The rest of the phase has no regressions: lint and typecheck pass, and the full suite is green with the dev Postgres up (28 files, 353 tests, 0 failed, 0 skipped). Migrations, RLS policies, rls.ts, scope.ts and schema are byte-identical to the previous verification. What remains needs a human: bring-up on the target machine, the real-password grep, a GitHub Actions run, and one backstop truth that cannot be inferred from the code.
 
 ## Goal Achievement
 
@@ -75,162 +50,149 @@ The database half of the goal is achieved and proven by behavioural tests: schem
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| SC1 | Owner runs Docker Compose on the target machine and gets a running Postgres (with pgvector) and worker, with migrations applied | ? UNCERTAIN (human) | compose.yaml defines db -> setup (service_completed_successfully) -> worker, with heartbeat healthcheck and loopback port; Dockerfile builds a non-root node image with pg_dump 18; setup runs config check -> migrate (backup first) -> config apply. Dev DB (read-only check): 5 migrations, vector 0.8.7, PG 18.6, forced RLS on all 7 scoped tables. I did not observe a full db+setup+worker stack (only sift-db-1 is running); the summary's isolated macOS smoke is a claim. On Linux, gap 1 applies. |
-| SC2 | Mailbox password is read only from the env var named by password_env; config files and DB contain no password | ✓ VERIFIED (automated half) | Schema `PasswordEnv` accepts only an env var NAME (schema.ts); literal password/secret/token keys are rejected without echoing the value (config.test.ts:186-204); mailbox table stores `password_env` only. no-secret-leak.test.ts runs config apply plus a real worker process with sentinel passwords, then scans every config file, every row of every table (pg_tables) and all process output: 5/5 pass in isolation. It timed out in the full run at load avg ~100 (15 s window). Manual grep with real passwords is a human item. |
-| SC3 | A schema check fails the build if any table holding mail-derived data lacks a non-null mailbox_id | ✓ VERIFIED | packages/db/test/support/catalog.ts scans every relation outside pg_catalog/information_schema that is not on a 2-entry allowlist and checks attnotnull on mailbox_id, the FK to mailbox, RLS enabled and forced, and exactly one standard policy. catalog.test.ts has negative tests: rogue table, `drop not null` on message.mailbox_id, stale allowlist, extra policy, privilege drift. All pass. CI job `check` runs `pnpm test` with SIFT_TEST_ADMIN_URL after bootstrapping PG18+pgvector, and DB tests throw rather than skip in CI. GitHub run not observed (human item). |
-| SC4 | With two seeded mailboxes, queries under A's app.mailbox_id return/modify none of B's rows even without the app filter; with no setting they return nothing | ✓ VERIFIED | isolation.test.ts runs as a raw sift_app pg client with no WHERE filter, across all 7 scoped tables. Reads under A return only A's rows. Updates/deletes aimed at B affect 0 rows. An unfiltered UPDATE touches only A's rows and leaves B's updated_at unchanged. Inserting B rows under A fails with 42501. A fresh connection, and a reused one after commit, reads 0 rows. Non-UUID -> 22P02; upper-case UUID scopes to A; empty mailbox C reads 0. owner-rls.test.ts shows FORCE RLS binds sift_owner. All pass in the full run. Migrations 0001/0003/0004 carry the exact policy and FORCE on every scoped table. |
+| SC1 | Owner runs Docker Compose on the target machine and gets a running Postgres (with pgvector) and worker, with migrations applied | ? UNCERTAIN (human) | compose.yaml wires db -> setup (`service_completed_successfully`) -> worker, with a heartbeat healthcheck, a loopback-only port and `restart: unless-stopped`. The README quick start now has the Linux `sudo chown 1000 backups` step. Read-only check of the dev DB: 5 migrations, vector 0.8.7, PG 18.6, RLS enabled and forced on all 7 scoped tables. I did not start a full stack. |
+| SC2 | Mailbox password is read only from the env var named by password_env; config files and DB contain no password | ✓ VERIFIED (automated half) | `PasswordEnv` accepts only an env var name. Literal secrets are rejected. no-secret-leak.test.ts runs config apply plus a real worker with sentinel passwords, then scans every config file, every table row and all output. It passes in the full run (it timed out under load last time). The real-password grep is a human item. |
+| SC3 | A schema check fails the build if any table holding mail-derived data lacks a non-null mailbox_id | ✓ VERIFIED | The support/catalog.ts gate and its negative tests (rogue table, `drop not null`, stale allowlist, extra policy, column-level grants, memberships, REPLICATION) all pass. ci.yml `check` bootstraps PG18 + pgvector and runs `pnpm test` with SIFT_TEST_ADMIN_URL, and DB tests throw rather than skip in CI. The actual GitHub run is a human item. |
+| SC4 | With two seeded mailboxes, queries under A's app.mailbox_id return/modify none of B's rows even without the app filter; with no setting they return nothing | ✓ VERIFIED | isolation.test.ts covers all 7 tables as raw sift_app with no WHERE filter. owner-rls.test.ts covers sift_owner. Both pass in the full run. The migrations that carry the policies and FORCE are unchanged since the last verification. |
 
 ### Observable Truths: Plan must_haves (99 after removing 4 that restate SC1-SC4)
 
 | Plan | Truths | Status | Evidence / notes |
 |------|--------|--------|------------------|
-| 01-01 workspace/CLI | 6 | ✓ 6 | `node apps/worker/src/cli.ts --help` exits 0 and lists all 7 commands with no build step. `pnpm lint` exit 0 (1 warning), `pnpm typecheck` exit 0, `pnpm test` (below). Biome guard reproduced in a scratch copy of biome.json: `import pg` / `drizzle-orm/sql` under apps/worker/src -> 2 noRestrictedImports errors; packages/db/src not flagged. pnpm-workspace has minimumReleaseAge 10080 + allowBuilds (artifact check). |
-| 01-02 Postgres bootstrap | 6 | ✓ 6 | compose.yaml: pgvector/pgvector:0.8.7-pg18-trixie, `127.0.0.1:${SIFT_DB_PORT}` port, sift-pgdata:/var/lib/postgresql, initdb mount. Live roles: sift_owner (no super/bypass), sift_backup (bypass), sift_app (neither). compose.test.ts loopback/volume tests pass. |
-| 01-03 schema + migrate | 9 | ✓ 9 | Migrations 0000-0004 read in full: uuidv7() PKs, NOT NULL mailbox_id with ON DELETE restrict FK, composite (mailbox_id, message_id) FKs for label/decision, one `mailbox_isolation` policy per table TO sift_app, sift_owner, FORCE RLS, grants per D-40. migrate.test + global-setup template DB pass. |
-| 01-04 config | 12 | ✓ 12 | Zod strictObject schema; config/env/log/example-config tests pass (full run). |
-| 01-05 catalog + CI | 9 | ✓ 9 | See SC3. Caveats WR-06 (column-level SELECT/INSERT grants unseen) and WR-07 (memberships in other RLS-bypassing roles unseen) are warnings; the stated truths hold as written. |
-| 01-06 isolation | 11 | ✓ 10, ⚠️ 1 insufficient_spec | See SC4. The backstop truth "compare by id, never by position" abstains under the protocol; the static read supports it (human item 4). |
-| 01-07 scoped API | 8 | ✓ 8 | scope.ts: every helper builds `and(eq(table.mailboxId, mailboxId), ...)`; set_config is parameterized. The @sift/db root export has no pool/client/drizzle. scope.test.ts "application filter without RLS (superuser connection)" passes. |
-| 01-08 migrate + backup | 6 | ✓ 6 | migrate.ts takes the backup before ensureAppRole/migrator. migrate.test.ts 15/15 in isolation, including the unwritable-dir, no-backup-target and both-mailboxes-in-dump cases. The backup test timed out at 30 s in the full run under load. |
-| 01-09 registry | 8 | ✓ 8 | registry/registry-plan/registry-cli tests pass. WR-05 (rename hint pairing with 2+ simultaneous renames) is a warning. |
-| 01-10 worker runtime | 8 | ✓ 6, ✗ partial 2 | Startup order (checkMailboxEnv before createAppDb), tick/heartbeat, no-overlap, backoff and disable all pass supervisor/worker tests. Partial: bounded shutdown (WR-03) and exact poll interval (WR-08). See gaps 2-3. |
-| 01-11 startup guard | 3 | ✓ 3 | connectWithRetry -> assertUnprivilegedRole -> checkDrift before the supervisor. The guard rejects rolsuper/rolbypassrls as stated. WR-02 (accepts sift_owner) is a warning; isolation still holds because the policy also binds sift_owner. |
-| 01-12 compose stack | 7 | ✓ 6, ✗ 1 FAILED | Dockerfile/compose/credential split/healthcheck/node-version all hold (compose.test, node-version.test). FAILED: compose-smoke CI job cannot pass on Linux (gap 1). |
-| 01-13 docs | 6 | ✓ 6 | README quick start, lifecycle and CONTRIBUTING loop present. user-facing-text.test.ts D-69 scan passes. |
+| 01-01 workspace/CLI | 6 | ✓ 6 | `node apps/worker/src/cli.ts --help` exits 0 and lists all 7 commands. `pnpm lint` exits 0 (1 warning). `pnpm typecheck` exits 0. The ISO-04 import guard now has its own automated test (lint-guard.test.ts, including the IN-02 relative/deep-import rule). |
+| 01-02 Postgres bootstrap | 6 | ✓ 6 | compose.yaml image, loopback port and volume are unchanged in substance. The volume name is now `${SIFT_PGDATA_VOLUME:-sift-pgdata}`, the WR-01 smoke override, and the owner default is unchanged. Live role flags: sift_app, sift_owner and sift_backup have no superuser or REPLICATION, and only sift_backup has BYPASSRLS. The bootstrap.sql diff is a comment only. |
+| 01-03 schema + migrate | 9 | ✓ 9 | Migrations 0000-0004 and their snapshots are unchanged. migrate.test.ts passes, including the new WR-04 identity-based skip detection. |
+| 01-04 config | 12 | ✓ 12 | The schema.ts change only extracts the shared `imapIdentityKey`, which now trims values (IN-01). Config tests pass. |
+| 01-05 catalog + CI | 9 | ✓ 9 | See SC3. The old WR-06/WR-07 caveats are fixed and covered by catalog.test.ts:115/135/161. |
+| 01-06 isolation | 11 | ✓ 10, ? 1 insufficient_spec | See SC4. The backstop truth abstains under the protocol (human item 4). |
+| 01-07 scoped API | 8 | ✓ 8 | scope.ts is unchanged. scope.test.ts passes, including the superuser no-RLS application-filter test. |
+| 01-08 migrate + backup | 6 | ✓ 6 | migrate.test.ts passes in the full run (it timed out under load last time). |
+| 01-09 registry | 8 | ✓ 8 | registry, registry-plan and registry-cli tests pass. WR-05 is fixed: renames pair by IMAP identity (registry-plan.test.ts:143). |
+| 01-10 worker runtime | 8 | ✓ 8 | **Gap 2 (WR-03) closed. Gap 3 (WR-08) closed.** See below. |
+| 01-11 startup guard | 3 | ✓ 3 | connectWithRetry -> assertUnprivilegedRole -> checkDrift is unchanged. The guard now also refuses sift_owner, members of other roles and REPLICATION (connect.test.ts:184/197/224). |
+| 01-12 compose stack | 7 | ✓ 6, ? 1 (human) | **Gap 1 (CR-01) mechanism closed.** The compose-smoke CI truth now waits only on an observed GitHub run (human item 3). See below. |
+| 01-13 docs | 6 | ✓ 6 | The README quick start now has the Linux step. user-facing-text.test.ts passes. |
 
-**Score:** 98/103 must-haves verified. Not verified: SC1 (needs a human on the target machine), 01-12 compose-smoke (FAILED), 01-10 shutdown and poll interval (partial), 01-06 backstop (insufficient_spec). behavior_unverified: 0.
+**Score:** 100/103 must-haves verified. Not verified: SC1 (needs the target machine), the 01-12 compose-smoke CI truth (needs a GitHub run), and the 01-06 backstop (insufficient_spec). behavior_unverified: 0.
+
+### Gap closure detail
+
+**Gap 1, CR-01 (compose-smoke on Linux): CLOSED in code, CI run pending a human.**
+- scripts/compose-smoke.sh: `(umask 022 && mkdir -p ".smoke/$project/config")` runs before `umask 077`. config.yaml is written by `(umask 022 && sed ... > "$smoke_dir/config/config.yaml")`. On Linux, when the host uid is not 1000 and the backup dir is not owned by 1000, the script runs `sudo -n chown 1000 <backup dir>` and fails with a clear message, before any docker call, if it cannot. The .env files stay 0600.
+- I reproduced this independently in a throwaway `sift:local` container (a real Linux kernel): a uid-1001 "runner" ran the script with CI=true, a docker shim and a sudo shim that I then applied as root. HEAD result: config dir `755 1001`, config.yaml `644 1001`, backups `700 1000`, both .env files `600`. As `node` (uid 1000), `sift config check --schema-only` gave "Config OK: 2 mailboxes", and a file write into backups succeeded. Negative control with the pre-fix script (`3249ce5~1`): config.yaml `600 1001`, backups `755 1001`, `config check` failed with EACCES, and the backups write threw.
+- compose-smoke.test.ts (CR-01 block, 5 tests) passes, including the Linux uid-1001 chown branch, which ran because the host uid is 501.
+- The README quick start step 5 now tells Linux owners whose uid is not 1000 to run `sudo chown 1000 backups`.
+- ci.yml needs no extra step, because the script runs the chown itself. GitHub runners have passwordless sudo.
+
+**Gap 2, WR-03 (bounded pool close): CLOSED.** packages/db/src/app-db.ts `close({ timeoutMs })` waits up to timeoutMs for `pool.end()`. After that it ends every tracked client (a TrackedClient subclass registered at construction, so clients mid-handshake are included, IN-12), destroys their sockets and waits at most 1 s more. apps/worker/src/commands/worker.ts calls `db.close({ timeoutMs: CLOSE_TIMEOUT_MS = 3_000 })` in `finally`: 20 s drain + 3 s + 1 s stays inside the 30 s `stop_grace_period`. Tests: scope.test.ts "ends a client stuck in a lock wait once the timeout passes" (a real lock wait, forced:true, under 5 s, and the stuck query rejects) and "ends a client still in its startup handshake" pass. supervisor.test.ts "stop gives up after the timeout and resolves drained false" passes. worker.test.ts SIGTERM -> exit 0 passes.
+
+**Gap 3, WR-08 (exact poll interval): CLOSED.** supervisor.ts `nextTickAt` = min(now + 15 s, the earliest `nextRunAt` of any idle mailbox). `runMailbox` sets `nextRunAt = startedAt + slots * pollIntervalMs` and calls `wakeAt`. Tests "runs every 10000/20000/61000 ms exactly", "still touches the heartbeat at least every 15 s", "keeps the interval measured from the run start" and "does not spin when the registry read keeps failing" all pass.
+
+**IN-05 (since the last verification):** after 3 missed heartbeats in a row the supervisor resolves `stalled`. runUntilStopped then logs the step, reason and redacted error, drains, and returns 75. worker.ts adds an unref'd 2 s backstop exit. compose uses `restart: unless-stopped`. Tests in run-until-stopped.test.ts and supervisor.test.ts (the "missed heartbeats (IN-05)" block, 6 tests) pass. compose-smoke treats any worker restart as a failure, which stays correct.
 
 ### Deferred Items
 
 | # | Item | Addressed In | Evidence |
 |---|------|-------------|----------|
-| 1 | FND-02 "LLM confidence threshold" in config | Phase 3 | Phase 3 SC3 plus CLS-04 (default 0.75); CONTEXT D-59/D-71 explicitly move the `tiers` thresholds to Phase 3 |
+| 1 | FND-02 "LLM confidence threshold" in config | Phase 3 | Phase 3 SC3 plus CLS-04 (default 0.75). CONTEXT D-59/D-71 move the `tiers` thresholds to Phase 3. |
 
 ### Required Artifacts
 
-`gsd-tools verify.artifacts` across all 13 plans: 67/67 artifacts pass for existence and substance. I read and confirmed by hand the artifacts that carry the goal: migrations 0000-0004, rls.ts, schema/index.ts, support/catalog.ts, catalog.test.ts, isolation.test.ts, seed.ts, scope.ts, connect.ts, migrate.ts, backup.ts, worker.ts, compose.yaml, Dockerfile, ci.yml, compose-smoke.sh, no-secret-leak.test.ts and README quick start.
+The goal-carrying artifacts were confirmed in the previous verification (67/67 for existence and substance), and the isolation-critical ones are unchanged since. I re-read every artifact touched since 99d9b2e that bears on a gap or must-have: compose-smoke.sh, compose.yaml, ci.yml, README.md step 5, worker.ts, app-db.ts, supervisor.ts, run-until-stopped.ts, schema.ts diff and bootstrap.sql diff. New artifacts: run-until-stopped.ts (substantive, imported and used by worker.ts), scram.ts (used by migrate's ensureAppRole and tested by scram.test.ts), and compose-smoke.test.ts, lint-guard.test.ts and worker-errors.test.ts (all run in the suite).
 
 ### Key Link Verification
 
-`gsd-tools verify.key-links`: 33/36 auto-verified. The 3 misses are parse failures, because the `from:` fields carry parentheticals. I confirmed them by hand:
-
 | From | To | Via | Status |
 |------|----|-----|--------|
-| compose.yaml (setup) | apps/worker/src/commands/setup.ts | `command: ["sift", "setup"]` + /usr/local/bin/sift wrapper in Dockerfile | WIRED |
-| compose.yaml (worker) | .env.mailboxes | `env_file: - .env.mailboxes` | WIRED |
-| README.md quick start | scripts/compose-smoke.sh | README:396 `cp .env.mailboxes.example .env.mailboxes`; user-facing-text.test checks the order | WIRED |
-| schema/scoped.ts | rls.ts | `mailboxIsolation()` on every scoped table -> migration policies | WIRED |
-| worker.ts | connect.ts | connectWithRetry -> assertUnprivilegedRole -> checkDrift (lines 83-95) | WIRED |
+| compose.yaml (setup) | apps/worker/src/commands/setup.ts | `command: ["sift", "setup"]` + /usr/local/bin/sift wrapper | WIRED |
+| compose.yaml (worker) | .env.mailboxes | `env_file: ${SIFT_MAILBOXES_ENV_FILE:-.env.mailboxes}` | WIRED |
 | ci.yml check | db/bootstrap.sql + vitest | `docker exec ... psql -f - < db/bootstrap.sql`, then `pnpm test` with SIFT_TEST_ADMIN_URL | WIRED |
-| ci.yml compose-smoke | scripts/compose-smoke.sh | `scripts/compose-smoke.sh --down` | WIRED but cannot pass on Linux (gap 1) |
+| ci.yml compose-smoke | scripts/compose-smoke.sh | `scripts/compose-smoke.sh --down` (CI=true is set by GitHub) | WIRED; Linux mechanism fixed; runner run is a human item |
+| worker.ts | app-db.ts bounded close | `finally { await db.close({ timeoutMs: CLOSE_TIMEOUT_MS }) }` | WIRED |
+| worker.ts | run-until-stopped.ts | `exitCode = await runUntilStopped(supervisor, log, waitForShutdownSignal, SHUTDOWN_TIMEOUT_MS)` | WIRED |
+| worker.ts | connect.ts | connectWithRetry -> assertUnprivilegedRole -> checkDrift | WIRED |
+| schema/scoped.ts | rls.ts | `mailboxIsolation()` on every scoped table -> migration policies | WIRED (unchanged) |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data | Source | Real data | Status |
 |----------|------|--------|-----------|--------|
-| mailbox registry | mailbox rows | config.yaml -> applyConfig (owner tx under advisory lock) | yes (registry-cli, no-secret-leak add both example mailboxes) | ✓ FLOWING |
-| mailbox_status | state/last_seen/last_error | supervisor -> createMailboxCallbacks -> withMailbox(requireActive) -> status use-cases | yes (worker test sees 2 rows state 'ok'; error path stores [REDACTED]) | ✓ FLOWING |
+| mailbox registry | mailbox rows | config.yaml -> applyConfig (owner tx under advisory lock) | yes (registry-cli and no-secret-leak tests) | ✓ FLOWING |
+| mailbox_status | state/last_seen/last_error | supervisor -> createMailboxCallbacks -> withMailbox -> status use-cases | yes (worker tracer test sees rows in state 'ok') | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
 | CLI lists all Phase 1 commands, no build | `node apps/worker/src/cli.ts --help` | 7 commands, exit 0 | ✓ PASS |
-| Lint gate | `pnpm lint` | exit 0, 1 warning (noTemplateCurlyInString in node-version.test.ts:26) | ✓ PASS |
-| Typecheck incl. @ts-expect-error scope checks | `pnpm typecheck` | exit 0 | ✓ PASS |
-| Full test suite (run once) | `pnpm test` | 265 passed, 4 failed (all timeouts: no-secret-leak x2 [1 cascades], worker tracer, migrate backup), 0 skipped, load avg 42-114 | see re-runs |
-| Re-run of the timed-out files alone | `vitest run <file>` | no-secret-leak 5/5, worker 2/2, migrate 15/15 | ✓ PASS |
-| ISO-04 import guard | biome lint on a probe file in a scratch copy of biome.json | 2 noRestrictedImports errors under apps/worker/src | ✓ PASS |
-| Dev DB state (read-only) | psql selects on sift-db-1 | 5 migrations, vector 0.8.7, role flags correct, rls+force on 7 tables, 0 mailboxes | ✓ PASS |
-| CR-01 mechanism | throwaway `docker run --rm sift:local` with uid-1001-owned 0600 config / 0755 backups | config read EACCES; backups "not writable" | ✗ FAIL (gap 1) |
+| Lint gate | `pnpm lint` | exit 0, 1 warning (noTemplateCurlyInString, node-version.test.ts:26) | ✓ PASS |
+| Typecheck | `pnpm typecheck` | exit 0 (root, core, db, worker) | ✓ PASS |
+| Full test suite (run once, dev Postgres up) | `pnpm test` | 28 files, 353 passed, 0 failed, 0 skipped, 52 s | ✓ PASS |
+| Gap-closure tests, named | `vitest run compose-smoke supervisor scope run-until-stopped compose --reporter=verbose` | 105/105, including the CR-01 (5), WR-08 (8), bounded close (3) and IN-05 tests | ✓ PASS |
+| CR-01 on a real Linux kernel | throwaway `sift:local` container, uid-1001 runner runs HEAD compose-smoke.sh, checked as node (uid 1000) | config 644, backups 700 owned 1000; config check OK; backups writable | ✓ PASS |
+| CR-01 negative control | same with `git show 3249ce5~1:scripts/compose-smoke.sh` | config 600 -> EACCES; backups 755 owned 1001 -> write fails | ✓ (reproduction is sensitive) |
+| Dev DB state (read-only) | psql selects on sift-db-1 | 5 migrations, vector 0.8.7, PG 18.6, RLS+FORCE on 7 tables, role flags correct | ✓ PASS |
 
 ### Probe Execution
 
-Step 7c: no `scripts/*/tests/probe-*.sh` exist and none are declared in the plans or summaries. scripts/compose-smoke.sh is the phase's runnable check. I did not run it, because it starts services and its `--down` path touches the sift-pgdata volume (WR-01). I reproduced its failure mechanism in isolation instead.
+Step 7c: no `scripts/*/tests/probe-*.sh` exist, and none are declared in the plans or summaries. scripts/compose-smoke.sh is the phase's runnable full-stack check. I did not run it, because it builds images and starts services. Its file-preparation stage was run for real in the Linux reproduction above, and its guards are covered by compose-smoke.test.ts.
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| FND-01 | 01-02, 01-05, 01-08, 01-10, 01-11, 01-12, 01-13 | Stack up with Compose, migrations applied | ? PARTIAL / NEEDS HUMAN | Compose/Dockerfile/setup wired. Not observed end to end. CI smoke cannot pass and Linux uid != 1000 fails (gap 1). |
-| FND-02 | 01-04, 01-09, 01-10, 01-11, 01-12, 01-13 | Mailbox + model settings in config.yaml; password only from env | ✓ SATISFIED (threshold deferred to Phase 3) | strict schema, password_env name only, sentinel test |
-| FND-03 | 01-01, 01-03, 01-13 | apps/worker, packages/core, packages/db; Drizzle schema + migrations in packages/db | ✓ SATISFIED | layout present; drizzle-orm node-postgres only |
-| ISO-01 | 01-03, 01-05, 01-06 | Non-null mailbox_id FK on every mail-derived table | ✓ SATISFIED | migrations + catalog gate + NULL insert test (23502) |
-| ISO-02 | 01-02, 01-03, 01-05, 01-06, 01-11 | RLS keyed on app.mailbox_id, forced, missing setting -> no rows | ✓ SATISFIED | policies/FORCE in migrations; isolation tests |
+| FND-01 | 01-02, 01-05, 01-08, 01-10, 01-11, 01-12, 01-13 | Stack up with Compose, migrations applied | ? NEEDS HUMAN | Compose, Dockerfile and setup are wired. The Linux uid blocker is fixed, and the README has the Linux step. Not observed end to end on the target or on a CI runner. |
+| FND-02 | 01-04, 01-09, 01-10, 01-11, 01-12, 01-13 | Mailbox + model settings in config.yaml; password only from env | ✓ SATISFIED (threshold deferred to Phase 3) | Strict schema, password_env holds a name only, sentinel test passes |
+| FND-03 | 01-01, 01-03, 01-13 | apps/worker, packages/core, packages/db; Drizzle schema + migrations in packages/db | ✓ SATISFIED | Layout present |
+| ISO-01 | 01-03, 01-05, 01-06 | Non-null mailbox_id FK on every mail-derived table | ✓ SATISFIED | Migrations, catalog gate and NULL-insert tests |
+| ISO-02 | 01-02, 01-03, 01-05, 01-06, 01-11 | RLS keyed on app.mailbox_id, forced, missing setting -> no rows | ✓ SATISFIED | Policies and FORCE in migrations; isolation and owner-rls tests |
 | ISO-03 | 01-06 | Automated two-mailbox test without app filter | ✓ SATISFIED | isolation.test.ts |
-| ISO-04 | 01-07 | App code filters by mailbox_id explicitly | ✓ SATISFIED | scope.ts helpers + superuser no-RLS test + Biome guard |
+| ISO-04 | 01-07 | App code filters by mailbox_id explicitly | ✓ SATISFIED | scope.ts helpers, superuser no-RLS test, Biome guard + lint-guard.test.ts |
 
-Every phase requirement ID (FND-01..03, ISO-01..04) is claimed by at least one plan. REQUIREMENTS.md maps no other ID to Phase 1, so nothing is orphaned. REQUIREMENTS.md marks FND-01 "Complete". This report disagrees until gap 1 is closed and SC1 is confirmed on the target.
-
-### Test Quality Audit
-
-| Test File | Linked Req | Skipped | Circular | Assertion Level | Verdict |
-|-----------|-----------|---------|----------|-----------------|---------|
-| packages/db/test/catalog.test.ts | ISO-01, ISO-02 (SC3) | 0 | no | Value (exact violation strings) + negative cases | ✓ |
-| packages/db/test/isolation.test.ts | ISO-02, ISO-03 (SC4) | 0 | no (ground truth read as superuser) | Behavioral, by id sets and SQLSTATE codes | ✓ |
-| packages/db/test/owner-rls.test.ts | ISO-02 (D-70) | 0 | no | Behavioral | ✓ |
-| packages/db/test/scope.test.ts | ISO-04 | 0 | no | Behavioral + type-level @ts-expect-error | ✓ |
-| apps/worker/test/no-secret-leak.test.ts | FND-02 (SC2) | 0 | no; has a positive control for the scanner | Behavioral (real CLI + worker processes, full DB scan) | ✓ |
-| packages/db/test/migrate.test.ts | FND-01 | conditional `ctx.skip` only outside CI; `requirePgDump` throws under CI | no | Behavioral | ✓ |
-| apps/worker/test/compose.test.ts | FND-01 | 0 | no | Static contract (cannot detect host uid/permission problems such as CR-01) | ⚠️ insufficient for the CI smoke truth |
-
-Disabled tests on requirements: 0. Circular patterns: 0. Insufficient assertions: 1 (compose.test.ts is static; a warning).
+All 7 phase IDs are claimed by at least one plan. The REQUIREMENTS.md traceability table maps exactly these 7 IDs to Phase 1, so nothing is orphaned. The table still says "Gaps Found" for all 7, which is now stale and should be updated once the human items are signed off.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| scripts/compose-smoke.sh | 43, 66 | `umask 077` applies to a file a uid-1000 container must read; backups/ never made writable | 🛑 Blocker | CI compose-smoke permanently red (gap 1) |
-| scripts/compose-smoke.sh / compose.yaml | 18, 72 / 103-105 | COMPOSE_PROJECT_NAME does not isolate the pinned `sift-pgdata` volume; `--down` runs `down -v` (WR-01) | ⚠️ Warning | Data-loss risk for the owner's DB when run with a project override or CI=true locally |
-| apps/worker/src/commands/worker.ts | 122-129 | Unbounded `db.close()` after drain timeout (WR-03) | ⚠️ Warning | gap 2 |
-| apps/worker/src/runtime/supervisor.ts | tick | Fixed 15 s tick rounds intervals up (WR-08) | ⚠️ Warning | gap 3 |
-| packages/db/src/connect.ts | 157-174 | Role guard accepts sift_owner (WR-02) | ⚠️ Warning | Worker could run with DDL rights; RLS still binds the owner |
-| packages/db/test/support/catalog.ts | 126-136, 411-429 | Column-level SELECT/INSERT and other bypass-role memberships unseen (WR-06, WR-07) | ⚠️ Warning | Privilege-drift blind spots; ISO-01 non-null check unaffected |
-| packages/db/src/owner/migrate.ts | 92-106 | Count-based pending vs drizzle timestamp compare (WR-04) | ⚠️ Warning | Out-of-order migration could be silently skipped |
-| apps/worker/src/commands/config-apply.ts | 17-40 | Rename hint pairs slugs arbitrarily (WR-05) | ⚠️ Warning | Could steer the owner into mis-attaching history |
-| (none) | - | TBD/FIXME/XXX/TODO/HACK | - | None found in tracked source |
+| packages/db/src/owner/backup.ts | 56 | Error text says `on Linux run: chown 1000 /backups`, which is the container path. The owner's host path is ./backups. | ℹ️ Info | Could mislead an owner; README step 5 gives the right host command |
+| apps/worker/test/compose.test.ts | 191 | Test title "restarts the worker only when it exits with an error" no longer matches `restart: unless-stopped` (the assertion is correct) | ℹ️ Info | Naming only |
+| apps/worker/test/node-version.test.ts | 26 | Biome warning noTemplateCurlyInString | ℹ️ Info | Lint still exits 0 |
+| (changed files since 99d9b2e) | - | TBD/FIXME/XXX/TODO/HACK | - | None found |
 
-### Decision Coverage
-
-All 71 trackable CONTEXT.md decisions are honored by shipped artifacts (`check.decision-coverage-verify`: 71/71, none missing).
+All earlier review warnings (WR-01, WR-02, WR-04 to WR-07, WR-09, CR-02) are dispositioned as fixed in 01-REVIEW-DISPOSITION.md. Each has a named test that passes in the full run: compose-smoke.test.ts WR-01/WR-09/CR-02 blocks, connect.test.ts:184/197/224, migrate.test.ts:267, registry-plan.test.ts:143, and catalog.test.ts:115/135/161.
 
 ### Human Verification Required
 
 ### 1. Target-machine bring-up (SC1)
 
-**Test:** On the Mac mini or Linux mini PC, follow README quick start steps 1-5 and run `docker compose up -d`.
+**Test:** On the Mac mini or Linux mini PC, follow README quick start steps 1-5. On Linux with `id -u` != 1000, run `sudo chown 1000 backups`. Then run `docker compose up -d`.
 **Expected:** db healthy; setup exits 0 after writing a dump to ./backups and recording 5 migrations; worker healthy.
-**Why human:** The success criterion is defined on the owner's machine. On Linux with uid != 1000, expect the ./backups failure until gap 1 is fixed.
+**Why human:** The success criterion is defined on the owner's machine.
 
 ### 2. Real-password grep (SC2 manual half)
 
 **Test:** After a real bring-up, grep config/ and a pg_dump of `sift` for each real Bridge password.
 **Expected:** No match.
-**Why human:** Real secrets exist only on the target machine.
+**Why human:** The real secrets exist only on the target machine.
 
 ### 3. CI on GitHub
 
 **Test:** Push and inspect the Actions run.
-**Expected:** `check` is green. `compose-smoke` is green after the gap 1 fix.
-**Why human:** GitHub-hosted runners cannot be observed from here.
+**Expected:** `check` green; `compose-smoke` green, ending in "compose smoke OK".
+**Why human:** GitHub-hosted runners cannot be observed from here. The compose-smoke job has never run on a runner.
 
 ### 4. Backstop: id-based comparisons in isolation tests
 
-**Test:** Read isolation.test.ts and owner-rls.test.ts assertions.
-**Expected:** Only id-set comparisons (sortedIds, arrayContaining, every), with no positional indexing of query results.
-**Why human:** Non-inferable truth; abstained under the honest-verifier protocol.
+**Test:** Read the assertions in isolation.test.ts and owner-rls.test.ts.
+**Expected:** Only id-set comparisons (sortedIds, arrayContaining, every), and no positional indexing of query results.
+**Why human:** This is a non-inferable truth, so I abstained under the honest-verifier protocol. A scan found only two single-row reads, neither of them a row-set comparison.
 
 ### Gaps Summary
 
-The isolation guarantee, the core of this phase, is real and proven by behavioural tests. Forced RLS with one exact policy on all seven scoped tables binds both sift_app and sift_owner. A catalog gate fails on a nullable or missing mailbox_id and is wired into CI's `check` job. The two-mailbox test runs as raw sift_app with no filter. The scoped API adds its own mailbox filter. Mailbox secrets never persist.
-
-The gap is in "the owner can start the stack." One root cause: Linux file ownership between the host and the uid-1000 container user, which Docker Desktop on macOS hides.
-1. **Blocker (CR-01, reproduced):** The CI `compose-smoke` job can never pass on GitHub's Linux runners. config.yaml is created 0600 under `umask 077`, and ./backups is not writable by uid 1000. The build is permanently red, which also weakens the "fails the build" signal SC3 relies on.
-2. Same root cause, owner-facing: on a Linux mini PC whose uid is not 1000, the first `docker compose up` fails in setup at the pre-migration backup. The README gives no remedy, and the error text names the container path rather than the host path.
-
-Two non-blocking partials from the review are listed as gaps so the closure plan can pick them up: unbounded pool close on shutdown (WR-03) and poll-interval rounding (WR-08). The remaining review warnings (WR-01, WR-02, WR-04 to WR-07) do not falsify a success criterion as written. They are recorded under Anti-Patterns. WR-01 deserves priority because it can delete the owner's database volume.
+No gaps remain. The three gaps from the 2026-10-04 verification are closed. I checked each one against the code and passing tests, and checked CR-01 against a real Linux uid boundary with a negative control. Nothing regressed: the isolation layer (migrations, policies, rls.ts, scope.ts) is unchanged, and the whole suite passes against the dev Postgres. The phase now needs only the human sign-offs above: bring-up on the target machine, a GitHub Actions run, the real-password grep and the backstop read.
 
 ---
 
-_Verified: 2026-10-04T08:30:22Z_
+_Verified: 2026-10-05T02:12:30Z_
 _Verifier: Claude (gsd-verifier)_
