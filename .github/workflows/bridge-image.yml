@@ -1,0 +1,39 @@
+name: bridge-image
+
+# Builds the Proton Bridge image and runs its end-to-end smoke test whenever the
+# image, its smoke script or this workflow changes. Renovate's Bridge bumps
+# (D-31) land here: a bump that no longer builds, no longer compiles sift-helper
+# or no longer serves STARTTLS fails its PR.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bridge/**'
+      - scripts/bridge-smoke.sh
+      - .github/workflows/bridge-image.yml
+  pull_request:
+    paths:
+      - 'bridge/**'
+      - scripts/bridge-smoke.sh
+      - .github/workflows/bridge-image.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bridge-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    # Bridge builds from source with a cold Go module cache on a fresh runner.
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Builds bridge/Dockerfile (the commit check and the sift-helper tests run
+      # inside the build), then checks keychain, STARTTLS and the one-shot modes.
+      - name: Bridge image smoke
+        run: scripts/bridge-smoke.sh

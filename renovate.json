@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["custom.regex"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^bridge/Dockerfile$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+ARG BRIDGE_VERSION=(?<currentValue>\\S+)\\s+ARG BRIDGE_COMMIT=(?<currentDigest>[0-9a-f]{40})"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDepNames": ["ProtonMail/proton-bridge"],
+      "ignoreUnstable": true,
+      "prBodyNotes": [
+        "BRIDGE_COMMIT must change together with BRIDGE_VERSION. If this PR changes only the version, the image build's commit check fails; set BRIDGE_COMMIT to the tag's commit before merging."
+      ]
+    }
+  ]
+}
