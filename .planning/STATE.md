@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-10-05T17:51:24.829Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-10-05T18:10:24.448Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: ce2e58bb0104b6e489bb371a3d9cf4c3e7fd9168
+state_head: 4441a1a91bbe8036a259a0e9d9c72759b631fc2a
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 4 of 19
+Plan: 5 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -73,6 +73,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P01 | 18 min | 2 tasks | 9 files |
 | Phase 02 P02 | 6 min | 2 tasks | 7 files |
 | Phase 02 P03 | 11 min | 2 tasks | 17 files |
+| Phase 02 P04 | 17 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-03: message_location_removed_check guards removed_reason is not null; a check accepts NULL, so the planned text let removed_at with no reason pass
 - [Phase 02]: 02-03: migrate() throws MigrationFailedError with the driver error message (drizzle Failed query wrapper kept as cause), so sift migrate prints the 0005 preflight text and mailbox slug
 - [Phase 02]: 02-03: migration counts and tags in migrate.test.ts and setup.test.ts are derived from meta/_journal.json
+- [Phase 02]: 02-04: test IMAP server makes its own CA:TRUE cert per container (image snakeoil is CA:FALSE with a public key); container sift-test-imap-<port>
+- [Phase 02]: 02-04: license check covers --filter '@sift/worker...' and reads SPDX OR/AND; @zone-eu/mailsplit (MIT OR EUPL-1.1+) used under MIT
 
 ### Pending Todos
 
@@ -150,6 +153,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T17:51:13.643Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-10-05T18:10:12.491Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
