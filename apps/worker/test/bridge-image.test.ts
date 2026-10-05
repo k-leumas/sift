@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
@@ -245,5 +245,142 @@ describe('Bridge is never published on all interfaces (T-02-03)', () => {
   ])('%s has no wildcard address', (_file, text) => {
     const hits = text.split('\n').filter((line) => WILDCARD.test(line));
     expect(hits).toEqual([]);
+  });
+});
+
+/** A repository file, or null when it does not exist yet. */
+function readIfPresent(file: string): string | null {
+  return existsSync(path.join(REPO_ROOT, file)) ? read(file) : null;
+}
+
+interface RenovateRule {
+  matchDepNames?: string[];
+  ignoreUnstable?: boolean;
+  prBodyNotes?: string[];
+}
+
+interface RenovateConfig {
+  enabledManagers?: string[];
+  customManagers?: {
+    customType?: string;
+    managerFilePatterns?: string[];
+    matchStrings?: string[];
+  }[];
+  packageRules?: RenovateRule[];
+}
+
+function renovateConfig(): RenovateConfig {
+  const text = readIfPresent('renovate.json');
+  expect(text, 'renovate.json exists').not.toBeNull();
+  return JSON.parse(text ?? '{}') as RenovateConfig;
+}
+
+/** The one ARG value of `name` in bridge/Dockerfile. */
+function dockerfileArg(name: string): string {
+  const values = [...DOCKERFILE.matchAll(new RegExp(`^ARG ${name}=(\\S+)\\s*$`, 'gm'))];
+  expect(values).toHaveLength(1);
+  return values[0]?.[1] ?? '';
+}
+
+describe('Renovate bumps the Bridge tag and commit together (D-31, T-02-SC)', () => {
+  it('enables only the custom regex manager, so it opens no other PRs (T-02-52)', () => {
+    const config = renovateConfig();
+    expect(config.enabledManagers).toEqual(['custom.regex']);
+    expect(config.customManagers).toHaveLength(1);
+    expect(config.customManagers?.[0]?.customType).toBe('regex');
+    expect(config.customManagers?.[0]?.managerFilePatterns).toEqual(['/^bridge/Dockerfile$/']);
+  });
+
+  it('matches the pin block in bridge/Dockerfile once and captures every field', () => {
+    const matchStrings = renovateConfig().customManagers?.[0]?.matchStrings ?? [];
+    expect(matchStrings).toHaveLength(1);
+    // Renovate's named groups use the JavaScript syntax.
+    const matches = [...DOCKERFILE.matchAll(new RegExp(matchStrings[0] ?? '(?!)', 'g'))];
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.groups).toEqual({
+      datasource: 'github-tags',
+      depName: 'ProtonMail/proton-bridge',
+      currentValue: dockerfileArg('BRIDGE_VERSION'),
+      currentDigest: dockerfileArg('BRIDGE_COMMIT'),
+    });
+  });
+
+  it('skips unstable releases and tells every Bridge PR that the commit must move too', () => {
+    const rules = (renovateConfig().packageRules ?? []).filter((rule) =>
+      rule.matchDepNames?.includes('ProtonMail/proton-bridge'),
+    );
+    expect(rules).toHaveLength(1);
+    expect(rules[0]?.ignoreUnstable).toBe(true);
+    const notes = rules[0]?.prBodyNotes ?? [];
+    expect(
+      notes.some((note) => note.includes('BRIDGE_COMMIT') && note.includes('BRIDGE_VERSION')),
+    ).toBe(true);
+  });
+});
+
+interface WorkflowStep {
+  uses?: string;
+  run?: string;
+}
+
+interface BridgeWorkflow {
+  on?: {
+    push?: { branches?: string[]; paths?: string[] };
+    pull_request?: { paths?: string[] };
+  };
+  permissions?: Record<string, string>;
+  concurrency?: { group?: string };
+  jobs?: Record<string, { 'runs-on'?: string; 'timeout-minutes'?: number; steps?: WorkflowStep[] }>;
+}
+
+const BRIDGE_WORKFLOW_FILE = '.github/workflows/bridge-image.yml';
+
+function bridgeWorkflowText(): string {
+  const text = readIfPresent(BRIDGE_WORKFLOW_FILE);
+  expect(text, `${BRIDGE_WORKFLOW_FILE} exists`).not.toBeNull();
+  return text ?? '';
+}
+
+function bridgeWorkflow(): BridgeWorkflow {
+  return (parse(bridgeWorkflowText()) ?? {}) as BridgeWorkflow;
+}
+
+describe('CI builds and smoke-tests every Bridge image change (D-31)', () => {
+  const PATHS = ['bridge/**', 'scripts/bridge-smoke.sh', BRIDGE_WORKFLOW_FILE];
+
+  it('runs on pull requests and pushes to main that touch bridge/ or its smoke test', () => {
+    const on = bridgeWorkflow().on;
+    expect(on?.pull_request?.paths).toEqual(PATHS);
+    expect(on?.push?.branches).toEqual(['main']);
+    expect(on?.push?.paths).toEqual(PATHS);
+  });
+
+  it('reads the repository only and cancels superseded runs per ref', () => {
+    const workflow = bridgeWorkflow();
+    expect(workflow.permissions).toEqual({ contents: 'read' });
+    expect(workflow.concurrency?.group).toContain('github.ref');
+  });
+
+  it('has one job with a 45-minute timeout for a cold Go module cache', () => {
+    const jobs = Object.values(bridgeWorkflow().jobs ?? {});
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0]?.['runs-on']).toBe('ubuntu-24.04');
+    expect(jobs[0]?.['timeout-minutes']).toBe(45);
+  });
+
+  it('checks out with the SHA-pinned action ci.yml uses, then runs the smoke script', () => {
+    const steps = Object.values(bridgeWorkflow().jobs ?? {})[0]?.steps ?? [];
+    expect(steps.map((step) => step.uses ?? step.run?.trim())).toEqual([
+      expect.stringMatching(/^actions\/checkout@[0-9a-f]{40}$/),
+      'scripts/bridge-smoke.sh',
+    ]);
+    const usesLine = (text: string) =>
+      text
+        .split('\n')
+        .find((line) => /^\s*-?\s*uses: actions\/checkout@/.test(line))
+        ?.trim();
+    const line = usesLine(bridgeWorkflowText());
+    expect(line).toMatch(/uses: actions\/checkout@[0-9a-f]{40} # v\d+\.\d+\.\d+$/);
+    expect(line).toBe(usesLine(read('.github/workflows/ci.yml')));
   });
 });
