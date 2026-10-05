@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-05T02:15:18.882Z
-> Files: 182 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-05T06:13:29.190Z
+> Files: 184 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -119,6 +119,11 @@
 - `01-VERIFICATION.md` — Phase 1: Foundation and Isolation Verification Report (~6725 tok)
 - `COVERAGE.md` (~43 tok)
 - `deferred-items.md` — Deferred Items (~227 tok)
+
+## .planning/phases/02-bridge-spike-and-imap-ingest/
+
+- `02-CONTEXT.md` — Phase 2: Bridge Spike and IMAP Ingest - Context (~5019 tok)
+- `02-DISCUSSION-LOG.md` — Phase 2: Bridge Spike and IMAP Ingest - Discussion Log (~2174 tok)
 
 ## .planning/tmp/
 

@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-10-03T19:14:49.478Z",
   "lifetime": {
-    "total_tokens_estimated": 3178540,
-    "total_reads": 570,
+    "total_tokens_estimated": 3179581,
+    "total_reads": 578,
     "total_writes": 2000,
-    "total_sessions": 6,
-    "anatomy_hits": 332,
-    "anatomy_misses": 238,
+    "total_sessions": 7,
+    "anatomy_hits": 335,
+    "anatomy_misses": 243,
     "repeated_reads_blocked": 699,
-    "estimated_savings_vs_bare_cli": 316690
+    "estimated_savings_vs_bare_cli": 317290
   },
   "sessions": [
     {
@@ -14049,6 +14049,102 @@
         "input_tokens_estimated": 347,
         "output_tokens_estimated": 0,
         "reads_count": 2,
+        "writes_count": 0,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-10-05-2059",
+      "started": "2026-10-05T02:59:33.809Z",
+      "ended": "2026-10-05T03:29:37.649Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/verify-work.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/01-foundation-and-isolation/01-UAT.md",
+          "tokens_estimated": 347,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 347,
+        "output_tokens_estimated": 0,
+        "reads_count": 2,
+        "writes_count": 0,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-10-05-2059",
+      "started": "2026-10-05T02:59:33.809Z",
+      "ended": "2026-10-05T03:39:14.629Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/verify-work.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/01-foundation-and-isolation/01-UAT.md",
+          "tokens_estimated": 347,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/transition.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 347,
+        "output_tokens_estimated": 0,
+        "reads_count": 3,
+        "writes_count": 0,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-10-05-2059",
+      "started": "2026-10-05T02:59:33.809Z",
+      "ended": "2026-10-05T03:42:01.468Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/verify-work.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/01-foundation-and-isolation/01-UAT.md",
+          "tokens_estimated": 347,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/transition.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 347,
+        "output_tokens_estimated": 0,
+        "reads_count": 3,
         "writes_count": 0,
         "repeated_reads_blocked": 0,
         "anatomy_lookups": 1

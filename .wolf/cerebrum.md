@@ -6,7 +6,12 @@
 
 ## User Preferences
 
+- UAT checkpoints: give concrete copy-paste commands and the exact expected output for each check; a bare 'expected:' line left the user unsure what to verify (2026-10-05).
+
 <!-- How the user likes things done. Code style, tools, patterns, communication. -->
+
+- 2026-10-05 (discuss-phase 2): user often answers "option N with: …" and adds detailed refinements; capture every refinement verbatim as its own decision. Strong preferences: fail closed (volume caps, cert pins, no plaintext fallback), secrets never shown in terminal/scrollback, never a misleading error on a routine start, rare events logged with counts.
+- 2026-10-05: privacy stance: IMAP is source of truth; email bodies only in a short-lived cache (classified + 7 d); traces store the prompt recipe, not raw prompts.
 
 - 2026-10-04: `.claude/`, `.wolf/`, `.gsd/`, `.planning/` and `CLAUDE.md` are code. Track and commit them like source; never exclude them from commits or leave them staged. Still scan them for secrets before committing.
 
