@@ -6,9 +6,22 @@
 #                  side by side and stop both when either one exits
 #   keychain-init  create the GPG key, pass store and canary when absent, then
 #                  unlock and verify them
+#   configure      start Bridge with its gRPC frontend, print the certificate
+#                  fingerprint to pin (D-73), then run sift-helper configure:
+#                  telemetry and automatic updates off, IMAP passwords into the
+#                  mounted .env.mailboxes (D-39, D-81)
+#   repair         start Bridge with its gRPC frontend and trigger its repair
+#                  (the live spike's IMAP cache rebuild, D-43)
 #
-# Exit codes: 0 ok, 1 a supervised child exited, 64 unknown mode, 78 keychain
-# or vault refusal. Messages are fixed text and never contain the passphrase.
+# configure and repair run in the one-shot bridge-init service
+# (docker compose run --rm bridge-init configure|repair), the only service
+# that mounts .env.mailboxes, its backup and config (D-79).
+#
+# Exit codes: 0 ok, 1 a supervised child exited or Bridge did not start (or the
+# bridge service still runs), 2 .env.mailboxes missing or not a regular file,
+# or its backup cannot be written, 3 no Bridge account is logged in, 4 no
+# configured mailbox matches a Bridge address, 64 unknown mode, 78 keychain or
+# vault refusal. Messages are fixed text and never contain a secret.
 #
 # Runs as root under tini. Every gpg, pass, socat and bridge process runs as
 # uid 1000 (user bridge) through setpriv.
@@ -27,9 +40,17 @@ readonly IMAP_PORT=1143
 readonly CANARY=sift/canary
 readonly INSECURE_VAULT=/data/config/protonmail/bridge-v3/insecure
 readonly SETPRIV=(setpriv --reuid=1000 --regid=1000 --init-groups)
+# Bridge writes its gRPC server config (port, cert, token, socket path) here.
+readonly GRPC_CONFIG=/data/config/protonmail/bridge-v3/grpcServerConfig.json
+# Bridge's single-instance lock (flock), shared through the volume.
+readonly LOCK_FILE=/data/cache/protonmail/bridge-v3/bridge-v3.lock
+# Mounted by bridge-init only (compose.yaml, D-79, D-81).
+readonly ENV_FILE=/run/sift/.env.mailboxes
+readonly ENV_BACKUP=/run/sift/.env.mailboxes.bak
+readonly SIFT_CONFIG=/run/sift/config/config.yaml
 
 usage() {
-  echo "usage: entrypoint.sh [serve|keychain-init]" >&2
+  echo "usage: entrypoint.sh [serve|keychain-init|configure|repair]" >&2
 }
 
 # Run a command as the bridge user, in the foreground.
@@ -135,22 +156,34 @@ spki_fingerprint() {
     | openssl base64 -A
 }
 
-# Log the fingerprint of the certificate Bridge presents (D-73). Writes no file.
-print_fingerprint() {
-  local i pem fpr
+# Print the SPKI fingerprint of the certificate Bridge presents over STARTTLS
+# on 127.0.0.1, waiting up to 60 s for it. Writes no file (D-73).
+bridge_fingerprint() {
+  local i pem
   for ((i = 0; i < 60; i++)); do
     if (exec 3<>"/dev/tcp/127.0.0.1/$IMAP_PORT") 2>/dev/null; then
       pem=$(openssl s_client -starttls imap -connect "127.0.0.1:$IMAP_PORT" </dev/null 2>/dev/null \
         | openssl x509 -outform PEM 2>/dev/null) || pem=''
       if [ -n "$pem" ]; then
-        fpr=$(printf '%s\n' "$pem" | spki_fingerprint)
-        echo "Bridge certificate SHA-256 (public key): $fpr"
+        printf '%s\n' "$pem" | spki_fingerprint
         return 0
       fi
     fi
     sleep 1
   done
-  echo "Bridge certificate fingerprint unavailable: no STARTTLS answer on 127.0.0.1:$IMAP_PORT within 60 s" >&2
+  return 1
+}
+
+readonly FINGERPRINT_UNAVAILABLE="Bridge certificate fingerprint unavailable: no STARTTLS answer on 127.0.0.1:$IMAP_PORT within 60 s"
+
+# Log the fingerprint of the certificate Bridge presents (D-73).
+print_fingerprint() {
+  local fpr
+  if fpr=$(bridge_fingerprint); then
+    echo "Bridge certificate SHA-256 (public key): $fpr"
+  else
+    echo "$FINGERPRINT_UNAVAILABLE" >&2
+  fi
 }
 
 # PIDs of the supervised children (socat is empty until it starts).
@@ -214,6 +247,105 @@ serve() {
   exit 1
 }
 
+# The env file exists only in the bridge-init service. A missing short-syntax
+# bind source makes Docker create a directory on the host (Pitfall 4).
+require_env_file() {
+  if [ ! -e "$ENV_FILE" ] && [ ! -L "$ENV_FILE" ]; then
+    echo "run this in the bridge-init service: docker compose run --rm bridge-init" >&2
+    exit 2
+  fi
+  if [ ! -f "$ENV_FILE" ]; then
+    echo "create .env.mailboxes first: cp .env.mailboxes.example .env.mailboxes" >&2
+    exit 2
+  fi
+}
+
+# A Bridge holding the single-instance lock on this volume means the bridge
+# service still runs; a second Bridge would fail on the lock anyway.
+require_bridge_stopped() {
+  if [ -e "$LOCK_FILE" ] && ! as_bridge flock -n "$LOCK_FILE" true 2>/dev/null; then
+    echo "stop the bridge service first: docker compose stop bridge" >&2
+    exit 1
+  fi
+}
+
+# Start Bridge with its gRPC frontend in the background (sets bridge_pid) and
+# wait up to 90 s for its server config. Bridge's own output goes to its log
+# files in the volume, so the owner sees only Sift's fixed lines.
+start_grpc_bridge() {
+  local i
+  as_bridge rm -f "$GRPC_CONFIG"
+  trap 'stop_children; exit 130' TERM INT
+  "${SETPRIV[@]}" bridge --grpc >/dev/null 2>&1 &
+  bridge_pid=$!
+  for ((i = 0; ; i++)); do
+    [ -s "$GRPC_CONFIG" ] && return 0
+    if ! kill -0 "$bridge_pid" 2>/dev/null; then
+      echo "Bridge did not start its gRPC frontend: it exited first" >&2
+      exit 1
+    fi
+    if [ "$i" -ge 90 ]; then
+      echo "Bridge did not start its gRPC frontend within 90 s; stopping it" >&2
+      stop_children
+      exit 1
+    fi
+    sleep 1
+  done
+}
+
+# After the helper's Quit, give Bridge 30 s to exit, then stop it.
+wait_bridge_exit() {
+  local i
+  for ((i = 0; i < 30; i++)); do
+    if ! kill -0 "$bridge_pid" 2>/dev/null; then
+      wait "$bridge_pid" 2>/dev/null || true
+      bridge_pid=''
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Bridge still running 30 s after Quit; stopping it" >&2
+  stop_children
+  bridge_pid=''
+}
+
+# The configure steps on an unlocked keychain: fingerprint to pin (D-73), then
+# sift-helper as root so the bind-mounted env file keeps its host owner and
+# mode (D-81). Exits with the helper's code.
+run_configure() {
+  local fpr status=0
+  start_grpc_bridge
+  if fpr=$(bridge_fingerprint); then
+    echo "Bridge certificate SHA-256 (public key): $fpr"
+    echo "Add it to config/config.yaml under the mailbox's imap.tls:   pin_sha256: $fpr"
+  else
+    echo "$FINGERPRINT_UNAVAILABLE" >&2
+  fi
+  sift-helper configure --config "$SIFT_CONFIG" --env-file "$ENV_FILE" --backup "$ENV_BACKUP" \
+    || status=$?
+  wait_bridge_exit
+  exit "$status"
+}
+
+configure_mode() {
+  require_passphrase
+  require_env_file
+  require_bridge_stopped
+  keychain_unlock
+  run_configure
+}
+
+repair_mode() {
+  local status=0
+  require_passphrase
+  require_bridge_stopped
+  keychain_unlock
+  start_grpc_bridge
+  sift-helper repair || status=$?
+  wait_bridge_exit
+  exit "$status"
+}
+
 mode=${1:-serve}
 case $mode in
   serve)
@@ -224,6 +356,12 @@ case $mode in
     keychain_init
     keychain_unlock
     echo "Bridge keychain ready"
+    ;;
+  configure)
+    configure_mode
+    ;;
+  repair)
+    repair_mode
     ;;
   *)
     usage

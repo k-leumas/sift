@@ -28,6 +28,14 @@ RUN git clone --depth 1 --branch "${BRIDGE_VERSION}" \
 ENV GOTOOLCHAIN=local
 RUN make build-nogui BRIDGE_APP_VERSION="${BRIDGE_VERSION#v}"
 
+# sift-helper (bridge/helper, D-39): copied into Bridge's own module so it can
+# import the generated gRPC client under internal/frontend/grpc. Its Go tests
+# run in every image build, so a Bridge bump that changes that API, or a broken
+# env-file writer, fails here and never reaches an owner.
+COPY helper/*.go /src/cmd/sift-helper/
+RUN go test ./cmd/sift-helper/...
+RUN go build -o /src/sift-helper ./cmd/sift-helper
+
 FROM debian:trixie-20260918-slim
 
 # pass + gnupg hold the vault key (D-38); socat exposes Bridge's loopback-only
@@ -43,6 +51,7 @@ RUN apt-get update \
 # Only the bridge binary. The proton-bridge launcher that `make build-nogui`
 # also builds is the self-update path, which D-30 disables: never copy it.
 COPY --from=build /src/bridge /usr/local/bin/bridge
+COPY --from=build /src/sift-helper /usr/local/bin/sift-helper
 
 RUN useradd -m -u 1000 bridge \
   && install -d -o bridge -g bridge -m 0700 /data /run/user/1000 \

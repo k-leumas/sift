@@ -97,6 +97,60 @@ describe('bridge/entrypoint.sh fails closed (D-38, D-73)', () => {
   });
 });
 
+describe('sift-helper is built and tested inside the image (D-39)', () => {
+  const lines = DOCKERFILE.split('\n');
+  const at = (line: string) => lines.indexOf(line);
+
+  it('copies the helper sources into the Bridge tree as cmd/sift-helper', () => {
+    expect(at('COPY helper/*.go /src/cmd/sift-helper/')).toBeGreaterThan(0);
+  });
+
+  it('runs the helper Go tests before building it, after the Bridge build', () => {
+    const bridgeBuild = lines.findIndex((line) => line.startsWith('RUN make build-nogui'));
+    const test = at('RUN go test ./cmd/sift-helper/...');
+    const build = at('RUN go build -o /src/sift-helper ./cmd/sift-helper');
+    expect(bridgeBuild).toBeGreaterThan(0);
+    expect(test).toBeGreaterThan(bridgeBuild);
+    expect(build).toBeGreaterThan(test);
+  });
+
+  it('ships the helper as /usr/local/bin/sift-helper', () => {
+    expect(at('COPY --from=build /src/sift-helper /usr/local/bin/sift-helper')).toBeGreaterThan(0);
+  });
+});
+
+describe('bridge/entrypoint.sh one-shot modes (D-39, D-43, D-73, D-79)', () => {
+  it.each(['configure', 'repair'])('has a %s case', (mode) => {
+    expect(ENTRYPOINT).toMatch(new RegExp(`^  ${mode}\\)$`, 'm'));
+  });
+
+  it('prints the line the owner pastes into config.yaml', () => {
+    expect(ENTRYPOINT).toContain("under the mailbox's imap.tls:   pin_sha256: $fpr");
+  });
+
+  it('runs sift-helper configure with the bridge-init mounts', () => {
+    expect(ENTRYPOINT).toContain(
+      'sift-helper configure --config "$SIFT_CONFIG" --env-file "$ENV_FILE" --backup "$ENV_BACKUP"',
+    );
+    expect(ENTRYPOINT).toContain('readonly ENV_FILE=/run/sift/.env.mailboxes');
+    expect(ENTRYPOINT).toContain('readonly ENV_BACKUP=/run/sift/.env.mailboxes.bak');
+  });
+
+  it.each([
+    'run this in the bridge-init service: docker compose run --rm bridge-init',
+    'create .env.mailboxes first: cp .env.mailboxes.example .env.mailboxes',
+    'stop the bridge service first: docker compose stop bridge',
+    'Bridge did not start its gRPC frontend',
+  ])('refuses with %s', (message) => {
+    expect(ENTRYPOINT).toContain(message);
+  });
+
+  it('writes no certificate file and keeps nothing of Sift in the vault volume (D-73, D-79)', () => {
+    expect(ENTRYPOINT).not.toContain('trusted.pem');
+    expect(ENTRYPOINT).not.toContain('/data/sift');
+  });
+});
+
 describe('bridge healthcheck probes the socat listener (D-32)', () => {
   it('targets the container IP, not Bridge loopback', () => {
     const compose = parse(COMPOSE) as {
