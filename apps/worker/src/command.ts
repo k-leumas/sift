@@ -61,6 +61,12 @@ export const COMMANDS: readonly CommandSpec[] = [
     summary: 'Rename a mailbox slug, keeping its data',
   },
   {
+    path: ['mailbox', 'resume'],
+    file: 'mailbox-resume.ts',
+    usage: 'sift mailbox resume <slug>',
+    summary: 'Process the new mail held by the volume limit',
+  },
+  {
     path: ['bridge', 'probe'],
     file: 'bridge-probe.ts',
     usage:

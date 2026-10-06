@@ -221,6 +221,44 @@ export async function renameMailbox(
   );
 }
 
+export type ResumeResult =
+  | { resumed: true; held: number }
+  | { resumed: false; state: string | null };
+
+/**
+ * Release a volume hold (D-26): when the mailbox is in needs_attention, set
+ * approved_new_count to the held count, so the worker's next check processes
+ * up to that many held messages. Any other state changes nothing and reports
+ * the state (null when the mailbox has never run). Throws for an unknown slug.
+ */
+export async function resumeMailbox(ownerUrl: string, slug: string): Promise<ResumeResult> {
+  return withOwnerClient(ownerUrl, (client) =>
+    inTransaction(client, async (): Promise<ResumeResult> => {
+      const { rows } = await client.query<{ id: string }>(
+        'select id from mailbox where slug = $1',
+        [slug],
+      );
+      const id = rows[0]?.id;
+      if (id === undefined) throw new Error(`no mailbox with slug "${slug}"`);
+      // mailbox_status is under FORCE RLS and the owner is subject to it (D-41).
+      await client.query("select set_config('app.mailbox_id', $1, true)", [id]);
+      const status = await client.query<{ state: string | null; held_new_count: number | null }>(
+        `select state, held_new_count from mailbox_status where mailbox_id = $1 for update`,
+        [id],
+      );
+      const row = status.rows[0];
+      if (row?.state !== 'needs_attention' || row.held_new_count === null) {
+        return { resumed: false, state: row?.state ?? null };
+      }
+      await client.query(
+        'update mailbox_status set approved_new_count = held_new_count where mailbox_id = $1',
+        [id],
+      );
+      return { resumed: true, held: row.held_new_count };
+    }),
+  );
+}
+
 interface StatusDbRow {
   state: 'ok' | 'error' | 'disabled';
   last_error: string | null;

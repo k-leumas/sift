@@ -23,6 +23,7 @@ describe('sift CLI shell', () => {
       'sift config apply [--confirm]',
       'sift mailbox list',
       'sift mailbox rename <old-slug> <new-slug>',
+      'sift mailbox resume <slug>',
       'sift bridge probe <slug> [--label-test] [--uid <n>] [--wait-new-seconds <n>] ' +
         '[--compare <file|->] [--sample <n>] [--scan-limit <n>]',
       'sift bridge trust <slug>',
