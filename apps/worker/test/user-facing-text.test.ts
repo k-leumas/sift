@@ -1,5 +1,7 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { loadConfig } from '@sift/core/config';
 import { describe, expect, it } from 'vitest';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../../..');
@@ -92,6 +94,13 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     'sift mailbox resume <slug>',
     'sift mailbox backfill <slug> --days 3',
     'SIFT_BRIDGE_KEYCHAIN_PASSPHRASE',
+    // D-37, D-10, D-73 and the scoped spike outcome (SPK-04).
+    'Sift never stores your Proton password; Bridge stores session tokens in the sift-bridge volume',
+    'FileVault',
+    'LUKS',
+    'imap.tls.pin_sha256',
+    'Proton Bridge v3.27.0',
+    '02-SPIKE-FINDINGS.md',
   ])('contains %s', (text) => {
     expect(readme).toContain(text);
   });
@@ -133,10 +142,34 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     expect(later).not.toMatch(/bridge/i);
   });
 
-  it('starts the technical-settings example with version: 1', () => {
+  /** The first YAML block under "Technical settings". */
+  function technicalSettingsYaml(): string {
     const section = readme.slice(readme.indexOf('### Technical settings'));
-    const firstYaml = section.slice(section.indexOf('```yaml') + '```yaml'.length).trimStart();
-    expect(firstYaml.startsWith('version: 1\n')).toBe(true);
+    const start = section.indexOf('```yaml') + '```yaml'.length;
+    return section.slice(start, section.indexOf('```', start)).trimStart();
+  }
+
+  it('starts the technical-settings example with version: 1', () => {
+    expect(technicalSettingsYaml().startsWith('version: 1\n')).toBe(true);
+  });
+
+  it('keeps the active technical-settings keys valid for the strict config schema', async () => {
+    const active = technicalSettingsYaml()
+      .split('\n')
+      .filter((line) => !line.trimStart().startsWith('#'))
+      .join('\n');
+    // Later-milestone blocks stay in the README, but only as comments.
+    expect(active).not.toMatch(/^(tiers|quick_confirm|relabel_sync):/m);
+    expect(technicalSettingsYaml()).toMatch(/^# tiers:/m);
+    const dir = mkdtempSync(path.join(tmpdir(), 'sift-readme-config-'));
+    try {
+      const file = path.join(dir, 'config.yaml');
+      writeFileSync(file, active);
+      const result = await loadConfig(file);
+      expect(result.ok ? [] : result.issues).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('no longer points at the old add-mailbox command or the root example config', () => {
@@ -170,6 +203,17 @@ describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
     'packages/db/test/isolation.test.ts',
     'pnpm db:generate',
     'withMailbox',
+    // Phase 2: Bridge prerequisites, host development and the extra checks.
+    'SIFT_BRIDGE_KEYCHAIN_PASSPHRASE',
+    'docker volume create sift-bridge',
+    'docker compose run --rm bridge-init',
+    'docker compose up -d bridge',
+    'SIFT_BRIDGE_PORT',
+    'host: localhost',
+    'imap.tls.pin_sha256',
+    'sift bridge trust <slug>',
+    'scripts/test-imap.sh up',
+    'scripts/bridge-smoke.sh',
   ])('contains %s', (text) => {
     expect(contributing).toContain(text);
   });
@@ -180,6 +224,10 @@ describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
     );
     expect(contributing).not.toMatch(staleLinter);
     expect(contributing).not.toMatch(/There is nothing to build or run yet/);
+  });
+
+  it('creates the Bridge volume right before starting the database', () => {
+    expect(contributing).toContain('docker volume create sift-bridge\n   docker compose up -d db');
   });
 
   it('names commands that exist in package.json', () => {

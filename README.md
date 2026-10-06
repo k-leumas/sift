@@ -104,7 +104,9 @@ Anything no tier is confident about waits for you in a review queue covering all
 
 You don't have to open Sift to correct it. If you move an email from one label to another in your normal mail app (Proton Mail, or any IMAP client), Sift notices and treats it as a correction.
 
-**How it notices.** Proton Bridge shows each label as a folder, such as `Labels/Noise`. About once a minute, Sift lists what's in each label folder and compares it with what it expects. Emails are matched across folders by their `Message-ID` header, because IMAP gives the same email a different ID (UID) in every folder. Where the server supports IMAP's change-tracking extensions (CONDSTORE/QRESYNC), Sift asks only for what changed since the last check.
+**How it notices.** Proton Bridge shows each label as a folder, such as `Labels/Noise`. About once a minute, Sift lists what's in each label folder and compares it with what it expects. IMAP gives the same email a different ID (UID) in every folder, so emails are matched across folders by Proton's internal message ID, which Bridge adds to every email as the `X-Pm-Internal-Id` header. On other IMAP servers, Sift falls back to the `Message-ID` header.
+
+Proton Bridge offers no IMAP change tracking (CONDSTORE/QRESYNC), so Sift cannot ask only for what changed: on every poll it compares each label folder's full list of UIDs with what it stored, and checks the folder's UIDVALIDITY. This is as measured on Proton Bridge v3.27.0 in the M1 spike, whose findings are scoped like this: *"Measured on Proton Bridge v3.27.0 (commit 04e46eb4), 2026-10-06; later Bridge versions may differ."* See the [spike findings](.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md) and the [ADR 0003 addendum](docs/adr/0003-traces-and-mail-app-relabels.md#addendum-2026-10-proton-bridge-spike-m1).
 
 **What it does with a change.** Each email's state is stored in the database, so it doesn't matter whether the two halves of a change happen seconds or weeks apart:
 
@@ -221,48 +223,60 @@ version: 1
 mailboxes:
   - slug: personal
     imap:
-      host: protonmail-bridge   # or imap.fastmail.com, etc.
+      host: bridge              # the Compose Bridge service; or imap.fastmail.com, etc.
       port: 1143
-      username: me@proton.me
+      username: me@proton.me    # the Proton account's address
       password_env: SIFT_PERSONAL_IMAP_PASSWORD
       folder: INBOX
+      tls:
+        mode: starttls          # or implicit; Sift never connects without TLS
+        # pin_sha256: <the fingerprint printed by docker compose run --rm bridge-init>
+    ingest:
+      initial_backfill_days: 30 # the first sync reads this many days back, in the background; 0 = new mail only
+      new_mail_cap: 200         # more new messages in one check holds the mailbox until `sift mailbox resume`
     labels:
-      apply_as: proton_labels   # Proton: copies to Labels/<Category>; generic IMAP: folders or keywords
+      apply_as: proton_labels   # copies to Labels/<Category>; the only value accepted so far
   - slug: job-search
     imap:
-      host: protonmail-bridge
+      host: bridge
       port: 1143
-      username: jobs@proton.me
+      username: jobs@proton.me  # a second Proton account
       password_env: SIFT_JOBS_IMAP_PASSWORD
       folder: INBOX
+      tls:
+        mode: starttls
+        # pin_sha256: <the same fingerprint: one Bridge, one certificate>
     labels:
-      apply_as: proton_labels
+      apply_as: proton_labels   # no ingest block: the defaults above apply
 
 models:
-  provider: ollama              # or any OpenAI-compatible endpoint
+  provider: ollama              # or any OpenAI-compatible endpoint (later)
   url: http://host.docker.internal:11434
   embeddings: nomic-embed-text
   llm: qwen3:1.7b               # any small instruct model; let `pnpm eval --models` choose
 
-tiers:
-  classifier:
-    confidence_threshold: 0.85
-    min_examples_per_category: 15
-    spot_check_rate: 0.05
-  llm:
-    confidence_threshold: 0.75
-    examples_per_prompt: 6
+worker:
+  poll_interval_seconds: 60     # how often each mailbox is checked (10 to 3600)
 
-quick_confirm:
-  batch_size: 20
-  max_per_day: 1
-
-relabel_sync:
-  enabled: true
-  poll_interval_seconds: 60     # how often label folders are compared
+# Later milestones (not accepted by sift config check yet):
+# tiers:
+#   classifier:
+#     confidence_threshold: 0.85
+#     min_examples_per_category: 15
+#     spot_check_rate: 0.05
+#   llm:
+#     confidence_threshold: 0.75
+#     examples_per_prompt: 6
+#
+# quick_confirm:
+#   batch_size: 20
+#   max_per_day: 1
+#
+# relabel_sync:
+#   enabled: true                 # label folders are compared on every worker poll
 ```
 
-[`config/config.example.yaml`](config/config.example.yaml) is the authoritative list of the keys the current version accepts. Unknown keys are rejected, with the path of each one in the error. Sections shown above that the current version does not accept yet (`tiers`, `quick_confirm`, `relabel_sync`) arrive with later milestones; until then, leave them out of your `config/config.yaml`. After editing the file, apply it with:
+[`config/config.example.yaml`](config/config.example.yaml) is the authoritative list of the keys the current version accepts. Unknown keys are rejected, with the path of each one in the error. The commented sections at the end (`tiers`, `quick_confirm`, `relabel_sync`) arrive with later milestones; until then, leave them out of your `config/config.yaml`. For a Bridge mailbox, paste `imap.tls.pin_sha256` from the Bridge login ([Quick start](#quick-start), step 9). A server with a certificate from a public certificate authority can leave it out. After editing the file, apply it with:
 
 ```sh
 docker compose run --rm setup
@@ -306,13 +320,26 @@ Email is the one input Sift can't trust. Anyone can send you anything.
 - **Limited actions:** Sift applies labels and (later) writes **drafts**. It never sends, deletes or forwards mail.
 - **Flagging:** emails that look like injection attempts are flagged in the UI's audit view.
 - **Tested:** `evals/injection/` holds adversarial emails, and CI fails if any of them changes a classification.
+- **IMAP connection:** always TLS, with no plaintext fallback: STARTTLS by default (`imap.tls.mode: starttls`), or implicit TLS (`implicit`). Sift never sends credentials or data over an unverified connection; before TLS is up, only the protocol negotiation crosses the wire.
+- **Bridge's certificate is pinned.** Bridge presents a self-signed certificate, so Sift pins its public key: `imap.tls.pin_sha256` holds the SHA-256 fingerprint that `docker compose run --rm bridge-init` prints, and the worker accepts exactly that key, whatever the host name. If Bridge's certificate is regenerated, for example after a reinstall, the mailbox stops instead of trusting the new key. Compare the new fingerprint with `sift bridge trust <slug>` before you update the pin (see [Managing mailboxes](#managing-mailboxes)). A server with a certificate from a public certificate authority can leave `pin_sha256` out and gets the normal certificate and host name checks.
+- **Bridge session:** Sift never stores your Proton password; Bridge stores session tokens in the sift-bridge volume. Those tokens are as sensitive as the password: whoever has them can read your mail.
+  - Only the `bridge` container and the one-shot `bridge-init` setup service mount the volume, and only `bridge-init` sees `.env.mailboxes` and `config/`.
+  - The vault is encrypted with a key that `SIFT_BRIDGE_KEYCHAIN_PASSPHRASE` unlocks, and only those two containers receive the passphrase, so a copied volume is useless without it.
+  - The volume is not part of Sift's database backups, and `docker compose down -v` leaves it alone (it is declared external).
+  - To remove the session, delete the volume: `docker compose rm -sf bridge && docker volume rm sift-bridge`.
+  - `bridge-init` keeps the previous `.env.mailboxes` in `.env.mailboxes.bak` (mode 0600) next to it. It holds the same IMAP passwords, so empty it with `: > .env.mailboxes.bak` once the new file works, but keep the file itself: `bridge-init` will not start without it.
+- **Full-disk encryption is required.** The database holds mail metadata, headers and cached body text, and the Bridge volume holds your session; neither is encrypted column by column. Run Sift on a disk with full-disk encryption: FileVault on macOS, LUKS on Linux.
 - **Database passwords:** `sift migrate` sets the worker role's password as a SCRAM verifier built on the client, so the plaintext never reaches the database server. The one-time bootstrap (`db/bootstrap.sql`) still sends the owner and backup passwords in plain `CREATE/ALTER ROLE` statements, so keep Postgres's `log_statement` at its default `none` (never `ddl` or `all`) when it runs.
 
 ### Privacy
 
 - Everything runs on your hardware. By default nothing leaves your network.
 - If you point `models.url` at a hosted API, **your email content goes to that provider.** Sift warns you about this in the UI.
-- No telemetry, analytics or crash reporting.
+- No telemetry, analytics or crash reporting. Proton Bridge's own telemetry and automatic updates are switched off during the Bridge login.
+- **IMAP stays the source of truth.** Sift does not keep a permanent copy of your mail.
+  - Body text (plain text, or HTML converted to text, up to 32,768 characters) is cached in its own table only until the message is classified, plus 7 days for review. Classification arrives with the rest of M1; until then, cached bodies stay. Attachments are never stored, only their names, types and sizes.
+  - A message removed from the folder before it was classified has its cached body deleted at once.
+  - Kept long-term: message metadata and headers (and, in later milestones, labels and embeddings). Replay and evals in later milestones fetch bodies from IMAP again, so mail you deleted drops out of them.
 
 ---
 
@@ -361,7 +388,9 @@ Sift is designed for an always-on machine on your home network.
 
 - Docker and Docker Compose
 - 8 GB of RAM is enough for the default models
-- An IMAP account per mailbox. For Proton Mail this means **Proton Bridge**, which requires a paid Proton plan. One Bridge instance can serve several Proton addresses, each with its own Bridge-generated IMAP password
+- An IMAP account per mailbox. For Proton Mail this means **Proton Bridge**, which requires a paid Proton plan. Sift runs Bridge in its own container, built from source at a pinned release.
+- Combined address mode for Proton: one Sift mailbox per Proton account, with all of that account's addresses arriving in one inbox (Bridge's default). One Bridge serves several Proton accounts. Split mode, one Sift mailbox per address, is a later milestone.
+- A disk with full-disk encryption: FileVault on macOS, LUKS on Linux (see [Security model](#security-model))
 - [Ollama](https://ollama.com)
 
 ### Mac mini vs mini PC
@@ -557,7 +586,7 @@ sift/
 
 ## Roadmap
 
-- [ ] **M1: Classify.** One mailbox: IMAP → exact rules (hardcoded) and the LLM → Proton labels, running on a real inbox. No UI. Decision traces from the first classification. The schema is mailbox-scoped with row-level security from day one. Includes a spike on Proton Bridge: how labels appear as folders, whether CONDSTORE/QRESYNC are supported, and whether `Message-ID` is reliable across folders.
+- [ ] **M1: Classify.** One mailbox: IMAP → exact rules (hardcoded) and the LLM → Proton labels, running on a real inbox. No UI. Decision traces from the first classification. The schema is mailbox-scoped with row-level security from day one. Includes a spike on Proton Bridge: how labels appear as folders, whether CONDSTORE/QRESYNC are supported, and whether `Message-ID` is reliable across folders ([findings](.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md)).
 - [ ] **M2: Learn.** Review queue with **Why?** traces, one-key labeling, and the classifier: embeddings plus a model retrained on every correction, with cold-start thresholds, spot checks, quick confirm, and learning from relabels in your mail app.
 - [ ] **M3: Plain-English rules.** `rules.md`, the interpretation step, `rules.lock.yaml`, the rules editor, and conflict handling for previously confirmed labels.
 - [ ] **M4: Evals.** Synthetic inbox, per-tier metrics, model comparison, change preview, and the learn-from-LLM experiment.
