@@ -30,6 +30,7 @@ import {
   ownerMessageFor,
   storedError,
   trackedSource,
+  trustsPmHeader,
 } from '../runtime/mailbox-batch.ts';
 
 const COMMAND = 'sift mailbox backfill';
@@ -163,7 +164,7 @@ export async function backfillMailbox(deps: BackfillMailboxDeps): Promise<0 | 1>
             source: trackedSource(createFolderSource(client), imapErrors),
             store: createDbStore(session),
             folder: entry.imap.folder,
-            trustPmHeader: entry.labels.apply_as === 'proton_labels',
+            trustPmHeader: trustsPmHeader(entry),
             // Not used by the backfill: the owner confirmed this count (D-75).
             newMailCap: entry.ingest.new_mail_cap,
             initialBackfillDays: entry.ingest.initial_backfill_days,

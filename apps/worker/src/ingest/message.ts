@@ -128,13 +128,16 @@ function splitAddress(address: string | undefined): {
  * One fetched header record -> identity-keyed, bounded ParsedMessage. Identity
  * reads the raw (not RFC 2047-decoded) Message-ID and X-Pm-Internal-Id, never
  * the envelope, because their exact bytes are the key (D-13). `trustPmHeader`
- * is true only for Bridge mailboxes (Pitfall 12).
+ * is true only for Bridge mailboxes (Pitfall 12), and even then X-Pm-Internal-Id
+ * counts only when exactly one is present: Bridge writes one and overwrites a
+ * sender's, so two mean one of them is not Bridge's (WR-04).
  */
 export function parseMessage(rec: HeaderRecord, opts: { trustPmHeader: boolean }): ParsedMessage {
   const headers = parseHeaderBlock(rec.rawHeaders);
   const rawHeaders = readHeaderBlock(rec.rawHeaders, false);
   const rawMessageId = rawHeaders['message-id']?.[0] ?? null;
-  const pmInternalId = rawHeaders['x-pm-internal-id']?.[0] ?? null;
+  const pmValues = rawHeaders['x-pm-internal-id'] ?? [];
+  const pmInternalId = pmValues.length === 1 ? (pmValues[0] ?? null) : null;
   const sizeBytes = Number.isFinite(rec.size) ? rec.size : null;
 
   const key = identityKey(

@@ -168,6 +168,20 @@ describe('parseMessage identity', () => {
     expect(parsed.identityKey).toBe('mid:A.B@example.test');
   });
 
+  it('ignores X-Pm-Internal-Id unless exactly one is present (WR-04)', () => {
+    const parsed = parseMessage(
+      record(
+        block(
+          'Message-ID: <A.B@Example.TEST>',
+          'X-Pm-Internal-Id: forged',
+          'X-Pm-Internal-Id: Zm9vYmFy_-==',
+        ),
+      ),
+      TRUSTED,
+    );
+    expect(parsed.identityKey).toBe('mid:A.B@example.test');
+  });
+
   it('keys a message without a Message-ID by hdr:v1:', () => {
     const parsed = parseMessage(record(block('Subject: Hi', 'Message-ID: <>')), TRUSTED);
     expect(parsed.identityKey).toMatch(HDR_KEY);

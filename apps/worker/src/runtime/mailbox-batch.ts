@@ -183,6 +183,17 @@ export function trackedSource(source: FolderSource, seen: WeakSet<object>): Fold
   };
 }
 
+/**
+ * Whether the mailbox's X-Pm-Internal-Id may key its messages (D-12, Pitfall
+ * 12): only on a pinned server, which is how Sift reaches Bridge (D-73). On a
+ * public-CA host the header is the sender's and could merge forged mail into
+ * an existing row (D-14). labels.apply_as has one allowed value, so it says
+ * nothing about the server (WR-04).
+ */
+export function trustsPmHeader(entry: MailboxConfig): boolean {
+  return entry.imap.tls.pin_sha256 !== undefined;
+}
+
 /** Kind of an IMAP failure during ingest; a dropped connection counts as unreachable. */
 export function ingestKind(error: unknown, client: ImapFlow): ImapErrorClass {
   const kind = classifyImapError(error);
@@ -316,7 +327,7 @@ export function createMailboxCallbacks(
             source: trackedSource(createFolderSource(client), imapErrors),
             store: createDbStore(session),
             folder: entry.imap.folder,
-            trustPmHeader: entry.labels.apply_as === 'proton_labels',
+            trustPmHeader: trustsPmHeader(entry),
             newMailCap: hold.approved === null ? cap : hold.approved + cap,
             initialBackfillDays: entry.ingest.initial_backfill_days,
             // The engine awaits this only after a commit resolved, so it never

@@ -16,6 +16,7 @@ import {
   type MailboxSyncErrorKind,
   ownerMessageFor,
   STARTUP_GRACE_MS,
+  trustsPmHeader,
 } from '../src/runtime/mailbox-batch.ts';
 import type { MailboxEntry } from '../src/runtime/supervisor.ts';
 import {
@@ -418,6 +419,13 @@ describe('ownerMessageFor', () => {
     expect(ownerMessageFor({ authenticationFailed: true }, ctx).message).toBe(
       'Bridge rejected login: run docker compose run --rm bridge-init',
     );
+  });
+});
+
+describe('X-Pm-Internal-Id trust (Pitfall 12, WR-04)', () => {
+  it('trusts the header only on a pinned server (Bridge), never on a public-CA host', () => {
+    expect(trustsPmHeader(imapMailbox('bridge', 'u', { pin: 'a'.repeat(64) }))).toBe(true);
+    expect(trustsPmHeader(imapMailbox('public', 'u'))).toBe(false);
   });
 });
 
