@@ -24,10 +24,10 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 
 ### Bridge Spike
 
-- [ ] **SPK-01**: The way Proton Bridge exposes labels as IMAP folders is documented from a real mailbox: folder naming (`Labels/<name>`), how a label is applied to and removed from a message, and whether a message appears in several folders at once
-- [ ] **SPK-02**: CONDSTORE and QRESYNC support (advertised capability and observed behaviour for flag/label changes and deletions) is determined and documented
-- [ ] **SPK-03**: `Message-ID` consistency for one message across INBOX and label folders is determined, along with how often it is missing or duplicated, and whether a hash-of-stable-headers fallback is viable
-- [ ] **SPK-04**: UIDVALIDITY behaviour across Bridge restarts and resyncs is determined; the spike result is written to a findings document stating which of CONDSTORE/QRESYNC/polling-only the later relabel sync must assume and what Phase 4 label application must do differently, if anything
+- [x] **SPK-01**: The way Proton Bridge exposes labels as IMAP folders is documented from a real mailbox: folder naming (`Labels/<name>`), how a label is applied to and removed from a message, and whether a message appears in several folders at once
+- [x] **SPK-02**: CONDSTORE and QRESYNC support (advertised capability and observed behaviour for flag/label changes and deletions) is determined and documented
+- [x] **SPK-03**: `Message-ID` consistency for one message across INBOX and label folders is determined, along with how often it is missing or duplicated, and whether a hash-of-stable-headers fallback is viable
+- [x] **SPK-04**: UIDVALIDITY behaviour across Bridge restarts and resyncs is determined; the spike result is written to a findings document stating which of CONDSTORE/QRESYNC/polling-only the later relabel sync must assume and what Phase 4 label application must do differently, if anything
 
 ### Ingest
 
@@ -126,10 +126,10 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | ISO-02 | Phase 1 | Complete |
 | ISO-03 | Phase 1 | Complete |
 | ISO-04 | Phase 1 | Complete |
-| SPK-01 | Phase 2 | Pending |
-| SPK-02 | Phase 2 | Pending |
-| SPK-03 | Phase 2 | Pending |
-| SPK-04 | Phase 2 | Pending |
+| SPK-01 | Phase 2 | Complete |
+| SPK-02 | Phase 2 | Complete |
+| SPK-03 | Phase 2 | Complete |
+| SPK-04 | Phase 2 | Complete |
 | ING-01 | Phase 2 | Pending |
 | ING-02 | Phase 2 | Pending |
 | ING-03 | Phase 2 | Pending |

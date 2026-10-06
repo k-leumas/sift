@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-15-PLAN.md
-last_updated: "2026-10-05T21:18:16.491Z"
+stopped_at: Completed 02-14-PLAN.md
+last_updated: "2026-10-06T14:16:47.627Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 2818ba11544e104640f7ec8b40c2e7b6a0041cb1
+state_head: a3c50c10733edf116336d0bc6592bf27072eae0c
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 16 of 19
+Plan: 17 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -85,6 +85,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P12 | 11 min | 2 tasks | 7 files |
 | Phase 02 P13 | 14 min | 3 tasks | 10 files |
 | Phase 02 P15 | 6min | 2 tasks | 7 files |
+| Phase 02 P14 | 65min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-13: a held mailbox (needs_attention, approved null) is skipped without connecting; an approved run uses approved + new_mail_cap
 - [Phase 02]: 02-15: sift bridge trust exits 1 for both no pin and a differing pin, prints the pin_sha256 line to paste, never reads password_env, logs in or writes; failures print one fixed text per classifyImapError class
 - [Phase 02]: 02-15: renovate.json enables only custom.regex over bridge/Dockerfile; assumption A2 (github-tags fills currentDigest) is unobserved; the Dockerfile commit check plus a prBodyNotes entry are the fail-safe; bridge-image CI smoke-tests every Bridge change (45 min)
+- [Phase 02]: 02-14: Bridge v3.27.0 has no CONDSTORE/QRESYNC; sync capability is polling only
+- [Phase 02]: 02-14: identity key order pm: (X-Pm-Internal-Id) then mid: then hdr:v1: confirmed; 1.6% of Message-IDs are shared by distinct Proton messages
+- [Phase 02]: 02-14: Phase 4 labels: SELECT source, UID COPY into Labels/<name>, record COPYUID; remove via UID STORE \Deleted + UID EXPUNGE in the label folder (Bridge refuses COPY from EXAMINE)
+- [Phase 02]: 02-14: Bridge initial sync assigns UIDs newest-first; INTERNALDATE decides new mail; 02-19 starts the worker after sync settles and treats repair as a UIDVALIDITY reset
 
 ### Pending Todos
 
@@ -200,6 +205,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T21:18:16.417Z
-Stopped at: Completed 02-15-PLAN.md
+Last session: 2026-10-06T14:16:47.533Z
+Stopped at: Completed 02-14-PLAN.md
 Resume file: None
