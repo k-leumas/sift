@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-14-PLAN.md
-last_updated: "2026-10-06T14:16:47.627Z"
+stopped_at: Completed 02-16-PLAN.md
+last_updated: "2026-10-06T14:41:46.154Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: a3c50c10733edf116336d0bc6592bf27072eae0c
+state_head: 98c41f46d6c0550f49d054824f4e3e62d9941986
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 29
+  completed_plans: 30
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 17 of 19
+Plan: 18 of 19
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -86,6 +86,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P13 | 14 min | 3 tasks | 10 files |
 | Phase 02 P15 | 6min | 2 tasks | 7 files |
 | Phase 02 P14 | 65min | 3 tasks | 6 files |
+| Phase 02 P16 | 15min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -184,6 +185,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-14: identity key order pm: (X-Pm-Internal-Id) then mid: then hdr:v1: confirmed; 1.6% of Message-IDs are shared by distinct Proton messages
 - [Phase 02]: 02-14: Phase 4 labels: SELECT source, UID COPY into Labels/<name>, record COPYUID; remove via UID STORE \Deleted + UID EXPUNGE in the label folder (Bridge refuses COPY from EXAMINE)
 - [Phase 02]: 02-14: Bridge initial sync assigns UIDs newest-first; INTERNALDATE decides new mail; 02-19 starts the worker after sync settles and treats repair as a UIDVALIDITY reset
+- [Phase 02]: 02-16: sift mailbox backfill reuses the worker's configEntryFor, trackedSource, ingestKind and storedError (exported from mailbox-batch.ts), so its failures read like the worker's owner texts
+- [Phase 02]: 02-16: backfill holds the ingest lock from count through ingest, retries it every 2 s for BACKFILL_LOCK_WAIT_MS (60 s), and an abort between chunks exits 1 with a rerun hint
 
 ### Pending Todos
 
@@ -205,6 +208,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-06T14:16:47.533Z
-Stopped at: Completed 02-14-PLAN.md
+Last session: 2026-10-06T14:41:46.047Z
+Stopped at: Completed 02-16-PLAN.md
 Resume file: None

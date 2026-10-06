@@ -74,7 +74,7 @@ Plans:
   4. A new email sent to the mailbox shows up in the database within one polling interval without restarting anything
   5. After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages
 
-**Plans**: 16/19 plans executed
+**Plans**: 17/19 plans executed
 
 Plans:
 **Wave 1**
@@ -102,7 +102,7 @@ Plans:
 - [x] 02-15-PLAN.md — `sift bridge trust <slug>`, Renovate for the Bridge pin, Bridge image CI (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 02-16-PLAN.md — `sift mailbox resume`, `sift mailbox list` states, count-and-confirm `sift mailbox backfill` (wave 5)
+- [x] 02-16-PLAN.md — `sift mailbox resume`, `sift mailbox list` states, count-and-confirm `sift mailbox backfill` (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 02-17-PLAN.md — README and CONTRIBUTING for Bridge setup, pinning, ingest, security and privacy (wave 6)
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
-| 2. Bridge Spike and IMAP Ingest | v0.1 | 16/19 | In Progress|  |
+| 2. Bridge Spike and IMAP Ingest | v0.1 | 17/19 | In Progress|  |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
