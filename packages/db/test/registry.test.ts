@@ -405,3 +405,110 @@ ${entries.join('')}models:
     for (const output of outputs) expect(output).not.toMatch(DEFERRED_COMMAND);
   });
 });
+
+describe('listMailboxes: states, valve, backfill progress and message counts (02-16)', () => {
+  let db: TestDatabase;
+
+  beforeAll(async () => {
+    db = await freshDatabase();
+  });
+
+  afterAll(async () => {
+    await db?.drop();
+  });
+
+  /** Insert a status row as the owner under the mailbox's app.mailbox_id (FORCE RLS). */
+  async function setStatus(id: string, values: Record<string, string | number | null>) {
+    const owner = await connect(db.ownerUrl);
+    try {
+      await owner.query('begin');
+      await owner.query("select set_config('app.mailbox_id', $1, true)", [id]);
+      const columns = Object.keys(values);
+      await owner.query(
+        `insert into mailbox_status (mailbox_id, ${columns.join(', ')})
+         values ($1, ${columns.map((_, i) => `$${i + 2}`).join(', ')})`,
+        [id, ...Object.values(values)],
+      );
+      await owner.query('commit');
+    } finally {
+      await owner.end();
+    }
+  }
+
+  it('returns valve counts, backfill progress and the stored message count per mailbox', async () => {
+    await applyConfig(
+      db.ownerUrl,
+      config(mailbox('alpha'), mailbox('bravo'), mailbox('charlie'), mailbox('delta')),
+    );
+    const ids = Object.fromEntries(
+      Object.entries(await registry(db)).map(([slug, row]) => [slug, row.id]),
+    );
+    await setStatus(ids.alpha ?? '', { state: 'connecting' });
+    await setStatus(ids.bravo ?? '', {
+      state: 'needs_attention',
+      held_new_count: 250,
+      approved_new_count: 250,
+    });
+    await setStatus(ids.charlie ?? '', { state: 'ok', backfill_done: 400, backfill_total: 1250 });
+    // seedScopedRows adds one message per call, and a default (ok) status row when none exists.
+    for (let i = 0; i < 3; i += 1) await seedScopedRows(db.ownerUrl, ids.charlie ?? '');
+    await seedScopedRows(db.ownerUrl, ids.delta ?? '');
+    // delta is disabled but keeps its data and its count.
+    await applyConfig(db.ownerUrl, config(mailbox('alpha'), mailbox('bravo'), mailbox('charlie')));
+
+    const listings = await listMailboxes(db.ownerUrl);
+    const pick = (l: (typeof listings)[number]) => ({
+      slug: l.slug,
+      state: l.state,
+      disabled: l.disabledAt !== null,
+      heldNewCount: l.heldNewCount,
+      approvedNewCount: l.approvedNewCount,
+      backfillDone: l.backfillDone,
+      backfillTotal: l.backfillTotal,
+      messageCount: l.messageCount,
+    });
+
+    expect(listings.map(pick)).toEqual([
+      {
+        slug: 'alpha',
+        state: 'connecting',
+        disabled: false,
+        heldNewCount: null,
+        approvedNewCount: null,
+        backfillDone: null,
+        backfillTotal: null,
+        messageCount: 0,
+      },
+      {
+        slug: 'bravo',
+        state: 'needs_attention',
+        disabled: false,
+        heldNewCount: 250,
+        approvedNewCount: 250,
+        backfillDone: null,
+        backfillTotal: null,
+        messageCount: 0,
+      },
+      {
+        slug: 'charlie',
+        state: 'ok',
+        disabled: false,
+        heldNewCount: null,
+        approvedNewCount: null,
+        backfillDone: 400,
+        backfillTotal: 1250,
+        messageCount: 3,
+      },
+      {
+        slug: 'delta',
+        state: 'ok',
+        disabled: true,
+        heldNewCount: null,
+        approvedNewCount: null,
+        backfillDone: null,
+        backfillTotal: null,
+        messageCount: 1,
+      },
+    ]);
+  });
+});
