@@ -98,9 +98,10 @@ const silentLog: IngestLog = { info: () => {}, warn: () => {} };
  * with no new-mail cap, through the worker's pinned connection and engine.
  * last_uid, the watermark and the first-backfill cursor do not move.
  *
- * The mailbox's ingest lock is held from the count through the ingest, so the
- * worker can neither ingest the counted set in between nor run alongside
- * (D-03). The lock is retried for `lockWaitMs`, then the backfill refuses.
+ * The count and the ingest each run under the mailbox's ingest lock with their
+ * own IMAP connection, so the worker never runs alongside either (D-03). The
+ * lock and the connection are released while the owner reads the prompt
+ * (WR-02). Each lock is retried for `lockWaitMs`, then the backfill refuses.
  *
  * Resolves the exit code: 0 after a backfill or a declined confirmation
  * (nothing changed), 1 when it could not run or was stopped.
@@ -136,79 +137,95 @@ export async function backfillMailbox(deps: BackfillMailboxDeps): Promise<0 | 1>
     const owner = ctx;
     const open = deps.openImap ?? openImap;
     const signal = deps.signal ?? new AbortController().signal;
+    const lockWaitMs = deps.lockWaitMs ?? BACKFILL_LOCK_WAIT_MS;
 
-    const ingest = async (session: IngestSession): Promise<0 | 1> => {
-      // requireActive rechecks disabled_at inside the lock (D-45).
-      await session.run(async () => {}, { requireActive: true });
-      let client: ImapFlow;
-      try {
-        client = await open({
-          host: entry.imap.host,
-          port: entry.imap.port,
-          user: entry.imap.username,
-          pass: password,
-          tls: { mode: entry.imap.tls.mode, pinSha256: entry.imap.tls.pin_sha256 },
-        });
-      } catch (error) {
-        throw new BackfillStop(ownerMessageFor(error, owner).message, { cause: error });
-      }
-      const imapErrors = new WeakSet<object>();
-      try {
-        const engine: IngestDeps = {
-          source: trackedSource(createFolderSource(client), imapErrors),
-          store: createDbStore(session),
-          folder: entry.imap.folder,
-          trustPmHeader: entry.labels.apply_as === 'proton_labels',
-          // Not used by the backfill: the owner confirmed this count (D-75).
-          newMailCap: entry.ingest.new_mail_cap,
-          initialBackfillDays: entry.ingest.initial_backfill_days,
-          now: () => new Date(),
-          signal,
-          log: silentLog,
-        };
-        const plan = await countBackfill(engine, days);
-        deps.stdout(
-          `Found ${plural(plan.count, 'message')} from the last ${plural(days, 'day')} ` +
-            `in ${entry.imap.folder} of ${slug}.`,
-        );
-        if (!(await deps.confirm(plan.count, days))) {
-          deps.stdout('Nothing changed.');
-          return 0;
-        }
-        const outcome = await runBackfill(engine, plan);
-        if (outcome.kind === 'aborted') {
-          return fail(`Backfill of ${slug} stopped between chunks; run it again to finish.`);
-        }
-        deps.stdout(
-          `Backfilled ${slug}: stored ${outcome.inserted} new, ${outcome.existing} already stored.`,
-        );
-        return 0;
-      } catch (error) {
-        if (typeof error === 'object' && error !== null && imapErrors.has(error)) {
-          const kind = ingestKind(error, client);
-          throw new BackfillStop(ownerMessageFor(new MailboxSyncError(kind, ''), owner).message, {
-            cause: error,
+    /** One step inside the lock: an active check, then a fresh pinned IMAP connection. */
+    const inSession =
+      <T>(step: (engine: IngestDeps) => Promise<T>) =>
+      async (session: IngestSession): Promise<T> => {
+        // requireActive rechecks disabled_at inside the lock (D-45).
+        await session.run(async () => {}, { requireActive: true });
+        let client: ImapFlow;
+        try {
+          client = await open({
+            host: entry.imap.host,
+            port: entry.imap.port,
+            user: entry.imap.username,
+            pass: password,
+            tls: { mode: entry.imap.tls.mode, pinSha256: entry.imap.tls.pin_sha256 },
           });
+        } catch (error) {
+          throw new BackfillStop(ownerMessageFor(error, owner).message, { cause: error });
         }
-        throw error;
-      } finally {
-        // Bounded and never throws (02-18), so the lock is always released.
-        await closeImap(client);
+        const imapErrors = new WeakSet<object>();
+        try {
+          return await step({
+            source: trackedSource(createFolderSource(client), imapErrors),
+            store: createDbStore(session),
+            folder: entry.imap.folder,
+            trustPmHeader: entry.labels.apply_as === 'proton_labels',
+            // Not used by the backfill: the owner confirmed this count (D-75).
+            newMailCap: entry.ingest.new_mail_cap,
+            initialBackfillDays: entry.ingest.initial_backfill_days,
+            now: () => new Date(),
+            signal,
+            log: silentLog,
+          });
+        } catch (error) {
+          if (typeof error === 'object' && error !== null && imapErrors.has(error)) {
+            const kind = ingestKind(error, client);
+            throw new BackfillStop(ownerMessageFor(new MailboxSyncError(kind, ''), owner).message, {
+              cause: error,
+            });
+          }
+          throw error;
+        } finally {
+          // Bounded and never throws (02-18), so the lock is always released.
+          await closeImap(client);
+        }
+      };
+
+    /** Run one step under the mailbox's ingest lock, retried for lockWaitMs (D-03). */
+    const underLock = async <T>(step: (engine: IngestDeps) => Promise<T>): Promise<T> => {
+      const deadline = Date.now() + lockWaitMs;
+      for (;;) {
+        if (signal.aborted) {
+          throw new BackfillStop(`backfill of ${slug} stopped before it started; nothing changed`);
+        }
+        const locked = await withIngestLock(deps.db, row.id, inSession(step));
+        if (locked.acquired) return locked.value;
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) {
+          throw new BackfillStop(
+            `the worker is ingesting ${slug} right now; try again in a minute`,
+          );
+        }
+        await pause(Math.min(LOCK_RETRY_MS, remaining), signal);
       }
     };
 
-    const lockWaitMs = deps.lockWaitMs ?? BACKFILL_LOCK_WAIT_MS;
-    const deadline = Date.now() + lockWaitMs;
-    for (;;) {
-      if (signal.aborted)
-        return fail(`backfill of ${slug} stopped before it started; nothing changed`);
-      const locked = await withIngestLock(deps.db, row.id, ingest);
-      if (locked.acquired) return locked.value;
-      const remaining = deadline - Date.now();
-      if (remaining <= 0)
-        return fail(`the worker is ingesting ${slug} right now; try again in a minute`);
-      await pause(Math.min(LOCK_RETRY_MS, remaining), signal);
+    const plan = await underLock((engine) => countBackfill(engine, days));
+    deps.stdout(
+      `Found ${plural(plan.count, 'message')} from the last ${plural(days, 'day')} ` +
+        `in ${entry.imap.folder} of ${slug}.`,
+    );
+    // Lock and IMAP connection are released while the owner reads the prompt
+    // (WR-02): ImapFlow drops an idle connection after 120 s, and the worker
+    // must not wait on an open prompt.
+    if (!(await deps.confirm(plan.count, days))) {
+      deps.stdout('Nothing changed.');
+      return 0;
     }
+    // runBackfill re-examines the folder and refuses a changed UIDVALIDITY;
+    // counted UIDs the worker stored meanwhile merge by identity (D-14).
+    const outcome = await underLock((engine) => runBackfill(engine, plan));
+    if (outcome.kind === 'aborted') {
+      return fail(`Backfill of ${slug} stopped between chunks; run it again to finish.`);
+    }
+    deps.stdout(
+      `Backfilled ${slug}: stored ${outcome.inserted} new, ${outcome.existing} already stored.`,
+    );
+    return 0;
   } catch (error) {
     if (error instanceof BackfillStop) return fail(error.message);
     if (error instanceof BackfillRefusedError) {

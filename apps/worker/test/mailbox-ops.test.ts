@@ -26,7 +26,7 @@ import {
   MIN_BACKFILL_DAYS,
 } from '../src/commands/mailbox-backfill.ts';
 import { run as resume } from '../src/commands/mailbox-resume.ts';
-import { closeImap, openImap } from '../src/imap/connect.ts';
+import { closeImap, type ImapFlow, openImap } from '../src/imap/connect.ts';
 import { createMailboxCallbacks } from '../src/runtime/mailbox-batch.ts';
 import {
   E2E_PASSWORD_ENV,
@@ -285,6 +285,7 @@ describe('sift mailbox backfill (D-03, D-75)', () => {
       signal?: AbortSignal;
       config?: MailboxConfig;
       slug?: string;
+      openImap?: typeof openImap;
     } = {},
   ): Promise<Run> {
     const stdout: string[] = [];
@@ -303,6 +304,7 @@ describe('sift mailbox backfill (D-03, D-75)', () => {
       },
       ...(options.lockWaitMs === undefined ? {} : { lockWaitMs: options.lockWaitMs }),
       ...(options.signal === undefined ? {} : { signal: options.signal }),
+      ...(options.openImap === undefined ? {} : { openImap: options.openImap }),
       stdout: (line) => stdout.push(line),
       stderr: (line) => stderr.push(line),
     });
@@ -395,6 +397,39 @@ describe('sift mailbox backfill (D-03, D-75)', () => {
     expect((await mailboxCounts(bdb.adminUrl, m.id)).messages).toBe(3);
   });
 
+  it('holds neither the ingest lock nor an IMAP connection while it asks (WR-02)', async () => {
+    const m = await newMailbox('prompt');
+    await append(m, new Date(), new Date());
+    await syncOnce(m);
+    const clients: ImapFlow[] = [];
+    const tracked: typeof openImap = async (options) => {
+      const client = await openImap(options);
+      clients.push(client);
+      return client;
+    };
+    let atPrompt: { lock: unknown; open: number } | undefined;
+
+    const result = await backfillOf(m, {
+      openImap: tracked,
+      confirm: async () => {
+        atPrompt = {
+          lock: await withIngestLock(otherDb, m.id, async () => 'free'),
+          open: clients.filter((c) => c.usable).length,
+        };
+        return true;
+      },
+    });
+
+    expect(atPrompt).toEqual({ lock: { acquired: true, value: 'free' }, open: 0 });
+    expect(result.code).toBe(0);
+    expect(result.stdout).toEqual([
+      'Found 2 messages from the last 3 days in INBOX of prompt.',
+      'Backfilled prompt: stored 2 new, 0 already stored.',
+    ]);
+    // One connection for the count, a fresh one for the ingest.
+    expect(clients).toHaveLength(2);
+  });
+
   it('waits for the ingest lock, then refuses while the worker holds it (D-03)', async () => {
     const m = await newMailbox('busy');
     await append(m, new Date());
@@ -475,7 +510,7 @@ describe('sift mailbox backfill (D-03, D-75)', () => {
     expect(result.stderr.join('\n')).toContain('no mailbox with slug "nope"');
   });
 
-  it('stops between chunks when aborted', async () => {
+  it('stops before ingesting when aborted at the prompt', async () => {
     const m = await newMailbox('aborted');
     await append(m, new Date());
     await syncOnce(m);
@@ -491,7 +526,7 @@ describe('sift mailbox backfill (D-03, D-75)', () => {
 
     expect(result.code).toBe(1);
     expect(result.stderr.join('\n')).toContain(
-      'Backfill of aborted stopped between chunks; run it again to finish.',
+      'backfill of aborted stopped before it started; nothing changed',
     );
     expect((await mailboxCounts(bdb.adminUrl, m.id)).messages).toBe(0);
   });
