@@ -37,7 +37,7 @@ The development loop runs Postgres in Docker Compose and the worker on your mach
 
    ```bash
    cp .env.example .env
-   cp .env.mailboxes.example .env.mailboxes
+   cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes
    cp .env.development.example .env.development
    cp config/config.example.yaml config/config.yaml
    ```

@@ -264,6 +264,12 @@ describe('.env.mailboxes.example', () => {
     const expected = config.mailboxes.map((m) => m.imap.password_env).sort();
     expect(dotenvKeys('.env.mailboxes.example').sort()).toEqual(expected);
   });
+
+  it('tells the owner to create the copy at mode 600 (CR-02, D-39)', () => {
+    expect(read('.env.mailboxes.example')).toContain(
+      'cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes',
+    );
+  });
 });
 
 // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS

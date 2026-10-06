@@ -420,10 +420,10 @@ What works today: the database, the one-shot `setup` service (migrations with a 
    cp .env.example .env
    ```
 
-4. Copy the mailbox password file. It gets one line per `password_env` in `config/config.yaml`. You don't type Bridge's IMAP passwords in yourself: the Bridge login in step 8 writes each one into this file. Database passwords stay in `.env`; mailbox passwords never go there:
+4. Copy the mailbox password file and make it readable by you only. It gets one line per `password_env` in `config/config.yaml`. You don't type Bridge's IMAP passwords in yourself: the Bridge login in step 8 writes each one into this file (and sets it to mode 600 again if it is wider). Database passwords stay in `.env`; mailbox passwords never go there:
 
    ```sh
-   cp .env.mailboxes.example .env.mailboxes
+   cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes
    ```
 
 5. Set `SIFT_BRIDGE_KEYCHAIN_PASSPHRASE` in `.env`, also generated with `openssl rand -hex 24`. It unlocks the key that encrypts Bridge's session vault, and only the Bridge containers receive it. Keep a copy somewhere safe, such as a password manager: without it the vault cannot be opened, and you would have to remove the `sift-bridge` volume and log in again.

@@ -88,6 +88,8 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     'docker compose run --rm bridge-init',
     'touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak',
     'cp .env.mailboxes.bak .env.mailboxes',
+    // CR-02 (D-39): the IMAP password file is created owner-only.
+    'cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes',
     'does not echo',
     'pin_sha256',
     'sift bridge trust <slug>',
@@ -190,7 +192,7 @@ describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
   it.each([
     'pnpm install',
     'cp .env.development.example .env.development',
-    'cp .env.mailboxes.example .env.mailboxes',
+    'cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes',
     'docker compose up -d db',
     'pnpm sift migrate && pnpm sift config apply',
     'pnpm dev',

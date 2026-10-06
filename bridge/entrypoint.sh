@@ -259,7 +259,7 @@ require_env_file() {
     exit 2
   fi
   if [ ! -f "$ENV_FILE" ]; then
-    echo "create .env.mailboxes first: cp .env.mailboxes.example .env.mailboxes" >&2
+    echo "create .env.mailboxes first: cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes" >&2
     exit 2
   fi
 }

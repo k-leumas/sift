@@ -25,10 +25,12 @@ import (
 // Fixed texts. The file names are the host names the owner sees.
 const (
 	msgBridgeInitHint = "run this in the bridge-init service: docker compose run --rm bridge-init"
-	msgCreateEnvFirst = "create .env.mailboxes first: cp .env.mailboxes.example .env.mailboxes"
+	msgCreateEnvFirst = "create .env.mailboxes first: cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes"
 	msgEnvUnreadable  = "cannot read .env.mailboxes; nothing was written"
 	msgBackupFailed   = "cannot write the backup .env.mailboxes.bak; nothing was written. " +
 		"Create it once on the host: touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak"
+	msgEnvMode = "cannot set .env.mailboxes to mode 0600; nothing was written. " +
+		"On the host: chmod 600 .env.mailboxes"
 	msgPartWay = "writing .env.mailboxes failed part-way; the previous content is in " +
 		".env.mailboxes.bak: cp .env.mailboxes.bak .env.mailboxes"
 	lineBackup = "backup of the previous file: .env.mailboxes.bak (next to .env.mailboxes)"
@@ -49,8 +51,8 @@ type ExitError struct {
 func (e *ExitError) Error() string { return e.Msg }
 
 // Test hooks: tests replace them to inject a part-way write failure, to
-// change the backup between its write and its verification, and to record
-// which files were opened for writing.
+// change the backup between its write and its verification, to record
+// which files were opened for writing, and to refuse a chmod.
 var (
 	writeAll = func(f *os.File, b []byte) error {
 		_, err := f.Write(b)
@@ -61,6 +63,7 @@ var (
 		return os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, 0)
 	}
 	afterBackupWrite = func(string) {}
+	chmodFile        = os.Chmod
 )
 
 var (
@@ -193,7 +196,7 @@ func BackupInPlace(path string, content []byte) error {
 	if err := requireRegular(path); err != nil {
 		return err
 	}
-	if err := os.Chmod(path, 0o600); err != nil {
+	if err := chmodFile(path, 0o600); err != nil {
 		return err
 	}
 	if err := WriteInPlace(path, content); err != nil {
@@ -236,6 +239,13 @@ func WriteMailboxPasswords(envPath, backupPath string, updates []EnvVar, out io.
 		return &ExitError{Code: exitEnvFile, Msg: msgBackupFailed}
 	}
 	fmt.Fprintln(out, lineBackup)
+	// D-39: the file holds the IMAP password, so it ends at mode 0600 whatever
+	// mode the owner's cp left (usually 0644). chmod keeps inode and owner, so
+	// the in-place write (D-81) is unaffected; the mode is set before any
+	// secret goes in.
+	if err := chmodFile(envPath, 0o600); err != nil {
+		return &ExitError{Code: exitEnvFile, Msg: msgEnvMode}
+	}
 	if err := WriteInPlace(envPath, next); err != nil {
 		return &ExitError{Code: exitEnvFile, Msg: msgPartWay}
 	}

@@ -58,8 +58,8 @@ func perm(t *testing.T, path string) os.FileMode {
 // restoreHooks puts the package-level test hooks back after a test.
 func restoreHooks(t *testing.T) {
 	t.Helper()
-	w, o, a := writeAll, openForWrite, afterBackupWrite
-	t.Cleanup(func() { writeAll, openForWrite, afterBackupWrite = w, o, a })
+	w, o, a, c := writeAll, openForWrite, afterBackupWrite, chmodFile
+	t.Cleanup(func() { writeAll, openForWrite, afterBackupWrite, chmodFile = w, o, a, c })
 }
 
 func exitCode(t *testing.T, err error) (int, string) {
@@ -292,6 +292,62 @@ func TestWriteMailboxPasswords(t *testing.T) {
 		}
 		if strings.Contains(out.String(), sentinel) {
 			t.Fatal("output contains the password")
+		}
+	})
+
+	t.Run("a 0644 env file (cp under umask 022) ends at 0600, same inode (CR-02)", func(t *testing.T) {
+		envPath, backupPath := fixture(t, prev)
+		if err := os.Chmod(envPath, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		envIno := inode(t, envPath)
+		err := WriteMailboxPasswords(envPath, backupPath,
+			[]EnvVar{{"SIFT_PERSONAL_IMAP_PASSWORD", sentinel}}, &bytes.Buffer{})
+		if err != nil {
+			t.Fatalf("WriteMailboxPasswords: %v", err)
+		}
+		if p := perm(t, envPath); p != 0o600 {
+			t.Fatalf("env mode %o, want 600", p)
+		}
+		if p := perm(t, backupPath); p != 0o600 {
+			t.Fatalf("backup mode %o, want 600", p)
+		}
+		if inode(t, envPath) != envIno {
+			t.Fatal("inode changed: the env file was replaced, not written in place")
+		}
+		if !strings.Contains(mustRead(t, envPath), "SIFT_PERSONAL_IMAP_PASSWORD="+sentinel+"\n") {
+			t.Fatal("the password was not written")
+		}
+	})
+
+	t.Run("env file mode cannot be set: nothing written, exit 2 with the chmod hint (CR-02)", func(t *testing.T) {
+		restoreHooks(t)
+		envPath, backupPath := fixture(t, prev)
+		realChmod := chmodFile
+		chmodFile = func(path string, mode os.FileMode) error {
+			if path == envPath {
+				return errors.New("injected: operation not permitted")
+			}
+			return realChmod(path, mode)
+		}
+		var opened []string
+		realOpen := openForWrite
+		openForWrite = func(path string) (*os.File, error) {
+			opened = append(opened, path)
+			return realOpen(path)
+		}
+		err := WriteMailboxPasswords(envPath, backupPath, []EnvVar{{"PW", sentinel}}, &bytes.Buffer{})
+		code, msg := exitCode(t, err)
+		if code != 2 || msg != "cannot set .env.mailboxes to mode 0600; nothing was written. On the host: chmod 600 .env.mailboxes" {
+			t.Fatalf("code %d, msg %q", code, msg)
+		}
+		for _, p := range opened {
+			if p == envPath {
+				t.Fatal("the env file was opened although its mode could not be set")
+			}
+		}
+		if got := mustRead(t, envPath); got != prev {
+			t.Fatalf("env changed to %q", got)
 		}
 	})
 
