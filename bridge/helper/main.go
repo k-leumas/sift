@@ -57,6 +57,12 @@ const (
 	serverTokenKey = "server-token"
 	callTimeout    = 30 * time.Second
 	repairWait     = 30 * time.Second
+	// Bridge reports an account as LOCKED while it loads it at startup (an
+	// API call). Read sooner, the account has no password and lists only its
+	// primary address, and the Quit that follows cancels the load, so every
+	// run saw it locked. configure polls until no account is loading.
+	usersLoadWait  = 120 * time.Second
+	usersLoadEvery = time.Second
 )
 
 func main() {
@@ -197,6 +203,29 @@ func (b *bridgeConn) users() ([]*bridgegrpc.User, error) {
 	return list.GetUsers(), nil
 }
 
+// waitUsersLoaded reads the account list until no account is still loading,
+// polling every `every` for at most `wait`. It returns the last list read; the
+// caller decides what a still-loading account means.
+func waitUsersLoaded(list func() ([]*bridgegrpc.User, error), wait, every time.Duration,
+	sleep func(time.Duration)) ([]*bridgegrpc.User, error) {
+	for waited := time.Duration(0); ; waited += every {
+		users, err := list()
+		if err != nil || !anyLoading(users) || waited >= wait {
+			return users, err
+		}
+		sleep(every)
+	}
+}
+
+func anyLoading(users []*bridgegrpc.User) bool {
+	for _, u := range users {
+		if u.GetState() == bridgegrpc.UserState_LOCKED {
+			return true
+		}
+	}
+	return false
+}
+
 func addressMode(u *bridgegrpc.User) string {
 	if u.GetSplitMode() {
 		return "split"
@@ -238,7 +267,7 @@ func configure(args []string, stdout, stderr io.Writer) int {
 		return exitFailure
 	}
 
-	users, err := b.users()
+	users, err := waitUsersLoaded(b.users, usersLoadWait, usersLoadEvery, time.Sleep)
 	if err != nil {
 		fail(stderr, err.Error())
 		return exitFailure
@@ -251,6 +280,11 @@ func configure(args []string, stdout, stderr io.Writer) int {
 	}
 	if len(users) == 0 {
 		fail(stderr, "no Bridge account is logged in: run docker compose run --rm bridge-init and type login in the Bridge CLI")
+		return exitNoAccount
+	}
+	if anyLoading(users) {
+		fail(stderr, fmt.Sprintf("Bridge did not finish loading the account within %d s (state: locked); "+
+			"check the network, then run docker compose run --rm bridge-init configure", int(usersLoadWait.Seconds())))
 		return exitNoAccount
 	}
 
