@@ -84,6 +84,8 @@ function messageFor(kind: MailboxSyncErrorKind, ctx: OwnerMessageContext): strin
       return ctx.pinned
         ? pinMismatch
         : `The IMAP server's certificate for mailbox ${slug} is not trusted. For Proton Bridge, set imap.tls.pin_sha256 (shown by ${BRIDGE_INIT_COMMAND} and sift bridge trust ${slug}); Sift never turns certificate checks off.`;
+    case 'cert_expired':
+      return `The IMAP server's certificate for mailbox ${slug} is outside its validity dates (expired or not yet valid), so Sift refuses it even if it matches imap.tls.pin_sha256. Check this machine's clock, then run sift bridge trust ${slug} to see the certificate's dates and fingerprint.`;
     case 'auth_rejected':
       return `Bridge rejected login: run ${BRIDGE_INIT_COMMAND}`;
     case 'unreachable':

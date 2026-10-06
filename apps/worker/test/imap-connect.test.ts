@@ -277,6 +277,8 @@ describe('classifyImapError', () => {
     ['SELF_SIGNED_CERT_IN_CHAIN', 'cert_untrusted'],
     ['UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'cert_untrusted'],
     ['ERR_TLS_CERT_ALTNAME_INVALID', 'cert_untrusted'],
+    ['CERT_HAS_EXPIRED', 'cert_expired'],
+    ['CERT_NOT_YET_VALID', 'cert_expired'],
     ['SIFT_NO_STARTTLS', 'no_starttls'],
     ['ETIMEDOUT', 'timeout'],
     ['GREETING_TIMEOUT', 'timeout'],

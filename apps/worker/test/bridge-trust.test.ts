@@ -128,6 +128,26 @@ describe('sift bridge trust <slug> (D-73)', () => {
     expect(result.stderr).toBe('');
   });
 
+  it('exits 1 when the certificate has expired, even though it matches the pin (WR-05)', async () => {
+    // Only Date is faked: the 30-day test certificate is a year old "now".
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(Date.now() + 365 * 86_400_000);
+    try {
+      const result = await trust(await writeConfig({ pin }));
+
+      expect(result.code, result.stderr).toBe(1);
+      expect(result.stdout).toContain(`): ${pin} (valid until `);
+      expect(result.stdout).toMatch(
+        /outside its validity dates \(valid from \d{4}-\d{2}-\d{2}T[\d:.]+Z until \d{4}-/,
+      );
+      expect(result.stdout).toContain("Check this machine's clock.");
+      expect(result.stdout).not.toContain('It matches imap.tls.pin_sha256.');
+      expect(result.stdout).not.toContain('pin_sha256: ');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('exits 1 with the line to paste when no pin is configured', async () => {
     const result = await trust(await writeConfig());
 

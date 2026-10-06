@@ -38,6 +38,7 @@ export type ImapErrorClass =
   | 'auth_rejected'
   | 'pin_mismatch'
   | 'cert_untrusted'
+  | 'cert_expired'
   | 'no_starttls'
   | 'protocol';
 
@@ -217,14 +218,19 @@ const CERT_UNTRUSTED = new Set([
   'CERT_UNTRUSTED',
   'CERT_REJECTED',
   'CERT_SIGNATURE_FAILURE',
-  'CERT_HAS_EXPIRED',
-  'CERT_NOT_YET_VALID',
   'INVALID_CA',
   'INVALID_PURPOSE',
   'PATH_LENGTH_EXCEEDED',
   'HOSTNAME_MISMATCH',
   'ERR_TLS_CERT_ALTNAME_INVALID',
 ]);
+
+/**
+ * Outside its validity dates. Kept apart from CERT_UNTRUSTED (WR-05): with
+ * `ca: [captured]` OpenSSL still checks the dates, so an expired Bridge
+ * certificate whose key still matches the pin is not a pin mismatch.
+ */
+const CERT_EXPIRED = new Set(['CERT_HAS_EXPIRED', 'CERT_NOT_YET_VALID']);
 
 const NO_STARTTLS = new Set(['SIFT_NO_STARTTLS']);
 
@@ -240,6 +246,7 @@ function classifyOne(error: object): ImapErrorClass | null {
   if (code === 'SIFT_TLS_PIN_MISMATCH') return 'pin_mismatch';
   if (authenticationFailed === true) return 'auth_rejected';
   if (typeof code === 'string') {
+    if (CERT_EXPIRED.has(code)) return 'cert_expired';
     if (CERT_UNTRUSTED.has(code)) return 'cert_untrusted';
     if (NO_STARTTLS.has(code)) return 'no_starttls';
     if (TIMEOUT.has(code)) return 'timeout';

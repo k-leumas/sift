@@ -36,6 +36,8 @@ export interface CapturedCertificate {
   pem: string;
   /** Its SPKI fingerprint, in the format of `imap.tls.pin_sha256`. */
   spkiSha256: string;
+  /** X509Certificate.validFrom of the certificate. */
+  validFrom: string;
   /** X509Certificate.validTo of the certificate. */
   validTo: string;
   /** X509Certificate.subject of the certificate. */
@@ -81,7 +83,13 @@ function certificateOf(socket: TLSSocket): CapturedCertificate {
   }
   const pem = pemFromDer(peer.raw);
   const parsed = new X509Certificate(pem);
-  return { pem, spkiSha256: spkiSha256(pem), validTo: parsed.validTo, subject: parsed.subject };
+  return {
+    pem,
+    spkiSha256: spkiSha256(pem),
+    validFrom: parsed.validFrom,
+    validTo: parsed.validTo,
+    subject: parsed.subject,
+  };
 }
 
 /**

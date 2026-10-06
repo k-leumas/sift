@@ -16,10 +16,17 @@ export const USAGE = 'Usage: sift bridge trust <slug>';
 const BRIDGE_INIT_COMMAND = 'docker compose run --rm bridge-init';
 const RESTART_COMMAND = 'docker compose restart worker';
 
-/** X509Certificate.validTo as an ISO timestamp, or as given when it does not parse. */
-function isoDate(validTo: string): string {
-  const parsed = new Date(validTo);
-  return Number.isNaN(parsed.getTime()) ? validTo : parsed.toISOString();
+/** An X509Certificate date as an ISO timestamp, or as given when it does not parse. */
+function isoDate(date: string): string {
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime()) ? date : parsed.toISOString();
+}
+
+/** The certificate is expired or not yet valid at `now` (WR-05). */
+function outsideValidity(captured: CapturedCertificate, now: number): boolean {
+  const from = Date.parse(captured.validFrom);
+  const to = Date.parse(captured.validTo);
+  return (!Number.isNaN(to) && to < now) || (!Number.isNaN(from) && from > now);
 }
 
 /** A fixed message per error class: never a server reply or a driver message. */
@@ -41,10 +48,11 @@ function failureMessage(error: unknown, host: string, port: number): string {
  * presents, print its SPKI SHA-256 fingerprint and compare it with
  * `imap.tls.pin_sha256`.
  *
- * Exit 0 when the fingerprint matches the pin. Exit 1 when no pin is set or the
- * pin differs, with the `pin_sha256:` line to paste; the owner first compares
- * it with the fingerprint `docker compose run --rm bridge-init` printed inside
- * the Bridge container. Nothing is trusted automatically: this command writes
+ * Exit 0 when the fingerprint matches the pin. Exit 1 when the certificate is
+ * outside its validity dates (the worker refuses it whatever the pin, WR-05).
+ * Exit 1 when no pin is set or the pin differs, with the `pin_sha256:` line to
+ * paste; the owner first compares it with the fingerprint
+ * `docker compose run --rm bridge-init` printed inside the Bridge container. Nothing is trusted automatically: this command writes
  * no file and changes no config, so a regenerated Bridge certificate keeps
  * failing closed until the owner edits config.yaml (D-40).
  *
@@ -108,6 +116,16 @@ export async function run(args: readonly string[], io: CommandIO): Promise<numbe
     `Certificate the worker sees for ${slug} (${host}:${port}): ${fingerprint} ` +
       `(valid until ${isoDate(captured.validTo)})`,
   );
+
+  if (outsideValidity(captured, Date.now())) {
+    io.stdout(
+      `This certificate is outside its validity dates (valid from ${isoDate(captured.validFrom)} ` +
+        `until ${isoDate(captured.validTo)}), so the worker refuses it even when the fingerprint ` +
+        "matches. Check this machine's clock. If the clock is right, the server must present a " +
+        'renewed certificate; run this command again then, before changing any pin.',
+    );
+    return 1;
+  }
 
   const configured = tls.pin_sha256;
   if (configured === fingerprint) {

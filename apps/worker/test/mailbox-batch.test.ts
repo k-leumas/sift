@@ -375,6 +375,7 @@ describe('ownerMessageFor', () => {
     'auth_rejected',
     'pin_mismatch',
     'cert_untrusted',
+    'cert_expired',
     'no_starttls',
     'protocol',
     'password_missing',
@@ -409,6 +410,15 @@ describe('ownerMessageFor', () => {
     });
     expect(message).toContain('Sift never turns certificate checks off');
     expect(message).toContain('imap.tls.pin_sha256');
+  });
+
+  it('reports an expired pinned certificate as expired, never as a pin mismatch (WR-05)', () => {
+    const expired = Object.assign(new Error('x'), { code: 'CERT_HAS_EXPIRED' });
+    const { kind, message } = ownerMessageFor(expired, ctx);
+    expect(kind).toBe('cert_expired');
+    expect(message).toContain('outside its validity dates');
+    expect(message).toContain('sift bridge trust personal');
+    expect(message).not.toContain('does not match');
   });
 
   it('classifies a raw connection error by its code', () => {
