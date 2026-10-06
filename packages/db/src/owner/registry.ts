@@ -24,14 +24,25 @@ export type ApplyResult =
   | { status: 'unchanged' }
   | ({ status: 'refused-rename' } & RenameSuspects);
 
+export type MailboxState = 'ok' | 'error' | 'disabled' | 'connecting' | 'needs_attention';
+
 export interface MailboxListing {
   slug: string;
   displayName: string | null;
   disabledAt: Date | null;
-  state: 'ok' | 'error' | 'disabled' | null;
+  state: MailboxState | null;
   lastSeenAt: Date | null;
   lastSyncAt: Date | null;
   lastError: string | null;
+  /** New messages the volume valve holds (D-26); null when nothing is held. */
+  heldNewCount: number | null;
+  /** The count the owner approved with sift mailbox resume; null until then. */
+  approvedNewCount: number | null;
+  /** First-backfill progress (D-75); both null when no first backfill runs. */
+  backfillDone: number | null;
+  backfillTotal: number | null;
+  /** Stored message rows of this mailbox. */
+  messageCount: number;
 }
 
 interface MailboxDbRow {
@@ -260,16 +271,21 @@ export async function resumeMailbox(ownerUrl: string, slug: string): Promise<Res
 }
 
 interface StatusDbRow {
-  state: 'ok' | 'error' | 'disabled';
+  state: MailboxState;
   last_error: string | null;
   last_sync_at: Date | null;
   last_seen_at: Date | null;
+  held_new_count: number | null;
+  approved_new_count: number | null;
+  backfill_done: number | null;
+  backfill_total: number | null;
 }
 
 /**
- * Every mailbox with its status, disabled ones included, ordered by slug.
- * mailbox_status is under forced RLS and the owner is subject to it (D-41),
- * so each status read runs with app.mailbox_id set to that mailbox.
+ * Every mailbox with its status, valve counts, first-backfill progress and
+ * stored message count, disabled ones included, ordered by slug.
+ * mailbox_status and message are under forced RLS and the owner is subject
+ * to it (D-41), so each mailbox's reads run with app.mailbox_id set to it.
  */
 export async function listMailboxes(ownerUrl: string): Promise<MailboxListing[]> {
   return withOwnerClient(ownerUrl, (client) =>
@@ -280,8 +296,13 @@ export async function listMailboxes(ownerUrl: string): Promise<MailboxListing[]>
       for (const row of rows) {
         await client.query("select set_config('app.mailbox_id', $1, true)", [row.id]);
         const status = await client.query<StatusDbRow>(
-          `select state, last_error, last_sync_at, last_seen_at
+          `select state, last_error, last_sync_at, last_seen_at, held_new_count,
+                  approved_new_count, backfill_done, backfill_total
              from mailbox_status where mailbox_id = $1`,
+          [row.id],
+        );
+        const messages = await client.query<{ n: number }>(
+          'select count(*)::int as n from message where mailbox_id = $1',
           [row.id],
         );
         const s = status.rows[0];
@@ -293,6 +314,11 @@ export async function listMailboxes(ownerUrl: string): Promise<MailboxListing[]>
           lastSeenAt: s?.last_seen_at ?? null,
           lastSyncAt: s?.last_sync_at ?? null,
           lastError: s?.last_error ?? null,
+          heldNewCount: s?.held_new_count ?? null,
+          approvedNewCount: s?.approved_new_count ?? null,
+          backfillDone: s?.backfill_done ?? null,
+          backfillTotal: s?.backfill_total ?? null,
+          messageCount: messages.rows[0]?.n ?? 0,
         });
       }
       return listings;
