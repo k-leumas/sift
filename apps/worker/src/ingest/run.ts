@@ -106,6 +106,40 @@ function laterOf(a: Date, b: Date): Date {
   return b.getTime() > a.getTime() ? b : a;
 }
 
+/**
+ * Caps INTERNALDATEs at the worker's clock before they reach a watermark
+ * (WR-03). One message dated in the future (a server clock jump, an APPEND
+ * with a forward date) would otherwise fix the watermark there and make all
+ * later mail historical until real time caught up. Mail dated up to the
+ * overlap behind the capped watermark still counts as new (D-19). report()
+ * logs one warning per cycle with counts and timestamps only.
+ */
+function clockCap(deps: IngestDeps): { cap(d: Date): Date; report(): void } {
+  let capped = 0;
+  let latest: Date | null = null;
+  return {
+    cap(d) {
+      const now = deps.now();
+      if (d.getTime() <= now.getTime()) return d;
+      capped += 1;
+      latest = latest === null ? d : laterOf(latest, d);
+      return now;
+    },
+    report() {
+      if (latest === null) return;
+      deps.log.warn(
+        {
+          folder: deps.folder,
+          capped,
+          latestInternalDate: latest.toISOString(),
+          now: deps.now().toISOString(),
+        },
+        'INTERNALDATE ahead of the worker clock: watermark capped at now',
+      );
+    },
+  };
+}
+
 /** Largest value; a loop, because spreading a folder's UIDs into Math.max can overflow the stack. */
 function maxOf(values: Iterable<number>): number {
   let max = Number.NEGATIVE_INFINITY;
@@ -218,7 +252,9 @@ async function firstSync(deps: IngestDeps, status: FolderStatus): Promise<Folder
   }
 
   const floor = new Date(now.getTime() - FIRST_SYNC_CLOCK_ALLOWANCE_MS);
-  const watermark = newest === null ? floor : laterOf(newest, floor);
+  const clock = clockCap(deps);
+  const watermark = newest === null ? floor : laterOf(clock.cap(newest), floor);
+  clock.report();
   deps.log.info(
     {
       folder: deps.folder,
@@ -258,7 +294,9 @@ async function pollNewMail(
   if (status.uidNext <= state.lastUid + 1) return { kind: 'done', stored, historical };
 
   const dates = aboveLastUid(await deps.source.fetchDates(`${state.lastUid + 1}:*`), state.lastUid);
-  const startWatermark = state.watermark;
+  // A watermark stored ahead of the clock (before WR-03) is read as now.
+  const clock = clockCap(deps);
+  const startWatermark = clock.cap(state.watermark);
   const isNew = (d: { internalDate: Date }) =>
     isCandidateNew(d.internalDate, startWatermark, s.overlapMs);
   const newUids = new Set(dates.filter(isNew).map((d) => d.uid));
@@ -282,7 +320,7 @@ async function pollNewMail(
       newUids.has(rec.uid),
     );
     for (const r of records) {
-      if (r.eligible) watermark = laterOf(watermark, r.parsed.internalDate);
+      if (r.eligible) watermark = laterOf(watermark, clock.cap(r.parsed.internalDate));
     }
     await deps.store.commitChunk(state.folder, state.uidValidity, state.generation, records, {
       lastUid: maxOf(part),
@@ -291,6 +329,7 @@ async function pollNewMail(
     stored += records.filter((r) => r.eligible).length;
     historical += records.filter((r) => !r.eligible).length;
   }
+  clock.report();
   return { kind: 'done', stored, historical };
 }
 
@@ -406,9 +445,11 @@ async function resync(
     }
   }
   const dates = [...byUid.values()].sort((a, b) => a.uid - b.uid);
+  const clock = clockCap(deps);
+  const startWatermark = clock.cap(state.watermark);
   const candidates = new Set(
     dates
-      .filter((d) => isCandidateNew(d.internalDate, state.watermark, s.overlapMs))
+      .filter((d) => isCandidateNew(d.internalDate, startWatermark, s.overlapMs))
       .map((d) => d.uid),
   );
   let candidateNew = 0;
@@ -455,11 +496,11 @@ async function resync(
   }
 
   // 3. New mail, with bodies.
-  let watermark = state.watermark;
+  let watermark = startWatermark;
   for (const part of chunk(newUids, s.chunkSize)) {
     if (deps.signal.aborted) return { kind: 'aborted', stored: committed };
     const records = await recordsOf(deps, await headersOf(deps.source, part), () => true);
-    for (const r of records) watermark = laterOf(watermark, r.parsed.internalDate);
+    for (const r of records) watermark = laterOf(watermark, clock.cap(r.parsed.internalDate));
     await deps.store.commitChunk(folder, uidValidity, generation, records, null);
     counts.new += records.length;
     committed += records.length;
@@ -493,6 +534,7 @@ async function resync(
     ...backfill,
   });
   deps.log.info({ folder, ...result }, formatResyncLine(folder, result));
+  clock.report();
   return { kind: 'resynced', counts: result };
 }
 

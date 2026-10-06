@@ -426,6 +426,54 @@ describe('INTERNALDATE gate on polling (D-18..D-21)', () => {
   });
 });
 
+describe('watermark never passes the worker clock (WR-03)', () => {
+  const capLine = 'INTERNALDATE ahead of the worker clock: watermark capped at now';
+
+  it('caps a future-dated message at now, so later mail still counts as new', async () => {
+    const h = await synced();
+    const future = new Date(NOW.getTime() + 2 * DAY);
+    h.source.append(fakeMail(future));
+    const first = await runIngest(h.deps());
+
+    expect(first).toMatchObject({ kind: 'synced', stored: 1, historical: 0 });
+    expect(h.store.folder(FOLDER)?.watermark).toEqual(NOW);
+    expect(h.log.warn).toHaveBeenCalledWith(
+      {
+        folder: FOLDER,
+        capped: 1,
+        latestInternalDate: future.toISOString(),
+        now: NOW.toISOString(),
+      },
+      capLine,
+    );
+
+    // A minute later, mail dated just now is new, not history.
+    h.clock.now = new Date(NOW.getTime() + MINUTE);
+    h.source.append(fakeMail(new Date(NOW.getTime() + 30_000)));
+    const next = await runIngest(h.deps());
+    expect(next).toMatchObject({ kind: 'synced', stored: 1, historical: 0 });
+    expect(eligibleCount(h.store)).toBe(2);
+  });
+
+  it('caps the first-sync watermark when the newest server date is in the future', async () => {
+    const h = harness();
+    h.source.append(fakeMail(new Date(NOW.getTime() + DAY)));
+    await runIngest(h.deps());
+
+    expect(h.store.folder(FOLDER)?.watermark).toEqual(NOW);
+    expect(h.log.warn).toHaveBeenCalledWith(expect.objectContaining({ capped: 1 }), capLine);
+  });
+
+  it('logs nothing when every INTERNALDATE is at or before now', async () => {
+    const h = await synced();
+    h.source.append(fakeMail(NOW));
+    await runIngest(h.deps());
+
+    expect(h.store.folder(FOLDER)?.watermark).toEqual(NOW);
+    expect(h.log.warn.mock.calls.filter(([, msg]) => msg === capLine)).toEqual([]);
+  });
+});
+
 describe('volume valve on polling (D-26)', () => {
   it('returns needs_attention and writes nothing above the cap', async () => {
     const h = await synced();

@@ -227,6 +227,21 @@ describe('UIDVALIDITY resync (D-22..D-25)', () => {
     expectConsistent(h, 2);
   });
 
+  it('caps a future-dated new message at now in the settled watermark (WR-03)', async () => {
+    const h = await storedFive();
+    h.source.bumpUidValidity({ renumber: true });
+    h.source.append(fakeMail(new Date(NOW.getTime() + 3 * DAY)));
+
+    const outcome = await runIngest(h.deps());
+
+    expect(outcome).toMatchObject({ kind: 'resynced', counts: { new: 1 } });
+    expect(h.store.folder(FOLDER)?.watermark).toEqual(NOW);
+    expect(h.log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ folder: FOLDER, capped: 1 }),
+      'INTERNALDATE ahead of the worker clock: watermark capped at now',
+    );
+  });
+
   it('logs exactly one resync line (D-25)', async () => {
     const h = await storedFive();
     rebuildWithNewAndOld(h);
