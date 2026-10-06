@@ -742,4 +742,59 @@ describe('generation resync (ING-04, D-23..D-25)', () => {
     });
     expect(await backfillAfter(undefined)).toEqual(old);
   });
+
+  it('finishResync settles a folder with more live locations than PostgreSQL bind parameters (CR-01)', async () => {
+    // 70,000 > 65,535: an IN list with one parameter per id fails on every retry.
+    const LIVE = 70_000;
+    const mailboxId = await newMailbox();
+    await withMailbox(app, mailboxId, (s) =>
+      createFolderSync(s, {
+        folder: 'INBOX',
+        uidvalidity: 7,
+        lastUid: LIVE,
+        internalDateWatermark: new Date('2026-10-01T00:00:00Z'),
+        backfill: null,
+      }),
+    );
+    // Seeded as the superuser in one statement; the scoped API would need 1,400 chunks.
+    await adminQuery(
+      `with m as (
+         insert into message (mailbox_id, identity_key, internal_date, eligible_for_classification)
+         select $1, 'mid:big-' || n || '@ingest.test', '2026-09-01T00:00:00Z', false
+           from generate_series(1, $2::int) n
+         returning id, identity_key)
+       insert into message_location (mailbox_id, message_id, folder, uidvalidity, uid, generation)
+       select $1, m.id, 'INBOX', 7, substring(m.identity_key from 'big-([0-9]+)@')::bigint, 1
+         from m`,
+      [mailboxId, LIVE],
+    );
+    const kept = 'mid:big-1@ingest.test';
+
+    const result = await withMailbox(app, mailboxId, async (s) => {
+      await beginResync(s, 'INBOX', { pendingUidvalidity: 9, pendingGeneration: 2 });
+      await storeMessages(s, [item(kept, { uidvalidity: 9, uid: 1, generation: 2, body: null })]);
+      return finishResync(s, 'INBOX', {
+        uidvalidity: 9,
+        generation: 2,
+        lastUid: 1,
+        internalDateWatermark: new Date('2026-10-04T00:00:00Z'),
+        summary: { matched: 1, new: 0, older: 0 },
+      });
+    });
+
+    expect(result).toEqual({
+      superseded: 1,
+      vanished: LIVE - 1,
+      summary: { matched: 1, new: 0, older: 0, gone: LIVE - 1 },
+    });
+    const [left] = await adminQuery<{ live: number; removed: number }>(
+      `select count(*) filter (where removed_at is null)::int as live,
+              count(*) filter (where removed_at is not null)::int as removed
+         from message_location where mailbox_id = $1`,
+      [mailboxId],
+    );
+    expect(left).toEqual({ live: 1, removed: LIVE });
+    const row = await withMailbox(app, mailboxId, (s) => getFolderSync(s, 'INBOX'));
+    expect(row).toMatchObject({ state: 'ok', uidvalidity: 9, generation: 2 });
+  }, 120_000);
 });

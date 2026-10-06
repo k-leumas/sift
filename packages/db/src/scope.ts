@@ -4,7 +4,6 @@ import {
   getTableColumns,
   type InferInsertModel,
   type InferSelectModel,
-  inArray,
   isNull,
   lte,
   type SQL,
@@ -33,7 +32,8 @@ type ScopedTable = PgTable & { mailboxId: PgColumn };
 
 /**
  * Equality filter on a scoped table. `null` means IS NULL; undefined keys are
- * ignored. An array value matches any of its elements (IN); an empty array
+ * ignored. An array value matches any of its elements (one array parameter,
+ * `= any($1)`, so the list has no length limit); an empty array
  * matches nothing, and the helper returns [] without running SQL. Arrays
  * cannot hold null.
  */
@@ -187,6 +187,18 @@ interface ScopeContext {
 const contexts = new WeakMap<Scope, ScopeContext>();
 
 /**
+ * `column = any($1)` with the whole list bound as ONE array parameter. An
+ * `IN ($1, $2, ...)` list binds one parameter per element, and PostgreSQL
+ * caps a statement at 65,535 parameters, so a resync or removal diff over a
+ * large folder would fail on every retry (CR-01). Each element goes through
+ * the column's own encoder, as an `eq` would.
+ */
+function anyOf(column: PgColumn, values: readonly unknown[]): SQL {
+  const encoded = values.map((v) => column.mapToDriverValue(v));
+  return sql`${column} = any(${sql.param(encoded)})`;
+}
+
+/**
  * The SQL conditions for a Match, or null when the match can select nothing
  * (an empty array value), so the helper can return without running SQL.
  */
@@ -206,7 +218,7 @@ function matchConditions(table: ScopedTable, match: object | undefined): SQL[] |
         throw new TypeError(`Cannot match "${key}" on an array holding null`);
       }
       if (value.length === 0) empty = true;
-      else conditions.push(inArray(column, [...value]));
+      else conditions.push(anyOf(column, value));
     } else {
       conditions.push(value === null ? isNull(column) : eq(column, value));
     }

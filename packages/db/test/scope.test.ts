@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { type AddressInfo, createServer, type Socket } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
+import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { internalsOf } from '../src/app-db.ts';
 import * as api from '../src/index.ts';
@@ -390,6 +391,41 @@ describe('application filter without RLS (superuser connection)', () => {
     });
     expect(await adminRows('message', B)).toEqual(beforeB);
     expect(ids(await adminRows('label', B))).toEqual([seededB.labelId]);
+  });
+
+  it('an array match binds one parameter, so 70,000 ids pass the 65,535 limit (CR-01)', async () => {
+    const many = [...Array.from({ length: 70_000 }, () => randomUUID()), seededA.messageId];
+    const querySpy = vi.spyOn(pg.Client.prototype, 'query');
+    try {
+      const result = await withMailbox(admin, A, async (s) => ({
+        found: ids(await s.message.find({ id: many })),
+        updated: ids(await s.message.update({}, { id: [...many, seededB.messageId] })),
+        deleted: ids(await s.label.delete({ id: many })),
+      }));
+      expect(result).toEqual({
+        found: [seededA.messageId],
+        updated: [seededA.messageId],
+        deleted: [],
+      });
+      // Each statement carried the id list as one array value, not one value per id.
+      const sent = querySpy.mock.calls
+        .map((call) => {
+          const [config, values] = call as unknown as [unknown, unknown];
+          const query =
+            typeof config === 'object' && config !== null
+              ? (config as { text?: unknown; values?: unknown[] })
+              : { text: config, values: values as unknown[] | undefined };
+          return { text: String(query.text), values: query.values };
+        })
+        .filter((q) => q.text.includes('= any('));
+      expect(sent).toHaveLength(3);
+      for (const q of sent) {
+        expect(q.values?.length).toBeLessThan(10);
+        expect(q.values?.some((v) => Array.isArray(v) && v.length >= 70_000)).toBe(true);
+      }
+    } finally {
+      querySpy.mockRestore();
+    }
   });
 
   it('messageBody.deleteExpired under A leaves expired B bodies alone', async () => {
