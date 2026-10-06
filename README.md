@@ -371,7 +371,7 @@ Sift is designed for an always-on machine on your home network.
 
 ### Quick start
 
-What works today: the database, the one-shot `setup` service (migrations with a backup first, then your mailboxes registered from `config/config.yaml`) and the worker, which runs one loop per enabled mailbox. Classifying mail arrives with M1.
+What works today: the database, the one-shot `setup` service (migrations with a backup first, then your mailboxes registered from `config/config.yaml`), Proton Bridge in its own container, and the worker, which runs one loop per enabled mailbox and reads its mail over IMAP: new mail on every check, and the last 30 days slowly in the background. Classifying and labelling mail arrive next, with the rest of M1.
 
 1. Clone the repository:
 
@@ -379,7 +379,7 @@ What works today: the database, the one-shot `setup` service (migrations with a 
    git clone https://github.com/<you>/sift && cd sift
    ```
 
-2. Copy the example config, then edit it for your mailboxes:
+2. Copy the example config, then edit it for your mailboxes. For Proton, each Sift mailbox is one Proton account (see [Requirements](#requirements)): set `username` to the account's address, and keep `host: bridge` and `port: 1143`, which point at the Bridge container in the Compose stack:
 
    ```sh
    cp config/config.example.yaml config/config.yaml
@@ -391,35 +391,74 @@ What works today: the database, the one-shot `setup` service (migrations with a 
    cp .env.example .env
    ```
 
-4. Copy the mailbox password file. Each Proton Bridge IMAP password goes here, one line per `password_env` in `config/config.yaml`. Database passwords stay in `.env`; mailbox passwords never go there:
+4. Copy the mailbox password file. It gets one line per `password_env` in `config/config.yaml`. You don't type Bridge's IMAP passwords in yourself: the Bridge login in step 8 writes each one into this file. Database passwords stay in `.env`; mailbox passwords never go there:
 
    ```sh
    cp .env.mailboxes.example .env.mailboxes
    ```
 
-5. Start the stack. On Linux, do this first: the `setup` and `worker` containers run as uid 1000, and Linux enforces file ownership on the folders they mount. `setup` writes a backup to `backups/` before it migrates, so if `id -u` does not print `1000`, hand that folder to the container user. Also leave `config/config.yaml` readable by others (the mode `cp` gives it is fine):
+5. Set `SIFT_BRIDGE_KEYCHAIN_PASSPHRASE` in `.env`, also generated with `openssl rand -hex 24`. It unlocks the key that encrypts Bridge's session vault, and only the Bridge containers receive it. Keep a copy somewhere safe, such as a password manager: without it the vault cannot be opened, and you would have to remove the `sift-bridge` volume and log in again.
+
+6. Create Bridge's volume, once. It holds Bridge's login session (see [Security model](#security-model)), and Compose refuses every command, for every service, while it is missing:
 
    ```sh
-   sudo chown 1000 backups
+   docker volume create sift-bridge
    ```
 
-   Then, on any system:
+7. Create the backup file for `.env.mailboxes`, once. The Bridge login saves the previous `.env.mailboxes` into it before changing the file. It holds the same passwords, hence mode 600. Compose refuses to start `bridge-init` while this file is missing, so keep it (empty it rather than delete it):
 
    ```sh
-   docker compose up -d
+   touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak
    ```
 
-   Compose starts `db`, runs `setup` once, and starts `worker` when setup has finished.
-
-   `docker compose ps` shows the worker as `healthy` while it works. If it cannot read the mailbox registry or write its heartbeat three times in a row (about 30 seconds), for example because the database is unreachable, it logs the reason, exits with code 75, and Docker starts it again. While the database stays down, this repeats every minute or so until the database is back. `docker compose logs worker` shows the reason for each exit.
-
-6. To add or change a mailbox: edit `config/config.yaml`, add its password variable to `.env.mailboxes`, then run:
+8. Log in to Proton through Bridge, in a terminal (the command is interactive). The first run builds the Bridge image from source, which takes several minutes:
 
    ```sh
-   docker compose run --rm setup
+   docker compose run --rm bridge-init
    ```
 
-   The worker reads `.env.mailboxes` only when its container is created, so after adding a password, recreate it with `docker compose up -d --force-recreate worker`.
+   Bridge's own command line opens. Type `login`, then your Proton address, password and 2FA code. Bridge's command line does not echo them, and Sift never sees your Proton password. When Bridge says the account was added, type `exit` (not `info`, which would show the IMAP password). Sift then switches off Bridge's telemetry and automatic updates (Sift pins a tested Bridge release instead), waits up to two minutes for Bridge to load the account, and writes the IMAP password into `.env.mailboxes` itself. You should see lines like these, with your own fingerprint and counts:
+
+   ```text
+   Bridge certificate SHA-256 (public key): <fingerprint>
+   Add it to config/config.yaml under the mailbox's imap.tls:   pin_sha256: <fingerprint>
+   telemetry: off
+   automatic updates: off
+   accounts: 1
+   account 1: addresses: 3, address mode: combined, state: connected
+   backup of the previous file: .env.mailboxes.bak (next to .env.mailboxes)
+   wrote SIFT_PERSONAL_IMAP_PASSWORD to .env.mailboxes (mailbox "personal")
+   ```
+
+   If init is interrupted while it writes `.env.mailboxes`, restore the previous file with `cp .env.mailboxes.bak .env.mailboxes` before you run it again.
+
+9. Pin Bridge's certificate: copy the `pin_sha256:` value from that output into `config/config.yaml`, under the mailbox's `imap.tls` (it replaces the commented `# pin_sha256:` line). The worker then accepts exactly that key and refuses any other (see [Security model](#security-model)):
+
+   ```yaml
+       tls:
+         mode: starttls
+         pin_sha256: <fingerprint>
+   ```
+
+10. Start the stack. On Linux, do this first: the `setup` and `worker` containers run as uid 1000, and Linux enforces file ownership on the folders they mount. `setup` writes a backup to `backups/` before it migrates, so if `id -u` does not print `1000`, hand that folder to the container user. Also leave `config/config.yaml` readable by others (the mode `cp` gives it is fine):
+
+    ```sh
+    sudo chown 1000 backups
+    ```
+
+    Then, on any system:
+
+    ```sh
+    docker compose up -d
+    ```
+
+    Compose starts `db` and `bridge`, runs `setup` once, and starts `worker` when setup has finished.
+
+    - **Port 1143.** The `bridge` service publishes IMAP on host loopback port 1143 (`127.0.0.1` only). If the desktop Proton Mail Bridge app runs on the same machine, it already holds that port: quit the app, or set `SIFT_BRIDGE_PORT` in `.env` to another port. Inside Compose the worker always reaches Bridge at `bridge:1143`.
+    - **First minutes.** `docker compose run --rm setup sift mailbox list` shows each mailbox's state. While Bridge starts, the worker shows `connecting` for up to a minute instead of an error. Then it reads the first 30 days of mail slowly in the background (`ingest.initial_backfill_days`), shown as `ok, backfilling <done> of <total>`, while new mail keeps arriving as usual.
+    - **Bridge's own first sync is slow.** As measured on Proton Bridge v3.27.0 in the M1 spike, Bridge needed well over 30 minutes to download a large account, newest mail first ([findings](.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md)). Older mail that Bridge had not downloaded yet when the 30-day read ran can be read later with `sift mailbox backfill` (see [Managing mailboxes](#managing-mailboxes)).
+
+    `docker compose ps` shows the worker as `healthy` while it works. If it cannot read the mailbox registry or write its heartbeat three times in a row (about 30 seconds), for example because the database is unreachable, it logs the reason, exits with code 75, and Docker starts it again. While the database stays down, this repeats every minute or so until the database is back. `docker compose logs worker` shows the reason for each exit. A Bridge outage does not stop the worker: the affected mailbox shows an error in `sift mailbox list` until Bridge is back.
 
 **Arriving in later milestones** (these commands do not work yet):
 
@@ -430,9 +469,6 @@ ollama pull qwen3:1.7b
 
 # Linux: run Ollama in Docker too, using the ollama Compose profile
 docker compose --profile ollama up -d
-
-# One-time Proton Bridge login (interactive)
-docker compose run --rm bridge init
 ```
 
 The web UI at `http://<your-machine>:3000` also arrives in a later milestone.
@@ -441,10 +477,43 @@ The web UI at `http://<your-machine>:3000` also arrives in a later milestone.
 
 The mailboxes in `config/config.yaml` are the source of truth. Every change goes through `docker compose run --rm setup`:
 
+- **Add a mailbox:** add it to `config/config.yaml` (for Proton, another Proton account; see [Requirements](#requirements)), then let Bridge write its IMAP password and register it. Bridge allows one instance per vault, so stop the `bridge` service first:
+
+  ```sh
+  docker compose stop bridge
+  docker compose run --rm bridge-init configure
+  docker compose start bridge
+  docker compose run --rm setup
+  docker compose up -d --force-recreate worker
+  ```
+
+  `configure` writes the IMAP password of every configured mailbox whose address Bridge knows, saving the previous file to `.env.mailboxes.bak` first. If the account is not logged in to Bridge yet, run `docker compose run --rm bridge-init` instead of the `configure` line and type `login` again. Paste the printed `pin_sha256` into the new mailbox's `imap.tls` too; it is the same for every mailbox on this Bridge. The worker reads `.env.mailboxes` only when its container is created, hence the last line. Once the new file works, empty the backup with `: > .env.mailboxes.bak`, but keep the file. If it goes missing, Compose stops `bridge-init` with `bind source path does not exist`; recreate it with `touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak`.
+- **Change a non-Proton mailbox:** edit `config/config.yaml`, put its password in `.env.mailboxes`, run `docker compose run --rm setup`, then `docker compose up -d --force-recreate worker`.
 - **Remove a mailbox:** delete its entry from `config/config.yaml` and rerun setup. The mailbox is disabled and its data is kept.
 - **Bring it back:** add the same slug again and rerun setup. It is re-enabled with its data.
 - **Rename a mailbox:** run `docker compose run --rm setup sift mailbox rename <old> <new>`, change the slug in `config/config.yaml` to match, then rerun setup. The mailbox keeps its data under the new slug. If setup sees one slug disappear while a new one appears, it refuses to apply until you either rename the mailbox or rerun with `docker compose run --rm setup sift setup --confirm`, which disables the old mailbox and adds the new one.
-- **See every mailbox and its status:** `docker compose run --rm setup sift mailbox list`. Disabled mailboxes are listed too.
+- **See every mailbox and its status:** `docker compose run --rm setup sift mailbox list`. Disabled mailboxes are listed too. The status is one of `ok` (with `, backfilling <done> of <total>` during the first 30-day read), `connecting`, `needs attention`, `error: <reason>`, `disabled since <date>` or `never run`.
+- **Needs attention:** if a single check would treat more than `ingest.new_mail_cap` messages (default 200) as new, for example after a mass move into the inbox, the worker processes none of them and holds the mailbox instead of flooding Sift. The status reads `needs attention: <n> new messages held; run sift mailbox resume <slug>`. When you have checked that the mail is expected, release the hold:
+
+  ```sh
+  docker compose run --rm setup sift mailbox resume <slug>
+  ```
+
+  The next check processes the held messages, plus new mail up to the usual limit.
+- **Read older mail on demand:** the first 30-day read happens once. To read a range again, for example after Bridge finished its own first sync, run:
+
+  ```sh
+  docker compose run --rm worker sift mailbox backfill <slug> --days 3
+  ```
+
+  It first shows how many messages it found in the last `--days` days (1 to 365, default 3), then asks you to type `yes`; `--yes` skips the question. Messages Sift already has are skipped. It waits up to a minute if the worker is reading the same mailbox at that moment.
+- **Bridge's certificate changed:** if you reinstalled Bridge or its certificate was regenerated, the mailbox stops with a certificate error instead of trusting the new key. Show the fingerprint the worker now sees and compare it with the one `docker compose run --rm bridge-init` printed:
+
+  ```sh
+  docker compose run --rm --no-deps worker sift bridge trust <slug>
+  ```
+
+  It prints the fingerprint and whether it matches `imap.tls.pin_sha256`. Only if the two are the same, replace the pin in `config/config.yaml`, then restart the worker with `docker compose restart worker`. `sift bridge trust <slug>` never logs in and never changes your config.
 
 ### Remote access
 

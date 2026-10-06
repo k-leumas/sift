@@ -25,6 +25,8 @@ const SCANNED_FILES = [
   '.env.development.example',
   'compose.yaml',
   'Dockerfile',
+  'bridge/Dockerfile',
+  'bridge/entrypoint.sh',
 ];
 
 /** Shipped source trees (tests live outside them). */
@@ -79,6 +81,17 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     'sudo chown 1000 backups',
     'docker compose logs worker',
     'version: 1',
+    // Phase 2: Bridge setup, pinning and the owner's mailbox commands.
+    'docker volume create sift-bridge',
+    'docker compose run --rm bridge-init',
+    'touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak',
+    'cp .env.mailboxes.bak .env.mailboxes',
+    'does not echo',
+    'pin_sha256',
+    'sift bridge trust <slug>',
+    'sift mailbox resume <slug>',
+    'sift mailbox backfill <slug> --days 3',
+    'SIFT_BRIDGE_KEYCHAIN_PASSPHRASE',
   ])('contains %s', (text) => {
     expect(readme).toContain(text);
   });
@@ -92,6 +105,32 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     ].map((step) => readme.indexOf(step));
     expect(steps.every((i) => i >= 0)).toBe(true);
     expect([...steps].sort((a, b) => a - b)).toEqual(steps);
+  });
+
+  it('creates the volume and the backup file before the first Bridge login, then starts (D-81)', () => {
+    const quickStart = readme.slice(
+      readme.indexOf('### Quick start'),
+      readme.indexOf('### Managing mailboxes'),
+    );
+    const steps = [
+      'cp config/config.example.yaml config/config.yaml',
+      'cp .env.example .env',
+      'cp .env.mailboxes.example .env.mailboxes',
+      'docker volume create sift-bridge',
+      'touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak',
+      'docker compose run --rm bridge-init',
+      'pin_sha256',
+      'docker compose up -d',
+    ].map((step) => quickStart.indexOf(step));
+    expect(steps.every((i) => i >= 0)).toBe(true);
+    expect([...steps].sort((a, b) => a - b)).toEqual(steps);
+  });
+
+  it('no longer lists the Bridge login under later milestones', () => {
+    const start = readme.indexOf('**Arriving in later milestones**');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const later = readme.slice(start, readme.indexOf('### Managing mailboxes'));
+    expect(later).not.toMatch(/bridge/i);
   });
 
   it('starts the technical-settings example with version: 1', () => {
@@ -154,5 +193,26 @@ describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
     // pnpm built-ins, plus `pnpm eval`, which CONTRIBUTING marks as planned (M4).
     const builtins = new Set(['install', 'vitest', 'eval']);
     expect(named.filter((name) => !builtins.has(name) && !scripts.includes(name))).toEqual([]);
+  });
+});
+
+describe('Bridge command form and bind addresses (D-79)', () => {
+  /**
+   * The pre-D-79 init command (`bridge` and `init` as two words). Built from
+   * parts so this file does not contain it.
+   */
+  const OLD_INIT = new RegExp(['run --rm bridge', 'init'].join(' '));
+  /** The wildcard bind address, built from parts so this file does not contain it. */
+  const WILDCARD_BIND = new RegExp(['0', '0', '0', '0'].join('\\.'));
+
+  it.each(['README.md', 'CONTRIBUTING.md', 'bridge/entrypoint.sh', 'compose.yaml'])(
+    '%s never shows the old init command form',
+    (file) => {
+      expect(matches(file, read(file), OLD_INIT)).toEqual([]);
+    },
+  );
+
+  it.each(['README.md', 'CONTRIBUTING.md'])('%s never shows the wildcard bind address', (file) => {
+    expect(matches(file, read(file), WILDCARD_BIND)).toEqual([]);
   });
 });
