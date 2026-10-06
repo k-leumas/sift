@@ -434,6 +434,16 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Flags without \Recent. The COPY needs the source SELECTed (Bridge refuses
+ * COPY from an EXAMINEd mailbox), and any SELECT clears the session-only
+ * \Recent flag (RFC 3501; gone in IMAP4rev2, never synced to Proton). Every
+ * stored flag must still be unchanged.
+ */
+function storedFlags(flags: Map<number, string[]>): Map<number, string[]> {
+  return new Map([...flags].map(([uid, list]) => [uid, list.filter((f) => f !== '\\Recent')]));
+}
+
 describe('sift bridge probe --label-test (SPK-01, D-11)', () => {
   it('copies only the confirmed UID into the spike label and removes it from there only', async () => {
     const user = freshImapUser('probe-labeltest');
@@ -456,8 +466,8 @@ describe('sift bridge probe --label-test (SPK-01, D-11)', () => {
     });
     // The plan names the folder and the UID, nothing about the message.
     expect(result.stderr).toContain(planLine(2));
-    // INBOX: same messages, same flags; the label folder is empty again.
-    expect(await messageFlags(user, 'INBOX')).toEqual(before);
+    // INBOX: same messages, same stored flags; the label folder is empty again.
+    expect(storedFlags(await messageFlags(user, 'INBOX'))).toEqual(storedFlags(before));
     expect((await messageFlags(user, LABEL_PATH)).size).toBe(0);
   });
 
@@ -513,6 +523,33 @@ describe('sift bridge probe --label-test (SPK-01, D-11)', () => {
     const report = reportOf(await probe(user, ['--label-test', '--uid', '99'], {}, 'LABEL\n'));
     expect(report.labelTest).toEqual({ performed: false, skippedReason: 'target not found' });
     expect(await folderExists(user, LABEL_PATH)).toBe(false);
+  });
+
+  it('COPYs from a SELECTed source, since Bridge refuses COPY from an EXAMINEd one', async () => {
+    const user = freshImapUser('probe-select-copy');
+    await seedLabelFixtures(user);
+    const before = await messageFlags(user, 'INBOX');
+    const client = await connectAs(user);
+    const atCopy: { path: string | undefined; readOnly: boolean | undefined }[] = [];
+    try {
+      const realCopy = client.messageCopy.bind(client);
+      vi.spyOn(client, 'messageCopy').mockImplementation(async (...args) => {
+        const mailbox = client.mailbox === false ? undefined : client.mailbox;
+        atCopy.push({ path: mailbox?.path, readOnly: mailbox?.readOnly });
+        return realCopy(...args);
+      });
+      const result = await labelTest(client, {
+        folder: 'INBOX',
+        uid: 2,
+        delimiter: '/',
+        confirmed: true,
+      });
+      expect(result).toMatchObject({ performed: true, removedFromLabel: true });
+    } finally {
+      await closeImap(client);
+    }
+    expect(atCopy).toEqual([{ path: 'INBOX', readOnly: false }]);
+    expect(storedFlags(await messageFlags(user, 'INBOX'))).toEqual(storedFlags(before));
   });
 
   it('expunges nothing when COPYUID did not identify the label copy', async () => {

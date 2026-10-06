@@ -553,7 +553,8 @@ function bytesEqual(a: Buffer | null, b: Buffer | null): boolean | undefined {
  * named the label-folder copy and the original is confirmed still present;
  * otherwise nothing is expunged and the owner removes the label in the Proton
  * client. A target older than LABEL_TEST_MAX_AGE_MS, or missing, stops the
- * test before any write. `folder` itself is only ever EXAMINEd.
+ * test before any write. `folder` is EXAMINEd for every read and SELECTed
+ * only for the COPY, which Bridge refuses from an EXAMINEd mailbox.
  */
 export async function labelTest(
   client: ImapFlow,
@@ -594,6 +595,11 @@ export async function labelTest(
 
   await examine(client, folder);
   const original = await identityHeaderBytes(client, uid);
+  // Bridge (gluon) refuses COPY from an EXAMINEd mailbox ("the mailbox is
+  // read-only"), stricter than RFC 3501. SELECT the source for the COPY only:
+  // COPY never changes the source message, and every read stays on EXAMINE.
+  const source = await client.mailboxOpen(folder);
+  if (source?.path !== folder) return notConfirmed({ performed: false, labelFolderCreated });
   const copy = await client.messageCopy(String(uid), labelPath, { uid: true });
   const labelUid = copy === false ? undefined : copy.uidMap?.get(uid);
   const copyUidPlus = labelUid !== undefined;
