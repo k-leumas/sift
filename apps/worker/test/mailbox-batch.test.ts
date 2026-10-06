@@ -436,4 +436,16 @@ describe('unclassified failures', () => {
     expect(status.state).toBe('error');
     expect(status.last_error).toBe('duplicate key value violates unique constraint');
   });
+
+  it("stores fixed text when Drizzle's wrapper has no coded cause (WR-01)", async () => {
+    const m = await newMailbox();
+    const { callbacks } = callbacksFor([m]);
+    const wrapped = new Error('Failed query: insert into message ... params: Secret subject', {
+      cause: new TypeError('Do not know how to serialize a BigInt'),
+    });
+    await callbacks.onBatchError(m.entry, wrapped);
+    const status = await mailboxStatus(db.adminUrl, m.id);
+    expect(status.state).toBe('error');
+    expect(status.last_error).toBe('database query failed without an error code (TypeError)');
+  });
 });

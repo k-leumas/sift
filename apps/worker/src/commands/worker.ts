@@ -7,7 +7,7 @@ import {
   loadConfig,
   secretValues,
 } from '@sift/core/config';
-import { createLogger, redactText } from '@sift/core/log';
+import { codedCause, createLogger, redactText } from '@sift/core/log';
 import { createAppDb, requireDatabaseUrl } from '@sift/db';
 import { assertUnprivilegedRole, connectWithRetry, DatabaseStartupError } from '@sift/db/connect';
 import type { CommandIO } from '../command.ts';
@@ -47,15 +47,10 @@ function sqlStateOf(error: unknown): string | undefined {
 /**
  * The driver error inside drizzle's "Failed query: <sql> params: ..." wrapper,
  * so the log names the SQLSTATE and server message rather than the query text.
- * Falls back to the error itself.
+ * Falls back to the error itself, but never to the wrapper (WR-01).
  */
 function databaseCause(error: unknown): unknown {
-  let current: unknown = error;
-  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
-    if (sqlStateOf(current) !== undefined) return current;
-    current = current.cause;
-  }
-  return error;
+  return codedCause(error);
 }
 
 /**

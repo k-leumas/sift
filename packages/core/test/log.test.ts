@@ -1,4 +1,10 @@
-import { createLogger, REDACT_PATHS, redactText } from '@sift/core/log';
+import {
+  codedCause,
+  createLogger,
+  QueryFailedError,
+  REDACT_PATHS,
+  redactText,
+} from '@sift/core/log';
 import { describe, expect, it } from 'vitest';
 
 function capture(level?: string) {
@@ -90,5 +96,47 @@ describe('redactText', () => {
 
   it('ignores empty secrets', () => {
     expect(redactText('unchanged', ['', '   '])).toBe('unchanged');
+  });
+});
+
+describe('codedCause (WR-01)', () => {
+  const MAIL = 'Secret subject,boss@example.test';
+
+  it('returns the first coded error of the cause chain', () => {
+    const pgError = Object.assign(new Error('duplicate key'), { code: '23505' });
+    const wrapped = new Error(`Failed query: insert into message params: ${MAIL}`, {
+      cause: pgError,
+    });
+    expect(codedCause(wrapped)).toBe(pgError);
+  });
+
+  it("never returns Drizzle's wrapper when no cause has a code", () => {
+    const wrapped = new Error(`Failed query: insert into message\nparams: ${MAIL}`, {
+      cause: new TypeError(`cannot serialise ${MAIL}`),
+    });
+    const safe = codedCause(wrapped);
+    expect(safe).toBeInstanceOf(QueryFailedError);
+    expect(safe).toMatchObject({
+      name: 'QueryFailedError',
+      message: 'database query failed without an error code (TypeError)',
+    });
+    expect(JSON.stringify([String(safe), (safe as Error).stack])).not.toContain('Secret');
+  });
+
+  it('recognises the wrapper by its query and params fields as well', () => {
+    const wrapped = Object.assign(new Error(`insert params: ${MAIL}`), {
+      query: 'insert into message',
+      params: [MAIL],
+    });
+    expect(codedCause(wrapped)).toMatchObject({
+      name: 'QueryFailedError',
+      message: 'database query failed without an error code (no cause)',
+    });
+  });
+
+  it('returns any other uncoded error, and non-errors, unchanged', () => {
+    const plain = new Error('IMAP session ended', { cause: new Error('Failed query: x') });
+    expect(codedCause(plain)).toBe(plain);
+    expect(codedCause('text')).toBe('text');
   });
 });

@@ -1,3 +1,4 @@
+import { codedCause } from '@sift/core/log';
 import { computeBackoff } from './backoff.ts';
 
 /**
@@ -105,22 +106,10 @@ interface MailboxState {
   nextRunAt: number;
 }
 
-/**
- * The first error in the cause chain that carries a string code, so a driver
- * error wrapped by drizzle ("Failed query: ...") is logged by its SQLSTATE or
- * socket code rather than the query text. Falls back to the error itself.
- */
-function codedCause(error: unknown): unknown {
-  let current: unknown = error;
-  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
-    if (typeof (current as { code?: unknown }).code === 'string') return current;
-    current = current.cause;
-  }
-  return error;
-}
-
 /** Error fields safe to log. The message is included only after redaction. */
 function summarizeError(raw: unknown, redact?: (text: string) => string): ErrorSummary {
+  // The coded error inside drizzle's "Failed query: ..." wrapper, never the
+  // wrapper's text with its params (WR-01).
   const error = codedCause(raw);
   const summary: ErrorSummary = { name: error instanceof Error ? error.name : typeof error };
   const code = (error as { code?: unknown } | null)?.code;

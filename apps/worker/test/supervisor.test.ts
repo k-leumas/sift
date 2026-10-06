@@ -513,6 +513,28 @@ describe('createSupervisor', () => {
       await stopAll(h);
     });
 
+    it("logs fixed text, never Drizzle's params, when the cause has no code (WR-01)", async () => {
+      const h = harness([entry(A, 'a')], {
+        async heartbeat() {
+          throw new Error('Failed query: update x\nparams: Secret subject', {
+            cause: new TypeError('bad value'),
+          });
+        },
+        redact: (text) => text,
+      });
+      const stall = watchStall(h);
+      h.supervisor.start();
+      await vi.advanceTimersByTimeAsync(2 * TICK_MS);
+      expect(stall()).toMatchObject({
+        error: {
+          name: 'QueryFailedError',
+          message: 'database query failed without an error code (TypeError)',
+        },
+      });
+      expect(JSON.stringify(stall())).not.toContain('Secret');
+      await stopAll(h);
+    });
+
     it('counts a hung tick once per tick interval', async () => {
       const h = harness([entry(A, 'a')], { readRegistry: () => new Promise(() => {}) });
       const stall = watchStall(h);

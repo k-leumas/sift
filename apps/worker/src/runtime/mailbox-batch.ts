@@ -1,5 +1,6 @@
 import type { MailboxConfig, SiftConfig } from '@sift/core/config';
 import { imapIdentityKey } from '@sift/core/config';
+import { codedCause } from '@sift/core/log';
 import {
   type AppDb,
   MailboxDisabledError,
@@ -192,15 +193,11 @@ export function ingestKind(error: unknown, client: ImapFlow): ImapErrorClass {
  * The error to store for an unclassified failure: the first error in the
  * cause chain that carries a code (a pg error inside Drizzle's "Failed query:
  * <sql> params: ..." wrapper, whose params can hold mail fields), else the
- * error itself. recordSyncError then redacts the secrets.
+ * error itself, but never the wrapper's text (codedCause, WR-01).
+ * recordSyncError then redacts the secrets.
  */
 export function storedError(error: unknown): unknown {
-  let current: unknown = error;
-  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
-    if (typeof (current as { code?: unknown }).code === 'string') return current;
-    current = current.cause;
-  }
-  return error;
+  return codedCause(error);
 }
 
 /**

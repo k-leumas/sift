@@ -56,3 +56,42 @@ export function redactText(text: string, secrets: readonly string[]): string {
   }
   return out.replace(POSTGRES_URL_PASSWORD, `$1${REDACTED}@`);
 }
+
+/** Stands in for a database query wrapper that has no coded cause (WR-01). */
+export class QueryFailedError extends Error {
+  override name = 'QueryFailedError';
+}
+
+/**
+ * Drizzle's "Failed query: <sql> params: ..." wrapper (DrizzleQueryError),
+ * recognised by shape because apps may not import drizzle-orm. Its params
+ * can hold mail fields.
+ */
+function isQueryWrapper(error: Error): boolean {
+  const { query, params } = error as { query?: unknown; params?: unknown };
+  return (
+    (typeof query === 'string' && Array.isArray(params)) ||
+    error.message.startsWith('Failed query:')
+  );
+}
+
+/**
+ * The error that is safe to log or store for a failure: the first error in
+ * the cause chain (at most 5 deep) that carries a string code, i.e. a
+ * SQLSTATE or socket code inside Drizzle's wrapper. Without a coded cause
+ * the error itself is returned, except a query wrapper: its text holds the
+ * statement's params, which can be mail fields, so a QueryFailedError naming
+ * only the innermost error's class takes its place (WR-01).
+ */
+export function codedCause(error: unknown): unknown {
+  let current: unknown = error;
+  let innermost: Error | undefined;
+  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
+    if (typeof (current as { code?: unknown }).code === 'string') return current;
+    if (!isQueryWrapper(current)) innermost = current;
+    current = current.cause;
+  }
+  if (!(error instanceof Error) || !isQueryWrapper(error)) return error;
+  const name = innermost?.name ?? 'no cause';
+  return new QueryFailedError(`database query failed without an error code (${name})`);
+}
