@@ -31,10 +31,10 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 
 ### Ingest
 
-- [ ] **ING-01**: Worker connects to the configured mailbox through Proton Bridge using the environment-supplied password and reads messages from the configured folder
-- [ ] **ING-02**: Each message is stored once in `message` with its `mailbox_id`, IMAP UID, UIDVALIDITY, `Message-ID` (or the fallback hash), headers and body text needed for classification; re-running ingest never creates duplicates
-- [ ] **ING-03**: New mail arriving after startup is picked up on a polling interval without restarting the worker
-- [ ] **ING-04**: Per-folder sync state (`folder_sync`) records UIDVALIDITY and the last position seen; a UIDVALIDITY change triggers a safe full resync that does not duplicate or re-classify already-stored messages
+- [x] **ING-01**: Worker connects to the configured mailbox through Proton Bridge using the environment-supplied password and reads messages from the configured folder
+- [x] **ING-02**: Each message is stored once in `message` with its `mailbox_id`, IMAP UID, UIDVALIDITY, `Message-ID` (or the fallback hash), headers and body text needed for classification; re-running ingest never creates duplicates
+- [x] **ING-03**: New mail arriving after startup is picked up on a polling interval without restarting the worker
+- [x] **ING-04**: Per-folder sync state (`folder_sync`) records UIDVALIDITY and the last position seen; a UIDVALIDITY change triggers a safe full resync that does not duplicate or re-classify already-stored messages
 
 ### Classification
 
@@ -130,10 +130,10 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | SPK-02 | Phase 2 | Complete |
 | SPK-03 | Phase 2 | Complete |
 | SPK-04 | Phase 2 | Complete |
-| ING-01 | Phase 2 | Pending |
-| ING-02 | Phase 2 | Pending |
-| ING-03 | Phase 2 | Pending |
-| ING-04 | Phase 2 | Pending |
+| ING-01 | Phase 2 | Complete |
+| ING-02 | Phase 2 | Complete |
+| ING-03 | Phase 2 | Complete |
+| ING-04 | Phase 2 | Complete |
 | CLS-01 | Phase 3 | Pending |
 | CLS-02 | Phase 3 | Pending |
 | CLS-03 | Phase 3 | Pending |

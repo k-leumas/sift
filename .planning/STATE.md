@@ -4,17 +4,17 @@ milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
-status: executing
-stopped_at: Completed 02-17-PLAN.md
-last_updated: "2026-10-06T15:01:28.582Z"
+status: verifying
+stopped_at: Completed 02-19-PLAN.md
+last_updated: "2026-10-06T19:44:20.702Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: e2e002116a322d1d592a1219e55a86dc7dcf89b6
+state_head: 7921389b66ac2600a450bde278bf8c9e3e14708d
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 32
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
 Plan: 19 of 19
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-05 — Phase 02 execution started
 
 Progress: [███░░░░░░░] 25%
@@ -88,6 +88,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P14 | 65min | 3 tasks | 6 files |
 | Phase 02 P16 | 15min | 3 tasks | 10 files |
 | Phase 02 P17 | 15 min | 2 tasks | 3 files |
+| Phase 02 P19 | 4h40m | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-17: README settings example keeps later-milestone blocks only as comments and pin_sha256 commented, so the active YAML passes the strict schema (tested via loadConfig)
 - [Phase 02]: 02-17: spike-dependent README text is scoped to Proton Bridge v3.27.0 in the M1 spike and links 02-SPIKE-FINDINGS.md and the ADR 0003 addendum
 - [Phase 02]: 02-17: host development against Bridge uses a dev config outside the repo via SIFT_CONFIG; only config/config.yaml is git-ignored
+- [Phase 02]: 02-19: criterion 4 measured by INTERNALDATE in the probe's newest-200 sample, not uidNext, because Bridge's initial sync appends old mail at ~120 UIDs/min
+- [Phase 02]: 02-19: criterion 5 by simulated UIDVALIDITY mismatch (owner: ready: simulate); live ingest result partial per D-86
+- [Phase 02]: 02-19: live-ingest doc-contract test accepts a backfill value differing from the spike only with a documented Deviation from D-84 (owner override 30 -> 1)
 
 ### Pending Todos
 
@@ -212,6 +216,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-06T15:01:28.451Z
-Stopped at: Completed 02-17-PLAN.md
+Last session: 2026-10-06T19:44:09.062Z
+Stopped at: Completed 02-19-PLAN.md
 Resume file: None
