@@ -533,6 +533,17 @@ async function resync(
     counts,
     ...backfill,
   });
+  // finishResync restarted or dropped the pending first backfill; the progress
+  // in mailbox_status follows, or it shows a dropped backfill forever (WR-06).
+  // Awaited after the commit resolved, like every progress report.
+  if ('backfill' in backfill) {
+    const next = backfill.backfill;
+    await deps.onBackfillProgress?.(
+      next === null
+        ? { done: 0, total: 0, finished: true }
+        : { done: 0, total: next.total, finished: false },
+    );
+  }
   deps.log.info({ folder, ...result }, formatResyncLine(folder, result));
   clock.report();
   return { kind: 'resynced', counts: result };

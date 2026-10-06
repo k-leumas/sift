@@ -468,4 +468,55 @@ describe('resync during a pending first backfill (D-75)', () => {
     expect(h.store.bodies()).toHaveLength(5);
     expectConsistent(h, 2);
   });
+
+  it('resets the progress to the restarted window after finishResync (WR-06)', async () => {
+    const h = harness();
+    for (const days of [5, 4, 3, 2, 1]) h.source.append(fakeMail(ago(days * DAY)));
+    const progress: { done: number; total: number; finished: boolean }[] = [];
+    const deps = () =>
+      h.deps({
+        initialBackfillDays: 30,
+        backfillSliceSize: 2,
+        onBackfillProgress: async (p) => {
+          progress.push(p);
+          h.store.events.push('progress');
+        },
+      });
+    await runIngest(deps());
+    h.source.bumpUidValidity({ renumber: true });
+    progress.length = 0;
+    const from = h.store.events.length;
+
+    await runIngest(deps());
+
+    expect(progress).toEqual([{ done: 0, total: 5, finished: false }]);
+    const events = h.store.events.slice(from);
+    expect(events).toContain('finishResync:end');
+    expect(events.indexOf('progress')).toBeGreaterThan(events.indexOf('finishResync:end'));
+  });
+
+  it('clears the progress when the window has no message under the new UIDVALIDITY (WR-06)', async () => {
+    const h = harness();
+    for (const days of [5, 4, 3]) h.source.append(fakeMail(ago(days * DAY)));
+    const progress: { done: number; total: number; finished: boolean }[] = [];
+    const deps = () =>
+      h.deps({
+        initialBackfillDays: 30,
+        backfillSliceSize: 1,
+        onBackfillProgress: async (p) => {
+          progress.push(p);
+        },
+      });
+    await runIngest(deps());
+    expect(h.store.folder(FOLDER)?.backfill).not.toBeNull();
+    // Bridge rebuilds the folder and the window's mail is gone.
+    for (const uid of h.source.uids()) h.source.expunge(uid);
+    h.source.bumpUidValidity({ renumber: true });
+    progress.length = 0;
+
+    expect(await runIngest(deps())).toMatchObject({ kind: 'resynced' });
+
+    expect(h.store.folder(FOLDER)?.backfill).toBeNull();
+    expect(progress).toEqual([{ done: 0, total: 0, finished: true }]);
+  });
 });
