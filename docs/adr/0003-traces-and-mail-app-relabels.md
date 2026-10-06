@@ -96,3 +96,18 @@ The spike must answer:
 4. **Change tracking:** whether Bridge supports CONDSTORE/QRESYNC, or whether polling is the only option.
 
 The answers will be recorded as an addendum to this ADR. The identity columns and their constraints will then be added in a single migration that follows it.
+
+## Addendum (2026-10): Proton Bridge spike (M1)
+
+*Added 2026-10-06.* Full results, measured on Proton Bridge v3.27.0 against the owner's real mailbox: [.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md](../../.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md).
+
+The spike answers the four questions of the note above:
+
+1. **Identity key:** Bridge adds an `X-Pm-Internal-Id` header to every message. It is unique per message and byte-identical in `INBOX` and in a label folder. `Message-ID` is also preserved byte-for-byte, but 1.6% of Message-IDs are shared by distinct Proton messages. The key order is therefore Bridge's internal ID first (`pm:`), then `Message-ID` (`mid:`), then the versioned stable-header hash (`hdr:v1:`). The last two serve non-Bridge servers.
+2. **Per-folder UIDs:** each label folder has its own UIDVALIDITY. UIDVALIDITY and UIDs stayed the same across two Bridge restarts. A forced Bridge repair was not tested and is treated as a UIDVALIDITY reset (full folder rescan).
+3. **Timestamps:** `received_at` comes from IMAP `INTERNALDATE`. It survived the restarts unchanged. During Bridge's initial sync, UIDs are assigned newest-first, so INTERNALDATE, not UID order, decides what counts as new mail.
+4. **Change tracking:** Bridge advertises neither CONDSTORE nor QRESYNC, and it rejects ENABLE and STATUS HIGHESTMODSEQ. Relabel detection (section 2 above) is **polling only**: a UID-set diff per label folder, matched by the internal ID, with a UIDVALIDITY check on every poll.
+
+**Label apply and remove.** A label is applied with `UID COPY` into `Labels/<name>` from a SELECTed source folder (Bridge refuses COPY from an EXAMINEd one). COPYUID names the label-folder copy, and Sift records it for echo suppression. A label is removed with `\Deleted` plus `UID EXPUNGE` of that one UID in the label folder. The `INBOX` copy survives both.
+
+**Raw-prompt retention (the open item under Negative consequences).** Resolved by Phase 2 decision D-09: traces store the **prompt recipe**, meaning the prompt version, the rule-set version and the Message-IDs of the examples used, not the raw rendered prompt. The prompt can be rebuilt from versioned sources when needed, so no retention limit is required for prompts. The LLM's raw output stays in the trace unchanged.
