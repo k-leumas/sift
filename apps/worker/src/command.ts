@@ -67,6 +67,12 @@ export const COMMANDS: readonly CommandSpec[] = [
     summary: 'Process the new mail held by the volume limit',
   },
   {
+    path: ['mailbox', 'backfill'],
+    file: 'mailbox-backfill.ts',
+    usage: 'sift mailbox backfill <slug> [--days <n>] [--yes]',
+    summary: 'Count, confirm, then ingest the last n days (default 3) of a mailbox',
+  },
+  {
     path: ['bridge', 'probe'],
     file: 'bridge-probe.ts',
     usage:

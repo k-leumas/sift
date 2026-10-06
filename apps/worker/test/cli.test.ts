@@ -24,6 +24,7 @@ describe('sift CLI shell', () => {
       'sift mailbox list',
       'sift mailbox rename <old-slug> <new-slug>',
       'sift mailbox resume <slug>',
+      'sift mailbox backfill <slug> [--days <n>] [--yes]',
       'sift bridge probe <slug> [--label-test] [--uid <n>] [--wait-new-seconds <n>] ' +
         '[--compare <file|->] [--sample <n>] [--scan-limit <n>]',
       'sift bridge trust <slug>',

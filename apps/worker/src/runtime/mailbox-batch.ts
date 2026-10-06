@@ -150,8 +150,8 @@ export interface MailboxIngestOptions {
   backfillSliceSize?: number;
 }
 
-/** The config entry for a registry row: same IMAP identity (D-64). */
-function configEntryFor(config: SiftConfig, row: RegistryRow): MailboxConfig | undefined {
+/** The config entry for a registry row: same IMAP identity (D-64). Also used by sift mailbox backfill. */
+export function configEntryFor(config: SiftConfig, row: RegistryRow): MailboxConfig | undefined {
   const key = imapIdentityKey(row.imapHost, row.imapUsername, row.imapFolder);
   return config.mailboxes.find(
     (m) => imapIdentityKey(m.imap.host, m.imap.username, m.imap.folder) === key,
@@ -163,7 +163,7 @@ function configEntryFor(config: SiftConfig, row: RegistryRow): MailboxConfig | u
  * failed ingest can tell an IMAP failure (classified for the owner) from a
  * database or engine failure (recorded as is, redacted).
  */
-function trackedSource(source: FolderSource, seen: WeakSet<object>): FolderSource {
+export function trackedSource(source: FolderSource, seen: WeakSet<object>): FolderSource {
   const track = async <T>(call: () => Promise<T>): Promise<T> => {
     try {
       return await call();
@@ -183,7 +183,7 @@ function trackedSource(source: FolderSource, seen: WeakSet<object>): FolderSourc
 }
 
 /** Kind of an IMAP failure during ingest; a dropped connection counts as unreachable. */
-function ingestKind(error: unknown, client: ImapFlow): ImapErrorClass {
+export function ingestKind(error: unknown, client: ImapFlow): ImapErrorClass {
   const kind = classifyImapError(error);
   return kind === 'protocol' && !client.usable ? 'unreachable' : kind;
 }
@@ -194,7 +194,7 @@ function ingestKind(error: unknown, client: ImapFlow): ImapErrorClass {
  * <sql> params: ..." wrapper, whose params can hold mail fields), else the
  * error itself. recordSyncError then redacts the secrets.
  */
-function storedError(error: unknown): unknown {
+export function storedError(error: unknown): unknown {
   let current: unknown = error;
   for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
     if (typeof (current as { code?: unknown }).code === 'string') return current;
