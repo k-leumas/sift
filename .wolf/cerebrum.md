@@ -175,6 +175,8 @@
 - [2026-10-06] Error text safety (02 WR-01): use `codedCause` from @sift/core/log for anything stored or logged; it returns the coded cause or a QueryFailedError instead of Drizzle's "Failed query ... params:" text. Apps cannot import drizzle-orm, so the wrapper is matched by shape.
 - [2026-10-06] Phase 2 review fixes: X-Pm-Internal-Id is trusted only for pinned mailboxes (`trustsPmHeader`) and only with exactly one header value; INTERNALDATE watermarks are capped at the worker clock (`clockCap` in run.ts); `cert_expired` is its own ImapErrorClass; the CLI backfill takes the ingest lock twice (count, then ingest), never during the prompt; bridge-init chmods `.env.mailboxes` to 0600 before writing.
 - [2026-10-06] Simulate certificate expiry in a test with `vi.useFakeTimers({ toFake: ['Date'] })` + `vi.setSystemTime(...)`: only JS Date moves, the TLS handshake still uses the real clock.
+- [2026-10-07] mailbox_status.state defaults to 'ok', and runBatch's recordMailboxSeen inserts the row BEFORE connecting; a failed connect then sets connecting (first 60 s, D-34) or error. So a fresh row can read ok for a moment; assert end states with a bounded wait, never right after "worker healthy" (02-21, G-02-14).
+- [2026-10-07] live-ingest-record.test.ts cited the D-84 spike value with toContain, so a cited 30 also satisfied a findings value of 3 (prefix match). Number pins in doc tests need a no-digit-after boundary (02-20 tightens it).
 
 ## Do-Not-Repeat
 

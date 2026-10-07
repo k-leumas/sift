@@ -74,7 +74,7 @@ Plans:
   4. A new email sent to the mailbox shows up in the database within one polling interval without restarting anything
   5. After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages
 
-**Plans**: 19/19 plans executed
+**Plans**: 19/21 plans executed (2 UAT gap-closure plans pending)
 
 Plans:
 **Wave 1**
@@ -107,6 +107,10 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 - [x] 02-17-PLAN.md — README and CONTRIBUTING for Bridge setup, pinning, ingest, security and privacy (wave 6)
 - [x] 02-19-PLAN.md — Live ingest on the owner's Proton mailbox: stored once, restart, new mail within a poll, forced UIDVALIDITY resync, counts only (wave 6, owner checkpoint)
+
+**UAT gap closure** *(from 02-UAT.md)*
+- [ ] 02-20-PLAN.md — README: Proton-only scope (G-02-9) and NTP host clock (G-02-8); findings record backfill 3 with dated history, owner sets config and backfills (G-02-4) (wave 1, owner checkpoint)
+- [ ] 02-21-PLAN.md — compose-smoke asserts a worker status reachable without IMAP; emulated-stack tests; owner pushes main, ci green (G-02-14) (wave 2, owner checkpoint)
 
 ### Phase 3: Tiered Classification with Traces
 
