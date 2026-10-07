@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T06:42:22.520Z
-> Files: 310 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T07:11:30.690Z
+> Files: 312 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -192,10 +192,11 @@
 - `02-RESEARCH.md` — Phase 2: Bridge Spike and IMAP Ingest - Research (~22318 tok)
 - `02-REVIEW-FIX.md` — Phase 02: Code Review Fix Report (~2861 tok)
 - `02-REVIEW.md` — Phase 02: Code Review Report (incremental, after review fixes and UAT gap closure) (~3216 tok)
+- `02-SECURITY.md` — Phase 02 security contract: 103-row threat register (all closed), accepted risks, auditor observations (~9000 tok)
 - `02-SPIKE-FINDINGS.md` — Phase 2 Spike Findings: Proton Bridge against the owner's mailbox; post-spike initial_backfill_days 3 with a dated correction keeping the spike-time 30 (~3299 tok)
 - `02-USER-SETUP.md` — Phase 2: User Setup Required (~548 tok)
 - `02-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~3569 tok)
-- `02-VERIFICATION.md` — Phase 2: Bridge Spike and IMAP Ingest Verification Report (~7870 tok)
+- `02-VERIFICATION.md` — Phase 2: Bridge Spike and IMAP Ingest Verification Report (~7894 tok)
 - `COVERAGE.md` — Phase 2 External API Coverage (~1267 tok)
 - `deferred-items.md` — Phase 2 Deferred Items (~192 tok)
 
@@ -283,12 +284,14 @@
 - `ingest-message.test.ts` — 02-07 body part selection, HTML to text, code-point caps, attachment metadata (~2600 tok)
 - `ingest-resync.test.ts` — 19 cases: plan helpers, UIDVALIDITY resync, valve before writes, 5-row crash/retry table, double UIDVALIDITY change, backfill restart (~4809 tok)
 - `lint-guard.test.ts` — IN-02: lints probe files at apps/worker/src in a scratch copy with the real biome.json; relative/deep imports of packages/*/src are rejected (~724 tok)
+- `read-only-ingest.test.ts` — T-02-31/D-11 static guard: no ImapFlow write call or non-readOnly mailboxOpen in apps/worker/src outside spike/probe.ts; self-checks patterns on the probe (~700 tok)
 - `live-ingest-record.test.ts` — Doc-contract test for 02-LIVE-INGEST.md: sections, criterion/method/result lines, D-86 simulated-mismatch rule, D-84 backfill value or documented override (cited value matched exactly), privacy scan (~1007 tok)
 - `mailbox-batch.test.ts` — Owner-visible mailbox states (02-13 Task 2; D-26, D-33, D-34, D-40, D-72, (~4529 tok)
 - `mailbox-ops.test.ts` — Owner mailbox operations (02-16): `sift mailbox resume` releases a volume (~1350 tok)
 - `mailbox-ops.test.ts` — 02-16: resume (D-26) and backfill (D-03, D-75) against the real DB and Dovecot; backfill block has its own fresh database (~5000 tok)
 - `no-secret-leak.test.ts` — FND-02 / success criterion 2 (automated half, T-01-46): a mailbox password (~2633 tok)
 - `node-version.test.ts` — .nvmrc without the leading "v" and surrounding whitespace, e.g. 26.10.0. (~323 tok)
+- `read-only-ingest.test.ts` — T-02-31 / D-11: ingest never changes the owner's mail. folder-source.ts (~746 tok)
 - `registry-cli.test.ts` — 01-09 tracer: config apply + mailbox list via spawned CLI with no mailbox secrets in env; 02-16 in-process list rendering of every state (~1400 tok)
 - `run-until-stopped.test.ts` — IN-05: stall -> exit 75 with the exact pino line (no URL), signal -> exit 0, abortable signal listeners (~1598 tok)
 - `setup.test.ts` — Version-18 check for a host PostgreSQL client binary. (~2096 tok)
@@ -440,7 +443,7 @@
 
 ## scripts/
 
-- `bridge-smoke.sh` — Bridge image smoke test: build bridge/Dockerfile, then on throwaway volumes (~1495 tok)
+- `bridge-smoke.sh` — Bridge image smoke test: build bridge/Dockerfile, then on throwaway volumes; incl. planted bridge-v3/insecure → exit 78 (~1650 tok)
 - `compose-smoke.sh` — Full-stack smoke test. Own volume <project>-pgdata-smoke, own files in .smoke/<project>/ (.env via --env-file, .env.mailboxes, config with imap.smoke.invalid, backups), image sift-smoke:local; refuses projects with non-smoke containers; final checks: migrations, mailboxes registered/enabled, then waits (inside SMOKE_TIMEOUT) for a connecting or error status row per enabled mailbox (G-02-14; never ok) (~3300 tok)
 - `pg-dump-via-compose.sh` — SIFT_PG_DUMP wrapper: pg_dump 18 inside the Compose db container, --dbname host rewritten to db:5432 (scram, not loopback trust) (~250 tok)
 - `test-imap.sh` — Dovecot IMAP server for tests: a real STARTTLS server with a self-signed (~1116 tok)

@@ -212,8 +212,8 @@ Evidence paths are relative to the repository root unless shortened to a file na
 
 These do not change any status. Each declared mitigation is present; the notes record residual risk or test gaps for later phases.
 
-1. **T-02-01:** the `bridge-v3/insecure` refusal is checked only statically (bridge-image.test.ts:82-96). bridge-smoke proves exit 78 for a wrong passphrase and an uninitialised volume, not for a pre-existing insecure vault file.
-2. **T-02-31:** the ingest static ban on flag/copy/move/delete/append calls was a one-time grep, not a committed regression test. A re-run on 2026-10-07 found 0 hits; only `apps/worker/src/spike/probe.ts:594-633` (owner-run probe) writes.
+1. **T-02-01 (resolved 2026-10-07):** the `bridge-v3/insecure` refusal was checked only statically. scripts/bridge-smoke.sh now plants the insecure vault file on an initialised volume and requires exit 78 with the refusal message, even with the right passphrase.
+2. **T-02-31 (resolved 2026-10-07):** the ingest static ban was a one-time grep. apps/worker/test/read-only-ingest.test.ts now fails on any ImapFlow write call or non-read-only mailboxOpen outside `spike/probe.ts` (the owner-run probe), and self-checks its patterns against the probe's write calls.
 3. **T-02-06:** the `docker compose convert` check was one-time (02-01-SUMMARY:108,235); compose.test.ts is the lasting coverage.
 4. **T-02-67 / T-02-76 / review WR-01 (open):** a watermark already stored in the future is never lowered (run.ts:297-299). Latent; the README NTP requirement lowers the likelihood.
 5. **T-02-23 / review WR-04:** any pinned mailbox is treated as Bridge (mailbox-batch.ts:195-197), so a pinned non-Bridge server would be trusted for `pm:` keys. WR-04 awaits human verification.
@@ -230,6 +230,7 @@ These do not change any status. Each declared mitigation is present; the notes r
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-07 | 103 (83 mitigate, 20 accept; register rows incl. per-plan T-02-SC) | 103 | 0 | gsd-security-auditor ×2 (plans 02-01..10, 02-11..21), ASVS L1, block_on high |
+| 2026-10-07 | 103 | 103 | 0 | Follow-up: observations 1 and 2 closed by read-only-ingest.test.ts and the bridge-smoke insecure-vault step |
 
 ## Security Audit 2026-10-07
 | Metric | Count |

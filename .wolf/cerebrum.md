@@ -20,6 +20,7 @@
 - 2026-10-04: `.claude/`, `.wolf/`, `.gsd/`, `.planning/` and `CLAUDE.md` are code. Track and commit them like source; never exclude them from commits or leave them staged. Still scan them for secrets before committing.
 
 ## Key Learnings
+- [2026-10-07] Read-only ingest is pinned by apps/worker/test/read-only-ingest.test.ts: only apps/worker/src/spike/probe.ts may call ImapFlow write methods or open a mailbox without readOnly. A new write path elsewhere needs an owner decision, not an allowlist edit.
 
 - [2026-10-07] A smoke assertion must use a state reachable with the smoke's unroutable IMAP host (imap.smoke.invalid): mailbox_status ok is unreachable since Phase 2, so compose-smoke waits (inside SMOKE_TIMEOUT) for connecting or error per enabled mailbox. Right after "worker healthy" a row may be missing or at its insert default (recordMailboxSeen upserts before connect), so only the state at the deadline counts (G-02-14, 02-21).
 - [2026-10-07] Real local compose-smoke beside the live owner stack: `SMOKE_ALLOW_VOLUME_REMOVAL=yes COMPOSE_PROJECT_NAME=sift-smoke SIFT_DB_PORT=55433 scripts/compose-smoke.sh --down` (~2 min with a warm build cache). Only db publishes a port; it leaves sift-pgdata and the sift-* containers alone. Never swap the tracked script for a RED run while a real smoke run is still reading it.

@@ -1,345 +1,112 @@
 {
-  "session_id": "session-2026-10-07-2322",
-  "started": "2026-10-07T05:22:33.439Z",
+  "session_id": "session-2026-10-07-0056",
+  "started": "2026-10-07T06:56:32.692Z",
   "files_read": {
-    "/Users/samuel/.claude/gsd-core/workflows/execute-phase.md": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:22:40.507Z"
-    },
-    "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md": {
+    "/Users/samuel/dev/sift/apps/worker/src/spike/probe.ts": {
       "count": 1,
-      "tokens": 7342,
-      "first_read": "2026-10-07T05:24:56.909Z"
+      "tokens": 7000,
+      "first_read": "2026-10-07T06:59:15.523Z"
     },
-    "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:24:57.376Z"
-    },
-    "/Users/samuel/.claude/gsd-core/templates/summary.md": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:25:00.837Z"
-    },
-    "/Users/samuel/.claude/gsd-core/references/tdd.md": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:25:01.322Z"
-    },
-    "/Users/samuel/.claude/gsd-core/references/worktree-path-safety.md": {
-      "count": 3,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:25:01.743Z"
-    },
-    "/Users/samuel/.claude/gsd-core/references/checkpoints.md": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:25:09.269Z"
-    },
-    "/Users/samuel/.claude/gsd-core/references/executor-examples.md": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:25:09.504Z"
-    },
-    "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/cerebrum.md": {
+    "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-probe.ts": {
       "count": 1,
-      "tokens": 0,
-      "first_read": "2026-10-07T05:25:17.333Z"
+      "tokens": 3200,
+      "first_read": "2026-10-07T06:59:19.465Z"
     },
-    "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md": {
-      "count": 1,
-      "tokens": 10698,
-      "first_read": "2026-10-07T05:25:17.857Z"
-    },
-    "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/user-facing-text.test.ts": {
-      "count": 1,
-      "tokens": 2968,
-      "first_read": "2026-10-07T05:25:21.770Z"
-    },
-    "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/live-ingest-record.test.ts": {
-      "count": 1,
-      "tokens": 1123,
-      "first_read": "2026-10-07T05:27:36.998Z"
-    },
-    "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/spike-findings.test.ts": {
-      "count": 1,
-      "tokens": 1314,
-      "first_read": "2026-10-07T05:27:37.701Z"
-    },
-    "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/support/privacy-scan.ts": {
-      "count": 1,
-      "tokens": 806,
-      "first_read": "2026-10-07T05:27:38.230Z"
-    },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-PLAN.md": {
+    "/Users/samuel/dev/sift/apps/worker/test/bridge-probe.test.ts": {
       "count": 2,
-      "tokens": 5297,
-      "first_read": "2026-10-07T06:10:12.476Z"
+      "tokens": 7000,
+      "first_read": "2026-10-07T06:59:31.262Z"
     },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-10-07T06:10:19.948Z"
-    },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md": {
-      "count": 2,
-      "tokens": 3216,
-      "first_read": "2026-10-07T06:35:28.602Z"
-    },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-FIX.md": {
+    "/Users/samuel/dev/sift/apps/worker/src/imap/connect.ts": {
       "count": 1,
-      "tokens": 2861,
-      "first_read": "2026-10-07T06:35:29.210Z"
+      "tokens": 2500,
+      "first_read": "2026-10-07T06:59:36.342Z"
     },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-DISPOSITION.md": {
+    "/Users/samuel/dev/sift/apps/worker/src/imap/capture.ts": {
       "count": 1,
-      "tokens": 0,
-      "first_read": "2026-10-07T06:35:29.755Z"
+      "tokens": 2600,
+      "first_read": "2026-10-07T06:59:37.127Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/imap/pin.ts": {
+      "count": 1,
+      "tokens": 420,
+      "first_read": "2026-10-07T06:59:37.266Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/test/imap-capture.test.ts": {
+      "count": 1,
+      "tokens": 2197,
+      "first_read": "2026-10-07T06:59:45.793Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/test/imap-connect.test.ts": {
+      "count": 1,
+      "tokens": 3648,
+      "first_read": "2026-10-07T06:59:56.851Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts": {
+      "count": 1,
+      "tokens": 4766,
+      "first_read": "2026-10-07T07:00:08.368Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/test/mailbox-batch.test.ts": {
+      "count": 1,
+      "tokens": 4529,
+      "first_read": "2026-10-07T07:00:22.477Z"
     },
     "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts": {
       "count": 1,
       "tokens": 7084,
-      "first_read": "2026-10-07T06:35:51.985Z"
+      "first_read": "2026-10-07T07:00:29.314Z"
+    },
+    "/Users/samuel/dev/sift/packages/db/src/lock.ts": {
+      "count": 1,
+      "tokens": 1700,
+      "first_read": "2026-10-07T07:00:36.561Z"
+    },
+    "/Users/samuel/dev/sift/packages/db/test/lock.test.ts": {
+      "count": 1,
+      "tokens": 3000,
+      "first_read": "2026-10-07T07:00:42.169Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-trust.ts": {
+      "count": 1,
+      "tokens": 1485,
+      "first_read": "2026-10-07T07:00:57.240Z"
     },
     "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts": {
       "count": 1,
       "tokens": 3586,
-      "first_read": "2026-10-07T06:36:11.699Z"
+      "first_read": "2026-10-07T07:01:25.782Z"
     },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-VERIFICATION.md": {
+    "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts": {
       "count": 1,
-      "tokens": 7870,
-      "first_read": "2026-10-07T06:43:36.897Z"
+      "tokens": 3015,
+      "first_read": "2026-10-07T07:01:52.746Z"
     },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-UAT.md": {
+    "/Users/samuel/dev/sift/scripts/compose-smoke.sh": {
       "count": 1,
-      "tokens": 0,
-      "first_read": "2026-10-07T06:43:37.453Z"
+      "tokens": 3300,
+      "first_read": "2026-10-07T07:03:19.090Z"
     },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md": {
+    "/Users/samuel/dev/sift/apps/worker/test/compose-smoke.test.ts": {
       "count": 1,
-      "tokens": 7342,
-      "first_read": "2026-10-07T06:43:40.830Z"
-    },
-    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md": {
-      "count": 1,
-      "tokens": 3233,
-      "first_read": "2026-10-07T06:43:45.167Z"
+      "tokens": 6700,
+      "first_read": "2026-10-07T07:03:34.851Z"
     }
   },
   "files_written": [
     {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 114,
-      "at": "2026-10-07T05:25:48.138Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 24,
-      "at": "2026-10-07T05:25:52.094Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 85,
-      "at": "2026-10-07T05:25:53.893Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 21,
-      "at": "2026-10-07T05:25:55.179Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 24,
-      "at": "2026-10-07T05:25:56.694Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 49,
-      "at": "2026-10-07T05:25:58.087Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 40,
-      "at": "2026-10-07T05:26:02.376Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 110,
-      "at": "2026-10-07T05:26:04.853Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 81,
-      "at": "2026-10-07T05:26:24.053Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 253,
-      "at": "2026-10-07T05:26:26.805Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 20,
-      "at": "2026-10-07T05:26:28.070Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 17,
-      "at": "2026-10-07T05:26:29.272Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
-      "action": "edit",
-      "tokens": 102,
-      "at": "2026-10-07T05:26:31.752Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/user-facing-text.test.ts",
-      "action": "edit",
-      "tokens": 482,
-      "at": "2026-10-07T05:26:54.002Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/spike-findings.test.ts",
-      "action": "edit",
-      "tokens": 102,
-      "at": "2026-10-07T05:27:47.750Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/live-ingest-record.test.ts",
-      "action": "edit",
-      "tokens": 82,
-      "at": "2026-10-07T05:27:50.010Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md",
-      "action": "edit",
-      "tokens": 180,
-      "at": "2026-10-07T05:28:14.210Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md",
-      "action": "edit",
-      "tokens": 84,
-      "at": "2026-10-07T05:29:18.499Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
-      "action": "edit",
-      "tokens": 42,
-      "at": "2026-10-07T05:30:31.418Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
-      "action": "edit",
-      "tokens": 54,
-      "at": "2026-10-07T05:30:33.226Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
-      "action": "edit",
-      "tokens": 55,
-      "at": "2026-10-07T05:30:35.130Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
-      "action": "edit",
-      "tokens": 28,
-      "at": "2026-10-07T05:30:36.658Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
-      "action": "edit",
-      "tokens": 32,
-      "at": "2026-10-07T05:30:37.884Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
-      "action": "edit",
-      "tokens": 59,
-      "at": "2026-10-07T05:30:39.662Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/cerebrum.md",
-      "action": "edit",
-      "tokens": 201,
-      "at": "2026-10-07T05:30:46.481Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md",
+      "file": "/Users/samuel/dev/sift/apps/worker/test/read-only-ingest.test.ts",
       "action": "create",
-      "tokens": 4222,
-      "at": "2026-10-07T05:55:19.631Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
-      "action": "edit",
-      "tokens": 124,
-      "at": "2026-10-07T06:11:34.474Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
-      "action": "edit",
-      "tokens": 56,
-      "at": "2026-10-07T06:11:34.880Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
-      "action": "edit",
-      "tokens": 397,
-      "at": "2026-10-07T06:11:35.329Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/apps/worker/test/compose-smoke.test.ts",
-      "action": "edit",
-      "tokens": 1369,
-      "at": "2026-10-07T06:12:45.749Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md",
-      "action": "create",
-      "tokens": 3695,
-      "at": "2026-10-07T06:32:37.193Z"
-    },
-    {
-      "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md",
-      "action": "create",
-      "tokens": 3675,
-      "at": "2026-10-07T06:42:22.566Z"
+      "tokens": 746,
+      "at": "2026-10-07T07:11:30.737Z"
     }
   ],
   "edit_counts": {
-    ".claude/worktrees/agent-a8cb7173010bb903a/README.md": 13,
-    ".claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/user-facing-text.test.ts": 1,
-    ".claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/spike-findings.test.ts": 1,
-    ".claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/live-ingest-record.test.ts": 1,
-    ".claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md": 1,
-    ".claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md": 1,
-    ".claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md": 6,
-    ".claude/worktrees/agent-a8cb7173010bb903a/.wolf/cerebrum.md": 1,
-    ".claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md": 1,
-    "scripts/compose-smoke.sh": 3,
-    "apps/worker/test/compose-smoke.test.ts": 1,
-    ".planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md": 1,
-    ".planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md": 1
+    "apps/worker/test/read-only-ingest.test.ts": 1
   },
-  "anatomy_hits": 14,
-  "anatomy_misses": 11,
-  "repeated_reads_warned": 11,
+  "anatomy_hits": 18,
+  "anatomy_misses": 0,
+  "repeated_reads_warned": 1,
   "cerebrum_warnings": 0,
-  "stop_count": 11
+  "stop_count": 4
 }

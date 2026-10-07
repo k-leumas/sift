@@ -972,3 +972,13 @@
 | 00:43 | Session end: 32 writes across 13 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 21 reads | ~64468 tok |
 | 00:50 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-VERIFICATION.md | — | ~8420 |
 | 00:50 | gsd-verifier re-verified phase 02 after 02-20/02-21: human_needed, 194/195 (02-17 #3 superseded by Proton-only README; README read-through open) | .planning/phases/02-bridge-spike-and-imap-ingest/02-VERIFICATION.md | updated | ~60k |
+| 00:51 | Session end: 33 writes across 14 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 25 reads | ~89640 tok |
+
+## Session: 2026-10-07 00:56
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 01:08 | gsd-secure-phase 02: 2 auditors verified 103 threats, 0 open; wrote 02-SECURITY.md (faba353) | .planning/phases/02-bridge-spike-and-imap-ingest/02-SECURITY.md | SECURED | ~60k |
+| 01:11 | Created apps/worker/test/read-only-ingest.test.ts | — | ~746 |
+| 01:16 | Closed 02 security test gaps: read-only-ingest.test.ts + bridge-smoke insecure-vault step (smoke run OK) | apps/worker/test/read-only-ingest.test.ts, scripts/bridge-smoke.sh, 02-SECURITY.md | 8a96221, 45ac0f4 | ~25k |
+| 01:16 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 18 reads | ~68476 tok |

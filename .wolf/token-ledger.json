@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-10-03T19:14:49.478Z",
   "lifetime": {
-    "total_tokens_estimated": 18517831,
-    "total_reads": 2819,
-    "total_writes": 7735,
-    "total_sessions": 14,
-    "anatomy_hits": 1789,
-    "anatomy_misses": 994,
-    "repeated_reads_blocked": 1861,
-    "estimated_savings_vs_bare_cli": 2730897
+    "total_tokens_estimated": 18811407,
+    "total_reads": 2898,
+    "total_writes": 7769,
+    "total_sessions": 15,
+    "anatomy_hits": 1857,
+    "anatomy_misses": 1005,
+    "repeated_reads_blocked": 1875,
+    "estimated_savings_vs_bare_cli": 2774010
   },
   "sessions": [
     {
@@ -57685,6 +57685,716 @@
         "writes_count": 32,
         "repeated_reads_blocked": 8,
         "anatomy_lookups": 11
+      }
+    },
+    {
+      "id": "session-2026-10-07-2322",
+      "started": "2026-10-07T05:22:33.439Z",
+      "ended": "2026-10-07T06:51:27.007Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-phase.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md",
+          "tokens_estimated": 7342,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/templates/summary.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/tdd.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/worktree-path-safety.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/checkpoints.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/executor-examples.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/cerebrum.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 10698,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/user-facing-text.test.ts",
+          "tokens_estimated": 2968,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/live-ingest-record.test.ts",
+          "tokens_estimated": 1123,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/spike-findings.test.ts",
+          "tokens_estimated": 1314,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/support/privacy-scan.ts",
+          "tokens_estimated": 806,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-PLAN.md",
+          "tokens_estimated": 5297,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md",
+          "tokens_estimated": 3216,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-FIX.md",
+          "tokens_estimated": 2861,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-DISPOSITION.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts",
+          "tokens_estimated": 7084,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts",
+          "tokens_estimated": 3586,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-VERIFICATION.md",
+          "tokens_estimated": 7870,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-UAT.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md",
+          "tokens_estimated": 7342,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md",
+          "tokens_estimated": 3233,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 114,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 85,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 21,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 24,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 49,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 40,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 110,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 81,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 253,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 20,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 17,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/README.md",
+          "tokens_estimated": 102,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/user-facing-text.test.ts",
+          "tokens_estimated": 482,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/spike-findings.test.ts",
+          "tokens_estimated": 102,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/live-ingest-record.test.ts",
+          "tokens_estimated": 82,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md",
+          "tokens_estimated": 180,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md",
+          "tokens_estimated": 84,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
+          "tokens_estimated": 42,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
+          "tokens_estimated": 54,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
+          "tokens_estimated": 55,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
+          "tokens_estimated": 32,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md",
+          "tokens_estimated": 59,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.wolf/cerebrum.md",
+          "tokens_estimated": 201,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md",
+          "tokens_estimated": 4222,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
+          "tokens_estimated": 124,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
+          "tokens_estimated": 56,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
+          "tokens_estimated": 397,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/compose-smoke.test.ts",
+          "tokens_estimated": 1369,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md",
+          "tokens_estimated": 3695,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md",
+          "tokens_estimated": 3675,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-VERIFICATION.md",
+          "tokens_estimated": 9021,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 64740,
+        "output_tokens_estimated": 24900,
+        "reads_count": 25,
+        "writes_count": 33,
+        "repeated_reads_blocked": 11,
+        "anatomy_lookups": 14
+      }
+    },
+    {
+      "id": "session-2026-10-07-0056",
+      "started": "2026-10-07T06:56:32.692Z",
+      "ended": "2026-10-07T07:06:00.150Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/spike/probe.ts",
+          "tokens_estimated": 7000,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-probe.ts",
+          "tokens_estimated": 3200,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/bridge-probe.test.ts",
+          "tokens_estimated": 7000,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/connect.ts",
+          "tokens_estimated": 2500,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/capture.ts",
+          "tokens_estimated": 2600,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/pin.ts",
+          "tokens_estimated": 420,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-capture.test.ts",
+          "tokens_estimated": 2197,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-connect.test.ts",
+          "tokens_estimated": 3648,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts",
+          "tokens_estimated": 4766,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/mailbox-batch.test.ts",
+          "tokens_estimated": 4529,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts",
+          "tokens_estimated": 7084,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/lock.ts",
+          "tokens_estimated": 1700,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/lock.test.ts",
+          "tokens_estimated": 3000,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-trust.ts",
+          "tokens_estimated": 1485,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts",
+          "tokens_estimated": 3586,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts",
+          "tokens_estimated": 3015,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
+          "tokens_estimated": 3300,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/compose-smoke.test.ts",
+          "tokens_estimated": 6700,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 67730,
+        "output_tokens_estimated": 0,
+        "reads_count": 18,
+        "writes_count": 0,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 18
+      }
+    },
+    {
+      "id": "session-2026-10-07-0056",
+      "started": "2026-10-07T06:56:32.692Z",
+      "ended": "2026-10-07T07:08:59.609Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/spike/probe.ts",
+          "tokens_estimated": 7000,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-probe.ts",
+          "tokens_estimated": 3200,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/bridge-probe.test.ts",
+          "tokens_estimated": 7000,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/connect.ts",
+          "tokens_estimated": 2500,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/capture.ts",
+          "tokens_estimated": 2600,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/pin.ts",
+          "tokens_estimated": 420,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-capture.test.ts",
+          "tokens_estimated": 2197,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-connect.test.ts",
+          "tokens_estimated": 3648,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts",
+          "tokens_estimated": 4766,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/mailbox-batch.test.ts",
+          "tokens_estimated": 4529,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts",
+          "tokens_estimated": 7084,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/lock.ts",
+          "tokens_estimated": 1700,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/lock.test.ts",
+          "tokens_estimated": 3000,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-trust.ts",
+          "tokens_estimated": 1485,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts",
+          "tokens_estimated": 3586,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts",
+          "tokens_estimated": 3015,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
+          "tokens_estimated": 3300,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/compose-smoke.test.ts",
+          "tokens_estimated": 6700,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 67730,
+        "output_tokens_estimated": 0,
+        "reads_count": 18,
+        "writes_count": 0,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 18
+      }
+    },
+    {
+      "id": "session-2026-10-07-0056",
+      "started": "2026-10-07T06:56:32.692Z",
+      "ended": "2026-10-07T07:16:13.262Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/spike/probe.ts",
+          "tokens_estimated": 7000,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-probe.ts",
+          "tokens_estimated": 3200,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/bridge-probe.test.ts",
+          "tokens_estimated": 7000,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/connect.ts",
+          "tokens_estimated": 2500,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/capture.ts",
+          "tokens_estimated": 2600,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/pin.ts",
+          "tokens_estimated": 420,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-capture.test.ts",
+          "tokens_estimated": 2197,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-connect.test.ts",
+          "tokens_estimated": 3648,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts",
+          "tokens_estimated": 4766,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/mailbox-batch.test.ts",
+          "tokens_estimated": 4529,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts",
+          "tokens_estimated": 7084,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/lock.ts",
+          "tokens_estimated": 1700,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/lock.test.ts",
+          "tokens_estimated": 3000,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-trust.ts",
+          "tokens_estimated": 1485,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts",
+          "tokens_estimated": 3586,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts",
+          "tokens_estimated": 3015,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/compose-smoke.sh",
+          "tokens_estimated": 3300,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/compose-smoke.test.ts",
+          "tokens_estimated": 6700,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/read-only-ingest.test.ts",
+          "tokens_estimated": 746,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 67730,
+        "output_tokens_estimated": 746,
+        "reads_count": 18,
+        "writes_count": 1,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 18
       }
     }
   ],
