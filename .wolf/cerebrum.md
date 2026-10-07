@@ -21,6 +21,10 @@
 
 ## Key Learnings
 
+- [2026-10-07] A smoke assertion must use a state reachable with the smoke's unroutable IMAP host (imap.smoke.invalid): mailbox_status ok is unreachable since Phase 2, so compose-smoke waits (inside SMOKE_TIMEOUT) for connecting or error per enabled mailbox. Right after "worker healthy" a row may be missing or at its insert default (recordMailboxSeen upserts before connect), so only the state at the deadline counts (G-02-14, 02-21).
+- [2026-10-07] Real local compose-smoke beside the live owner stack: `SMOKE_ALLOW_VOLUME_REMOVAL=yes COMPOSE_PROJECT_NAME=sift-smoke SIFT_DB_PORT=55433 scripts/compose-smoke.sh --down` (~2 min with a warm build cache). Only db publishes a port; it leaves sift-pgdata and the sift-* containers alone. Never swap the tracked script for a RED run while a real smoke run is still reading it.
+- [2026-10-07] compose-smoke.test.ts `runStack()` emulates a healthy stack (docker shim answers ps/inspect/compose exec) and logs every psql SQL to sql.log. Biome's noTemplateCurlyInString warns on shell `${...}` inside TS strings: write shims without braces (`cut -d= -f3`, default via `[ -n "$X" ] || X=0`).
+
 - [2026-10-06] `docker compose logs <svc>` of a container that was started again (not recreated) still shows the earlier runs' lines; use `--timestamps` or `--since` before blaming the current run (02-19: a stale setup "not writable" line).
 - [2026-10-06] During Bridge's initial sync INBOX uidNext grows ~400/min and new UIDs carry OLD INTERNALDATEs; the worker stores them as historical rows (no body, not eligible). uidNext growth is useless as a new-mail signal mid-sync; use `sift bridge probe <slug> --scan-limit 0 --sample 200` and count newest-sample internalDate >= send time.
 - [2026-10-06] To start the worker without touching Bridge: `docker compose up -d --build worker` (recreates setup + worker only).

@@ -956,3 +956,10 @@
 | 23:55 | Created .claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md | — | ~3941 |
 | 00:08 | 02-20 executed (README Proton-only scope + NTP clock, D-84 backfill value 3); owner config set to 3 | README.md, apps/worker/test/*, 02-SPIKE-FINDINGS.md, 02-LIVE-INGEST.md, config/config.yaml (ignored) | merged 0cd22c2 | ~25k |
 | 00:08 | cleanup-wave blocked by OpenWolf anatomy noise in main; reset + remerge (bug-188); post-merge test flake rerun passed (bug-189) | .wolf/anatomy.md, .wolf/buglog.json | ok | ~5k |
+| 00:10 | Session end: 26 writes across 9 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 15 reads | ~36111 tok |
+| 00:11 | Edited scripts/compose-smoke.sh | modified IMAP() | ~116 |
+| 00:11 | Edited scripts/compose-smoke.sh | 2→3 lines | ~52 |
+| 00:11 | Edited scripts/compose-smoke.sh | expanded (+24 lines) | ~371 |
+| 00:12 | Edited apps/worker/test/compose-smoke.test.ts | added nullish coalescing | ~1369 |
+| 00:18 | 02-21 Tasks 1-2: compose-smoke asserts connecting/error status per enabled mailbox (no ok); real local smoke OK; emulated-stack tests with RED vs 758185b | scripts/compose-smoke.sh, apps/worker/test/compose-smoke.test.ts | 36b51e0, e84c7a3; owner push pending | ~40k |
+| 00:19 | Session end: 30 writes across 11 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 16 reads | ~38057 tok |

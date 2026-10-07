@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T05:14:45.813Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T06:12:45.708Z
 > Files: 309 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
@@ -268,7 +268,7 @@
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2379 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~623 tok)
-- `compose-smoke.test.ts` — runs compose-smoke.sh in a temp repo copy with docker/uname/id/sudo shims: CR-01 modes, WR-01 volume, CR-02 backup dir, WR-09 docker-state guard, IN-08 own files/image (~3500 tok)
+- `compose-smoke.test.ts` — runs compose-smoke.sh in a temp repo copy with docker/uname/id/sudo shims: CR-01 modes, WR-01 volume, CR-02 backup dir, WR-09 docker-state guard, IN-08 own files/image; runStack emulates a healthy stack and logs psql SQL for the G-02-14 status wait (pass, missing row, no ok query) (~6700 tok)
 - `compose.test.ts` — A long-syntax volume entry (`type: bind`, `source`, `target`, ...). (~4554 tok)
 - `dependencies.test.ts` — Supply-chain checks for the worker's npm dependencies (D-77): owner-approved (~1733 tok)
 - `drift.test.ts` — spawns sift worker on a drifted config (personal port 1144 + mailbox side): exit 1, differences, setup command, no status rows (~1218 tok)
@@ -440,6 +440,6 @@
 ## scripts/
 
 - `bridge-smoke.sh` — Bridge image smoke test: build bridge/Dockerfile, then on throwaway volumes (~1495 tok)
-- `compose-smoke.sh` — Full-stack smoke test. Own volume <project>-pgdata-smoke, own files in .smoke/<project>/ (.env via --env-file, .env.mailboxes, config with imap.smoke.invalid, backups), image sift-smoke:local; refuses projects with non-smoke containers (~2000 tok)
+- `compose-smoke.sh` — Full-stack smoke test. Own volume <project>-pgdata-smoke, own files in .smoke/<project>/ (.env via --env-file, .env.mailboxes, config with imap.smoke.invalid, backups), image sift-smoke:local; refuses projects with non-smoke containers; final checks: migrations, mailboxes registered/enabled, then waits (inside SMOKE_TIMEOUT) for a connecting or error status row per enabled mailbox (G-02-14; never ok) (~3300 tok)
 - `pg-dump-via-compose.sh` — SIFT_PG_DUMP wrapper: pg_dump 18 inside the Compose db container, --dbname host rewritten to db:5432 (scram, not loopback trust) (~250 tok)
 - `test-imap.sh` — Dovecot IMAP server for tests: a real STARTTLS server with a self-signed (~1116 tok)

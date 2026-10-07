@@ -3166,6 +3166,25 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-10-07T06:08:49Z"
+    },
+    {
+      "id": "bug-190",
+      "timestamp": "2026-10-07T06:20:00Z",
+      "error_message": "ci compose-smoke job fails on main: compose-smoke: FAILED: mailboxes ok: expected >= 1, got 0 (G-02-14)",
+      "file": "scripts/compose-smoke.sh",
+      "root_cause": "Phase 1 assertion (one mailbox_status row in state ok) kept after Phase 2 gave the worker real IMAP; the smoke config rewrites every host to imap.smoke.invalid, so the worker gets ENOTFOUND and can never reach ok",
+      "fix": "Replaced the ok count with a mailboxes-enabled floor and a SMOKE_TIMEOUT-bounded wait until every enabled mailbox has a connecting or error status row; emulated-stack tests in compose-smoke.test.ts (RED against the old script)",
+      "tags": [
+        "ci",
+        "compose-smoke",
+        "mailbox_status",
+        "smoke-test",
+        "unroutable-host",
+        "g-02-14"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T06:20:00Z"
     }
   ]
 }
