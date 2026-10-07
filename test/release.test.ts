@@ -1,127 +1,33 @@
-import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { chmodSync, existsSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import {
+  commit,
+  git,
+  PACKAGE_FILES,
+  type Repo,
+  readWork,
+  release,
+  releaseRepos,
+  remoteRefs,
+  snapshot,
+  writeWork,
+} from './support/release-repo.ts';
 
-const REPO_ROOT = path.resolve(import.meta.dirname, '..');
-const RELEASE = path.join(REPO_ROOT, 'scripts/release.ts');
+const repos = releaseRepos();
+beforeAll(() => repos.setup());
+afterEach(() => repos.reset());
+afterAll(() => repos.cleanup());
 
-/** The four package.json files the throwaway repos start from (copied from this repo). */
-const PACKAGE_FILES = [
-  'package.json',
-  'apps/worker/package.json',
-  'packages/core/package.json',
-  'packages/db/package.json',
-] as const;
-
-interface Repo {
-  /** The git work tree. */
-  work: string;
-  /** Sibling dir with the empty global gitconfig and the bare remote. */
-  aux: string;
-  remote: string;
-  env: NodeJS.ProcessEnv;
-}
-
-const tempDirs: string[] = [];
-
-afterEach(() => {
-  for (const dir of tempDirs.splice(0)) rmSync(dir, { recursive: true, force: true });
-});
-
-/** Child env without the owner's GIT_* variables, global config, signing or hooksPath. */
-function isolatedEnv(aux: string): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    if (!key.startsWith('GIT_')) env[key] = value;
-  }
-  return {
-    ...env,
-    GIT_CONFIG_GLOBAL: path.join(aux, 'gitconfig'),
-    GIT_CONFIG_NOSYSTEM: '1',
-    GIT_AUTHOR_NAME: 'Release Test',
-    GIT_AUTHOR_EMAIL: 'release-test@example.invalid',
-    GIT_COMMITTER_NAME: 'Release Test',
-    GIT_COMMITTER_EMAIL: 'release-test@example.invalid',
-  };
-}
-
-function git(repo: Repo, ...args: string[]): string {
-  return execFileSync('git', args, {
-    cwd: repo.work,
-    env: repo.env,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-}
-
-function release(repo: Repo, ...args: string[]) {
-  const result = spawnSync(process.execPath, [RELEASE, ...args], {
-    cwd: repo.work,
-    env: repo.env,
-    encoding: 'utf8',
-  });
-  return { status: result.status, stdout: result.stdout, stderr: result.stderr };
-}
-
-function readWork(repo: Repo, file: string): string {
-  return readFileSync(path.join(repo.work, file), 'utf8');
-}
-
-function writeWork(repo: Repo, file: string, text: string): void {
-  writeFileSync(path.join(repo.work, file), text);
-}
-
-/** A repo on main with the four package.json files, `chore: init`, a feat and a fix. */
-function makeRepo(): Repo {
-  const dir = mkdtempSync(path.join(os.tmpdir(), 'sift-release-'));
-  tempDirs.push(dir);
-  const work = path.join(dir, 'work');
-  const aux = path.join(dir, 'aux');
-  mkdirSync(work);
-  mkdirSync(aux);
-  writeFileSync(path.join(aux, 'gitconfig'), '');
-  const remote = path.join(aux, 'remote.git');
-  const repo: Repo = { work, aux, remote, env: isolatedEnv(aux) };
-  execFileSync('git', ['init', '--bare', '-q', remote], { env: repo.env });
-
-  for (const file of PACKAGE_FILES) {
-    mkdirSync(path.dirname(path.join(work, file)), { recursive: true });
-    writeWork(repo, file, readFileSync(path.join(REPO_ROOT, file), 'utf8'));
-  }
-  git(repo, 'init', '-q', '-b', 'main');
-  git(repo, 'remote', 'add', 'origin', remote);
-  git(repo, 'add', '--', ...PACKAGE_FILES);
-  git(repo, 'commit', '-q', '-m', 'chore: init');
-  commit(repo, 'feat(core): add alpha');
-  commit(repo, 'fix: repair beta');
-  return repo;
-}
-
-function commit(repo: Repo, subject: string, body?: string): void {
-  const message = body === undefined ? ['-m', subject] : ['-m', subject, '-m', body];
-  git(repo, 'commit', '-q', '--allow-empty', ...message);
-}
-
-/** HEAD, porcelain status, tags and every package.json + CHANGELOG.md text. */
-function snapshot(repo: Repo) {
-  return {
-    head: git(repo, 'rev-parse', 'HEAD').trim(),
-    status: git(repo, 'status', '--porcelain', '--untracked-files=all'),
-    tags: git(repo, 'tag', '-l'),
-    files: Object.fromEntries(
-      [...PACKAGE_FILES, 'CHANGELOG.md'].map((file) => [
-        file,
-        existsSync(path.join(repo.work, file)) ? readWork(repo, file) : null,
-      ]),
-    ),
-  };
+function failingPreCommitHook(repo: Repo, script: string): void {
+  const hook = path.join(repo.work, '.git/hooks/pre-commit');
+  writeFileSync(hook, `#!/bin/sh\n${script}\n`);
+  chmodSync(hook, 0o755);
 }
 
 describe('pnpm release: first release (LD-3, LD-4)', () => {
   it('dry run computes v0.1.0 and changes nothing', () => {
-    const repo = makeRepo();
+    const repo = repos.fresh();
     const before = snapshot(repo);
 
     const { status, stdout, stderr } = release(repo, '--dry-run');
@@ -137,7 +43,7 @@ describe('pnpm release: first release (LD-3, LD-4)', () => {
   });
 
   it('first release commits and tags v0.1.0 without pushing', () => {
-    const repo = makeRepo();
+    const repo = repos.fresh();
     const originals = Object.fromEntries(PACKAGE_FILES.map((f) => [f, readWork(repo, f)]));
 
     const { status, stdout, stderr } = release(repo);
@@ -170,15 +76,167 @@ describe('pnpm release: first release (LD-3, LD-4)', () => {
     expect(changelog.startsWith('# Changelog')).toBe(true);
     expect(changelog).toMatch(/^## v0\.1\.0 \(\d{4}-\d{2}-\d{2}\)$/m);
     expect(git(repo, 'status', '--porcelain', '--untracked-files=all')).toBe('');
-    expect(
-      execFileSync('git', ['ls-remote', repo.remote], { env: repo.env, encoding: 'utf8' }),
-    ).toBe('');
+    expect(remoteRefs(repo)).toBe('');
   });
 
   it('rejects an unknown flag with exit 2 and the usage line', () => {
-    const repo = makeRepo();
+    const repo = repos.fresh();
     const { status, stderr } = release(repo, '--bogus');
     expect(status).toBe(2);
     expect(stderr).toContain('Usage: pnpm release');
+  });
+});
+
+describe('pnpm release: later releases (LD-1, LD-2)', () => {
+  it('releases v0.2.0 after a feat, above v0.1.0 in CHANGELOG.md', () => {
+    const repo = repos.released();
+    commit(repo, 'feat(db): add gamma');
+
+    const { status, stderr } = release(repo);
+
+    expect(stderr).toBe('');
+    expect(status).toBe(0);
+    expect(git(repo, 'log', '-1', '--format=%s').trim()).toBe('chore(release): v0.2.0');
+    expect(git(repo, 'cat-file', '-t', 'v0.2.0').trim()).toBe('tag');
+    const changelog = readWork(repo, 'CHANGELOG.md');
+    expect(changelog).toContain('**db:** add gamma');
+    expect(changelog.indexOf('## v0.2.0')).toBeGreaterThan(-1);
+    expect(changelog.indexOf('## v0.2.0')).toBeLessThan(changelog.indexOf('## v0.1.0'));
+    expect(JSON.parse(readWork(repo, 'packages/db/package.json')).version).toBe('0.2.0');
+    expect(remoteRefs(repo)).toBe('');
+  });
+
+  it('releases v0.1.1 after a fix', () => {
+    const repo = repos.released();
+    commit(repo, 'fix: mend delta');
+
+    const { status, stderr } = release(repo);
+
+    expect(stderr).toBe('');
+    expect(status).toBe(0);
+    expect(git(repo, 'tag', '-l', 'v0.1.1').trim()).toBe('v0.1.1');
+    expect(JSON.parse(readWork(repo, 'package.json')).version).toBe('0.1.1');
+  });
+
+  it('refuses with no releasable commits since the last tag, in both modes', () => {
+    const repo = repos.released();
+    const before = snapshot(repo);
+
+    const real = release(repo);
+    expect(real.status).toBe(1);
+    expect(real.stderr).toContain('no releasable commits since v0.1.0');
+    expect(snapshot(repo)).toEqual(before);
+
+    const dry = release(repo, '--dry-run');
+    expect(dry.status).toBe(1);
+    expect(dry.stderr).toContain('no releasable commits since v0.1.0');
+    expect(snapshot(repo)).toEqual(before);
+  });
+});
+
+describe('pnpm release: guards and rollback (LD-4)', () => {
+  it('refuses on an untracked file', () => {
+    const repo = repos.released();
+    commit(repo, 'feat: more');
+    writeWork(repo, 'notes.txt', 'scratch\n');
+    const before = snapshot(repo);
+
+    const { status, stderr } = release(repo);
+
+    expect(status).toBe(1);
+    expect(stderr).toContain('clean');
+    expect(stderr).toContain('notes.txt');
+    expect(snapshot(repo)).toEqual(before);
+  });
+
+  it('refuses on a modified tracked file', () => {
+    const repo = repos.released();
+    commit(repo, 'feat: more');
+    writeWork(repo, 'package.json', `${readWork(repo, 'package.json')}\n`);
+    const before = snapshot(repo);
+
+    const { status, stderr } = release(repo);
+
+    expect(status).toBe(1);
+    expect(stderr).toContain('clean');
+    expect(snapshot(repo)).toEqual(before);
+  });
+
+  it('refuses off main and names main', () => {
+    const repo = repos.released();
+    git(repo, 'switch', '-q', '-c', 'topic');
+    commit(repo, 'feat: on topic');
+    const before = snapshot(repo);
+
+    const { status, stderr } = release(repo);
+
+    expect(status).toBe(1);
+    expect(stderr).toContain('main');
+    expect(stderr).toContain('topic');
+    expect(snapshot(repo)).toEqual(before);
+  });
+
+  it('refuses when the computed tag already exists and writes nothing', () => {
+    const repo = repos.released();
+    git(repo, 'switch', '-q', '-c', 'side');
+    commit(repo, 'feat: side work');
+    git(repo, 'tag', 'v0.2.0');
+    git(repo, 'switch', '-q', 'main');
+    commit(repo, 'feat: main work');
+    const before = snapshot(repo);
+
+    const { status, stderr } = release(repo);
+
+    expect(status).toBe(1);
+    expect(stderr).toContain('v0.2.0 already exists');
+    expect(snapshot(repo)).toEqual(before);
+  });
+
+  it('rolls back files and index when the commit hook fails', () => {
+    const repo = repos.released();
+    commit(repo, 'feat: hooked');
+    failingPreCommitHook(repo, 'echo "hook says no" >&2\nexit 1');
+    const before = snapshot(repo);
+
+    const { status, stderr } = release(repo);
+
+    expect(status).toBe(1);
+    expect(stderr).toContain('hook says no');
+    expect(snapshot(repo)).toEqual(before);
+    expect(git(repo, 'diff', '--cached', '--name-only')).toBe('');
+  });
+
+  it('rolls back a first release, removing the new CHANGELOG.md', () => {
+    const repo = repos.fresh();
+    failingPreCommitHook(repo, 'exit 1');
+    const before = snapshot(repo);
+
+    const { status } = release(repo);
+
+    expect(status).toBe(1);
+    expect(snapshot(repo)).toEqual(before);
+    expect(existsSync(path.join(repo.work, 'CHANGELOG.md'))).toBe(false);
+  });
+
+  it('dry run on a dirty tree or off main still prints the plan and says it would refuse', () => {
+    const repo = repos.released();
+    commit(repo, 'feat: more');
+    writeWork(repo, 'notes.txt', 'scratch\n');
+
+    const dirty = release(repo, '--dry-run');
+    expect(dirty.status).toBe(0);
+    expect(dirty.stdout).toContain('Next release: v0.2.0 (after v0.1.0)');
+    expect(dirty.stdout).toContain('## v0.2.0 (');
+    expect(dirty.stderr).toContain('would refuse');
+    expect(dirty.stderr).toContain('clean');
+
+    rmSync(path.join(repo.work, 'notes.txt'));
+    git(repo, 'switch', '-q', '-c', 'topic');
+    const topic = release(repo, '--dry-run');
+    expect(topic.status).toBe(0);
+    expect(topic.stdout).toContain('Next release: v0.2.0');
+    expect(topic.stderr).toContain('would refuse');
+    expect(topic.stderr).toContain('main');
+    expect(git(repo, 'tag', '-l')).toBe('v0.1.0\n');
   });
 });

@@ -89,16 +89,29 @@ export function planRelease(input: {
   commits: readonly RawCommit[];
   date: string;
 }): ReleasePlan {
-  const parsed = input.commits.map(parseCommit);
-  if (input.lastTag !== null) {
-    throw new ReleaseRefusedError(`releases after ${input.lastTag} are not supported yet`);
+  // Merge commits never arrive: the wrapper logs with --no-merges.
+  const releasable = input.commits.map(parseCommit).filter((c) => !isReleaseCommit(c));
+  if (releasable.length === 0) {
+    const since = input.lastTag === null ? 'the first commit' : input.lastTag;
+    throw new ReleaseRefusedError(`no releasable commits since ${since}`);
   }
-  const version = FIRST_VERSION;
+  const version = input.lastTag === null ? FIRST_VERSION : bump(input.lastTag, releasable);
   return {
     version,
     tag: `v${version}`,
-    section: renderChangelogSection(version, input.date, parsed),
+    section: renderChangelogSection(version, input.date, releasable),
   };
+}
+
+/** LD-2: breaking = minor while major is 0 (major after), else feat = minor, else patch. */
+function bump(lastTag: string, commits: readonly ParsedCommit[]): string {
+  const triple = parseTag(lastTag);
+  if (triple === null) throw new ReleaseRefusedError(`${lastTag} is not a vX.Y.Z tag`);
+  const [major, minor, patch] = triple;
+  const minorBump = `${major}.${minor + 1}.0`;
+  if (commits.some((c) => c.breaking)) return major === 0 ? minorBump : `${major + 1}.0.0`;
+  if (commits.some((c) => c.type === 'feat')) return minorBump;
+  return `${major}.${minor}.${patch + 1}`;
 }
 
 function isReleaseCommit(commit: ParsedCommit): boolean {

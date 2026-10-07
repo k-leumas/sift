@@ -6,7 +6,7 @@
  * commit text or tag name ever reaches a shell.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import {
@@ -86,6 +86,73 @@ function readIfExists(file: string): string | null {
   return existsSync(file) ? readFileSync(file, 'utf8') : null;
 }
 
+/** True when the git call exits 0 (for checks whose failure is an answer, not an error). */
+function gitSucceeds(root: string, args: readonly string[]): boolean {
+  try {
+    git(root, args);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Why a real run must refuse: dirty tree, not on main, or the tag exists (LD-4). */
+function guardProblems(root: string, tag: string): string[] {
+  const problems: string[] = [];
+  const dirty = git(root, ['status', '--porcelain', '--untracked-files=all'])
+    .split('\n')
+    .filter((line) => line !== '');
+  if (dirty.length > 0) {
+    const more = dirty.length > 5 ? `, and ${dirty.length - 5} more` : '';
+    problems.push(
+      `the working tree must be clean; commit or remove: ${dirty.slice(0, 5).join(', ')}${more}`,
+    );
+  }
+  let branch: string;
+  try {
+    branch = git(root, ['symbolic-ref', '--quiet', '--short', 'HEAD']).trim();
+  } catch {
+    branch = 'detached HEAD';
+  }
+  if (branch !== 'main') problems.push(`releases run on main, not on ${branch}`);
+  if (gitSucceeds(root, ['rev-parse', '--quiet', '--verify', `refs/tags/${tag}`])) {
+    problems.push(`tag ${tag} already exists`);
+  }
+  return problems;
+}
+
+/**
+ * Write every package.json version and CHANGELOG.md, then make the one release
+ * commit with explicit pathspecs. If staging or the commit fails (a hook, say),
+ * put the files and the index back as they were: never leave a half release.
+ */
+function commitRelease(root: string, version: string, section: string, tag: string): void {
+  const packages = packageJsonFiles(root);
+  const paths = [...packages, CHANGELOG];
+  const originals = new Map(paths.map((file) => [file, readIfExists(path.join(root, file))]));
+
+  try {
+    for (const file of packages) {
+      writeFileSync(path.join(root, file), setPackageVersion(originals.get(file) ?? '', version));
+    }
+    writeFileSync(
+      path.join(root, CHANGELOG),
+      prependChangelog(originals.get(CHANGELOG) ?? null, section),
+    );
+    // CHANGELOG.md may be new: a commit pathspec rejects paths git does not know yet.
+    git(root, ['add', '--', ...paths]);
+    git(root, ['commit', '-m', `chore(release): ${tag}`, '--', ...paths]);
+  } catch (error) {
+    for (const [file, text] of originals) {
+      const full = path.join(root, file);
+      if (text === null) rmSync(full, { force: true });
+      else writeFileSync(full, text);
+    }
+    gitSucceeds(root, ['reset', '-q', '--', ...paths]);
+    throw error;
+  }
+}
+
 export function main(argv: readonly string[]): number {
   let dryRun: boolean;
   try {
@@ -108,23 +175,28 @@ export function main(argv: readonly string[]): number {
     const commits = readCommits(root, lastTag);
     const plan = planRelease({ lastTag, commits, date: localDate(new Date()) });
 
+    const problems = guardProblems(root, plan.tag);
+
     if (dryRun) {
       const after = lastTag === null ? 'first release, no v* tag' : `after ${lastTag}`;
       process.stdout.write(`Next release: ${plan.tag} (${after})\n\n${plan.section}`);
+      for (const problem of problems) {
+        process.stderr.write(`release: a real run would refuse: ${problem}\n`);
+      }
       return 0;
     }
+    if (problems.length > 0) throw new ReleaseRefusedError(problems.join('; '));
 
-    const paths = [...packageJsonFiles(root), CHANGELOG];
-    for (const file of packageJsonFiles(root)) {
-      const full = path.join(root, file);
-      writeFileSync(full, setPackageVersion(readFileSync(full, 'utf8'), plan.version));
+    commitRelease(root, plan.version, plan.section, plan.tag);
+    try {
+      git(root, ['tag', '-a', plan.tag, '-m', `Release ${plan.tag}`]);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new ReleaseRefusedError(
+        `${reason}. The release commit was kept; finish by hand with: ` +
+          `git tag -a ${plan.tag} -m "Release ${plan.tag}"`,
+      );
     }
-    const changelogPath = path.join(root, CHANGELOG);
-    writeFileSync(changelogPath, prependChangelog(readIfExists(changelogPath), plan.section));
-
-    git(root, ['add', '--', ...paths]);
-    git(root, ['commit', '-m', `chore(release): ${plan.tag}`, '--', ...paths]);
-    git(root, ['tag', '-a', plan.tag, '-m', `Release ${plan.tag}`]);
     process.stdout.write(
       `Created commit chore(release): ${plan.tag} and annotated tag ${plan.tag}.\n` +
         'Push when ready: git push --follow-tags\n',
