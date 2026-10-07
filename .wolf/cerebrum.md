@@ -199,6 +199,8 @@
 - [2026-10-04] Splitting two findings' hunks in one file: if a commit fails (biome), the files stay staged; re-check `git diff --cached` before restoring working copies.
 
 - [2026-10-05] In agent zsh, `g` is an alias, so `g() {...}` is a parse error, and `G="node x.cjs"; $G ...` does not word-split. Define helpers with an unaliased name (e.g. `gsdq() { node .../gsd-tools.cjs "$@"; }`).
+- [2026-10-07] GSD worktree merge: OpenWolf auto-scan in the main checkout indexes `.claude/worktrees/agent-*` files into `.wolf/anatomy.md`, and that uncommitted noise blocks `worktree.cleanup-wave` (bug-188). Before cleanup, check `git diff .wolf/anatomy.md`; if only timestamp + worktree-path entries, save and `git checkout -- .wolf/anatomy.md`.
+- [2026-10-07] Full `pnpm test` with live bridge/worker/db containers times out ~30 tests (host load, bug-189). Rerun the failing files with `--maxWorkers=3` before treating as real.
 
 ## Decision Log
 

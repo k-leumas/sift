@@ -3078,6 +3078,94 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-07T05:14:39.207Z"
+    },
+    {
+      "id": "bug-185",
+      "timestamp": "2026-10-07T05:25:53.899Z",
+      "error_message": "Incorrect value in code",
+      "file": ".claude/worktrees/agent-a8cb7173010bb903a/README.md",
+      "root_cause": "Had `Message-ID`",
+      "fix": "Changed to 's certificate (`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-07T05:26:31.759Z"
+    },
+    {
+      "id": "bug-186",
+      "timestamp": "2026-10-07T05:26:54.007Z",
+      "error_message": "Type error",
+      "file": ".claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T05:26:54.007Z"
+    },
+    {
+      "id": "bug-187",
+      "timestamp": "2026-10-07T05:27:50.014Z",
+      "error_message": "Type error",
+      "file": ".claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/live-ingest-record.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T05:27:50.014Z"
+    },
+    {
+      "id": "bug-188",
+      "timestamp": "2026-10-07T06:08:49Z",
+      "error_message": "worktree.cleanup-wave blocked: Your local changes to the following files would be overwritten by merge: .wolf/anatomy.md",
+      "file": ".wolf/anatomy.md",
+      "root_cause": "OpenWolf auto-scan in the main checkout re-indexed files inside .claude/worktrees/agent-* while the executor ran, leaving an uncommitted anatomy.md edit that collides with the executor branch anatomy commit",
+      "fix": "Saved the diff to the session scratchpad, reset .wolf/anatomy.md to HEAD (noise only: timestamp + worktree-path entries), reran cleanup-wave: merged_removed",
+      "tags": [
+        "gsd",
+        "worktree",
+        "merge",
+        "openwolf",
+        "anatomy",
+        "02-20"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T06:08:49Z"
+    },
+    {
+      "id": "bug-189",
+      "timestamp": "2026-10-07T06:08:49Z",
+      "error_message": "post-merge npm test: 33 failed / 904 passed across 12 files, mostly Test timed out in 30000ms",
+      "file": "apps/worker/test/*, packages/db/test/*",
+      "root_cause": "Host-load flakiness (bug-151/bug-162 family): 48 vitest workers in parallel with live bridge, worker and db containers",
+      "fix": "Reran the 12 failing files with --maxWorkers=3: 208/208 passed; no code change",
+      "tags": [
+        "test",
+        "flaky",
+        "environment",
+        "load",
+        "02-20"
+      ],
+      "related_bugs": [
+        "bug-151",
+        "bug-162"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T06:08:49Z"
     }
   ]
 }

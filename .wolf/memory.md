@@ -916,3 +916,43 @@
 | 23:14 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md | 2→3 lines | ~150 |
 | 23:14 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md | 2→3 lines | ~39 |
 | 23:15 | Session end: 12 writes across 3 files (02-20-PLAN.md, 02-21-PLAN.md, ROADMAP.md) | 2 reads | ~14886 tok |
+| 05:30 | Gap plans 02-20 (G-02-4/8/9) and 02-21 (G-02-14) planned, revised once (README 279), checker passed | 02-20-PLAN.md, 02-21-PLAN.md | ready | ~10k |
+| 23:15 | Session end: 12 writes across 3 files (02-20-PLAN.md, 02-21-PLAN.md, ROADMAP.md) | 2 reads | ~14886 tok |
+| 23:22 | Session end: 12 writes across 3 files (02-20-PLAN.md, 02-21-PLAN.md, ROADMAP.md) | 2 reads | ~14886 tok |
+
+## Session: 2026-10-07 23:22
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:25 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | 3→5 lines | ~106 |
+| 23:25 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~22 |
+| 23:25 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~79 |
+| 23:25 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~20 |
+| 23:25 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~23 |
+| 23:25 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~46 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~38 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | "pin_sha256" → "s trust in the " | ~103 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | 2→2 lines | ~76 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | 2→3 lines | ~236 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~18 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | inline fix | ~16 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/README.md | "config/config.yaml" → "s settings:** edit " | ~96 |
+| 23:26 | Edited .claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/user-facing-text.test.ts | modified between() | ~482 |
+| 23:27 | Edited .claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/spike-findings.test.ts | expanded (+7 lines) | ~102 |
+| 23:27 | Edited .claude/worktrees/agent-a8cb7173010bb903a/apps/worker/test/live-ingest-record.test.ts | 3→5 lines | ~82 |
+| 23:28 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md | modified Correction() | ~168 |
+| 23:29 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md | modified Correction() | ~79 |
+| 23:30 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md | inline fix | ~39 |
+| 23:30 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md | inline fix | ~50 |
+| 23:30 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md | inline fix | ~51 |
+| 23:30 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md | inline fix | ~27 |
+| 23:30 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md | inline fix | ~30 |
+| 23:30 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.wolf/anatomy.md | inline fix | ~55 |
+| 23:30 | Edited .claude/worktrees/agent-a8cb7173010bb903a/.wolf/cerebrum.md | 1→3 lines | ~187 |
+| 23:31 | Session end: 25 writes across 8 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 14 reads | ~26592 tok |
+| 23:43 | Session end: 25 writes across 8 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 14 reads | ~26592 tok |
+| 23:52 | Session end: 25 writes across 8 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 14 reads | ~26592 tok |
+| 23:53 | Session end: 25 writes across 8 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 14 reads | ~26592 tok |
+| 23:55 | Created .claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md | — | ~3941 |
+| 00:08 | 02-20 executed (README Proton-only scope + NTP clock, D-84 backfill value 3); owner config set to 3 | README.md, apps/worker/test/*, 02-SPIKE-FINDINGS.md, 02-LIVE-INGEST.md, config/config.yaml (ignored) | merged 0cd22c2 | ~25k |
+| 00:08 | cleanup-wave blocked by OpenWolf anatomy noise in main; reset + remerge (bug-188); post-merge test flake rerun passed (bug-189) | .wolf/anatomy.md, .wolf/buglog.json | ok | ~5k |
