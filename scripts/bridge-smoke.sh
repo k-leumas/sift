@@ -15,7 +15,8 @@
 #   - refuses configure without the env file mount, with a directory there,
 #     and init and cli without a terminal (exit 2),
 #   - never prints a value of the mounted env file (sentinel),
-#   - exits 78 with a wrong passphrase and on a never-initialised volume (D-38).
+#   - exits 78 with a wrong passphrase, with an insecure (unencrypted) vault
+#     file on an initialised volume, and on a never-initialised volume (D-38).
 #
 # Run from the repository root:  scripts/bridge-smoke.sh
 # Env: BRIDGE_SMOKE_PORT (host port, default 11143), SIFT_BRIDGE_IMAGE
@@ -250,6 +251,17 @@ case $run_out in
   *) fail "wrong passphrase output lacks 'Bridge keychain locked': $run_out" ;;
 esac
 echo "bridge-smoke: wrong passphrase refused (exit 78)"
+
+# Bridge writes bridge-v3/insecure when it falls back to an unencrypted vault.
+# Plant one on the initialised volume: serve must refuse even with the right
+# passphrase. Runs last on this volume, since it leaves the vault unusable.
+docker run --rm --user 1000:1000 --entrypoint sh -v "$volume:/data" "$image" \
+  -c 'mkdir -p /data/config/protonmail/bridge-v3 && : >/data/config/protonmail/bridge-v3/insecure' \
+  || fail "could not plant the insecure vault file"
+run_mode "$volume" "$passphrase" serve
+[ "$run_code" = 78 ] || fail "serve with an insecure vault exited $run_code, expected 78: $run_out"
+expect_out "insecure vault" "Insecure Bridge vault found; Sift refuses to run it"
+echo "bridge-smoke: insecure vault refused (exit 78)"
 
 # Never-initialised volume.
 run_mode "$empty_volume" "$passphrase" serve
