@@ -2979,6 +2979,89 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-06T21:19:50.107Z"
+    },
+    {
+      "id": "bug-179",
+      "timestamp": "2026-10-07T05:00:00Z",
+      "error_message": "api-coverage: COVERAGE.md has 1 problem(s) - row[9]: capability exceeds 80 chars (verify:pre gate blocked UAT)",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/COVERAGE.md",
+      "root_cause": "UID FETCH row listed every fetched item in the capability column",
+      "fix": "Shortened label to 'IMAP UID FETCH (metadata + BODY.PEEK[HEADER.FIELDS])' and moved the item list into the reason column",
+      "tags": [
+        "gsd",
+        "coverage",
+        "verify-work",
+        "gate"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T05:00:00Z"
+    },
+    {
+      "id": "bug-180",
+      "timestamp": "2026-10-07T05:00:00Z",
+      "error_message": "compose-smoke: FAILED: mailboxes ok: expected >= 1, got 0 (ci run 37572838343)",
+      "file": "scripts/compose-smoke.sh",
+      "root_cause": "Phase 1 assertion (state = 'ok') kept after Phase 2 made the worker connect to IMAP; smoke points mailboxes at imap.smoke.invalid so ok is unreachable; first CI run of phase 2 was the 2026-10-07 push",
+      "fix": "Pending: gap G-02-14 fix plan (assert status rows in a state reachable without IMAP)",
+      "tags": [
+        "ci",
+        "compose-smoke",
+        "stale-assertion",
+        "phase-02"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T05:00:00Z"
+    },
+    {
+      "id": "bug-181",
+      "timestamp": "2026-10-07T05:00:00Z",
+      "error_message": "vitest full suite: 2-4 IMAP tests 'Test timed out in 30000ms' (imap-pin, imap-folder-source, bridge-probe), different tests each run",
+      "file": "apps/worker/test/imap-folder-source.test.ts",
+      "root_cause": "Dovecot test server slow under full-suite load (bug-151 family); all pass when re-run alone (54/54)",
+      "fix": "None; re-run failing files alone to confirm",
+      "tags": [
+        "flaky",
+        "dovecot",
+        "vitest",
+        "timeout"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T05:00:00Z"
+    },
+    {
+      "id": "bug-182",
+      "timestamp": "2026-10-07T05:08:33.439Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md",
+      "root_cause": "Had \"For Proton,\"",
+      "fix": "Changed to \"another Proton account; see Requirements\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-07T05:08:51.617Z"
+    },
+    {
+      "id": "bug-183",
+      "timestamp": "2026-10-07T05:12:34.767Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-21-PLAN.md",
+      "root_cause": "Had \"pushed\"",
+      "fix": "Changed to `main -> main`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T05:12:34.767Z"
     }
   ]
 }

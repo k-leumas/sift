@@ -900,3 +900,12 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 03:23 | Restarted phase 02 UAT: fixed COVERAGE.md row 9 label (>80 chars, gate block), re-ran suite (932/934, Dovecot timeouts flaky), rebuilt 02-UAT.md (76 auto, 13 manual) | COVERAGE.md, 02-UAT.md | testing | ~20k |
+| 05:00 | Phase 02 UAT done: 86 pass, 2 issues, 1 skip, 1 blocked; 4 gaps diagnosed; gap planner spawned | 02-UAT.md, buglog | diagnosed | ~60k |
+| 23:08 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md | — | ~7564 |
+| 23:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md | 2→2 lines | ~75 |
+| 23:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md | "git diff --quiet HEAD -- " → "git diff --quiet " | ~61 |
+| 23:08 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md | "git diff --quiet HEAD -- " → "git diff --quiet " | ~47 |
+| 23:11 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-21-PLAN.md | — | ~5658 |
+| 23:11 | Edited .planning/ROADMAP.md | inline fix | ~18 |
+| 23:11 | Edited .planning/ROADMAP.md | 2→6 lines | ~158 |
+| 23:12 | Edited .planning/phases/02-bridge-spike-and-imap-ingest/02-21-PLAN.md | "pushed" → "main -> main" | ~20 |

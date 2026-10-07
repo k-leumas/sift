@@ -1,5 +1,5 @@
 ---
-status: partial
+status: diagnosed
 phase: 02-bridge-spike-and-imap-ingest
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md, 02-04-SUMMARY.md, 02-05-SUMMARY.md, 02-06-SUMMARY.md, 02-07-SUMMARY.md, 02-08-SUMMARY.md, 02-09-SUMMARY.md, 02-10-SUMMARY.md, 02-11-SUMMARY.md, 02-12-SUMMARY.md, 02-13-SUMMARY.md, 02-14-SUMMARY.md, 02-15-SUMMARY.md, 02-16-SUMMARY.md, 02-17-SUMMARY.md, 02-18-SUMMARY.md, 02-19-SUMMARY.md, 02-VERIFICATION.md]
 started: 2026-10-07T03:22:35Z
@@ -557,29 +557,56 @@ blocked: 1
   reason: "User reported: initial_backfill_days: 3"
   severity: minor
   test: 4
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "02-SPIKE-FINDINGS.md records the spike-time reply 'backfill 30' (line 82) and 'Post-spike initial_backfill_days: 30' (line 99); the owner now intends 3. The owner's git-ignored config/config.yaml has 1, so the first backfill read 1 day. Schema default, config.example.yaml and README text say 30 as the generic default; the owner did not ask to change the default."
+  artifacts:
+    - path: ".planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md"
+      issue: "line 99 records 30, not the owner's intended 3"
+    - path: "config/config.yaml"
+      issue: "owner's local (git-ignored) value is 1, not 3"
+  missing:
+    - "Record the owner's post-UAT value 3 in 02-SPIKE-FINDINGS.md (keep the spike-time reply as history, add a dated correction)"
+    - "Owner sets initial_backfill_days: 3 in config/config.yaml; the first backfill already ran at 1 day, so the extra days come from `sift mailbox backfill personal --days 3` (owner-run, interactive confirm)"
+    - "Leave the schema default, config.example.yaml and README default (30) unchanged unless the owner asks"
 - gap_id: G-02-8
   truth: "README tells the owner to keep the host clock NTP-synced, since the watermark caps future INTERNALDATEs at the worker clock (WR-03) and Proton's server time sets INTERNALDATE"
   status: failed
   reason: "User reported: would making a note of this fact somewhere maybe in the readme this way the clocks can be set using the same timeserver and ideally never run into this situation"
   severity: minor
   test: 8
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "WR-03 caps future INTERNALDATEs at the worker clock with a 5-minute overlap, so a host clock running more than 5 minutes behind Proton's servers can mark new mail as old; the README never tells the owner to keep the host clock synced. Worker and Bridge share the host kernel clock, so the relevant drift is host vs Proton server time."
+  artifacts:
+    - path: "README.md"
+      issue: "Running it at home > Requirements (around line 391) has no clock-sync requirement; no NTP/clock mention anywhere"
+  missing:
+    - "README requirement: keep the host clock NTP-synced (default on macOS and most Linux; how to check: macOS `sntp`/System Settings > Date & Time, Linux `timedatectl`), with the one-sentence reason"
+    - "readme test pinning the sentence, matching how other README strings are pinned"
 - gap_id: G-02-9
   truth: "README states that Sift supports only Proton Mail through Proton Bridge for now, and why (simpler logic, smaller test surface, security)"
   status: failed
   reason: "User reported: lets also make a note in the readme stating tha this only works with protonmail (for now) it simplifies our logic and shrinks the testing surface and more secuirty minded"
   severity: minor
   test: 9
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "README still presents Sift as working with any IMAP server; the owner has now scoped Sift to Proton Mail through Proton Bridge only, for now (simpler logic, smaller test surface, more security-minded)."
+  artifacts:
+    - path: "README.md"
+      issue: "line 105 'or any IMAP client', line 107 'On other IMAP servers, Sift falls back to the Message-ID header', line 391 'An IMAP account per mailbox', line 232 'or implicit' TLS comment and line 323 implicit TLS mention imply non-Bridge servers"
+  missing:
+    - "README states near the top and in Requirements that Sift supports only Proton Mail through Proton Bridge, for now, with the reasons"
+    - "Reword lines that imply other IMAP servers are supported"
+    - "Code paths for non-Bridge servers (implicit TLS, mid:/hdr: identity fallbacks) stay; removing them is a separate owner decision, out of scope"
 - gap_id: G-02-14
   truth: "The ci workflow passes on main after the Phase 2 push"
   status: failed
   reason: "User reported: errror: https://github.com/k-leumas/sift/actions/runs/37572838343/job/112635131344#step:3:911"
   severity: major
   test: 14
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "scripts/compose-smoke.sh:257 asserts at least one mailbox_status row in state 'ok'. That assertion dates from Phase 1 (be4ce69) when the worker never connected to IMAP. The same script points every mailbox at imap.smoke.invalid (line 157, no Bridge in CI), so since Phase 2 the worker gets ENOTFOUND and correctly never reaches ok. The phase was first pushed on 2026-10-07, so CI never ran it before."
+  artifacts:
+    - path: "scripts/compose-smoke.sh"
+      issue: "line 257 asserts state = 'ok', unreachable with the deliberate invalid host"
+    - path: "apps/worker/test/compose-smoke.test.ts"
+      issue: "may pin the old assertion text"
+  missing:
+    - "Assert instead that the worker wrote a mailbox_status row for every enabled registered mailbox, in a state reachable without IMAP (connecting or error), proving the worker loop started and reports status"
+    - "Keep the migrations and registered-mailbox assertions; update compose-smoke.test.ts if it pins the old text"
+    - "Verify with scripts/compose-smoke.sh locally and a green ci run on main"
