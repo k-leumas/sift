@@ -1,8 +1,8 @@
 ---
 phase: 02-bridge-spike-and-imap-ingest
-verified: 2026-10-06T21:37:46Z
+verified: 2026-10-07T06:48:15Z
 status: human_needed
-score: 181/183 must-haves verified (5/5 roadmap success criteria; 176/178 plan truths); 2 need an owner decision
+score: 194/195 must-haves verified (5/5 roadmap success criteria; 189/190 plan truths, 2 by accepted override); 1 needs an owner decision
 covered_files:
   - .env.example
   - .env.mailboxes.example
@@ -46,6 +46,10 @@ covered_files:
   - .planning/phases/02-bridge-spike-and-imap-ingest/02-18-SUMMARY.md
   - .planning/phases/02-bridge-spike-and-imap-ingest/02-19-PLAN.md
   - .planning/phases/02-bridge-spike-and-imap-ingest/02-19-SUMMARY.md
+  - .planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md
+  - .planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md
+  - .planning/phases/02-bridge-spike-and-imap-ingest/02-21-PLAN.md
+  - .planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md
   - CONTRIBUTING.md
   - README.md
   - apps/worker/package.json
@@ -155,10 +159,9 @@ covered_files:
   - scripts/bridge-smoke.sh
   - scripts/compose-smoke.sh
   - scripts/test-imap.sh
-covered_digest: "v2:sha256:21cc9dc6dcc90b5e3c75973dc45dd79421174a693030b2667e54bc93a092b4be"
+covered_digest: "v2:sha256:2a30ec6227bfdbfec7455528c62927765825c6697e4fbca9ae5ed3770039d8ac"
 behavior_unverified: 0
 overrides_applied: 2
-behavior_unverified_items: []
 overrides:
   - must_have: "The findings state whether UIDVALIDITY and INTERNALDATE stayed the same across a Bridge restart and across a forced repair"
     reason: "Owner approved no-repair; restarts measured; a repair is treated as a UIDVALIDITY reset (D-22), whose resync path is proven live (simulated) and on Dovecot (real bump)"
@@ -168,195 +171,211 @@ overrides:
     reason: "WR-02: two lock sessions avoid ImapFlow's 120 s idle drop and an unbounded worker block; runBackfill refuses a changed UIDVALIDITY and counted mail stored meanwhile merges by identity (D-03, D-14 preserved)"
     accepted_by: "Samuel Kimama"
     accepted_at: "2026-10-07T04:23:15Z"
+re_verification:
+  previous_status: human_needed
+  previous_score: 181/183
+  gaps_closed:
+    - "G-02-4: 02-SPIKE-FINDINGS.md records post-spike initial_backfill_days 3 with dated history; owner config/config.yaml has 3; 3-day backfill corroborated in the database"
+    - "G-02-8: README Requirements asks for an NTP-synced host clock, with reason and macOS/Linux checks, pinned by test"
+    - "G-02-9: README states Sift supports only Proton Mail, through Proton Bridge, for now (intro and Requirements); other-server wording removed, pinned by test"
+    - "G-02-14: compose-smoke asserts connecting/error status per enabled mailbox; ci run 37581267978 (headSha 8ec4ae8) green in check and compose-smoke"
+    - "Previous human items 1-6 resolved through 02-UAT.md tests 2, 5, 7, 8, 9, 10 (overrides recorded for SPK-04 repair and the WR-02 lock split; worker redeployed with review fixes)"
+  gaps_remaining: []
+  regressions:
+    - "02-17 must-have 3 is now false as written: 02-20 removed the README clauses 'servers with a public-CA certificate may omit the pin' and '`imap.tls.mode` is starttls or implicit', per the owner's Proton-only decision (G-02-9). Needs an owner override, not a code fix."
+coincidental_reliance_items:
+  - truth: "02-21: compose-smoke waits until every enabled mailbox has a connecting or error status row, which proves the worker loop started and reports status"
+    reason: undeclared-precondition
+    harden: "The proof holds only on a fresh smoke database (CI runner, or --down). On a reused smoke volume (the documented local rerun without --down) the previous run's error rows satisfy the wait before the new worker runs a batch (02-REVIEW WR-02). Bound the query by last_seen_at >= the worker container's StartedAt."
 human_verification:
-  - test: "Owner decision (SPK-04 / 02-14 must-have 5): Bridge repair behaviour is unmeasured. Either accept the gap with the suggested override (owner approved `no-repair`; the design treats a repair as a UIDVALIDITY reset, and the resync path is proven on the real mailbox by the simulated mismatch and on Dovecot by a real server-side UIDVALIDITY change), or approve one `docker compose run --rm bridge-init repair` and record UIDVALIDITY and INTERNALDATE before and after in 02-SPIKE-FINDINGS.md."
-    expected: "Either an `overrides:` entry for the 02-14 repair truth is added to this file, or the findings state, from observation, whether a repair changes UIDVALIDITY."
-    why_human: "Running a Bridge repair touches the owner's real Bridge cache and needs owner approval; accepting the unmeasured item is an owner judgement. No later roadmap phase covers it."
-  - test: "Owner decision (02-16 must-have 5 / WR-02): `sift mailbox backfill` now takes the ingest lock twice (count, then ingest) instead of holding it from the count through the ingest. Accept the suggested override or reject the WR-02 fix."
-    expected: "An `overrides:` entry for the 02-16 lock truth is added (recommended), because D-03 (worker and CLI never ingest at once), 'exactly the counted UIDs' and 'merge by identity, never duplicate' all still hold in code and tests."
-    why_human: "The plan's must-have is false as written; whether the intent-preserving replacement is acceptable is an owner decision, not a code gap."
-  - test: "Redeploy the worker with the review fixes: `docker compose up -d --build worker` (scoped to the worker so Bridge is not recreated), then `docker compose run --rm -T setup sift mailbox list` and the counts-only duplicate query from 02-LIVE-INGEST.md."
-    expected: "personal shows ok; 0 identity keys with more than one message row; 0 (uidvalidity, UID) pairs with more than one live location; message count does not jump."
-    why_human: "The running worker image (sift:local, 2026-10-06T14:43:11Z) predates every review fix (9d1daa6..c7a580c). The owner's INBOX now has 72,018 live locations, above the 65,535 bind-parameter limit of CR-01, so a UIDVALIDITY change on the running image would leave INBOX `resyncing` forever. The verifier was told not to recreate the owner's containers."
-  - test: "Review the WR-03 clock-cap logic in apps/worker/src/ingest/run.ts (clockCap; cap is 'now', not 'now + 10 min')."
-    expected: "Owner agrees that a future-dated INTERNALDATE capped at the worker clock keeps later mail eligible, and that capping at 'now' (rather than the review's now + 10 min) is the right trade-off with the 5-minute overlap."
-    why_human: "The fixer flagged it as a logic change needing human verification; tests prove the behaviour, not that the trade-off is the intended one."
-  - test: "Review the WR-04 trust rule: `trustsPmHeader(entry) = entry.imap.tls.pin_sha256 !== undefined`, and `pm:` only when exactly one X-Pm-Internal-Id is present."
-    expected: "Owner accepts that 'pinned' stands for 'Proton Bridge' (a pinned non-Bridge server would still be trusted) or decides on an explicit config key (a D-74 one-way decision)."
-    why_human: "Trust-rule design choice; the fixer flagged it. The owner's mailbox is pinned, and all 72,271 stored keys are `pm:`, so no stored key changes."
-  - test: "Confirm the judgment-tier prohibitions: 02-11 (probe changed nothing beyond the one confirmed label copy), 02-14 (owner mailbox changed only by the approved label test; the empty `Sift Spike` label remains), 02-19 (ingest-only run, no repair; the only hand-edited row was folder_sync.uidvalidity, with the worker stopped and a dump taken first)."
-    expected: "Owner confirms that the records in 02-SPIKE-FINDINGS.md and 02-LIVE-INGEST.md match what happened."
-    why_human: "Judgment-tier prohibitions need human resolution. Non-authoritative verifier verdict: compliant, based on the records (dump `backups/sift-20261006T192158Z-pre-live-resync.dump`, worker stopped 19:21:39-45Z, `UPDATE 1`, Bridge start time unchanged)."
+  - test: "Owner decision: accept an override for 02-17 must-have 3. Its README clauses 'servers with a public-CA certificate may omit the pin' and '`imap.tls.mode` is starttls or implicit' were removed by 02-20 under your Proton-only decision (G-02-9). The rest of that truth still holds (init prints the fingerprint, paste it at imap.tls.pin_sha256, a regenerated certificate stops the mailbox until `sift bridge trust <slug>`, Sift never connects without TLS)."
+    expected: "An overrides entry for the 02-17 pin/TLS-mode truth is added to this file (suggested text in the report body), or you ask for the clauses back (which would contradict G-02-9)."
+    why_human: "A later plan deliberately superseded an earlier plan's must-have on the owner's decision; only the owner can accept the deviation."
+  - test: "README read-through (02-UAT test 11, skipped by you; 02-17 D7). Read the README quick start as a first-time owner, now that 02-20 changed the intro, Requirements, Technical settings, Security model and Managing mailboxes text."
+    expected: "The steps from clone to a Bridge-connected, ingesting worker are clear and complete, including the interactive Bridge login, the pin paste and the new NTP clock requirement."
+    why_human: "Readability and completeness for a new owner are judgment calls; the doc tests pin strings and order, not comprehension. You deferred it to after the G-02-8/G-02-9 edits, which are now done."
 ---
 
 # Phase 2: Bridge Spike and IMAP Ingest Verification Report
 
 **Phase Goal:** Proton Bridge's behaviour is known rather than assumed, and one real mailbox's mail is reliably in the database.
-**Verified:** 2026-10-06T21:37:46Z
+**Verified:** 2026-10-07T06:48:15Z
 **Status:** human_needed
-**Re-verification:** No (initial verification)
+**Re-verification:** Yes. This run follows the UAT gap closure by plans 02-20 (G-02-4, G-02-8, G-02-9) and 02-21 (G-02-14).
 
 ## Goal Achievement
 
-The goal is met in the codebase and, at the time of verification, in the owner's running database. Every roadmap success criterion has direct evidence. Some comes from the live records. The rest comes from tests I ran myself and from read-only, counts-only queries against the owner's database.
+The goal is met. All four UAT gaps are closed in the code, the docs and, where the gap needed it, in the owner's running stack and on GitHub. I checked each one directly; I did not rely on the SUMMARY claims.
 
-Six items need the owner:
+Two items need the owner, and neither is a code gap:
 
-- two must-haves that are false as written but deliberately so;
-- the running worker image, which predates the review fixes;
-- two fixes the fixer flagged for human review;
-- the judgment-tier prohibitions.
+1. 02-20 removed two README clauses that an earlier plan (02-17) required. That was a deliberate change on the owner's Proton-only decision, so it needs an override.
+2. The owner skipped the README read-through in UAT and planned to do it after these README edits.
 
-### Observable Truths (roadmap success criteria)
+Since the previous verification, the only code or doc commits are 925ce49 (Dependabot pnpm/action-setup bump, CI green), a4565c4 (README) and 36b51e0 (compose-smoke.sh). Nothing under `apps/worker/src` or `packages/` changed: `git diff c899978 HEAD -- apps/worker/src packages config/config.example.yaml packages/core/src/config/schema.ts CONTRIBUTING.md` is empty. The commits after the CI-verified 8ec4ae8 touch only `.planning/` and `.wolf/`.
+
+### Observable Truths (roadmap success criteria; regression check)
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | A findings document, based on a real Proton mailbox, states how labels appear as folders and how one is applied and removed, whether CONDSTORE and QRESYNC work, how consistent `Message-ID` is across label folders, and how UIDVALIDITY behaves across Bridge restarts | ✓ VERIFIED | 02-SPIKE-FINDINGS.md covers: Labels/ layout, `/` delimiter, CREATE, `UID COPY` + COPYUID, refusal of COPY from EXAMINE, `\Deleted` + `UID EXPUNGE`, INBOX copy kept (SPK-01); capability lists, ENABLE/STATUS HIGHESTMODSEQ answered `BAD` (SPK-02); X-Pm-Internal-Id 2000/2000, byte-equal Message-ID across folders, 0 missing, 1.6% duplicates (SPK-03); UIDVALIDITY and INTERNALDATE unchanged across two restarts, 1998/1998 fixed-snapshot match (SPK-04). `spike-findings.test.ts` passes (sections, decision lines, privacy scan with the configured-username denylist). |
-| 2 | The findings document says which sync capability later relabel learning must assume and what label application must do accordingly | ✓ VERIFIED | `**Sync capability to assume:** polling only`; the "Phase 4 label application" paragraph covers the SELECTed source, `UID COPY`, COPYUID echo record, `UID STORE \Deleted` + `UID EXPUNGE`, "never a plain EXPUNGE", pausing during resync, and M2 relabel detection by UID-set diff keyed by `pm:`. ADR-0003 has the addendum (line 100). |
-| 3 | Owner starts the worker and the configured mailbox's messages appear in the database exactly once each, scoped to that mailbox; restarting the worker adds no duplicates | ✓ VERIFIED | Live: R1 163/163 across the restart, R2 0, 0 duplicates, 0 rows outside the mailbox (02-LIVE-INGEST.md). Test: `ingest-e2e.test.ts` "stores new mail exactly once, scoped to its mailbox, across polls and a restart" passes (real Postgres + Dovecot). Current state (my read-only counts query, 21:32Z): 72,018 messages = 72,018 live locations, 0 duplicate identity keys, 0 duplicate (uidvalidity, UID), 0 messages with more than one live location, 1 mailbox holding rows. The worker has been restarted or recreated three times since the first sync. |
-| 4 | A new email sent to the mailbox shows up in the database within one polling interval without restarting anything | ✓ VERIFIED | Live: T_db - T_bridge = 34 s (limit 60 s + 20 s), eligible row with a body, UID 51105 > S3 last_uid, nothing restarted. Code: the supervisor polls every `worker.poll_interval_seconds` (worker.ts:147); `pollNewMail` fetches `lastUid+1:*` every cycle. Test: e2e run 2 stores appended mail on the next run. |
-| 5 | After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages | ✓ VERIFIED | Live (simulated mismatch, D-86): generation 1 → 2, state ok, one `resynced:` line, C1 0, C2 40,940 = new + older, C3 58 = eligible before, 0 duplicates. Test: `ingest-e2e.test.ts` "resyncs after a forced UIDVALIDITY change without new message rows" uses a real server-side UIDVALIDITY bump on Dovecot (`bumpUidValidity`) and passes. Code: `storeMessages` never lowers eligibility (insertOrIgnore; promotion only with `promoteEligible`, which resync never passes). The CR-01 fix that keeps this working above 65,535 locations passes its 70,000-location real-DB test. Caveat: the live run used the pre-fix image (see Human Verification 3). |
+| 1 | Findings document from a real mailbox: labels as folders, apply/remove, CONDSTORE/QRESYNC, Message-ID consistency, UIDVALIDITY across restarts | ✓ VERIFIED | Unchanged except the G-02-4 value line. spike-findings.test.ts passes (with the new "exactly one value line" case). The SPK-04 repair gap is covered by the accepted override |
+| 2 | Findings say which sync capability to assume and what label application must do | ✓ VERIFIED | Unchanged; doc-contract test passes |
+| 3 | Mail appears exactly once, scoped to the mailbox; restart adds no duplicates | ✓ VERIFIED | My read-only counts query, 06:46Z: 103,505 messages, 103,504 live locations, 0 duplicate identity keys, 0 duplicate live (mailbox, folder, uidvalidity, uid), 0 messages with more than one live location, rows in 1 mailbox. The one message without a live location is a D-07 removal (also the one eligible message without a body). The worker was restarted and redeployed several times since the first sync (UAT 1, 2; 02-20 owner restart) |
+| 4 | New mail shows up within one polling interval without a restart | ✓ VERIFIED | `personal` ok, last_sync_at 06:45:57Z (11 s before my query); 6 rows created during 05:20-06:00Z from polls. No code change since the live measurement in 02-LIVE-INGEST.md |
+| 5 | A forced UIDVALIDITY change resyncs without duplicating or re-classifying | ✓ VERIFIED | INBOX folder_sync: generation 2, state ok. No engine change. CI attempt 1 hit an intermittent failure in the Dovecot UIDVALIDITY adapter test (bug-191); the test fixture, not the product, is the suspected cause, and attempt 2 passed (see Anti-Patterns) |
 
 **Roadmap score:** 5/5
 
-### Plan must-haves (178 truths across 19 plans)
-
-I checked the plan truths through the targeted test runs below (819 tests in 36 files, all passing), through code reads of the wiring (mailbox-batch.ts, run.ts, ingest.ts, scope.ts, mailbox-backfill.ts, the migrations) and through static greps (Dockerfile pin and commit guard, compose bindings, renovate, CI step, env-file chmod).
-
-Two truths are not true as written:
+### Gap-closure truths (02-20, 02-21)
 
 | Plan | Truth | Status | Evidence |
 |------|-------|--------|----------|
-| 02-14 | "The findings state whether UIDVALIDITY and INTERNALDATE stayed the same across a Bridge restart **and across a forced repair**" | ? UNCERTAIN (owner decision) | Restarts were measured. The repair was not, by owner choice (`no-repair`); the findings say "not measured" and route a repair to the D-22 rescan. REQUIREMENTS SPK-04 ("across Bridge restarts and resyncs") is therefore only partly met, although REQUIREMENTS.md marks it Complete. No later phase picks it up. |
-| 02-16 | "The ingest lock is held from the count through the ingest, so the worker cannot ingest the counted set in between; a declined confirmation stores nothing and releases the lock" | ? UNCERTAIN (owner decision) | Changed on purpose by WR-02 (9bc7e5f): mailbox-backfill.ts:228-243 runs `underLock(countBackfill)`, releases the lock and IMAP while the owner reads the prompt, then runs `underLock(runBackfill)`. `runBackfill` refuses a changed UIDVALIDITY (`plan.uidValidity !== state.uidValidity`). Counted UIDs that the worker stores in between merge by identity and get promoted. A declined prompt stores nothing and holds no lock. `mailbox-ops.test.ts` passes, including the new "lock free during confirm" case. The intent of D-03 holds. I judge this an acceptable deviation, and an improvement, since the old form held a pooled connection and the worker lock with no bound. |
+| 02-20 #1 | README states `Sift supports only Proton Mail, through Proton Bridge, for now` before `## Why` and in Requirements, with the owner's reasons | ✓ VERIFIED | README:11 (bold "Proton Mail only, for now." paragraph: simpler logic, small test surface, security-minded) and README:393; `grep -c` = 2; test "states the Proton-only scope in the intro and in Requirements" passes |
+| 02-20 #2 | No README line implies other mail servers; non-Bridge code paths untouched | ✓ VERIFIED | All plan greps are 0: `any IMAP client`, `other IMAP servers`, `non-Proton`, `fastmail`, `implicit`, `public certificate authority`, `For a Bridge mailbox`, `for Proton,`, `An IMAP account per mailbox`. I read every reworded line in the a4565c4 diff. The new pin sentence ("without it the worker checks the certificate the normal way, which a self-signed certificate fails") matches connect.ts:71-72 (`pin === undefined` gives `{ minVersion: 'TLSv1.2' }`, Node's default verification). `apps/worker/src` and `packages` unchanged. No pre-existing test pin was removed (the a4565c4 test diff has no `-` lines) |
+| 02-20 #3 | Requirements bullet `A host clock kept in sync over NTP`: why, macOS and Linux checks | ✓ VERIFIED | README:396. It covers Proton-set INTERNALDATE, the shared host clock, the cap at the worker clock, the 5-minute re-read (matches `WATERMARK_OVERLAP_MS = 300_000`, run.ts:39), the NTP default, System Settings > General > Date & Time, `sntp time.apple.com` and `timedatectl` / `System clock synchronized: yes`. It leaves out the internal ids WR-03 and D-19 (a SUMMARY deviation; the facts are all there) |
+| 02-20 #4 | user-facing-text.test.ts pins the scope sentence (both places), the clock bullet and stale-phrase absence; Technical settings YAML still schema-valid | ✓ VERIFIED | New describe block, user-facing-text.test.ts:189-228: section slicing fails if a heading is missing; 9 stale phrases checked case-insensitively. The file passes |
+| 02-20 #5 | Findings have exactly one `**Post-spike initial_backfill_days:** <N>` line reading 3, plus a dated correction that keeps the 30 history and names the CLI command | ✓ VERIFIED | `^...: 3$` = 1; `^...: [0-9]*$` = 1; `done: no-repair, backfill 30.` = 1; `Correction (2026-10-07` = 1; `sift mailbox backfill personal --days 3` = 1 (findings:99-101) |
+| 02-20 #6 | 02-LIVE-INGEST.md keeps its 30-to-1 deviation and adds a dated correction citing 3; the test matches the value exactly | ✓ VERIFIED | LIVE-INGEST:12 (deviation kept) and :13 (correction). live-ingest-record.test.ts:86-88 uses `${spike}(?![0-9])`, so a cited 30 no longer satisfies a spike of 3. The test passes |
+| 02-20 #7 | Owner config has `initial_backfill_days: 3`, the owner ran the 3-day backfill, and the defaults stay 30 | ✓ VERIFIED | `grep -n initial_backfill_days config/config.yaml` gives `32: initial_backfill_days: 3` (git-ignored, one line). Schema, example and README default are unchanged (`initial_backfill_days: 30` still in README). **The SUMMARY has no counts, but the database corroborates the backfill.** 38 already-stored historical rows were promoted to eligible in one burst at 05:49:50-51Z. The eligibility boundary sits between INTERNALDATE 2026-10-04 03:57Z (still historical) and 07:18Z (eligible), which matches a 3-day window from 05:49Z on 10-07. No eligible rows date from 10-03. 130 of 131 eligible messages have a body; the exception is the removed message |
+| 02-21 #1 | compose-smoke.sh no longer requires an ok mailbox_status row | ✓ VERIFIED | `grep -c "state = 'ok'"` = 0; `imap.smoke.invalid` still rewritten (2 hits) |
+| 02-21 #2 | After worker healthy, the script waits within SMOKE_TIMEOUT until every enabled mailbox has a connecting or error row, and fails with a mailbox-status message otherwise | ✓ VERIFIED (coincidental-reliance) | compose-smoke.sh:265-284: `not exists ... state in ('connecting', 'error')` loop, 2 s sleep, `$SECONDS -ge $deadline` fail message, `query failed: mailbox status`. The "proves the loop started" part relies on a fresh smoke database (see coincidental_reliance_items / review WR-02) |
+| 02-21 #3 | Migrations and registry checks still run; new mailboxes-enabled floor of 1 | ✓ VERIFIED | Lines 257-261: `migrations applied` 5, `mailboxes registered` 1, `mailboxes enabled` 1 (`disabled_at is null`) |
+| 02-21 #4 | Emulated-stack tests: pass case, missing-row failure, no ok query; RED against pre-fix script | ✓ VERIFIED | compose-smoke.test.ts:580-610 (runStack shim answers by SQL substring; ok-state answer 0). The file passes. RED is recorded in the SUMMARY (3 failed against 758185b, `mailboxes ok: expected >= 1, got 0`); I did not re-run RED |
+| 02-21 #5 | Local real run ends `compose smoke OK`; ci run for pushed main HEAD succeeds in every job | ✓ VERIFIED | `gh run view 37581267978`: attempt 2, completed, success, headSha 8ec4ae8 (= origin/main), jobs check success and compose-smoke success. The CI compose-smoke log shows `migrations applied = 8`, `mailboxes registered = 2`, `mailboxes enabled = 2`, `mailbox status connecting or error = 2`, `compose smoke OK`. I did not re-run the local Docker smoke; the CI run is the same script on a fresh runner |
 
-**This looks intentional.** To accept these deviations, add to the frontmatter:
+### Earlier plan truths (regression check)
+
+The two earlier owner-decision truths (02-14 repair, 02-16 lock span) now carry accepted overrides. They count as PASSED (override).
+
+One earlier truth changed status:
+
+| Plan | Truth | Status | Evidence |
+|------|-------|--------|----------|
+| 02-17 #3 | "The README explains the certificate pin: init prints the fingerprint, the owner pastes it at `imap.tls.pin_sha256`, a regenerated Bridge certificate stops the mailbox until the owner compares the new fingerprint (`sift bridge trust <slug>`) and updates config; **servers with a public-CA certificate may omit the pin; `imap.tls.mode` is starttls or implicit** and Sift never connects without TLS" | ? UNCERTAIN (owner decision) | The bold clauses were removed by a4565c4 under G-02-9 (the owner's Proton-only scope, cerebrum Decision Log 2026-10-07; the G-02-9 gap explicitly lists the "implicit" lines). README:281 now says every mailbox needs the pin, and README:325-326 name only STARTTLS. The rest of the truth holds: README:326, 467, 548; `Sift never connects without TLS` at README:234 |
+
+**This looks intentional.** To accept it, add to the frontmatter `overrides:`:
 
 ```yaml
-overrides:
-  - must_have: "The findings state whether UIDVALIDITY and INTERNALDATE stayed the same across a Bridge restart and across a forced repair"
-    reason: "Owner approved no-repair; restarts measured; a repair is treated as a UIDVALIDITY reset (D-22), whose resync path is proven live (simulated) and on Dovecot (real bump)"
-    accepted_by: "<owner>"
-    accepted_at: "<ISO timestamp>"
-  - must_have: "The ingest lock is held from the count through the ingest, so the worker cannot ingest the counted set in between"
-    reason: "WR-02: two lock sessions avoid ImapFlow's 120 s idle drop and an unbounded worker block; runBackfill refuses a changed UIDVALIDITY and counted mail stored meanwhile merges by identity (D-03, D-14 preserved)"
-    accepted_by: "<owner>"
+  - must_have: "The README explains the certificate pin: init prints the fingerprint, the owner pastes it at imap.tls.pin_sha256, a regenerated Bridge certificate stops the mailbox until the owner compares the new fingerprint; servers with a public-CA certificate may omit the pin; imap.tls.mode is starttls or implicit and Sift never connects without TLS"
+    reason: "Superseded by the owner's Proton-only decision (G-02-9, 02-20): the README names only Bridge, STARTTLS and a required pin; the implicit-TLS and unpinned code paths stay but are no longer documented"
+    accepted_by: "Samuel Kimama"
     accepted_at: "<ISO timestamp>"
 ```
 
-**Score:** 181/183 must-haves verified (0 present, behavior-unverified); 2 need an owner decision.
+The other 02-17 README truths still hold. Their pins in user-facing-text.test.ts all pass, and a4565c4 removed none. They cover the quick-start order, session tokens, full-disk encryption, the 30-day default and combined address mode, change tracking scoped to v3.27.0, the Bridge login, the Technical settings schema, the bind address, hard-delete and `bridge-init`.
 
-### Required Artifacts (key ones)
+**Score:** 194/195 must-haves verified (0 present, behavior-unverified; 2 by override); 1 needs an owner decision.
+
+### Required Artifacts (gap closure)
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `.planning/phases/02-.../02-SPIKE-FINDINGS.md` | Findings from the real mailbox | ✓ VERIFIED | 8 sections, scope line, decision lines; doc-contract test passes |
-| `.planning/phases/02-.../02-LIVE-INGEST.md` | Counts-only live record | ✓ VERIFIED | Criteria 3, 4 and 5 pass; result `partial` (D-86); doc-contract test passes |
-| `docs/adr/0003-traces-and-mail-app-relabels.md` | Addendum | ✓ VERIFIED | `## Addendum (2026-10): Proton Bridge spike (M1)` links the findings |
-| `apps/worker/src/runtime/mailbox-batch.ts` | lock → active → pinned connect → runIngest → status | ✓ VERIFIED | 434 lines; wired from worker.ts:144 |
-| `apps/worker/src/ingest/run.ts` | Engine: first sync, poll, valve, removals, backfill, resync | ✓ VERIFIED | 698 lines; no imapflow or @sift/db import |
-| `apps/worker/src/ingest/db-store.ts` | IngestStore over @sift/db | ✓ VERIFIED | Used by mailbox-batch and mailbox-backfill |
-| `apps/worker/src/imap/{capture,connect,folder-source,pin}.ts` | Pinned STARTTLS, read-only adapter | ✓ VERIFIED | imap-capture, imap-connect, imap-folder-source and imap-pin tests pass |
-| `packages/db/src/{ingest,scope,lock,status}.ts` | Use-cases, `= any($1)` array match, advisory lock, states | ✓ VERIFIED | ingest, scope, lock and status tests pass (including the 70k resync) |
-| `packages/db/migrations/0005-0007` | Preflight, tables, constraints, FORCE RLS | ✓ VERIFIED | UNIQUE (mailbox_id, identity_key), identity-key CHECK, location UNIQUE, pending/backfill CHECKs, FORCE RLS on message_location and message_body |
-| `bridge/Dockerfile`, `bridge/entrypoint.sh`, `bridge/helper/*` | Pinned build, fail-closed keychain, init helper | ✓ VERIFIED | Pin and HEAD guard (Dockerfile:13-25); the running bridge container serves through the pin; envfile Go tests pass (run in isolation); `scripts/bridge-smoke.sh` passes (exit 0) |
-| `compose.yaml` | bridge on loopback, external volume, bridge-init profile | ✓ VERIFIED | `127.0.0.1:${SIFT_BRIDGE_PORT:-1143}:1143`, `profiles: ["tools"]`, `external: true`; compose.test passes |
-| `renovate.json`, `.github/workflows/bridge-image.yml` | Bridge pin bumps, image CI | ✓ VERIFIED (static) | ci-workflow and bridge-image tests pass. Never run on GitHub: main is 131 commits ahead of origin, and the workflow is not on the default branch |
+| `README.md` | Proton-only scope, NTP bullet, other-server wording gone | ✓ VERIFIED | Lines 11, 109, 234, 281, 325-326, 393-396, 410, 512, 523 |
+| `apps/worker/test/user-facing-text.test.ts` | Scope, clock and stale-phrase pins | ✓ VERIFIED | Contains `A host clock kept in sync over NTP`; passes |
+| `02-SPIKE-FINDINGS.md` | `**Post-spike initial_backfill_days:** 3` with dated history | ✓ VERIFIED | Line 99 plus correction at 101 |
+| `02-LIVE-INGEST.md` | Dated correction citing 3 | ✓ VERIFIED | Line 13 |
+| `apps/worker/test/live-ingest-record.test.ts`, `spike-findings.test.ts` | Exact value match; exactly one value line | ✓ VERIFIED | Both pass in the main checkout (config/config.yaml present, so the username denylist is active) |
+| `scripts/compose-smoke.sh` | Status check reachable without IMAP | ✓ VERIFIED | Contains `'connecting', 'error'`; `bash -n` and `shellcheck -S warning` exit 0 |
+| `apps/worker/test/compose-smoke.test.ts` | Emulated-stack G-02-14 tests | ✓ VERIFIED | Contains `G-02-14`; passes |
 
 ### Key Link Verification
 
 | From | To | Via | Status |
 |------|----|-----|--------|
-| worker.ts | mailbox-batch.ts | `createSupervisor({...createMailboxCallbacks(db, secrets, {config, env, log})})` | WIRED |
-| mailbox-batch.ts | lock.ts | `withIngestLock(db, mailbox.id, ...)` | WIRED |
-| mailbox-batch.ts | connect.ts | `open({... tls: { mode, pinSha256: entry.imap.tls.pin_sha256 }})` | WIRED |
-| mailbox-batch.ts | run.ts | `runIngest({ source: trackedSource(createFolderSource(client)), store: createDbStore(session), ... })` | WIRED |
-| run.ts | message.ts / identity | `parseMessage(rec, { trustPmHeader })` | WIRED |
-| db-store.ts | packages/db ingest.ts | `storeMessages`, `finishResync`, ... | WIRED |
-| scope.ts | Postgres | `column = any($1)`, one array parameter (CR-01) | WIRED |
-| mailbox-backfill.ts | run.ts / lock.ts | `underLock(countBackfill)` then `underLock(runBackfill)` | WIRED (two sessions; see 02-16 truth) |
-| connect.ts | capture.ts / pin.ts | `capturePeerCertificate`, `peerSpkiSha256` | WIRED |
+| README.md | user-facing-text.test.ts | scope sentence, clock bullet, stale phrases | WIRED |
+| 02-SPIKE-FINDINGS.md | live-ingest-record.test.ts | `Post-spike initial_backfill_days` value cited exactly | WIRED |
+| config/config.yaml (owner) | 02-SPIKE-FINDINGS.md | D-84: config 3 = recorded 3 | WIRED |
+| .github/workflows/ci.yml | scripts/compose-smoke.sh | `run: scripts/compose-smoke.sh --down` (ci.yml:101) | WIRED |
+| scripts/compose-smoke.sh | mailbox_status | superuser psql through `query` | WIRED (CI log shows 2 rows) |
+| scripts/compose-smoke.sh | smoke config | hosts rewritten to imap.smoke.invalid | WIRED |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data | Source | Real data | Status |
 |----------|------|--------|-----------|--------|
-| message / message_location / message_body | Owner's INBOX | Bridge IMAP → FolderSource → runIngest → storeMessages | 72,018 messages, 63 eligible with bodies, all `pm:` keys, folder_sync generation 2, state ok, watermark 21:06:22Z | ✓ FLOWING |
-| mailbox_status | Owner-visible state | recordSyncSuccess / recordNeedsAttention | `personal`: ok, last_sync_at 21:32:45Z, no error | ✓ FLOWING |
+| message / message_location | Owner's INBOX | Bridge → runIngest → storeMessages | 103,505 messages, all in one mailbox, 0 duplicates | ✓ FLOWING |
+| message.eligible_for_classification | 3-day backfill | `sift mailbox backfill personal --days 3` → runBackfill → promoteEligible | 38 rows promoted at 05:49:50Z; boundary at ~3 days | ✓ FLOWING |
+| mailbox_status | Owner-visible state | recordSyncSuccess | `personal` ok, last_sync_at 06:45:57Z, no error | ✓ FLOWING |
+| folder_sync.internal_date_watermark | Poll gate | advanceFolderSync | 06:34:50Z, not ahead of the DB clock (06:46Z); review WR-01 is latent on this database | ✓ FLOWING |
 
-### Behavioral Spot-Checks (single named files, not the full suite)
+### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| SC3/SC4/SC5 on Dovecot + Postgres, resync engine, identity, doc contracts | `vitest run ingest-e2e ingest-resync ingest-engine spike-findings live-ingest-record ingest-identity` | 6 files, 121/121 | ✓ PASS |
-| DB ingest (incl. 70k-location finishResync), scope `= any`, lock, CLI backfill (WR-02), mailbox batch | `vitest run packages/db/test/{ingest,scope,lock} mailbox-ops mailbox-batch` | 5 files, 133/133 | ✓ PASS |
-| TLS capture/pin/connect, folder source read-only, bridge image static, probe privacy, no secret leak, bridge trust, docs pins, compose | `vitest run imap-capture imap-connect imap-folder-source bridge-image bridge-probe no-secret-leak bridge-trust user-facing-text compose` | 9 files, 276/276 | ✓ PASS |
-| Config schema, supervisor nudge/abort, message parsing, status, migrate | `vitest run packages/core supervisor ingest-message status migrate` | 8 files, 221/221 | ✓ PASS |
-| Dependencies/licences, CI, CLI, registry, isolation, pin, worker | `vitest run dependencies ci-workflow cli registry isolation imap-pin worker` | 7 files, 68/68 | ✓ PASS |
-| env-file in-place write, verified backup, chmod 0600 (CR-02) | `go test` on envfile.go + envfile_test.go in a scratch module | ok | ✓ PASS |
-| Type safety / lint | `pnpm typecheck`; `pnpm lint` | exit 0; 1 existing warning | ✓ PASS |
-| Owner env files are 0600 | `stat -f %Lp .env.mailboxes .env.mailboxes.bak` (mode only) | 600 / 600 | ✓ PASS |
-| Bridge image end to end (fail-closed exit 78, socat supervision, configure telemetry read-back, repair over gRPC) | `SIFT_BRIDGE_IMAGE=sift-bridge:verify-02 bash scripts/bridge-smoke.sh` (separate tag, port 11143, throwaway volumes) | exit 0: STARTTLS on 11143, logged fingerprint = openssl, healthcheck passes, socat death stops the container (exit 1), configure turns telemetry and updates off and prints the pin (exit 3), env-file and no-TTY refusals (exit 2), repair over gRPC (exit 0), wrong passphrase and uninitialised volume exit 78 | ✓ PASS |
+| 02-20 and 02-21 doc and smoke tests | `pnpm vitest run user-facing-text spike-findings live-ingest-record compose-smoke --maxWorkers=3` | 4 files, 137/137 | ✓ PASS |
+| CI workflow and compose contract after the Dependabot bump | `pnpm vitest run ci-workflow compose --maxWorkers=3` | 2 files, 44/44 | ✓ PASS |
+| Smoke script static checks | `bash -n` and `shellcheck -S warning scripts/compose-smoke.sh` | exit 0 / exit 0 | ✓ PASS |
+| CI on main | `gh run view 37581267978 --json attempt,conclusion,jobs` | attempt 2 success; check and compose-smoke success | ✓ PASS |
+| CI compose-smoke assertions | `gh run view ... --log --job <compose-smoke>` | `mailbox status connecting or error = 2`, `compose smoke OK` | ✓ PASS |
+| Live stack | read-only counts on sift-db-1 | see truths 3-4 and the 02-20 #7 evidence | ✓ PASS |
 
-I did not run the full `pnpm test` suite. The orchestrator reports 14 timeouts under Docker host load, and every affected file passes alone. My runs above cover those files (ingest-e2e, imap-*, bridge-probe and others) and found no failures. I treat this as a reliability warning, not a functional failure.
+I did not run the full `pnpm test` (bug-189: host load with live containers).
 
 ### Probe Execution
 
-No `scripts/*/tests/probe-*.sh` exists. `sift bridge probe` is a CLI against the owner's mailbox; I did not run it, as instructed. Its behaviour is covered by `bridge-probe.test.ts` against Dovecot, which passes.
+No `scripts/*/tests/probe-*.sh` exists, and neither 02-20 nor 02-21 declares a probe. Step 7c does not apply.
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| SPK-01 | 02-11, 02-14 | Labels as folders, apply/remove, multiple folders at once | ✓ SATISFIED | Findings "Labels as folders"; INBOX and label copies coexist, with byte-equal headers |
-| SPK-02 | 02-11, 02-14 | CONDSTORE/QRESYNC advertised and observed | ✓ SATISFIED | Not advertised; ENABLE and STATUS HIGHESTMODSEQ answered `BAD` |
-| SPK-03 | 02-11, 02-14 | Message-ID consistency, missing/duplicate rate, hash fallback viability | ✓ SATISFIED | 0 missing, 1.6% duplicates, byte-equal across folders; `hdr:v1` kept, never needed on Bridge |
-| SPK-04 | 02-11, 02-14, 02-17 | UIDVALIDITY across restarts **and resyncs**; capability decision | ? NEEDS HUMAN (partial) | Restarts and the decision are covered; the repair (resync) is unmeasured by owner choice. Override or measurement needed |
-| ING-01 | 02-01, 02-02, 02-04, 02-08, 02-09, 02-12, 02-13, 02-15, 02-17, 02-18, 02-19 | Worker connects through Bridge with the env password and reads the configured folder | ✓ SATISFIED | mailbox-batch wiring; live run; e2e tests |
-| ING-02 | 02-02, 02-03, 02-06, 02-07, 02-10, 02-12, 02-13, 02-16, 02-19 | Stored once with mailbox_id, UID, UIDVALIDITY, identity, headers, body; re-runs never duplicate | ✓ SATISFIED | Schema UNIQUEs; storeMessages idempotency tests; live 0 duplicates. UID and UIDVALIDITY live on message_location (D-15), the design's normalisation of "stored in message" |
-| ING-03 | 02-02, 02-05, 02-09, 02-10, 02-13, 02-16, 02-19 | New mail picked up on a polling interval without restart | ✓ SATISFIED | Live 34 s; supervisor poll; e2e |
-| ING-04 | 02-03, 02-06, 02-10, 02-13, 02-19 | folder_sync records UIDVALIDITY and last position; a change triggers a safe resync | ✓ SATISFIED | folder_sync columns and CHECKs; resync tests; live generation 2 |
+| SPK-01 | 02-11, 02-14 | Labels as folders, apply/remove | ✓ SATISFIED | Findings unchanged |
+| SPK-02 | 02-11, 02-14 | CONDSTORE/QRESYNC | ✓ SATISFIED | Findings unchanged |
+| SPK-03 | 02-11, 02-14 | Message-ID consistency | ✓ SATISFIED | Findings unchanged |
+| SPK-04 | 02-11, 02-14, 02-17, 02-20 | UIDVALIDITY across restarts and resyncs; capability decision | ✓ SATISFIED (override) | Restarts measured; the repair is covered by the accepted override (2026-10-07T04:01:40Z); the D-84 value record is corrected (02-20) |
+| ING-01 | 02-01 ... 02-19, 02-20, 02-21 | Worker connects through Bridge and reads the configured folder | ✓ SATISFIED | Live stack ok; README scoped to Bridge; CI smoke proves the worker loop reports status |
+| ING-02 | 02-02 ... 02-19 | Stored once with identity, UID, UIDVALIDITY, body | ✓ SATISFIED | 0 duplicates at 103,505 rows |
+| ING-03 | 02-02 ... 02-19, 02-20 | New mail picked up by polling | ✓ SATISFIED | Live polls; NTP requirement documented (G-02-8) |
+| ING-04 | 02-03 ... 02-19 | folder_sync UIDVALIDITY; safe resync | ✓ SATISFIED | Generation 2 ok; resync tests (CI flake bug-191 is test-side) |
 
-No orphaned requirements: REQUIREMENTS.md maps exactly these eight IDs to Phase 2, and every one is claimed by a plan. REQUIREMENTS.md marks SPK-04 `[x] Complete`. That overstates it until the owner accepts the override.
+There are no orphaned requirements. REQUIREMENTS.md maps exactly these eight IDs to Phase 2, and every plan ID is accounted for.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| (phase files, 109 impl/test files) | - | TBD/FIXME/XXX/TODO/HACK | none found | - |
-| Running deployment (`sift-worker-1`, image 14:43:11Z) | - | Review fixes not deployed; INBOX at 72,018 live locations > 65,535 | ⚠️ Warning | CR-01 is reachable on the running image if UIDVALIDITY changes (for example, a Bridge repair). Fixed in code; redeploy needed |
-| `.env.example` | 28 | "If you lose it, run `docker compose run --rm bridge-init`" | ⚠️ Warning | Wrong recovery advice on an existing volume (exit 78). Logged in deferred-items.md from 02-17 and still unfixed. The README states the correct recovery |
-| Full `pnpm test` | - | 14 timeouts + 21 skips under host load | ⚠️ Warning | Reliability only; every affected file passes alone (bug-151/162 class) |
-| 02-REVIEW IN-01..IN-04 | - | Duplicated cause helper; NaN on missing UIDNEXT; hold pauses the first backfill; valve counts CLI-backfilled mail | ℹ️ Info | Open by disposition; none blocks the goal |
-| `.github/workflows/*` | - | Never executed on GitHub (main 131 commits ahead of origin) | ℹ️ Info | CI claims are static-test only until pushed |
+| 02-20/02-21 changed files | - | TBD/FIXME/XXX/TODO/HACK | none found | - |
+| `scripts/compose-smoke.sh` | 265-284 | No lower bound on when the status row was written (02-REVIEW WR-02) | ⚠️ Warning | Local reruns without `--down` can pass on the previous run's rows. CI (fresh runner, `--down`) is unaffected. The comment "only the state at the deadline counts" (line 270) also misdescribes the loop, which passes at the first good poll |
+| `apps/worker/src/ingest/run.ts` | 297-327 | A watermark already stored in the future is never lowered (02-REVIEW WR-01) | ⚠️ Warning | Delayed mail could become historical on every cycle while the stored watermark is ahead. Latent: the owner's INBOX watermark (06:34:50Z) is not in the future. Not a plan must-have; the NTP bullet (G-02-8) reduces the chance |
+| `apps/worker/test/imap-folder-source.test.ts` | 388 | Intermittent UIDVALIDITY assertion (bug-191) | ⚠️ Warning | Failed CI attempt 1 of run 37581267978; the rerun passed. It can turn `check` red on main until fixed |
+| `.env.example` | 27-28 | "If you lose it, run `docker compose run --rm bridge-init` again" | ⚠️ Warning | Carried from the previous verification: wrong recovery advice on an existing volume (exit 78). Still unfixed |
+| 02-REVIEW IN-01..IN-05 | - | Misleading cert_expired text for unpinned mailboxes, skipped clock warnings, progress reset, duplicate helpers, a lost CLI test | ℹ️ Info | Advisory, none blocks the goal |
 
 ### Prohibitions
 
-- **Test-tier** (02-01, 02-06, 02-07, 02-08, 02-09, 02-10, 02-11, 02-14, 02-18, 02-19): enforcement is wired, and the enforcing tests passed in my runs. These include identity-key pairing and the no-duplicate-conflict-key rule (ingest.test), Message-ID never keying a Bridge mailbox (ingest-identity), flags unchanged (ingest-e2e, imap-folder-source), the valve before any resync write and old mail never eligible (ingest-resync, ingest-engine), no data over an unverified connection and no cert to disk (imap-capture, imap-connect), and privacy (spike-findings, live-ingest-record, bridge-probe, no-secret-leak). The Bridge-container prohibitions (02-01 unencrypted vault and no env or config mount in the bridge service, 02-08 telemetry and password exposure) are enforced by `scripts/bridge-smoke.sh` (exit 78 refusals, telemetry and updates read back off, sentinel password never printed) and by compose.test; both passed in this verification.
-- **Judgment-tier** (02-11 #2, 02-14 #2, 02-19 #2 and #3): flagged as `unverified-prohibition — human review recommended`. Non-authoritative verdict: compliant, per the records. See Human Verification 6.
+- **Test-tier** (02-01 ... 02-19): unchanged code; the enforcing tests I re-ran pass. 02-21's T-02-80 rule (no smoke worker reaches a real server) is enforced by the host rewrite and by the check accepting only connecting/error; CI shows 2 such rows.
+- **Judgment-tier** (02-11, 02-14, 02-19): the owner confirmed them in 02-UAT test 10. 02-20 and 02-21 declare no new prohibitions.
 
 ### Human Verification Required
 
-1. **SPK-04 repair: accept or measure.** Add the override above, or approve one `bridge-init repair` and record UIDVALIDITY and INTERNALDATE before and after. Expected: an override entry, or a measured statement in the findings. Why human: it touches the owner's Bridge, and accepting it is an owner judgement.
-2. **02-16 lock-span deviation (WR-02).** Accept the override above (recommended). Why human: the must-have is false as written, and the replacement keeps its intent.
-3. **Redeploy the worker with the review fixes.** Run `docker compose up -d --build worker` (scoped), then `sift mailbox list` and the duplicate counts. Expected: ok, 0 duplicates. Why human: the running image predates 9d1daa6..c7a580c, INBOX is past the CR-01 limit, and the verifier must not recreate the owner's containers.
-4. **WR-03 clock-cap trade-off.** Confirm that capping at "now" is intended. Why human: the fixer flagged it.
-5. **WR-04 trust rule.** Accept "pinned means Bridge" or decide on an explicit config key. Why human: a trust-rule design choice under D-74.
-6. **Judgment-tier prohibitions** (02-11, 02-14, 02-19). Confirm that the records match what happened.
+1. **Override for 02-17 must-have 3.** Accept the suggested override above, or ask for the removed README clauses back, which would contradict G-02-9. Why human: a later plan superseded an earlier must-have on the owner's decision.
+2. **README read-through (UAT test 11, 02-17 D7).** Read the quick start as a new owner after the 02-20 edits. Expected: clear and complete from clone to an ingesting worker. Why human: comprehension, not strings.
+
+Not raised again: UAT test 12, the Renovate Bridge bump PR. It is blocked on a third party, and the bridge-image workflow already passed on GitHub (run 37572704376). It stays in 02-UAT.md.
 
 ### Gaps Summary
 
-No code gaps block the goal. Bridge's behaviour is documented from the owner's real mailbox, and the decision for later phases is recorded. The owner's INBOX is in the database: 72,018 rows, each stored once, scoped to one mailbox, all keyed `pm:`. A restart, new mail and a forced resync all behave as the roadmap requires, both live and in the tests I ran.
+No gaps remain. All four UAT gaps are closed:
 
-The phase is not `passed` for three reasons:
+- **G-02-9 and G-02-8:** the README now states the Proton-only scope and the NTP requirement, and tests pin both.
+- **G-02-4:** the backfill value 3 is recorded with dated history, set in the owner's config, and backed by database evidence of the 3-day backfill.
+- **G-02-14:** compose-smoke checks a status reachable without IMAP, and ci run 37581267978 is green in both jobs.
 
-1. Two plan must-haves are false as written but deliberate: the unmeasured Bridge repair, and the WR-02 lock split. Each needs an owner override.
-2. The owner's running worker lacks the review fixes, and CR-01 is now reachable because INBOX has passed 65,535 locations.
-3. Two review fixes, WR-03 and WR-04, were flagged for human review.
+The phase goal holds:
 
-The full-suite timeouts are a reliability warning, not a functional failure. Every file involved passed in isolation in this verification.
+- Bridge's behaviour is documented from the owner's mailbox.
+- 103,505 messages sit in one mailbox, each stored once, and polling is current.
+
+The status is `human_needed`, not `passed`, for two reasons:
+
+- The Proton-only README rewrite legitimately invalidated two clauses of an 02-17 must-have, which needs an owner override.
+- The owner's deferred README read-through is still open.
+
+The review warnings WR-01 (latent future watermark) and WR-02 (stale rows on local smoke reruns) are advisory and are not plan must-haves. WR-02 weakens what a local rerun of the smoke proves, but not what CI proves.
+
+The orchestrator should also mark G-02-4, G-02-8, G-02-9 and G-02-14 as closed in 02-UAT.md, which still reads `status: diagnosed`.
 
 ---
 
-_Verified: 2026-10-06T21:37:46Z_
+_Verified: 2026-10-07T06:48:15Z_
 _Verifier: Claude (gsd-verifier)_
