@@ -3062,6 +3062,22 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-07T05:12:34.767Z"
+    },
+    {
+      "id": "bug-184",
+      "timestamp": "2026-10-07T05:14:39.207Z",
+      "error_message": "Wrong reference: Sec should be pin",
+      "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md",
+      "root_cause": "Used \"Sec\" instead of \"pin\"",
+      "fix": "Changed Sec → pin",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T05:14:39.207Z"
     }
   ]
 }

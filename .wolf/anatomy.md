@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T05:12:34.731Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T05:14:45.813Z
 > Files: 309 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
@@ -181,7 +181,7 @@
 - `02-18-SUMMARY.md` — Phase 2 Plan 18: Pinned, Fail-Closed IMAP Connection Summary (~3429 tok)
 - `02-19-PLAN.md` — reviews round 1: live ingest on the owner's Proton mailbox (ROADMAP SC 3-5): worker through Bridge, restart check, new-mail timing, forced UIDVALIDITY resync, counts-only 02-LIVE-INGEST.md + doc test (~6692 tok)
 - `02-19-SUMMARY.md` — Phase 2 Plan 19: Live Ingest on the Owner's Proton Mailbox Summary (~2648 tok)
-- `02-20-PLAN.md` — UAT gap closure G-02-4/8/9: README Proton-only scope + NTP host clock (pinned in user-facing-text.test.ts), findings backfill 3 as dated correction + exact-cite doc tests, owner config/backfill checkpoint (~7147 tok)
+- `02-20-PLAN.md` — Declares readme (~7342 tok)
 - `02-21-PLAN.md` — Declares pnpm (~5297 tok)
 - `02-CONTEXT.md` — Phase 2: Bridge Spike and IMAP Ingest - Context (~5019 tok)
 - `02-DISCUSSION-LOG.md` — Phase 2: Bridge Spike and IMAP Ingest - Discussion Log (~2174 tok)
