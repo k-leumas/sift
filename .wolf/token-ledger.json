@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-10-03T19:14:49.478Z",
   "lifetime": {
-    "total_tokens_estimated": 17657449,
-    "total_reads": 2592,
-    "total_writes": 7250,
-    "total_sessions": 11,
-    "anatomy_hits": 1684,
-    "anatomy_misses": 874,
-    "repeated_reads_blocked": 1777,
-    "estimated_savings_vs_bare_cli": 2684299
+    "total_tokens_estimated": 18081159,
+    "total_reads": 2651,
+    "total_writes": 7404,
+    "total_sessions": 13,
+    "anatomy_hits": 1719,
+    "anatomy_misses": 896,
+    "repeated_reads_blocked": 1808,
+    "estimated_savings_vs_bare_cli": 2716897
   },
   "sessions": [
     {
@@ -53576,6 +53576,1147 @@
         "output_tokens_estimated": 242502,
         "reads_count": 59,
         "writes_count": 153,
+        "repeated_reads_blocked": 31,
+        "anatomy_lookups": 35
+      }
+    },
+    {
+      "id": "session-2026-10-05-1104",
+      "started": "2026-10-05T17:04:23.239Z",
+      "ended": "2026-10-06T23:42:29.712Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-phase.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/templates/summary.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/checkpoints.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/worktree-path-safety.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/executor-examples.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md",
+          "tokens_estimated": 10493,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/bbregx3pa.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-02-PLAN.md",
+          "tokens_estimated": 4633,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/schema.ts",
+          "tokens_estimated": 2149,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/config/config.example.yaml",
+          "tokens_estimated": 368,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/btgz0ahz5.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md",
+          "tokens_estimated": 5490,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/bzyze32am.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/dependencies.test.ts",
+          "tokens_estimated": 1366,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-05-PLAN.md",
+          "tokens_estimated": 2958,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/supervisor.ts",
+          "tokens_estimated": 2400,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/supervisor.test.ts",
+          "tokens_estimated": 4500,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/tdd.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md",
+          "tokens_estimated": 7685,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/b3bndmfe4.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-07-PLAN.md",
+          "tokens_estimated": 6841,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/message.ts",
+          "tokens_estimated": 1567,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md",
+          "tokens_estimated": 7810,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-18-PLAN.md",
+          "tokens_estimated": 8301,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/capture.ts",
+          "tokens_estimated": 2431,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-09-PLAN.md",
+          "tokens_estimated": 4402,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/folder-source.ts",
+          "tokens_estimated": 2805,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-10-PLAN.md",
+          "tokens_estimated": 10494,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/boasts4ir.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts",
+          "tokens_estimated": 3713,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md",
+          "tokens_estimated": 6776,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-probe.ts",
+          "tokens_estimated": 1850,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md",
+          "tokens_estimated": 4500,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-13-PLAN.md",
+          "tokens_estimated": 8075,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/brwzan2ij.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts",
+          "tokens_estimated": 2852,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-15-PLAN.md",
+          "tokens_estimated": 4901,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/b0s32je3k.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-14-PLAN.md",
+          "tokens_estimated": 7014,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-16-PLAN.md",
+          "tokens_estimated": 5673,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/mailbox-ops.test.ts",
+          "tokens_estimated": 1350,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-17-PLAN.md",
+          "tokens_estimated": 6094,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/bo010ltdm.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/b4hifnxr8.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-19-PLAN.md",
+          "tokens_estimated": 6692,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/bwvrrs3ho.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/code-review.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-CONTEXT.md",
+          "tokens_estimated": 5019,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md",
+          "tokens_estimated": 5510,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/scope.ts",
+          "tokens_estimated": 4000,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.env.mailboxes.example",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/CONTRIBUTING.md",
+          "tokens_estimated": 2385,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.env.example",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md",
+          "tokens_estimated": 3153,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md",
+          "tokens_estimated": 3103,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-FIX.md",
+          "tokens_estimated": 2861,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-DISPOSITION.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/tool-results/bti569gzo.txt",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/Users/samuel/dev/sift/bridge/Dockerfile",
+          "tokens_estimated": 735,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/entrypoint.sh",
+          "tokens_estimated": 1978,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/bridge-smoke.sh",
+          "tokens_estimated": 1601,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/add-bridge-passphrase.sh",
+          "tokens_estimated": 189,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/bridge-image.test.ts",
+          "tokens_estimated": 1257,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/compose.test.ts",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-01-SUMMARY.md",
+          "tokens_estimated": 4133,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/schema.ts",
+          "tokens_estimated": 277,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/schema.ts",
+          "tokens_estimated": 576,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/schema.ts",
+          "tokens_estimated": 48,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/schema.ts",
+          "tokens_estimated": 44,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/index.ts",
+          "tokens_estimated": 248,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-02-SUMMARY.md",
+          "tokens_estimated": 3338,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/schema/scoped.ts",
+          "tokens_estimated": 46,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/schema/scoped.ts",
+          "tokens_estimated": 1896,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/schema/scoped.ts",
+          "tokens_estimated": 682,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/schema/index.ts",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/migrations/0005_ingest_preflight.sql",
+          "tokens_estimated": 311,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/migrations/0007_ingest_tables_force_grants.sql",
+          "tokens_estimated": 157,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/migrate.test.ts",
+          "tokens_estimated": 768,
+          "action": "edit"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/edit_scope.py",
+          "tokens_estimated": 3634,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/edit_iso.py",
+          "tokens_estimated": 1579,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-03-SUMMARY.md",
+          "tokens_estimated": 4551,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/scripts/test-imap.sh",
+          "tokens_estimated": 1196,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/pin.ts",
+          "tokens_estimated": 369,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/test-imap.ts",
+          "tokens_estimated": 1963,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-pin.test.ts",
+          "tokens_estimated": 2098,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-pin.test.ts",
+          "tokens_estimated": 17,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/dependencies.test.ts",
+          "tokens_estimated": 1366,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/dependencies.test.ts",
+          "tokens_estimated": 219,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/dependencies.test.ts",
+          "tokens_estimated": 228,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.github/workflows/ci.yml",
+          "tokens_estimated": 111,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ci-workflow.test.ts",
+          "tokens_estimated": 177,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-04-SUMMARY.md",
+          "tokens_estimated": 4231,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/supervisor.ts",
+          "tokens_estimated": 158,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/supervisor.ts",
+          "tokens_estimated": 54,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/supervisor.ts",
+          "tokens_estimated": 117,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/supervisor.ts",
+          "tokens_estimated": 134,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/supervisor.test.ts",
+          "tokens_estimated": 239,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-05-SUMMARY.md",
+          "tokens_estimated": 2708,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/ingest.ts",
+          "tokens_estimated": 2488,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/ingest.test.ts",
+          "tokens_estimated": 1589,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-06-SUMMARY.md",
+          "tokens_estimated": 3801,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/types.ts",
+          "tokens_estimated": 1610,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/identity.ts",
+          "tokens_estimated": 1341,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/message.ts",
+          "tokens_estimated": 1567,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ingest-identity.test.ts",
+          "tokens_estimated": 2988,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ingest-message.test.ts",
+          "tokens_estimated": 2350,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-07-SUMMARY.md",
+          "tokens_estimated": 3463,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/main.go",
+          "tokens_estimated": 2561,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/probe-configure.sh",
+          "tokens_estimated": 334,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/envfile_test.go",
+          "tokens_estimated": 4246,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/envfile.go",
+          "tokens_estimated": 493,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/gojson-to-junit.cjs",
+          "tokens_estimated": 309,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/envfile.go",
+          "tokens_estimated": 2860,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-08-SUMMARY.md",
+          "tokens_estimated": 4898,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/capture.ts",
+          "tokens_estimated": 2431,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/connect.ts",
+          "tokens_estimated": 2476,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-connect.test.ts",
+          "tokens_estimated": 277,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/fake-imap-server.ts",
+          "tokens_estimated": 2408,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-capture.test.ts",
+          "tokens_estimated": 2197,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-connect.test.ts",
+          "tokens_estimated": 3648,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-pin.test.ts",
+          "tokens_estimated": 250,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-18-SUMMARY.md",
+          "tokens_estimated": 3919,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/imap/folder-source.ts",
+          "tokens_estimated": 2805,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-folder-source.test.ts",
+          "tokens_estimated": 727,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/test-imap.ts",
+          "tokens_estimated": 160,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/imap-folder-source.test.ts",
+          "tokens_estimated": 4514,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-09-SUMMARY.md",
+          "tokens_estimated": 4444,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/plan.ts",
+          "tokens_estimated": 1002,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/fake-folder-source.ts",
+          "tokens_estimated": 2284,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/fake-ingest-store.ts",
+          "tokens_estimated": 4465,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts",
+          "tokens_estimated": 3713,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ingest-engine.test.ts",
+          "tokens_estimated": 3595,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ingest-engine.test.ts",
+          "tokens_estimated": 8,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ingest-engine.test.ts",
+          "tokens_estimated": 34,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ingest-resync.test.ts",
+          "tokens_estimated": 4809,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts",
+          "tokens_estimated": 101,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-10-SUMMARY.md",
+          "tokens_estimated": 5077,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/spike/probe.ts",
+          "tokens_estimated": 4656,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-probe.ts",
+          "tokens_estimated": 1850,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/command.ts",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/cli.test.ts",
+          "tokens_estimated": 65,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/bridge-probe.test.ts",
+          "tokens_estimated": 3842,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-11-SUMMARY.md",
+          "tokens_estimated": 4645,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/lock.ts",
+          "tokens_estimated": 1054,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/lock.test.ts",
+          "tokens_estimated": 1784,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/status.test.ts",
+          "tokens_estimated": 1854,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-12-SUMMARY.md",
+          "tokens_estimated": 3701,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/ingest/db-store.ts",
+          "tokens_estimated": 2038,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts",
+          "tokens_estimated": 2852,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/support/seed.ts",
+          "tokens_estimated": 298,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/mailbox-harness.ts",
+          "tokens_estimated": 1961,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/ingest-e2e.test.ts",
+          "tokens_estimated": 1363,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/mailbox-batch.test.ts",
+          "tokens_estimated": 4529,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts",
+          "tokens_estimated": 4766,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-13-SUMMARY.md",
+          "tokens_estimated": 5558,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-trust.ts",
+          "tokens_estimated": 1485,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/bridge-trust.test.ts",
+          "tokens_estimated": 2379,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/renovate.json",
+          "tokens_estimated": 235,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.github/workflows/bridge-image.yml",
+          "tokens_estimated": 328,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-USER-SETUP.md",
+          "tokens_estimated": 626,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-15-SUMMARY.md",
+          "tokens_estimated": 4165,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/key-present.cjs",
+          "tokens_estimated": 208,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md",
+          "tokens_estimated": 312,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/main.go",
+          "tokens_estimated": 122,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/main.go",
+          "tokens_estimated": 61,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/main.go",
+          "tokens_estimated": 124,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/main.go",
+          "tokens_estimated": 214,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/bridge/helper/main_test.go",
+          "tokens_estimated": 631,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/config/config.yaml",
+          "tokens_estimated": 10,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/config/config.yaml",
+          "tokens_estimated": 59,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/privacy-scan.ts",
+          "tokens_estimated": 806,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/spike-findings.test.ts",
+          "tokens_estimated": 1314,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/find-fresh.ts",
+          "tokens_estimated": 472,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md",
+          "tokens_estimated": 3590,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md",
+          "tokens_estimated": 69,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-14-SUMMARY.md",
+          "tokens_estimated": 4150,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/deferred-items.md",
+          "tokens_estimated": 220,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/owner/registry.ts",
+          "tokens_estimated": 478,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-resume.ts",
+          "tokens_estimated": 591,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/command.ts",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/cli.test.ts",
+          "tokens_estimated": 25,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/mailbox-ops.test.ts",
+          "tokens_estimated": 1350,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts",
+          "tokens_estimated": 3586,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-16-SUMMARY.md",
+          "tokens_estimated": 3507,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/quickstart.md",
+          "tokens_estimated": 3167,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts",
+          "tokens_estimated": 99,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-17-SUMMARY.md",
+          "tokens_estimated": 4762,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-17-SUMMARY.md",
+          "tokens_estimated": 6,
+          "action": "edit"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/sync-watch.sh",
+          "tokens_estimated": 270,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/snap.sh",
+          "tokens_estimated": 417,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md",
+          "tokens_estimated": 1724,
+          "action": "create"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b001d22c-9411-4df8-899f-145aa6d2b0ec/scratchpad/c4poll.sh",
+          "tokens_estimated": 534,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/live-ingest-record.test.ts",
+          "tokens_estimated": 1123,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md",
+          "tokens_estimated": 20,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md",
+          "tokens_estimated": 200,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-LIVE-INGEST.md",
+          "tokens_estimated": 1655,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-19-SUMMARY.md",
+          "tokens_estimated": 3027,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md",
+          "tokens_estimated": 6297,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/scope.ts",
+          "tokens_estimated": 27,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/scope.ts",
+          "tokens_estimated": 180,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/scope.ts",
+          "tokens_estimated": 10,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/ingest.test.ts",
+          "tokens_estimated": 748,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/scope.test.ts",
+          "tokens_estimated": 210,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/scope.test.ts",
+          "tokens_estimated": 378,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/scope.test.ts",
+          "tokens_estimated": 27,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/scope.test.ts",
+          "tokens_estimated": 115,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/ingest.test.ts",
+          "tokens_estimated": 35,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/README.md",
+          "tokens_estimated": 127,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/CONTRIBUTING.md",
+          "tokens_estimated": 34,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/compose.test.ts",
+          "tokens_estimated": 88,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-FIX.md",
+          "tokens_estimated": 3270,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-VERIFICATION.md",
+          "tokens_estimated": 8994,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 172214,
+        "output_tokens_estimated": 251496,
+        "reads_count": 59,
+        "writes_count": 154,
         "repeated_reads_blocked": 31,
         "anatomy_lookups": 35
       }

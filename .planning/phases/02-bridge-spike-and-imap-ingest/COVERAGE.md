@@ -13,7 +13,7 @@ External surfaces: Proton Bridge's IMAP server (gluon) and Bridge's local gRPC f
 | IMAP EXAMINE | INTEGRATE | The only way ingest opens a folder (read-only, D-11); 02-09 |
 | IMAP SELECT | INTEGRATE | Only the probe's confirmed label test opens the spike label folder read-write to remove the test copy; 02-11 |
 | IMAP STATUS (UIDNEXT, UIDVALIDITY, MESSAGES, HIGHESTMODSEQ) | INTEGRATE | Probe UIDVALIDITY comparisons, HIGHESTMODSEQ check and folderStatus counts (SPK-02, SPK-04); the live run's new-mail timing reads UIDNEXT from it; 02-11, 02-19 |
-| IMAP UID FETCH (INTERNALDATE, RFC822.SIZE, ENVELOPE, BODYSTRUCTURE, BODY.PEEK[HEADER.FIELDS]) | INTEGRATE | Ingest metadata and identity headers, never setting \Seen; 02-09 |
+| IMAP UID FETCH (metadata + BODY.PEEK[HEADER.FIELDS]) | INTEGRATE | Ingest metadata (INTERNALDATE, RFC822.SIZE, ENVELOPE, BODYSTRUCTURE) and identity headers, never setting \Seen; 02-09 |
 | IMAP UID FETCH BODY.PEEK[part] (download with maxBytes) | INTEGRATE | Bounded text-part download for the body cache (D-06); 02-09 |
 | IMAP UID SEARCH (UID range, SINCE) | INTEGRATE | Removal diff, backfill window and CLI backfill count (D-17, D-75); 02-09, 02-10 |
 | IMAP IDLE | INTEGRATE | Probe only, to answer whether Bridge's IDLE works (D-27, D-43); the worker polls (disableAutoIdle); 02-11 |

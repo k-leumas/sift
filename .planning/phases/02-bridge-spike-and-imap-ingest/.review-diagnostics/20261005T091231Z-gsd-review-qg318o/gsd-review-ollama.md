@@ -1,0 +1,1 @@
+ollama review skipped: prompt budget (24000 tokens) too small for the minimum review set (~97,504 estimated tokens; prompt-budget hard_failed, exit 2). The lane was then invoked with an empty prompt and qwen2.5:3b returned a generic greeting — discarded, not a review.

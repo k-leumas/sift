@@ -6,6 +6,8 @@
 
 ## User Preferences
 
+- Commands for the user to paste must be single-line (e.g. `psql -Atc "..."`), never heredocs: a pasted heredoc broke their zsh terminal (2026-10-07, phase 02 UAT).
+
 - UAT checkpoints: give concrete copy-paste commands and the exact expected output for each check; a bare 'expected:' line left the user unsure what to verify (2026-10-05).
 
 <!-- How the user likes things done. Code style, tools, patterns, communication. -->
@@ -195,6 +197,9 @@
 - [2026-10-05] In agent zsh, `g` is an alias, so `g() {...}` is a parse error, and `G="node x.cjs"; $G ...` does not word-split. Define helpers with an unaliased name (e.g. `gsdq() { node .../gsd-tools.cjs "$@"; }`).
 
 ## Decision Log
+
+- 2026-10-07 (phase 02 UAT): Owner scoped Sift to Proton Mail through Proton Bridge only, for now: simpler logic, smaller test surface, more security-minded. README must say so (README lines ~105/107/391 still imply any IMAP server). Code still has non-Bridge paths (implicit TLS, mid:/hdr: fallbacks); removing them is a separate decision.
+- 2026-10-07: Owner wants the README to tell owners to keep the host clock NTP-synced (WR-03 caps future INTERNALDATE at worker clock; worker and Bridge share the host clock, INTERNALDATE is Proton server time).
 
 - [2026-10-05] Phase 2 reviews round 1 (REVIEWS 45a500e): new plan 02-19 runs the worker on the owner's Proton mailbox for ROADMAP SC 3-5 (counts only, forced UIDVALIDITY by Bridge repair or a simulated folder_sync mismatch); resync applies the volume valve in a write-free count pass; hdr: keys are versioned hdr:v1:; ingest lock key is hashtextextended (64-bit); first-sync watermark = max(server newest INTERNALDATE, now - 10 min) to tolerate Bridge clock lag while keeping D-20; CLI backfill ingests exactly the counted UIDs.
 

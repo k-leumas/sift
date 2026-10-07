@@ -157,8 +157,17 @@ covered_files:
   - scripts/test-imap.sh
 covered_digest: "v2:sha256:21cc9dc6dcc90b5e3c75973dc45dd79421174a693030b2667e54bc93a092b4be"
 behavior_unverified: 0
-overrides_applied: 0
+overrides_applied: 2
 behavior_unverified_items: []
+overrides:
+  - must_have: "The findings state whether UIDVALIDITY and INTERNALDATE stayed the same across a Bridge restart and across a forced repair"
+    reason: "Owner approved no-repair; restarts measured; a repair is treated as a UIDVALIDITY reset (D-22), whose resync path is proven live (simulated) and on Dovecot (real bump)"
+    accepted_by: "Samuel Kimama"
+    accepted_at: "2026-10-07T04:01:40Z"
+  - must_have: "The ingest lock is held from the count through the ingest, so the worker cannot ingest the counted set in between"
+    reason: "WR-02: two lock sessions avoid ImapFlow's 120 s idle drop and an unbounded worker block; runBackfill refuses a changed UIDVALIDITY and counted mail stored meanwhile merges by identity (D-03, D-14 preserved)"
+    accepted_by: "Samuel Kimama"
+    accepted_at: "2026-10-07T04:23:15Z"
 human_verification:
   - test: "Owner decision (SPK-04 / 02-14 must-have 5): Bridge repair behaviour is unmeasured. Either accept the gap with the suggested override (owner approved `no-repair`; the design treats a repair as a UIDVALIDITY reset, and the resync path is proven on the real mailbox by the simulated mismatch and on Dovecot by a real server-side UIDVALIDITY change), or approve one `docker compose run --rm bridge-init repair` and record UIDVALIDITY and INTERNALDATE before and after in 02-SPIKE-FINDINGS.md."
     expected: "Either an `overrides:` entry for the 02-14 repair truth is added to this file, or the findings state, from observation, whether a repair changes UIDVALIDITY."
