@@ -3185,6 +3185,25 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-07T06:20:00Z"
+    },
+    {
+      "id": "bug-191",
+      "timestamp": "2026-10-07T06:25:29Z",
+      "error_message": "ci check (run 37581267978 attempt 1): imap-folder-source.test.ts:388 'reports the new UIDVALIDITY after the server changes it': AssertionError: expected 1791354308 to be 1791354309",
+      "file": "apps/worker/test/imap-folder-source.test.ts",
+      "root_cause": "Unconfirmed: the second EXAMINE returned the old UIDVALIDITY (bumped value minus 1), so the doveadm `mailbox update --uid-validity` from bumpUidValidity (apps/worker/test/support/test-imap.ts) is likely not always visible to the next EXAMINE on the same Dovecot connection/index",
+      "fix": "Not fixed: intermittent, outside 02-21's scope; the owner re-ran the failed job and attempt 2 passed (check and compose-smoke success). Candidate fix: after the doveadm update, poll STATUS/EXAMINE until UIDVALIDITY changes (bounded) or reconnect before the second examine",
+      "tags": [
+        "flaky",
+        "ci",
+        "dovecot",
+        "uidvalidity"
+      ],
+      "related_bugs": [
+        "bug-189"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T06:25:29Z"
     }
   ]
 }
