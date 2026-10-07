@@ -1,5 +1,6 @@
 {
   "name": "sift",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.7.0",
@@ -13,7 +14,8 @@
     "format": "biome check --write .",
     "typecheck": "tsc -p tsconfig.json && tsc -p packages/core/tsconfig.json && tsc -p packages/db/tsconfig.json && tsc -p apps/worker/tsconfig.json",
     "test": "vitest run",
-    "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts"
+    "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts",
+    "release": "node scripts/release.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
