@@ -491,3 +491,121 @@ describe('scripts/compose-smoke.sh keeps Bridge out of the smoke stack (D-79, D-
     expect(firstDockerCall()).toBeUndefined();
   });
 });
+
+/** SQL the emulated stack received through `dc exec -T db psql`, one per line. */
+function sqlLog(): string {
+  return path.join(work, 'sql.log');
+}
+
+/**
+ * Run the whole of compose-smoke.sh against an emulated healthy smoke stack on
+ * a fresh runner (macOS, uid 501, so no chown branch runs). The docker shim:
+ * - `docker ps`: nothing for the WR-09 project checks; a fixed id per service
+ *   for the container lookups;
+ * - `docker volume ...`: succeeds;
+ * - `docker inspect`: setup exited 0, worker healthy and running, never restarted;
+ * - `docker compose`: build, up, logs and down succeed; `exec -T db psql ... -Atc
+ *   <sql>` logs the SQL and prints a count chosen by the SQL. No smoke mailbox
+ *   can sync, so a count of ok rows is 0; the missing-status query prints
+ *   SHIM_STATUS_MISSING (default 0).
+ */
+function runStack(env: Record<string, string> = {}): {
+  status: number | null;
+  stdout: string;
+  stderr: string;
+} {
+  shim(
+    'docker',
+    [
+      'last=""',
+      '[ -n "$SHIM_STATUS_MISSING" ] || SHIM_STATUS_MISSING=0',
+      'for arg in "$@"; do last=$arg; done',
+      'case "$1" in',
+      '  ps)',
+      '    for arg in "$@"; do',
+      '      case "$arg" in label=com.docker.compose.service=*) echo "id-$(echo "$arg" | cut -d= -f3)" ;; esac',
+      '    done',
+      '    exit 0 ;;',
+      '  volume) exit 0 ;;',
+      '  inspect)',
+      '    case "$*" in',
+      '      *ExitCode*) echo "exited 0" ;;',
+      '      *Health*) echo healthy ;;',
+      '      *RestartCount*) echo "running 0" ;;',
+      '      *) exit 1 ;;',
+      '    esac',
+      '    exit 0 ;;',
+      '  compose)',
+      '    case "$*" in *" exec "*) ;; *) exit 0 ;; esac',
+      `    printf '%s\\n' "$last" | tr '\\n' ' ' >> '${sqlLog()}'`,
+      `    echo >> '${sqlLog()}'`,
+      '    case "$last" in',
+      '      *__drizzle_migrations*) echo 7 ;;',
+      `      *"'ok'"*) echo 0 ;;`,
+      '      *"not exists"*) echo "$SHIM_STATUS_MISSING" ;;',
+      '      *mailbox_status*) echo 2 ;;',
+      '      *mailbox*) echo 2 ;;',
+      '      *) exit 1 ;;',
+      '    esac',
+      '    exit 0 ;;',
+      'esac',
+      'exit 1',
+    ].join('\n'),
+  );
+  shim('uname', 'echo Darwin');
+  shim('id', 'if [ "$1" = -u ]; then echo 501; else exit 1; fi');
+  const result = spawnSync('bash', ['scripts/compose-smoke.sh'], {
+    cwd: work,
+    encoding: 'utf8',
+    env: {
+      PATH: `${bin}:${process.env.PATH ?? ''}`,
+      HOME: work,
+      COMPOSE_PROJECT_NAME: 'smoketest',
+      ...env,
+    },
+    timeout: 30_000,
+  });
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr };
+}
+
+/** Every SQL statement the script sent, in order. */
+function sentSql(): string[] {
+  if (!existsSync(sqlLog())) return [];
+  return readFileSync(sqlLog(), 'utf8')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '');
+}
+
+describe('scripts/compose-smoke.sh checks the worker status reachable without IMAP (G-02-14)', () => {
+  it('passes when every enabled mailbox reports connecting or error and none is ok', () => {
+    const { status, stdout, stderr } = runStack();
+    expect(stderr).not.toContain('FAILED');
+    expect(status).toBe(0);
+    expect(stdout).toContain('compose-smoke: mailboxes enabled = 2');
+    expect(stdout).toContain('compose-smoke: mailbox status connecting or error = 2');
+    expect(stdout.trimEnd().split('\n').at(-1)).toBe('compose smoke OK');
+  });
+
+  it('fails within SMOKE_TIMEOUT when an enabled mailbox has no connecting or error row', () => {
+    const started = Date.now();
+    const { status, stdout, stderr } = runStack({ SHIM_STATUS_MISSING: '1', SMOKE_TIMEOUT: '3' });
+    expect(status).toBe(1);
+    expect(stderr).toContain(
+      'mailbox status: 1 enabled mailboxes have no connecting or error status row after 3s',
+    );
+    expect(stdout).not.toContain('compose smoke OK');
+    expect(Date.now() - started).toBeLessThan(20_000);
+    // It polled more than once before giving up, rather than failing at once.
+    expect(sentSql().filter((sql) => sql.includes('not exists')).length).toBeGreaterThan(1);
+  });
+
+  it('keeps the migrations and registry checks and never asks for an ok count', () => {
+    runStack();
+    const sql = sentSql();
+    expect(sql.some((line) => line.includes('drizzle.__drizzle_migrations'))).toBe(true);
+    expect(sql).toContain('select count(*) from mailbox');
+    expect(sql.some((line) => /disabled_at is null/.test(line))).toBe(true);
+    for (const line of sql) expect(line).not.toMatch(/'ok'/);
+  });
+});
