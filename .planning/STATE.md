@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
-stopped_at: Completed 02-19-PLAN.md
-last_updated: "2026-10-07T05:24:11.691Z"
+stopped_at: Completed 02-21-PLAN.md
+last_updated: "2026-10-07T06:33:20.614Z"
 last_activity: 2026-10-06
 last_activity_desc: Phase 02 execution started
-state_head: c899978b55dc557d0c97d6a354499fc7fa1f80f4
+state_head: c77a789071ef8c31c09f44c44edf32fc0d4f9df7
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 34
-  completed_plans: 32
+  completed_plans: 34
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 1 of 21
-Status: Executing Phase 02
+Plan: 21 of 21
+Status: All 21 plans complete (UAT gap closure 02-20, 02-21 done); phase verification pending
 Last activity: 2026-10-06 — Phase 02 execution started
 
 Progress: [███░░░░░░░] 25%
@@ -89,6 +89,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P16 | 15min | 3 tasks | 10 files |
 | Phase 02 P17 | 15 min | 2 tasks | 3 files |
 | Phase 02 P19 | 4h40m | 3 tasks | 2 files |
+| Phase 02 P21 | 21 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -195,6 +196,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-19: criterion 4 measured by INTERNALDATE in the probe's newest-200 sample, not uidNext, because Bridge's initial sync appends old mail at ~120 UIDs/min
 - [Phase 02]: 02-19: criterion 5 by simulated UIDVALIDITY mismatch (owner: ready: simulate); live ingest result partial per D-86
 - [Phase 02]: 02-19: live-ingest doc-contract test accepts a backfill value differing from the spike only with a documented Deviation from D-84 (owner override 30 -> 1)
+- [Phase 02]: 02-21: compose-smoke checks connecting or error status per enabled mailbox, never ok (smoke IMAP hosts are imap.smoke.invalid); only the state at the SMOKE_TIMEOUT deadline counts
+- [Phase 02]: 02-21: CI attempt-1 UIDVALIDITY flake in imap-folder-source.test.ts logged as bug-191, not fixed in this plan (passed on rerun)
 
 ### Pending Todos
 
@@ -216,6 +219,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-06T19:44:09.062Z
-Stopped at: Completed 02-19-PLAN.md
+Last session: 2026-10-07T06:33:10.715Z
+Stopped at: Completed 02-21-PLAN.md
 Resume file: None

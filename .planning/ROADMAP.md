@@ -74,7 +74,7 @@ Plans:
   4. A new email sent to the mailbox shows up in the database within one polling interval without restarting anything
   5. After a forced UIDVALIDITY change, Sift resyncs the folder without duplicating or re-classifying stored messages
 
-**Plans**: 20/21 plans executed (2 UAT gap-closure plans pending)
+**Plans**: 21/21 plans executed (UAT gap closure done; phase verification pending)
 
 Plans:
 **Wave 1**
@@ -110,7 +110,7 @@ Plans:
 
 **UAT gap closure** *(from 02-UAT.md)*
 - [x] 02-20-PLAN.md — README: Proton-only scope (G-02-9) and NTP host clock (G-02-8); findings record backfill 3 with dated history, owner sets config and backfills (G-02-4) (wave 1, owner checkpoint)
-- [ ] 02-21-PLAN.md — compose-smoke asserts a worker status reachable without IMAP; emulated-stack tests; owner pushes main, ci green (G-02-14) (wave 2, owner checkpoint)
+- [x] 02-21-PLAN.md — compose-smoke asserts a worker status reachable without IMAP; emulated-stack tests; owner pushes main, ci green (G-02-14) (wave 2, owner checkpoint)
 
 ### Phase 3: Tiered Classification with Traces
 
@@ -149,7 +149,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
-| 2. Bridge Spike and IMAP Ingest | v0.1 | 20/21 | In Progress|  |
+| 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
 | 3. Tiered Classification with Traces | v0.1 | 0/0 | Not started | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
