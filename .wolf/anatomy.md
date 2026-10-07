@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T06:12:45.708Z
-> Files: 309 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T06:32:37.150Z
+> Files: 310 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
 
@@ -183,6 +183,7 @@
 - `02-19-SUMMARY.md` — Phase 2 Plan 19: Live Ingest on the Owner's Proton Mailbox Summary (~2648 tok)
 - `02-20-PLAN.md` — Declares readme (~7342 tok)
 - `02-21-PLAN.md` — Declares pnpm (~5297 tok)
+- `02-21-SUMMARY.md` — Phase 2 Plan 21: compose-smoke status check reachable without IMAP Summary (~3233 tok)
 - `02-CONTEXT.md` — Phase 2: Bridge Spike and IMAP Ingest - Context (~5019 tok)
 - `02-DISCUSSION-LOG.md` — Phase 2: Bridge Spike and IMAP Ingest - Discussion Log (~2174 tok)
 - `02-LIVE-INGEST.md` — Phase 2 Live Ingest: the worker against the owner's Proton mailbox; Method keeps the 30->1 deviation plus a 2026-10-07 correction citing spike value 3 (~3164 tok)

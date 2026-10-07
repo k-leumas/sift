@@ -963,3 +963,7 @@
 | 00:12 | Edited apps/worker/test/compose-smoke.test.ts | added nullish coalescing | ~1369 |
 | 00:18 | 02-21 Tasks 1-2: compose-smoke asserts connecting/error status per enabled mailbox (no ok); real local smoke OK; emulated-stack tests with RED vs 758185b | scripts/compose-smoke.sh, apps/worker/test/compose-smoke.test.ts | 36b51e0, e84c7a3; owner push pending | ~40k |
 | 00:19 | Session end: 30 writes across 11 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 16 reads | ~38057 tok |
+| 00:26 | Session end: 30 writes across 11 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 16 reads | ~38057 tok |
+| 00:31 | Session end: 30 writes across 11 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 16 reads | ~38057 tok |
+| 00:32 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md | — | ~3448 |
+| 00:33 | 02-21 complete: owner pushed (8ec4ae8), ci 37581267978 attempt 2 green; SUMMARY c77a789; bug-191 UIDVALIDITY flake logged; STATE/ROADMAP updated | 02-21-SUMMARY.md, .wolf/buglog.json, STATE.md, ROADMAP.md | ok | ~15k |
