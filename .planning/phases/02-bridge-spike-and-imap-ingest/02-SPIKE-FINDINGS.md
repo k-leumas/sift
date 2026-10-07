@@ -96,4 +96,6 @@ Bridge v3.27.0 advertises neither CONDSTORE nor QRESYNC, and it answers `BAD` to
 - **Approved steps:** `no-repair` covers the IDLE wait, the label test on one fresh test email and a restart comparison. No forced Bridge repair was run.
 - **Data rule:** this document holds aggregates only: counts, booleans, capability atoms, UID and UIDVALIDITY numbers and durations. No subjects, senders, recipients, email addresses, label names other than Sift's own spike label, raw Message-IDs or message bodies. Raw probe reports never leave `data/spike/`.
 
-**Post-spike initial_backfill_days:** 30
+**Post-spike initial_backfill_days:** 3
+
+**Correction (2026-10-07, phase 02 UAT test 4):** the owner now intends `initial_backfill_days` 3 for this mailbox. At spike time the line above read 30, from the owner's reply recorded under Account setup (`backfill 30`), which stays as the spike-time record. The worker's first backfill in plan 02-19 already ran with 1 day (see 02-LIVE-INGEST.md), and the setting is read only for a folder's first sync, so the extra days come from an owner-run `sift mailbox backfill personal --days 3`. The schema default, `config/config.example.yaml` and the README keep 30 as the generic default.

@@ -54,6 +54,13 @@ describe('02-SPIKE-FINDINGS.md (SPK-01..04, D-43)', () => {
     );
   });
 
+  it('has exactly one post-spike initial_backfill_days value line, so history cannot add one', () => {
+    const values = findings
+      .split('\n')
+      .filter((line) => /^\*\*Post-spike initial_backfill_days:\*\* [0-9]+$/.test(line));
+    expect(values).toHaveLength(1);
+  });
+
   it('names one allowed sync capability to assume', () => {
     const lines = findings
       .split('\n')
