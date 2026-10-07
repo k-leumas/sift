@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
-const REPO_ROOT = path.resolve(import.meta.dirname, '../../..');
+const REPO_ROOT = path.resolve(import.meta.dirname, '..');
 const RELEASE = path.join(REPO_ROOT, 'scripts/release.ts');
 
 /** The four package.json files the throwaway repos start from (copied from this repo). */

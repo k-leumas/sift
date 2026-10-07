@@ -9,7 +9,7 @@ if (existsSync('.env.development')) {
 
 export default defineConfig({
   test: {
-    include: ['packages/*/test/**/*.test.ts', 'apps/*/test/**/*.test.ts'],
+    include: ['packages/*/test/**/*.test.ts', 'apps/*/test/**/*.test.ts', 'test/**/*.test.ts'],
     globalSetup: ['packages/db/test/global-setup.ts'],
     testTimeout: 30_000,
     hookTimeout: 60_000,
