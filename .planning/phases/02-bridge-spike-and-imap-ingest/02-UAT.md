@@ -1,19 +1,14 @@
 ---
-status: testing
+status: partial
 phase: 02-bridge-spike-and-imap-ingest
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md, 02-04-SUMMARY.md, 02-05-SUMMARY.md, 02-06-SUMMARY.md, 02-07-SUMMARY.md, 02-08-SUMMARY.md, 02-09-SUMMARY.md, 02-10-SUMMARY.md, 02-11-SUMMARY.md, 02-12-SUMMARY.md, 02-13-SUMMARY.md, 02-14-SUMMARY.md, 02-15-SUMMARY.md, 02-16-SUMMARY.md, 02-17-SUMMARY.md, 02-18-SUMMARY.md, 02-19-SUMMARY.md, 02-VERIFICATION.md]
 started: 2026-10-07T03:22:35Z
-updated: 2026-10-07T04:40:08Z
+updated: 2026-10-07T04:53:39Z
 ---
 
 ## Current Test
-<!-- OVERWRITE each test - shows where we are -->
 
-number: 12
-name: Renovate Bridge bump PR
-expected: |
-  Renovate opens a Bridge PR that bumps the tag and the commit together and the bridge-image job passes on GitHub's runner (02-15 D7; needs the Renovate app and a new upstream Bridge release).
-awaiting: user response
+[testing paused — 1 items outstanding]
 
 ## Tests
 
@@ -73,11 +68,14 @@ reason: "can i skip this one for now?" (owner deferred the README read-through; 
 
 ### 12. Renovate Bridge bump PR
 expected: Renovate opens a Bridge PR that bumps the tag and the commit together and the bridge-image job passes on GitHub's runner (02-15 D7; needs the Renovate app and a new upstream Bridge release).
-result: [pending]
+result: blocked
+blocked_by: third-party
+reason: "blocked" (Renovate app/PR for upstream v3.27.1 not yet seen; bridge-image workflow already passed on GitHub run 37572704376)
 
 ### 13. Re-run of 26 schema-rejected deliverables
 expected: These 26 deliverables in 02-09, 02-10, 02-13, 02-16, 02-17 and 02-18 have passing automated tests, but their coverage blocks use `kind: test`/`kind: command`, which the classifier rejects. Re-run on 2026-10-07: full suite 932/934, the 2 failures were 30 s timeouts against the Dovecot test server that moved between runs and passed 54/54 when re-run alone (bug-151 family); typecheck clean. You accept the re-run as covering them.
-result: [pending]
+result: pass
+note: owner accepted the local re-run; GitHub check job also passed on the pushed code (run 37572838343)
 
 ### 14. 02-01 D1: Bridge image builds from tag v3.27.0, fails unless HEAD equals the pinned commit, ships on
 expected: Bridge image builds from tag v3.27.0, fails unless HEAD equals the pinned commit, ships only the bridge binary
@@ -535,14 +533,21 @@ result: pass
 source: automated
 coverage_id: 02-19-D4
 
+### 14. CI passes on the pushed phase
+expected: The ci workflow passes on main after the Phase 2 push (check and compose-smoke jobs green).
+result: issue
+reported: "errror: https://github.com/k-leumas/sift/actions/runs/37572838343/job/112635131344#step:3:911"
+severity: major
+note: compose-smoke FAILED "mailboxes ok: expected >= 1, got 0". scripts/compose-smoke.sh:157 points every mailbox at imap.smoke.invalid (no Bridge in CI), but :257 still asserts a mailbox reaches state ok, a Phase 1 (be4ce69) assertion from before the worker connected to IMAP. check job and bridge-image workflow passed.
+
 ## Summary
 
-total: 89
-passed: 85
-issues: 1
-pending: 2
+total: 90
+passed: 86
+issues: 2
+pending: 0
 skipped: 1
-blocked: 0
+blocked: 1
 
 ## Gaps
 
@@ -568,5 +573,13 @@ blocked: 0
   reason: "User reported: lets also make a note in the readme stating tha this only works with protonmail (for now) it simplifies our logic and shrinks the testing surface and more secuirty minded"
   severity: minor
   test: 9
+  artifacts: []  # Filled by diagnosis
+  missing: []    # Filled by diagnosis
+- gap_id: G-02-14
+  truth: "The ci workflow passes on main after the Phase 2 push"
+  status: failed
+  reason: "User reported: errror: https://github.com/k-leumas/sift/actions/runs/37572838343/job/112635131344#step:3:911"
+  severity: major
+  test: 14
   artifacts: []  # Filled by diagnosis
   missing: []    # Filled by diagnosis
