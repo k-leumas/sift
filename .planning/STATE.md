@@ -6,10 +6,10 @@ current_phase: 02
 current_phase_name: Bridge Spike and IMAP Ingest
 status: executing
 stopped_at: Completed 02-21-PLAN.md
-last_updated: "2026-10-07T06:33:20.614Z"
-last_activity: 2026-10-06
+last_updated: "2026-10-07T08:50:28.690Z"
+last_activity: 2026-10-07
 last_activity_desc: Phase 02 execution started
-state_head: c77a789071ef8c31c09f44c44edf32fc0d4f9df7
+state_head: 1e275d996a825e96c16c69039ee549a54b2d48e1
 progress:
   total_phases: 4
   completed_phases: 1
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
 Plan: 21 of 21
 Status: All 21 plans complete (UAT gap closure 02-20, 02-21 done); phase verification pending
-Last activity: 2026-10-06 — Phase 02 execution started
+Last activity: 2026-10-07 - Completed quick task 261007-2ke: commit-driven versioning (pnpm release, CI tag check, sift --version)
 
 Progress: [███░░░░░░░] 25%
 
@@ -208,6 +208,12 @@ None yet.
 - [Phase 2]: Proton Bridge CONDSTORE/QRESYNC support and Message-ID consistency across label folders are unverified; polling fallback must work without either
 - [Phase 3]: Raw LLM prompt retention limit (ADR-0003 open item) to decide when the `decision` table shape is set
 - [Later]: How shared rules and synthetic eval runs fit under non-null `mailbox_id` (INGEST-CONFLICTS INFO) is deferred to M4/M5 planning
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261007-2ke | Commit-driven versioning: local pnpm release (feat->minor, fix->patch, v0.1.0 start), CI tag check, sift --version | 2026-10-07 | 1e275d9 | [261007-2ke-add-commit-driven-versioning-local-pnpm-](./quick/261007-2ke-add-commit-driven-versioning-local-pnpm-/) |
 
 ## Deferred Items
 
