@@ -186,6 +186,47 @@ describe('README quick start (D-28, D-56, D-58)', () => {
   });
 });
 
+describe('README scope and host requirements (G-02-8, G-02-9)', () => {
+  const readme = read('README.md');
+  const SCOPE = 'Sift supports only Proton Mail, through Proton Bridge, for now';
+
+  /** The part of `readme` from `from` up to `to`; fails if either heading is missing. */
+  function between(from: string, to: string): string {
+    const start = readme.indexOf(from);
+    const end = readme.indexOf(to, start);
+    expect(start, from).toBeGreaterThanOrEqual(0);
+    expect(end, to).toBeGreaterThan(start);
+    return readme.slice(start, end);
+  }
+
+  it('states the Proton-only scope in the intro and in Requirements', () => {
+    expect(readme.slice(0, readme.indexOf('## Why'))).toContain(SCOPE);
+    expect(between('### Requirements', '### Mac mini vs mini PC')).toContain(SCOPE);
+  });
+
+  it('asks for an NTP-synced host clock in Requirements, with the macOS and Linux checks', () => {
+    const requirements = between('### Requirements', '### Mac mini vs mini PC');
+    expect(requirements).toContain('A host clock kept in sync over NTP');
+    expect(requirements).toContain('timedatectl');
+    expect(requirements).toContain('sntp time.apple.com');
+  });
+
+  // Wording that implied mail servers other than Proton Bridge (case-insensitive).
+  it.each([
+    'any IMAP client',
+    'other IMAP servers',
+    'non-Proton',
+    'fastmail',
+    'implicit',
+    'public certificate authority',
+    'For a Bridge mailbox',
+    'for Proton,',
+    'An IMAP account per mailbox',
+  ])('no longer contains %s', (phrase) => {
+    expect(readme.toLowerCase()).not.toContain(phrase.toLowerCase());
+  });
+});
+
 describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
   const contributing = read('CONTRIBUTING.md');
 
