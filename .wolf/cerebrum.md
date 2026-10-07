@@ -177,6 +177,8 @@
 - [2026-10-06] Simulate certificate expiry in a test with `vi.useFakeTimers({ toFake: ['Date'] })` + `vi.setSystemTime(...)`: only JS Date moves, the TLS handshake still uses the real clock.
 - [2026-10-07] mailbox_status.state defaults to 'ok', and runBatch's recordMailboxSeen inserts the row BEFORE connecting; a failed connect then sets connecting (first 60 s, D-34) or error. So a fresh row can read ok for a moment; assert end states with a bounded wait, never right after "worker healthy" (02-21, G-02-14).
 - [2026-10-07] live-ingest-record.test.ts cited the D-84 spike value with toContain, so a cited 30 also satisfied a findings value of 3 (prefix match). Number pins in doc tests need a no-digit-after boundary (02-20 tightens it).
+- [2026-10-07] The root vitest config has no junit reporter: `--outputFile.junit=<path>` alone writes nothing. For RED evidence pass `--reporter=default --reporter=junit --outputFile.junit=<scratch>/red.xml` (02-20).
+- [2026-10-07] In a GSD worktree agent, the Bash isolation guard rejects any command whose text it reads as git (even the word inside an inline node script, or `$(git ...)` substitutions); run plain one-git-command calls and edit files with the Edit tool.
 
 ## Do-Not-Repeat
 

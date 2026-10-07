@@ -8,6 +8,8 @@ One owner, as many mailboxes as you like: a personal inbox, a job-search inbox, 
 
 Your email never leaves your network. No cloud model, no telemetry, no accounts.
 
+**Proton Mail only, for now.** Sift supports only Proton Mail, through Proton Bridge, for now. Supporting one mail service keeps the logic simpler and the test surface small, and it is the more security-minded choice: Sift talks to one known server, Bridge running on your own machine, and pins its certificate.
+
 > **Status: pre-alpha, in design.** This README describes the target. See [Roadmap](#roadmap) for what exists today.
 
 ---
@@ -102,9 +104,9 @@ Anything no tier is confident about waits for you in a review queue covering all
 
 ### Learning from your mail app
 
-You don't have to open Sift to correct it. If you move an email from one label to another in your normal mail app (Proton Mail, or any IMAP client), Sift notices and treats it as a correction.
+You don't have to open Sift to correct it. If you move an email from one label to another in your normal mail app (Proton Mail on the web, desktop or mobile), Sift notices and treats it as a correction.
 
-**How it notices.** Proton Bridge shows each label as a folder, such as `Labels/Noise`. About once a minute, Sift lists what's in each label folder and compares it with what it expects. IMAP gives the same email a different ID (UID) in every folder, so emails are matched across folders by Proton's internal message ID, which Bridge adds to every email as the `X-Pm-Internal-Id` header. On other IMAP servers, Sift falls back to the `Message-ID` header.
+**How it notices.** Proton Bridge shows each label as a folder, such as `Labels/Noise`. About once a minute, Sift lists what's in each label folder and compares it with what it expects. IMAP gives the same email a different ID (UID) in every folder, so emails are matched across folders by Proton's internal message ID, which Bridge adds to every email as the `X-Pm-Internal-Id` header. Sift trusts that header only on a mailbox pinned to Bridge's certificate (`imap.tls.pin_sha256`, see [Security model](#security-model)), and an email without exactly one such header is matched by its `Message-ID` header instead.
 
 Proton Bridge offers no IMAP change tracking (CONDSTORE/QRESYNC), so Sift cannot ask only for what changed: on every poll it compares each label folder's full list of UIDs with what it stored, and checks the folder's UIDVALIDITY. This is as measured on Proton Bridge v3.27.0 in the M1 spike, whose findings are scoped like this: *"Measured on Proton Bridge v3.27.0 (commit 04e46eb4), 2026-10-06; later Bridge versions may differ."* See the [spike findings](.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md) and the [ADR 0003 addendum](docs/adr/0003-traces-and-mail-app-relabels.md#addendum-2026-10-proton-bridge-spike-m1).
 
@@ -223,13 +225,13 @@ version: 1
 mailboxes:
   - slug: personal
     imap:
-      host: bridge              # the Compose Bridge service; or imap.fastmail.com, etc.
+      host: bridge              # the Bridge service in the Compose stack
       port: 1143
       username: me@proton.me    # the Proton account's address
       password_env: SIFT_PERSONAL_IMAP_PASSWORD
       folder: INBOX
       tls:
-        mode: starttls          # or implicit; Sift never connects without TLS
+        mode: starttls          # Bridge's STARTTLS; Sift never connects without TLS
         # pin_sha256: <the fingerprint printed by docker compose run --rm bridge-init>
     ingest:
       initial_backfill_days: 30 # the first sync reads this many days back, in the background; 0 = new mail only
@@ -276,7 +278,7 @@ worker:
 #   enabled: true                 # label folders are compared on every worker poll
 ```
 
-[`config/config.example.yaml`](config/config.example.yaml) is the authoritative list of the keys the current version accepts. Unknown keys are rejected, with the path of each one in the error. The commented sections at the end (`tiers`, `quick_confirm`, `relabel_sync`) arrive with later milestones; until then, leave them out of your `config/config.yaml`. For a Bridge mailbox, paste `imap.tls.pin_sha256` from the Bridge login ([Quick start](#quick-start), step 9). A server with a certificate from a public certificate authority can leave it out. After editing the file, apply it with:
+[`config/config.example.yaml`](config/config.example.yaml) is the authoritative list of the keys the current version accepts. Unknown keys are rejected, with the path of each one in the error. The commented sections at the end (`tiers`, `quick_confirm`, `relabel_sync`) arrive with later milestones; until then, leave them out of your `config/config.yaml`. Every mailbox needs `imap.tls.pin_sha256`: paste it from the Bridge login ([Quick start](#quick-start), step 9). After editing the file, apply it with:
 
 ```sh
 docker compose run --rm setup
@@ -320,8 +322,8 @@ Email is the one input Sift can't trust. Anyone can send you anything.
 - **Limited actions:** Sift applies labels and (later) writes **drafts**. It never sends, deletes or forwards mail.
 - **Flagging:** emails that look like injection attempts are flagged in the UI's audit view.
 - **Tested:** `evals/injection/` holds adversarial emails, and CI fails if any of them changes a classification.
-- **IMAP connection:** always TLS, with no plaintext fallback: STARTTLS by default (`imap.tls.mode: starttls`), or implicit TLS (`implicit`). Sift never sends credentials or data over an unverified connection; before TLS is up, only the protocol negotiation crosses the wire.
-- **Bridge's certificate is pinned.** Bridge presents a self-signed certificate, so Sift pins its public key: `imap.tls.pin_sha256` holds the SHA-256 fingerprint that `docker compose run --rm bridge-init` prints, and the worker accepts exactly that key, whatever the host name. If Bridge's certificate is regenerated, for example after a reinstall, the mailbox stops instead of trusting the new key. Compare the new fingerprint with `sift bridge trust <slug>` before you update the pin (see [Managing mailboxes](#managing-mailboxes)). A server with a certificate from a public certificate authority can leave `pin_sha256` out and gets the normal certificate and host name checks.
+- **IMAP connection:** Sift talks STARTTLS to Bridge (`imap.tls.mode: starttls`, the default), with no plaintext fallback. Sift never sends credentials or data over an unverified connection; before TLS is up, only the protocol negotiation crosses the wire.
+- **Bridge's certificate is pinned.** Bridge presents a self-signed certificate, so Sift pins its public key: `imap.tls.pin_sha256` holds the SHA-256 fingerprint that `docker compose run --rm bridge-init` prints, and the worker accepts exactly that key, whatever the host name. If Bridge's certificate is regenerated, for example after a reinstall, the mailbox stops instead of trusting the new key. Compare the new fingerprint with `sift bridge trust <slug>` before you update the pin (see [Managing mailboxes](#managing-mailboxes)). The pin is required for Bridge: without it the worker checks the certificate the normal way, which a self-signed certificate fails, so it refuses to log in and the mailbox shows a certificate error. Sift's trust in the `X-Pm-Internal-Id` header (see [Learning from your mail app](#learning-from-your-mail-app)) depends on the pin too.
 - **Bridge session:** Sift never stores your Proton password; Bridge stores session tokens in the sift-bridge volume. Those tokens are as sensitive as the password: whoever has them can read your mail.
   - Only the `bridge` container and the one-shot `bridge-init` setup service mount the volume, and only `bridge-init` sees `.env.mailboxes` and `config/`.
   - The vault is encrypted with a key that `SIFT_BRIDGE_KEYCHAIN_PASSPHRASE` unlocks, and only those two containers receive the passphrase, so a copied volume is useless without it.
@@ -388,9 +390,10 @@ Sift is designed for an always-on machine on your home network.
 
 - Docker and Docker Compose
 - 8 GB of RAM is enough for the default models
-- An IMAP account per mailbox. For Proton Mail this means **Proton Bridge**, which requires a paid Proton plan. Sift runs Bridge in its own container, built from source at a pinned release.
-- Combined address mode for Proton: one Sift mailbox per Proton account, with all of that account's addresses arriving in one inbox (Bridge's default). One Bridge serves several Proton accounts. Split mode, one Sift mailbox per address, is a later milestone.
+- A paid Proton Mail plan, which **Proton Bridge** requires. Sift supports only Proton Mail, through Proton Bridge, for now (the reasons are at the [top](#sift)). Sift runs Bridge in its own container, built from source at a pinned release.
+- Combined address mode: one Sift mailbox per Proton account, with all of that account's addresses arriving in one inbox (Bridge's default). One Bridge serves several Proton accounts. Split mode, one Sift mailbox per address, is a later milestone.
 - A disk with full-disk encryption: FileVault on macOS, LUKS on Linux (see [Security model](#security-model))
+- A host clock kept in sync over NTP. Proton's servers set each email's arrival time (its IMAP INTERNALDATE), while the worker and Bridge both run on this machine and share its clock. Sift caps arrival times at the worker's clock, and on each check it re-reads only mail dated up to 5 minutes before the newest arrival time it has recorded, so a host clock that drifts more than a few minutes from Proton's time can make Sift treat new mail as old. macOS and most Linux systems sync over NTP by default. To check on macOS, open System Settings > General > Date & Time and make sure "Set time and date automatically" is on, or run `sntp time.apple.com`, which prints the offset and changes nothing. On Linux, run `timedatectl` and look for `System clock synchronized: yes`.
 - [Ollama](https://ollama.com)
 
 ### Mac mini vs mini PC
@@ -408,7 +411,7 @@ What works today: the database, the one-shot `setup` service (migrations with a 
    git clone https://github.com/<you>/sift && cd sift
    ```
 
-2. Copy the example config, then edit it for your mailboxes. For Proton, each Sift mailbox is one Proton account (see [Requirements](#requirements)): set `username` to the account's address, and keep `host: bridge` and `port: 1143`, which point at the Bridge container in the Compose stack:
+2. Copy the example config, then edit it for your mailboxes. Each Sift mailbox is one Proton account (see [Requirements](#requirements)): set `username` to the account's address, and keep `host: bridge` and `port: 1143`, which point at the Bridge container in the Compose stack:
 
    ```sh
    cp config/config.example.yaml config/config.yaml
@@ -506,7 +509,7 @@ The web UI at `http://<your-machine>:3000` also arrives in a later milestone.
 
 The mailboxes in `config/config.yaml` are the source of truth. Every change goes through `docker compose run --rm setup`:
 
-- **Add a mailbox:** add it to `config/config.yaml` (for Proton, another Proton account; see [Requirements](#requirements)), then let Bridge write its IMAP password and register it. Bridge allows one instance per vault, so stop the `bridge` service first:
+- **Add a mailbox:** add it to `config/config.yaml` (another Proton account; see [Requirements](#requirements)), then let Bridge write its IMAP password and register it. Bridge allows one instance per vault, so stop the `bridge` service first:
 
   ```sh
   docker compose stop bridge
@@ -517,7 +520,7 @@ The mailboxes in `config/config.yaml` are the source of truth. Every change goes
   ```
 
   `configure` writes the IMAP password of every configured mailbox whose address Bridge knows, saving the previous file to `.env.mailboxes.bak` first. If the account is not logged in to Bridge yet, run `docker compose run --rm bridge-init` instead of the `configure` line and type `login` again. Paste the printed `pin_sha256` into the new mailbox's `imap.tls` too; it is the same for every mailbox on this Bridge. The worker reads `.env.mailboxes` only when its container is created, hence the last line. Once the new file works, empty the backup with `: > .env.mailboxes.bak`, but keep the file. If it goes missing, Compose stops `bridge-init` with `bind source path does not exist`; recreate it with `touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak`.
-- **Change a non-Proton mailbox:** edit `config/config.yaml`, put its password in `.env.mailboxes`, run `docker compose run --rm setup`, then `docker compose up -d --force-recreate worker`.
+- **Change a mailbox's settings:** edit `config/config.yaml`, run `docker compose run --rm setup`, then `docker compose up -d --force-recreate worker` (the worker reads `config/config.yaml` and `.env.mailboxes` only when it starts). Bridge writes the IMAP passwords, so if a mailbox's password changed, run the three Bridge lines of **Add a mailbox** first.
 - **Remove a mailbox:** delete its entry from `config/config.yaml` and rerun setup. The mailbox is disabled and its data is kept.
 - **Bring it back:** add the same slug again and rerun setup. It is re-enabled with its data.
 - **Rename a mailbox:** run `docker compose run --rm setup sift mailbox rename <old> <new>`, change the slug in `config/config.yaml` to match, then rerun setup. The mailbox keeps its data under the new slug. If setup sees one slug disappear while a new one appears, it refuses to apply until you either rename the mailbox or rerun with `docker compose run --rm setup sift setup --confirm`, which disables the old mailbox and adds the new one.

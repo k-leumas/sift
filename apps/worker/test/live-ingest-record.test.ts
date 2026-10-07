@@ -81,9 +81,11 @@ describe('02-LIVE-INGEST.md (ROADMAP Phase 2 criteria 3, 4 and 5 on the real mai
     expect(used).toBeDefined();
     if (used === spike) return;
     // The owner changed the value mid-run ("1 day, start now"): the record must say so and
-    // cite the spike value it departed from.
+    // cite the spike value it departed from. Exact value: a cited 30 must not satisfy a spike of 3.
     expect(method).toContain('**Deviation from D-84:**');
-    expect(method).toContain(`**Post-spike initial_backfill_days:** ${spike}`);
+    expect(method).toMatch(
+      new RegExp(String.raw`\*\*Post-spike initial_backfill_days:\*\* ${spike}(?![0-9])`),
+    );
   });
 
   it('holds counts only: no header lines, addresses or configured usernames', () => {
