@@ -11,6 +11,9 @@ import {
   writeWork,
 } from './support/release-repo.ts';
 
+/** Each case spawns git and node a dozen times; slow under full-suite load (bug-189). */
+const E2E_TIMEOUT_MS = 120_000;
+
 const WORKFLOW = '.github/workflows/release-tag.yml';
 
 /** A repository file, or null while it does not exist (so RED fails on an assertion). */
@@ -90,9 +93,9 @@ describe('releaseProblems (LD-6)', () => {
   });
 });
 
-describe('node scripts/release-check.ts (LD-6)', () => {
+describe('node scripts/release-check.ts (LD-6)', { timeout: E2E_TIMEOUT_MS }, () => {
   const repos = releaseRepos();
-  beforeAll(() => repos.setup());
+  beforeAll(() => repos.setup(), E2E_TIMEOUT_MS);
   afterEach(() => repos.reset());
   afterAll(() => repos.cleanup());
 

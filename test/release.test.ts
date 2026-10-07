@@ -14,8 +14,11 @@ import {
   writeWork,
 } from './support/release-repo.ts';
 
+/** Each case spawns git and node a dozen times; slow under full-suite load (bug-189). */
+const E2E_TIMEOUT_MS = 120_000;
+
 const repos = releaseRepos();
-beforeAll(() => repos.setup());
+beforeAll(() => repos.setup(), E2E_TIMEOUT_MS);
 afterEach(() => repos.reset());
 afterAll(() => repos.cleanup());
 
@@ -25,7 +28,7 @@ function failingPreCommitHook(repo: Repo, script: string): void {
   chmodSync(hook, 0o755);
 }
 
-describe('pnpm release: first release (LD-3, LD-4)', () => {
+describe('pnpm release: first release (LD-3, LD-4)', { timeout: E2E_TIMEOUT_MS }, () => {
   it('dry run computes v0.1.0 and changes nothing', () => {
     const repo = repos.fresh();
     const before = snapshot(repo);
@@ -87,7 +90,7 @@ describe('pnpm release: first release (LD-3, LD-4)', () => {
   });
 });
 
-describe('pnpm release: later releases (LD-1, LD-2)', () => {
+describe('pnpm release: later releases (LD-1, LD-2)', { timeout: E2E_TIMEOUT_MS }, () => {
   it('releases v0.2.0 after a feat, above v0.1.0 in CHANGELOG.md', () => {
     const repo = repos.released();
     commit(repo, 'feat(db): add gamma');
@@ -134,7 +137,7 @@ describe('pnpm release: later releases (LD-1, LD-2)', () => {
   });
 });
 
-describe('pnpm release: guards and rollback (LD-4)', () => {
+describe('pnpm release: guards and rollback (LD-4)', { timeout: E2E_TIMEOUT_MS }, () => {
   it('refuses on an untracked file', () => {
     const repo = repos.released();
     commit(repo, 'feat: more');
