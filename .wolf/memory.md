@@ -967,3 +967,6 @@
 | 00:31 | Session end: 30 writes across 11 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 16 reads | ~38057 tok |
 | 00:32 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md | — | ~3448 |
 | 00:33 | 02-21 complete: owner pushed (8ec4ae8), ci 37581267978 attempt 2 green; SUMMARY c77a789; bug-191 UIDVALIDITY flake logged; STATE/ROADMAP updated | 02-21-SUMMARY.md, .wolf/buglog.json, STATE.md, ROADMAP.md | ok | ~15k |
+| 00:35 | Session end: 31 writes across 12 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 16 reads | ~41752 tok |
+| 00:42 | Created .planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md | — | ~3430 |
+| 00:43 | Session end: 32 writes across 13 files (README.md, user-facing-text.test.ts, spike-findings.test.ts, live-ingest-record.test.ts, 02-SPIKE-FINDINGS.md) | 21 reads | ~64468 tok |

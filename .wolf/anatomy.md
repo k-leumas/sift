@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T06:32:37.150Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-07T06:42:22.520Z
 > Files: 310 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/0f2aabd8-04df-4c56-9836-c66f3dd17f23/scratchpad/
@@ -191,7 +191,7 @@
 - `02-PATTERNS.md` — Phase 2: Bridge Spike and IMAP Ingest - Pattern Map (~4845 tok)
 - `02-RESEARCH.md` — Phase 2: Bridge Spike and IMAP Ingest - Research (~22318 tok)
 - `02-REVIEW-FIX.md` — Phase 02: Code Review Fix Report (~2861 tok)
-- `02-REVIEW.md` — Phase 02: Code Review Report (~5510 tok)
+- `02-REVIEW.md` — Phase 02: Code Review Report (incremental, after review fixes and UAT gap closure) (~3216 tok)
 - `02-SPIKE-FINDINGS.md` — Phase 2 Spike Findings: Proton Bridge against the owner's mailbox; post-spike initial_backfill_days 3 with a dated correction keeping the spike-time 30 (~3299 tok)
 - `02-USER-SETUP.md` — Phase 2: User Setup Required (~548 tok)
 - `02-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~3569 tok)

@@ -1,366 +1,233 @@
 ---
 phase: 02-bridge-spike-and-imap-ingest
-reviewed: 2026-10-06T20:04:02Z
-depth: standard
-files_reviewed: 99
+reviewed: 2026-10-07T06:41:25Z
+depth: deep
+files_reviewed: 36
 files_reviewed_list:
   - .env.example
-  - .github/workflows/bridge-image.yml
+  - .env.mailboxes.example
   - .github/workflows/ci.yml
-  - apps/worker/package.json
-  - apps/worker/src/cli.ts
-  - apps/worker/src/command.ts
-  - apps/worker/src/commands/bridge-probe.ts
   - apps/worker/src/commands/bridge-trust.ts
   - apps/worker/src/commands/mailbox-backfill.ts
-  - apps/worker/src/commands/mailbox-list.ts
-  - apps/worker/src/commands/mailbox-resume.ts
   - apps/worker/src/commands/worker.ts
   - apps/worker/src/imap/capture.ts
   - apps/worker/src/imap/connect.ts
-  - apps/worker/src/imap/folder-source.ts
-  - apps/worker/src/imap/pin.ts
-  - apps/worker/src/ingest/db-store.ts
-  - apps/worker/src/ingest/identity.ts
   - apps/worker/src/ingest/message.ts
-  - apps/worker/src/ingest/plan.ts
   - apps/worker/src/ingest/run.ts
-  - apps/worker/src/ingest/types.ts
   - apps/worker/src/runtime/mailbox-batch.ts
   - apps/worker/src/runtime/supervisor.ts
-  - apps/worker/src/spike/probe.ts
-  - apps/worker/test/bridge-image.test.ts
-  - apps/worker/test/bridge-probe.test.ts
   - apps/worker/test/bridge-trust.test.ts
-  - apps/worker/test/ci-workflow.test.ts
-  - apps/worker/test/cli.test.ts
   - apps/worker/test/compose-smoke.test.ts
   - apps/worker/test/compose.test.ts
-  - apps/worker/test/dependencies.test.ts
-  - apps/worker/test/imap-capture.test.ts
   - apps/worker/test/imap-connect.test.ts
-  - apps/worker/test/imap-folder-source.test.ts
-  - apps/worker/test/imap-pin.test.ts
-  - apps/worker/test/ingest-e2e.test.ts
   - apps/worker/test/ingest-engine.test.ts
   - apps/worker/test/ingest-identity.test.ts
-  - apps/worker/test/ingest-message.test.ts
   - apps/worker/test/ingest-resync.test.ts
   - apps/worker/test/live-ingest-record.test.ts
   - apps/worker/test/mailbox-batch.test.ts
   - apps/worker/test/mailbox-ops.test.ts
-  - apps/worker/test/no-secret-leak.test.ts
-  - apps/worker/test/registry-cli.test.ts
-  - apps/worker/test/setup.test.ts
   - apps/worker/test/spike-findings.test.ts
   - apps/worker/test/supervisor.test.ts
-  - apps/worker/test/support/fake-folder-source.ts
-  - apps/worker/test/support/fake-imap-server.ts
-  - apps/worker/test/support/fake-ingest-store.ts
-  - apps/worker/test/support/mailbox-harness.ts
-  - apps/worker/test/support/privacy-scan.ts
-  - apps/worker/test/support/test-imap.ts
   - apps/worker/test/user-facing-text.test.ts
-  - apps/worker/test/worker.test.ts
-  - bridge/Dockerfile
   - bridge/entrypoint.sh
   - bridge/helper/envfile_test.go
   - bridge/helper/envfile.go
-  - bridge/helper/main_test.go
-  - bridge/helper/main.go
-  - compose.yaml
-  - config/config.example.yaml
   - CONTRIBUTING.md
-  - docs/adr/0003-traces-and-mail-app-relabels.md
-  - packages/core/src/config/index.ts
-  - packages/core/src/config/schema.ts
-  - packages/core/test/config.test.ts
-  - packages/core/test/example-config.test.ts
-  - packages/db/migrations/0005_ingest_preflight.sql
-  - packages/db/migrations/0006_ingest_tables.sql
-  - packages/db/migrations/0007_ingest_tables_force_grants.sql
-  - packages/db/src/index.ts
-  - packages/db/src/ingest.ts
-  - packages/db/src/lock.ts
-  - packages/db/src/owner/migrate.ts
-  - packages/db/src/owner/registry.ts
-  - packages/db/src/schema/index.ts
-  - packages/db/src/schema/scoped.ts
+  - packages/core/src/log.ts
+  - packages/core/test/log.test.ts
   - packages/db/src/scope.ts
-  - packages/db/src/status.ts
   - packages/db/test/ingest.test.ts
-  - packages/db/test/isolation.test.ts
-  - packages/db/test/lock.test.ts
-  - packages/db/test/migrate.test.ts
-  - packages/db/test/owner-rls.test.ts
-  - packages/db/test/registry-plan.test.ts
-  - packages/db/test/registry.test.ts
   - packages/db/test/scope.test.ts
-  - packages/db/test/status.test.ts
-  - packages/db/test/support/seed.ts
   - README.md
-  - renovate.json
-  - scripts/bridge-smoke.sh
   - scripts/compose-smoke.sh
-  - scripts/test-imap.sh
 findings:
-  critical: 2
-  warning: 6
-  info: 4
-  total: 12
+  critical: 0
+  warning: 2
+  info: 5
+  total: 7
 status: issues_found
 ---
 
-# Phase 02: Code Review Report
+# Phase 02: Code Review Report (incremental, after review fixes and UAT gap closure)
 
-**Reviewed:** 2026-10-06T20:04:02Z
-**Depth:** standard (configured deep; downgraded because the scope is over 50 files)
-**Files Reviewed:** 99
+**Reviewed:** 2026-10-07T06:41:25Z
+**Depth:** deep
+**Files Reviewed:** 36
 **Status:** issues_found
 
 ## Summary
 
-I read every file in scope. The most attention went to the security- and correctness-critical paths:
+This is an incremental review of everything that changed since `3ab4be9`:
 
-- the IMAP TLS stack: `capture.ts`, `connect.ts` and `pin.ts`;
-- the sync engine: `run.ts`, `plan.ts` and `message.ts`/`identity.ts`;
-- the database ingest use-cases, the scoped API, the ingest lock and the status helpers: `packages/db/src/ingest.ts`, `scope.ts`, `lock.ts` and `status.ts`;
-- the worker and CLI wiring: `mailbox-batch.ts`, `mailbox-backfill.ts` and `supervisor.ts`;
-- the Bridge container: `entrypoint.sh`, `helper/main.go` and `helper/envfile.go`;
-- Compose and the phase 2 migrations.
+- the eight fixes from the first review: CR-01, CR-02 and WR-01 to WR-06;
+- the 02-20 changes: Proton-only README scope, the NTP requirement and the spike-value pin;
+- the 02-21 compose-smoke status check (G-02-14);
+- the Dependabot bump of `pnpm/action-setup`.
 
-Tests were read for reliability only.
+Full files were read for cross-file context. I traced these call chains:
+
+- `codedCause` through supervisor, `storedError` → `recordSyncError`, the CLI backfill and `worker.ts`;
+- `anyOf` through `matchConditions` → `find`/`update`/`delete` → `finishResync`/`markVanished`;
+- `clockCap` against `advanceFolderSync`/`finishResync` in `packages/db/src/ingest.ts`;
+- the WR-06 progress callback into `recordBackfillProgress`;
+- the WR-02 two-session backfill through `withIngestLock`;
+- the CR-02 chmod against the bridge-init uid model (the helper runs as root).
 
 **What holds up:**
 
-- The TLS design is sound and fails closed:
-  - capture writes only `<tag> STARTTLS` and refuses plaintext pipelined after the tagged OK;
-  - the login connection trusts only the captured certificate and re-checks the SPKI pin;
-  - `guardPlaintext` blocks every pre-TLS command except CAPABILITY and STARTTLS.
-- The removal diff cannot mistake a failed SEARCH for "everything vanished".
-- Resync stays all-or-nothing through generations.
-- Chunk commits and watermark moves share one transaction.
-- The advisory lock keeps one connection per mailbox and discards broken connections.
+- **CR-01:** `= any($1)` binds one array parameter, and each element goes through the column encoder.
+- **CR-02:** the chmod runs as root before any secret is written, and the inode is preserved.
+- **WR-01:** the shared `codedCause` never returns a query wrapper.
+- **WR-02:** the CLI backfill holds neither the lock nor an IMAP connection during the prompt, and the second session re-checks UIDVALIDITY.
+- **WR-04:** the pin-based trust and the single-value rule are correct.
+- **WR-05:** expiry is its own class.
+- **WR-06:** progress is reset after the commit.
+
+No new critical issues.
 
 **What is wrong:**
 
-- **Large folders cannot finish a resync.** Every "IN (ids)" helper binds one parameter per id. A folder with more than about 65,535 live locations therefore cannot complete a resync: the generation switch exceeds PostgreSQL's bind-parameter limit on every retry, and the mailbox stays `resyncing` forever (CR-01).
-- **The IMAP password file stays world-readable.** Bridge init writes the IMAP password into `.env.mailboxes` without enforcing the 0600 mode that locked decision D-39 requires. The quick start creates that file with `cp`, so it keeps the umask mode, usually 0644 (CR-02).
-- **Warnings:**
-  - a privacy fallback that would store and log Drizzle's `params:` text, which can hold mail fields;
-  - the CLI backfill confirmation prompt, which outlives ImapFlow's 120 s socket timeout and blocks the worker's lock while it waits;
-  - an unclamped INTERNALDATE watermark;
-  - a `trustPmHeader` guard that is always true;
-  - a misleading message when the pinned certificate expires;
-  - stale backfill progress after a resync.
+- **WR-01 (below):** the WR-03 fix does not heal a watermark that is already stored in the future. `advanceFolderSync` only moves forward, so the stored value stays in place. Every cycle then substitutes "now at cycle start", which turns any mail older than the 5-minute overlap at poll time into historical rows.
+- **WR-02 (below):** the new compose-smoke status check passes without the current worker doing anything when the smoke volume is reused. That is the documented local invocation (no `--down`).
+- **Info:** a misleading `cert_expired` message for unpinned mailboxes, skipped cap warnings on early returns, a narrow path where WR-06's progress reset is lost, leftover duplicate cause helpers, and a lost command-level test.
+
+The earlier IN-02, IN-03 and IN-04 are untouched by this diff and stay open (see 02-REVIEW-DISPOSITION.md). They are not repeated here.
 
 No structural (fallow) findings were provided, so that section is omitted.
 
 ## Narrative Findings (AI reviewer)
 
-## Critical Issues
-
-### CR-01: Resync and removal break on folders with more than 65,535 live locations (PostgreSQL bind-parameter limit)
-
-**File:** `packages/db/src/ingest.ts:408-419`, `packages/db/src/ingest.ts:427-446`, `packages/db/src/ingest.ts:517-538`, `apps/worker/src/ingest/db-store.ts:178-190`, `packages/db/src/scope.ts:204-209`
-
-**Issue:** `matchConditions` turns every array match into `inArray(column, [...value])`, and Drizzle binds one parameter per element. PostgreSQL (and node-postgres's Int16 Bind count) caps a statement at 65,535 parameters.
-
-`finishResync` passes every old-generation live location of the folder to `markLocationsRemoved(...)` in one `UPDATE ... WHERE id IN (...)`. It then passes every gone message to `deleteOrphanBodies`, which runs `find({ messageId: [...] })` and `delete({ messageId: [...] })`.
-
-For an INBOX with more than about 65k stored messages, any UIDVALIDITY change makes `finishResync` fail on every retry. The spike shows that a Bridge repair or cache rebuild changes UIDVALIDITY, so this is a reachable path. The result:
-
-- The folder stays `state = 'resyncing'` forever.
-- Polling and the removal diff never run again.
-- Phase 4 label application stays paused (D-24).
-- The owner sees only a generic error.
-
-`markVanished` (the D-17 diff) has the same limit when an owner archives a very large batch.
-
-This is deterministic for a valid input size, not a flaky failure.
-
-**Fix:** Bind the id list as one array parameter, or batch it. For example, add an array matcher to the scoped API:
-
-```ts
-// scope.ts matchConditions: one parameter regardless of length
-if (Array.isArray(value)) {
-  if (value.length === 0) empty = true;
-  else conditions.push(sql`${column} = any(${[...value]})`); // pg sends a single array param
-}
-```
-
-Alternatively, chunk the calls in `markLocationsRemoved`, `deleteOrphanBodies` and `db-store.markVanished` into slices of at most 10,000 ids, all inside the same transaction. Add a DB test that resyncs a folder with 70,000 live locations.
-
-### CR-02: `.env.mailboxes` receives the IMAP password but is never forced to mode 0600 (D-39)
-
-**File:** `bridge/helper/envfile.go:217-243` (also `envfile.go:161-186`, `README.md:426`)
-
-**Issue:** D-39 requires that bridge-init "creates/keeps the file at mode 0600".
-
-`BackupInPlace` sets `.env.mailboxes.bak` to 0600 before writing (line 196). `WriteMailboxPasswords` writes the live file with `WriteInPlace`, which by design keeps the host mode, and never checks or sets it.
-
-The README quick start creates the file with `cp .env.mailboxes.example .env.mailboxes` (step 4) and never runs `chmod 600`. Under the usual 022 umask the file is therefore 0644. Every local account can then read the Bridge IMAP password, and with it the whole mailbox. The backup that holds the same secret is locked down, but the primary file is not.
-
-**Fix:** Chmod the env file before writing the secret, as the backup already does, and document the step:
-
-```go
-// WriteMailboxPasswords, after the backup succeeded and before WriteInPlace(envPath, next):
-if err := os.Chmod(envPath, 0o600); err != nil {
-    return &ExitError{Code: exitEnvFile, Msg: "cannot set .env.mailboxes to mode 0600; nothing was written"}
-}
-```
-
-Also change README step 4 to `cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes`. Optionally, have the worker warn at startup when `env_file` permissions are wider than 0600. It cannot see the host file, so this belongs in a host-side check such as `scripts/` or `sift setup` docs.
-
 ## Warnings
 
-### WR-01: The privacy fallback returns Drizzle's "Failed query ... params:" wrapper when no coded cause exists
+### WR-01: A watermark already stored in the future is never lowered, so "read as now" makes delayed mail historical on every cycle
 
-**File:** `apps/worker/src/runtime/mailbox-batch.ts:197-204`, `apps/worker/src/runtime/supervisor.ts:113-130`, `apps/worker/src/commands/mailbox-backfill.ts:224-227`
+**File:** `apps/worker/src/ingest/run.ts:297-299`, `apps/worker/src/ingest/run.ts:313-327`, `packages/db/src/ingest.ts:341-346`
 
-**Issue:** `storedError` and `codedCause` walk the cause chain for an error with a string `code` and otherwise fall back to the top-level error. For a `DrizzleQueryError`, that top-level message is `Failed query: insert into "message" ... params: <identity key>,<subject>,<from address>,<headers json>,...`.
+**Issue:** The WR-03 fix comment says: "A watermark stored ahead of the clock (before WR-03) is read as now." In `pollNewMail`, `startWatermark = clock.cap(state.watermark)`. The chunk commit then sends `watermark = max(startWatermark, capped dates)`, which is at most now.
 
-That text is stored in `mailbox_status.last_error` (only password values are redacted), logged by the supervisor's `describeError` (`summary.message = redact(error.message)`), and printed by the CLI backfill. The privacy rule is no mail content in logs, errors or `last_error` (T-02-37/T-02-43).
+`advanceFolderSync` ignores any watermark lower than the stored one (`to.internalDateWatermark.getTime() > row.internalDateWatermark.getTime()`). The stored future value therefore stays until real time passes it, which can be days for the exact case WR-03 targeted. Only a resync (`finishResync` overwrites the column) clears it.
 
-The leak is not reached today only by accident:
+While it stays, each cycle's candidate-new gate is `internalDate > (cycle-start now) - 5 min` instead of "after the last eligible INTERNALDATE". Any mail that reached the server more than 5 minutes before the cycle that sees it becomes a historical row: no body, never classified. Such delays happen with:
 
-- A connection that dies mid-statement makes Drizzle's `rollback` fail too, and the rollback's own wrapper (empty params) propagates instead.
-- Every server-side error has a SQLSTATE.
+- `poll_interval_seconds` above 300 (allowed up to 3600);
+- a worker restart;
+- Bridge being down;
+- error backoff (D-51);
+- the lock held by a CLI backfill;
+- a volume hold.
 
-Any codeless client-side failure where the rollback succeeds would expose the params, for example a pg value-serialisation `TypeError` or a future driver change. The only test (`mailbox-batch.test.ts:424-440`) covers a coded cause.
+This is the silent D-18 failure WR-03 set out to remove, only narrowed. The cap also re-logs `INTERNALDATE ahead of the worker clock` on every cycle that has new mail, with the stale watermark as `latestInternalDate`.
 
-**Fix:** Never fall back to a wrapper's message. Check for `DrizzleQueryError` (`import { DrizzleQueryError } from 'drizzle-orm'`) or a `query`/`params` property, and substitute fixed text:
+No test covers this branch: every WR-03 test starts from a watermark at or before `NOW`, and the fake store is also forward-only (`fake-ingest-store.ts:358-361`).
+
+**Fix:** Write the capped value back once, when the stored watermark is ahead of the clock. Options:
+
+- a store call that may lower the watermark;
+- an explicit `resetWatermark` flag in the commit's advance;
+- a one-off correction in `getFolder`/`createDbStore`.
+
+For example:
 
 ```ts
-export function storedError(error: unknown): unknown {
-  let current: unknown = error;
-  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
-    if (typeof (current as { code?: unknown }).code === 'string') return current;
-    current = current.cause;
-  }
-  return error instanceof DrizzleQueryError || (error as { params?: unknown })?.params !== undefined
-    ? new Error('database query failed (no SQLSTATE); see the worker log for the error name')
-    : error;
+// pollNewMail, before computing newUids
+const startWatermark = clock.cap(state.watermark);
+if (startWatermark.getTime() < state.watermark.getTime()) {
+  // Legacy future watermark (pre-WR-03): lower it once so later cycles gate on
+  // the last eligible INTERNALDATE again, not on "now at cycle start".
+  await deps.store.lowerWatermark(state.folder, startWatermark);
 }
 ```
 
-Use the same helper in `supervisor.codedCause`, `worker.databaseCause` and `migrate.migrationFailure` (see IN-01). Add a test with a codeless cause.
+`packages/db/src/ingest.ts` would gain `lowerFolderWatermark(scope, folder, to)`, which sets `internal_date_watermark = least(internal_date_watermark, $to)`. Alternatively, ship a migration that does the same per mailbox inside a `set_config` loop (FORCE RLS). Add an engine test that starts from a watermark two days ahead, polls with a gap longer than the overlap, and expects the delayed mail to be eligible.
 
-### WR-02: CLI backfill waits for the owner while holding the IMAP connection and the ingest lock, and ImapFlow drops the idle connection after 120 s
+### WR-02: The compose-smoke status check passes on stale rows when the smoke volume is reused
 
-**File:** `apps/worker/src/commands/mailbox-backfill.ts:140-198` (prompt at 169-178), `apps/worker/src/imap/connect.ts:58,146`
+**File:** `scripts/compose-smoke.sh:265-284` (documented invocation: `CONTRIBUTING.md:100`)
 
-**Issue:** `ingest` opens the IMAP client, runs `countBackfill`, and then awaits `deps.confirm(...)`, the interactive "Type yes to continue" prompt, before `runBackfill`. During the prompt:
+**Issue:** The new wait succeeds as soon as every enabled mailbox has a `mailbox_status` row in `connecting` or `error`. It has no lower bound on when that row was written.
 
-1. **The connection times out.** The client is idle: no command, no IDLE (`disableAutoIdle: true`) and no mailbox lock. ImapFlow's socket-timeout handler (`socketTimeout: SOCKET_TIMEOUT_MS = 120_000`) therefore takes the error branch and closes the connection. An owner who reads the count and answers after two minutes gets `IMAP server unreachable at bridge:1143` from `runBackfill`'s `examine`, a misleading failure.
-2. **The worker is blocked.** The session-level advisory lock (and its pooled connection) is held for as long as the owner leaves the prompt open. The worker logs `ingest busy` every poll and ingests nothing for that mailbox, with no bound.
+The smoke database volume `<project>-pgdata-smoke` is removed only with `--down`, and the documented local command (`COMPOSE_PROJECT_NAME=sift-smoke SIFT_DB_PORT=55433 scripts/compose-smoke.sh`) does not pass `--down`. On every rerun, the rows from the previous run are therefore already `error`. `recordMailboxSeen` only upserts `last_seen_at` and leaves `state` alone, so the check passes on its first query, before the new worker has run a single batch.
 
-**Fix:** Split count and run into two lock and IMAP sessions. `runBackfill` already re-examines and refuses a changed UIDVALIDITY, so this is safe:
+A worker whose loop never reaches a mailbox would pass, for example:
 
-```ts
-const plan = await withLockAndImap((engine) => countBackfill(engine, days)); // closes IMAP, releases lock
-deps.stdout(`Found ...`);
-if (!(await deps.confirm(plan.count, days))) return 0;
-return withLockAndImap((engine) => runBackfill(engine, plan));
+- a regression in `runBatch`;
+- a supervisor that never schedules;
+- a crash right after the heartbeat.
+
+G-02-14 was meant to catch exactly that. CI uses `--down`, so CI is not affected; local reruns are.
+
+**Fix:** Require a row written by this run. `last_seen_at` is set by both `recordConnecting` and `recordSyncError`, so compare it with the worker container's start time:
+
+```bash
+started=$(docker inspect -f '{{.State.StartedAt}}' "$(container worker)")
+no_status_sql="select count(*) from mailbox m where m.disabled_at is null
+  and not exists (select 1 from mailbox_status s
+    where s.mailbox_id = m.id and s.state in ('connecting', 'error')
+      and s.last_seen_at >= '$started'::timestamptz)"
 ```
 
-If the lock must span both steps, at least send a NOOP keepalive while waiting and bound the prompt, for example to 60 s.
-
-### WR-03: The INTERNALDATE watermark has no upper bound, so one future-dated message makes all later mail "historical"
-
-**File:** `apps/worker/src/ingest/run.ts:284-290`, `apps/worker/src/ingest/run.ts:461-462`, `packages/db/src/ingest.ts:342-347`
-
-**Issue:** Polling and resync move the watermark to `laterOf(watermark, r.parsed.internalDate)` for every eligible record, and `advanceFolderSync` only ever moves it forward. Nothing clamps it to the worker's clock.
-
-A single message with an INTERNALDATE in the future fixes the watermark at that future time. This can come from a server clock jump, an imported or APPENDed message with a forward date, or a Bridge/Proton timestamp glitch.
-
-Every later message is then "historical" (`isCandidateNew` false): stored without a body and never eligible for classification until real time passes that date. The failure is silent: counts still look like normal ingest, and nothing in `mailbox_status` shows it. The watermark is the D-18/D-19 core, and this breaks it permanently with no recovery path short of manual SQL.
-
-**Fix:** Clamp the watermark at commit time and log when the clamp applies:
-
-```ts
-const ceiling = deps.now().getTime() + FIRST_SYNC_CLOCK_ALLOWANCE_MS;
-const capped = (d: Date) => (d.getTime() > ceiling ? new Date(ceiling) : d);
-if (r.eligible) watermark = laterOf(watermark, capped(r.parsed.internalDate));
-```
-
-Log a `warn` (counts and timestamps only) when a record's INTERNALDATE exceeds the ceiling.
-
-### WR-04: `trustPmHeader` is always true, and the first of several X-Pm-Internal-Id values is trusted
-
-**File:** `apps/worker/src/runtime/mailbox-batch.ts:322`, `apps/worker/src/commands/mailbox-backfill.ts:161`, `apps/worker/src/ingest/message.ts:137`, `packages/core/src/config/schema.ts:139-143`
-
-**Issue:** The comments promise that `pm:` is trusted "only for Bridge mailboxes" (Pitfall 12). The flag is `entry.labels.apply_as === 'proton_labels'`, but `apply_as` is `z.enum(['proton_labels'])`, its only allowed value. The guard is therefore a tautology. Any mailbox, including a non-Bridge host verified by public-CA TLS (no pin), keys messages by a sender-controllable `X-Pm-Internal-Id`.
-
-Because D-14 merges on key conflict, a forged header lets a sender's mail dedupe into an existing row and escape classification. The RESEARCH Pitfall 12 is exactly this case.
-
-Separately, `parseMessage` takes `rawHeaders['x-pm-internal-id']?.[0]`. If a sender-supplied header ever survives beside Bridge's (Bridge prepending versus appending is not verified by the spike), the first value is used without a check that only one exists.
-
-**Fix:** Derive trust from something that actually identifies Bridge, such as `entry.imap.tls.pin_sha256 !== undefined` or an explicit `imap.server: proton_bridge` key. Also refuse `pm:` unless exactly one value is present:
-
-```ts
-const pmValues = rawHeaders['x-pm-internal-id'] ?? [];
-const pmInternalId = pmValues.length === 1 ? (pmValues[0] ?? null) : null;
-```
-
-### WR-05: An expired pinned certificate is reported as a "pin mismatch", while `sift bridge trust` reports "It matches"
-
-**File:** `apps/worker/src/runtime/mailbox-batch.ts:82-85`, `apps/worker/src/imap/connect.ts:211-227`, `apps/worker/src/commands/bridge-trust.ts:112-115`
-
-**Issue:** The pinned login connection uses `ca: [capturedPem]`, so OpenSSL still enforces the certificate's validity dates.
-
-When Bridge's self-signed certificate expires but keeps its key, the handshake fails with `CERT_HAS_EXPIRED`. That code maps to `cert_untrusted`, which with a pin produces the `pinMismatch` text: "certificate ... does not match imap.tls.pin_sha256 ... run sift bridge trust".
-
-`sift bridge trust` then prints "It matches imap.tls.pin_sha256." and exits 0. The owner is left with contradictory guidance and no actionable step. Bridge certificates are short-lived enough for this to happen in practice.
-
-**Fix:** Separate the expiry codes (`CERT_HAS_EXPIRED`, `CERT_NOT_YET_VALID`) into their own class, for example `cert_expired`, with an owner message such as "Bridge's certificate expired on <date>; restart Bridge so it renews it, then re-pin if the fingerprint changed". Make `bridge trust` exit non-zero with the same hint when `validTo` is in the past, even if the fingerprint matches.
-
-### WR-06: First-backfill progress in `mailbox_status` is never cleared when a resync drops the backfill
-
-**File:** `apps/worker/src/ingest/run.ts:469-484`, `apps/worker/src/runtime/mailbox-batch.ts:348-371`, `packages/db/src/status.ts:21-30`
-
-**Issue:** When a UIDVALIDITY resync happens during the first backfill and no message of the window is found under the new UIDVALIDITY (`first === undefined`), `finishResync` clears the folder's backfill columns. Nothing reports `{ finished: true }`, and `recordSyncSuccess` deliberately leaves the progress columns as they are.
-
-`backfill_done`/`backfill_total` stay set forever, and `sift mailbox list` shows "ok, backfilling X of Y" permanently for a backfill that no longer exists.
-
-**Fix:** In `mailbox-batch.ts`, on the `resynced` outcome, reset progress from the folder's new backfill state. For example, have `runIngest` return the backfill state in the `resynced` outcome and call `recordBackfillProgress(scope, { done: 0, total, finished: total === undefined })`. Alternatively, clear the progress columns in the same transaction as `finishResync` when `backfill` is null.
+Extend `compose-smoke.test.ts` so that the shim answers `StartedAt` and the test asserts that the status query carries the bound.
 
 ## Info
 
-### IN-01: Four copies of the "first coded cause" helper
+### IN-01: The `cert_expired` owner message speaks of the pin and `sift bridge trust` even for unpinned mailboxes
 
-**File:** `apps/worker/src/runtime/supervisor.ts:113-120`, `apps/worker/src/runtime/mailbox-batch.ts:197-204`, `apps/worker/src/commands/worker.ts:52-59`, `packages/db/src/owner/migrate.ts:78-88`
+**File:** `apps/worker/src/runtime/mailbox-batch.ts:87-88`
 
-**Issue:** The same cause-chain walk is implemented four times with slightly different fallbacks. That is how the WR-01 fallback went unnoticed.
+**Issue:** Unlike `cert_untrusted`, the new case ignores `ctx.pinned`. For an unpinned mailbox (still accepted by the schema), an expired public-CA certificate produces "...refuses it even if it matches imap.tls.pin_sha256...run sift bridge trust". That points the owner at a pin they never set. The owner has stated they never want a misleading error.
 
-**Fix:** Move one implementation, including the fixed-text fallback for query wrappers, into `@sift/core/log` or `@sift/db`, and use it everywhere.
+**Fix:** Branch on `ctx.pinned` as `cert_untrusted` does. The unpinned text should drop the pin clause and keep "check this machine's clock".
 
-### IN-02: A missing UIDNEXT turns into NaN UIDs
+### IN-02: The clock-cap warning is skipped on early returns
 
-**File:** `apps/worker/src/imap/folder-source.ts:213-215`, `apps/worker/src/ingest/run.ts:201,233`
+**File:** `apps/worker/src/ingest/run.ts:305-311`, `run.ts:318`, `run.ts:458`, `run.ts:465-471`, `run.ts:479`, `run.ts:501`, `run.ts:527`
 
-**Issue:** `examine` returns `uidNext: mailbox.uidNext` unchecked. If a server omits UIDNEXT, ImapFlow leaves it undefined. `firstSync` then computes `lastUid: NaN` and filters out the whole backfill window (`uid <= NaN`), and the folder_sync insert fails with a generic database error.
+**Issue:** `clock.report()` runs only on the success paths. A cycle that capped the start watermark or some records, then returned `needs_attention` or `aborted`, logs nothing. That includes a resync over the cap, which can repeat every cycle while a hold lasts. The "counts and timestamps are logged" guarantee therefore has holes exactly in the cycles that end abnormally.
 
-**Fix:** Validate in `examine`: `if (!Number.isInteger(mailbox.uidNext) || mailbox.uidNext < 1) throw new Error('FolderSource.examine: server sent no UIDNEXT')`. That classifies as `protocol` with a clear owner message.
+**Fix:** Call `clock.report()` in a `try/finally` around each function body, or before each early `return`.
 
-### IN-03: A volume-valve hold also pauses the first backfill
+### IN-03: If the WR-06 progress write fails, a dropped backfill's progress is never cleared
 
-**File:** `apps/worker/src/runtime/mailbox-batch.ts:293-296`, `apps/worker/src/ingest/run.ts:266-273,529-536`
+**File:** `apps/worker/src/ingest/run.ts:536-548`
 
-**Issue:** D-75 says the first backfill "is not stopped by `ingest.new_mail_cap`". While a hold awaits `sift mailbox resume`, though, `runBatch` returns before connecting, and `pollNewMail`'s `needs_attention` return happens before `backfillSlice`. The first backfill therefore stops for as long as the hold lasts.
+**Issue:** `onBackfillProgress` runs after `finishResync` has committed. If that write fails (a pg error on the session), `runIngest` throws, and two things follow:
 
-**Fix:** Either document that a hold pauses everything, or run the backfill slice before returning `needs_attention`. It touches only UIDs at or below `untilUid`, never held new mail.
+- **The resync log line is lost.** The D-25 "exactly one resync line" (`deps.log.info(... formatResyncLine ...)`) is never emitted for a resync that did commit.
+- **Stale progress stays forever** in the `backfill: null` case. The next cycle finds `state.backfill === null` and never reports progress again, so the stale `backfill_done/total` that WR-06 fixed can come back.
 
-### IN-04: The valve counts mail already stored by a CLI backfill as new
+**Fix:** Log the resync line before the progress callback. In `mailbox-batch.ts`, on a `synced` outcome with `backfill === null`, clear any leftover progress columns (an idempotent `recordBackfillProgress({ finished: true })` when the status still has them).
 
-**File:** `apps/worker/src/ingest/run.ts:260-273`, `apps/worker/src/ingest/run.ts:601-608`
+### IN-04: The cause-chain helper is still duplicated, plus a no-op alias
 
-**Issue:** `countBackfill` selects every UID since the cut-off, including UIDs above `last_uid` that polling has not seen yet. `runBackfill` stores them without moving `last_uid`. The next poll counts them again by date alone (no identity dedup before the cap), so a large CLI backfill can trigger a hold for mail the owner just ingested.
+**File:** `apps/worker/src/commands/worker.ts:42-54`, `packages/db/src/owner/migrate.ts:77-88`
 
-**Fix:** Limit the CLI backfill to `uid <= state.lastUid`, since new mail belongs to polling. Alternatively, subtract known identities before applying the cap.
+**Issue:**
+
+- `databaseCause` is now just `return codedCause(error)`.
+- `sqlStateOf` is named for SQLSTATE but returns any string code, for example `ECONNRESET`.
+- `migrationFailure` in `migrate.ts` is still a fourth copy of the walk, without the wrapper guard. That is the earlier IN-01 only partly done. Today it is safe only because migration params are empty.
+
+**Fix:**
+
+- Inline `codedCause` at the call site.
+- Rename `sqlStateOf` to `codeOf`.
+- Build `migrationFailure` on `codedCause` (wrap the result in `MigrationFailedError` when it is coded).
+
+### IN-05: The CLI "stopped between chunks" path lost its command-level test
+
+**File:** `apps/worker/test/mailbox-ops.test.ts:513-531`, `apps/worker/src/commands/mailbox-backfill.ts:223-225`
+
+**Issue:** The old abort test was rewritten to abort at the prompt. Nothing now drives `backfillMailbox` to an `aborted` outcome from `runBackfill`. The exit code 1 and the "run it again to finish" text are therefore untested at the command level, and the engine test does not cover them.
+
+**Fix:** Add a test that aborts the signal from inside a wrapped `openImap` used in the second session, or after the first `commitChunk`. Assert exit 1 and the between-chunks message.
+
+**Also:**
+
+- The reflowed doc comment at `apps/worker/src/commands/bridge-trust.ts:55` is 131 characters long.
+- The compose-smoke comment "only the state at the deadline counts" (`scripts/compose-smoke.sh:270`) does not match the loop, which passes at the first all-good poll.
 
 ---
 
-_Reviewed: 2026-10-06T20:04:02Z_
+_Reviewed: 2026-10-07T06:41:25Z_
 _Reviewer: Claude (gsd-code-reviewer)_
-_Depth: standard_
+_Depth: deep_

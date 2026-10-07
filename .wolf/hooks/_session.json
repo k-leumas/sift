@@ -73,14 +73,59 @@
       "first_read": "2026-10-07T05:27:38.230Z"
     },
     "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-PLAN.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 5297,
       "first_read": "2026-10-07T06:10:12.476Z"
     },
     "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-10-07T06:10:19.948Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md": {
+      "count": 2,
+      "tokens": 3216,
+      "first_read": "2026-10-07T06:35:28.602Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-FIX.md": {
+      "count": 1,
+      "tokens": 2861,
+      "first_read": "2026-10-07T06:35:29.210Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW-DISPOSITION.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-10-07T06:35:29.755Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts": {
+      "count": 1,
+      "tokens": 7084,
+      "first_read": "2026-10-07T06:35:51.985Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts": {
+      "count": 1,
+      "tokens": 3586,
+      "first_read": "2026-10-07T06:36:11.699Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-VERIFICATION.md": {
+      "count": 1,
+      "tokens": 7870,
+      "first_read": "2026-10-07T06:43:36.897Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-UAT.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-10-07T06:43:37.453Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md": {
+      "count": 1,
+      "tokens": 7342,
+      "first_read": "2026-10-07T06:43:40.830Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md": {
+      "count": 1,
+      "tokens": 3233,
+      "first_read": "2026-10-07T06:43:45.167Z"
     }
   },
   "files_written": [
@@ -263,6 +308,18 @@
       "action": "edit",
       "tokens": 1369,
       "at": "2026-10-07T06:12:45.749Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md",
+      "action": "create",
+      "tokens": 3695,
+      "at": "2026-10-07T06:32:37.193Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md",
+      "action": "create",
+      "tokens": 3675,
+      "at": "2026-10-07T06:42:22.566Z"
     }
   ],
   "edit_counts": {
@@ -276,11 +333,13 @@
     ".claude/worktrees/agent-a8cb7173010bb903a/.wolf/cerebrum.md": 1,
     ".claude/worktrees/agent-a8cb7173010bb903a/.planning/phases/02-bridge-spike-and-imap-ingest/02-20-SUMMARY.md": 1,
     "scripts/compose-smoke.sh": 3,
-    "apps/worker/test/compose-smoke.test.ts": 1
+    "apps/worker/test/compose-smoke.test.ts": 1,
+    ".planning/phases/02-bridge-spike-and-imap-ingest/02-21-SUMMARY.md": 1,
+    ".planning/phases/02-bridge-spike-and-imap-ingest/02-REVIEW.md": 1
   },
-  "anatomy_hits": 7,
-  "anatomy_misses": 9,
-  "repeated_reads_warned": 8,
+  "anatomy_hits": 14,
+  "anatomy_misses": 11,
+  "repeated_reads_warned": 11,
   "cerebrum_warnings": 0,
-  "stop_count": 7
+  "stop_count": 11
 }
