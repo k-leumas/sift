@@ -257,6 +257,13 @@ describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
     'sift bridge trust <slug>',
     'scripts/test-imap.sh up',
     'scripts/bridge-smoke.sh',
+    // Releases (quick 261007-2ke): local pnpm release, CI tag check, sift --version.
+    'pnpm release --dry-run',
+    'pnpm release',
+    'git push --follow-tags',
+    'chore(release): v',
+    'sift --version',
+    '.github/workflows/release-tag.yml',
   ])('contains %s', (text) => {
     expect(contributing).toContain(text);
   });

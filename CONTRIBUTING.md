@@ -99,7 +99,25 @@ pnpm test        # Vitest: every package and app
 - `SIFT_TEST_ADMIN_URL= pnpm vitest run packages/core` runs the config and logging tests without a database. A variable set in the shell wins over `.env.development`, so the empty value turns the database setup off.
 - `scripts/compose-smoke.sh` builds the image and runs the full stack (db, setup, worker), then checks that setup succeeded and the worker is healthy. It runs on its own volume, `<project>-pgdata-smoke`, and never on `sift-pgdata`. It shares none of your files: it uses its own `.env`, `.env.mailboxes` and `config/config.yaml` under `.smoke/<project>/` (git-ignored, made from the examples, with every IMAP host replaced by an unroutable name), writes its pre-migration dumps to `.smoke/<project>/backups` instead of your `backups/` (so your own backups are never pruned), and builds its own image, `sift-smoke:local`. Outside CI it refuses the default Compose project: run it as `COMPOSE_PROJECT_NAME=sift-smoke SIFT_DB_PORT=55433 scripts/compose-smoke.sh`. It also asks Docker which containers the project already has and refuses (in CI too) unless they are an earlier smoke stack on the same volume, so it cannot replace your running containers. Its `--down` flag runs `docker compose down -v`, which deletes the smoke volume, so outside CI it also needs `SMOKE_ALLOW_VOLUME_REMOVAL=yes`.
 - `scripts/bridge-smoke.sh` builds the Bridge image from `bridge/Dockerfile` (about 4 minutes; the `sift-helper` Go tests run inside the build) and checks it end to end on throwaway volumes: keychain, STARTTLS through the published port, the printed fingerprint, and the one-shot `bridge-init` modes. It never touches the `sift-bridge` volume or your `.env`.
-- CI runs the same commands: `scripts/test-imap.sh up`, then `pnpm lint`, `pnpm typecheck` and `pnpm test` against a Postgres service container, plus `scripts/compose-smoke.sh --down`. A separate workflow runs `scripts/bridge-smoke.sh` whenever `bridge/`, the smoke script or that workflow changes.
+- CI runs the same commands: `scripts/test-imap.sh up`, then `pnpm lint`, `pnpm typecheck` and `pnpm test` against a Postgres service container, plus `scripts/compose-smoke.sh --down`. A separate workflow runs `scripts/bridge-smoke.sh` whenever `bridge/`, the smoke script or that workflow changes, and `.github/workflows/release-tag.yml` checks every pushed `v*` tag (see [Releases](#releases)).
+
+## Releases
+
+Versions come from the [Conventional Commits](https://www.conventionalcommits.org/) since the last `v*` tag, not from roadmap phases:
+
+- Any `feat` gives a minor bump. Otherwise (`fix`, `perf`, `docs` and the rest) it is a patch.
+- A breaking change (`!` after the type, or a `BREAKING CHANGE:` footer) gives a minor bump while the major version is 0. Reaching 1.0.0 is a manual decision.
+- The first release is v0.1.0.
+
+```bash
+pnpm release --dry-run   # print the next version and its CHANGELOG section; changes nothing
+pnpm release             # bump, write CHANGELOG.md, commit and tag locally
+git push --follow-tags   # publish the release commit and its tag yourself
+```
+
+`pnpm release` runs only on a clean `main`, so commit everything first. It sets the version in `package.json` and in every workspace package (`apps/*`, `packages/*`), prepends the section to `CHANGELOG.md`, commits `chore(release): vX.Y.Z` and creates the annotated tag `vX.Y.Z`. It refuses when there are no commits since the last tag or the tag already exists, and it never pushes.
+
+Releases run only locally, never in CI or a git hook. The `.github/workflows/release-tag.yml` workflow checks every pushed `v*` tag: the tag must equal `v` plus the root `package.json` version, every workspace package must have that version, and `CHANGELOG.md` must have a `## vX.Y.Z` section. `sift --version` prints the version.
 
 ## Coding standards
 

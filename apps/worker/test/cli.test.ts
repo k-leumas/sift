@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
@@ -57,5 +58,20 @@ describe('sift CLI shell', () => {
     expect(stderr).toContain('Unknown command');
     expect(stdout).not.toMatch(DEFERRED_COMMAND);
     expect(stderr).not.toMatch(DEFERRED_COMMAND);
+  });
+
+  it('--version prints the worker package version alone (LD-7)', () => {
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+      version: string;
+    };
+    const { status, stdout, stderr } = sift('--version');
+    expect(stderr).toBe('');
+    expect(status).toBe(0);
+    expect(stdout).toBe(`${pkg.version}\n`);
+    expect(stdout).toMatch(/^\d+\.\d+\.\d+\n$/);
+  });
+
+  it('--help lists --version', () => {
+    expect(sift('--help').stdout).toContain('--version');
   });
 });

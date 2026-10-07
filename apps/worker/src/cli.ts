@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { SUPPORTED_CONFIG_VERSION } from '@sift/core';
 import { COMMANDS, type CommandIO, type CommandSpec, loadCommand } from './command.ts';
@@ -14,8 +15,23 @@ export function usage(): string {
     'Commands:',
     ...lines,
     '',
+    'Options:',
+    '  -h, --help   Show this help',
+    '  --version    Print the sift version',
+    '',
     `Config file: config/config.yaml (override with SIFT_CONFIG). Supported config version: ${SUPPORTED_CONFIG_VERSION}`,
   ].join('\n');
+}
+
+/** The version in apps/worker/package.json (set by `pnpm release`). */
+export function workerVersion(): string {
+  const pkg: unknown = JSON.parse(
+    readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+  );
+  const version =
+    typeof pkg === 'object' && pkg !== null ? (pkg as { version?: unknown }).version : undefined;
+  if (typeof version !== 'string') throw new Error('apps/worker/package.json has no version');
+  return version;
 }
 
 /** Pick the command whose path is the longest prefix of the leading positionals. */
@@ -34,7 +50,7 @@ function matchCommand(positionals: readonly string[]): CommandSpec | undefined {
 export async function main(argv: readonly string[], io: CommandIO): Promise<number> {
   const { values, tokens } = parseArgs({
     args: [...argv],
-    options: { help: { type: 'boolean', short: 'h' } },
+    options: { help: { type: 'boolean', short: 'h' }, version: { type: 'boolean' } },
     strict: false,
     allowPositionals: true,
     tokens: true,
@@ -49,6 +65,11 @@ export async function main(argv: readonly string[], io: CommandIO): Promise<numb
 
   if (values.help === true || leading[0] === 'help') {
     io.stdout(usage());
+    return 0;
+  }
+
+  if (values.version === true) {
+    io.stdout(workerVersion());
     return 0;
   }
 
