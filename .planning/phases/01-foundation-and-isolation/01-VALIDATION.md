@@ -4,10 +4,10 @@ slug: "foundation-and-isolation"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: true) (#2117)
 status: validated
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
 created: "2026-10-03"
-validated: "2026-10-05"
+validated: "2026-10-07"
 ---
 
 # Phase 01 — Validation Strategy
