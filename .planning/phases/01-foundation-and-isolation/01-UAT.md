@@ -1,14 +1,19 @@
 ---
-status: complete
+status: testing
 phase: 01-foundation-and-isolation
 source: [01-VERIFICATION.md]
 started: 2026-10-04T20:30:00Z
-updated: 2026-10-05T03:40:00Z
+updated: 2026-10-07T23:06:51Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 5
+name: Real-password grep after real ingest (re-verification 2026-10-07)
+expected: |
+  On the home machine, after Bridge has run bridge-init and ingested real mail, grepping config/
+  and a pg_dump of the `sift` database for each real Bridge IMAP password finds no match.
+awaiting: user response
 
 ## Tests
 
@@ -28,12 +33,16 @@ result: pass
 expected: The assertions in isolation.test.ts and owner-rls.test.ts use only id-set comparisons (sortedIds, arrayContaining, every) and never index query results by position.
 result: pass
 
+### 5. Real-password grep after real ingest (re-verification 2026-10-07)
+expected: On the home machine, after bridge-init and a real ingest, grepping config/ and a pg_dump of `sift` for each real Bridge IMAP password finds no match. (Test 2 passed before any mail was stored and before bridge-init wrote .env.mailboxes / .env.mailboxes.bak.)
+result: [pending]
+
 ## Summary
 
-total: 4
+total: 5
 passed: 4
 issues: 0
-pending: 0
+pending: 1
 skipped: 0
 blocked: 0
 
