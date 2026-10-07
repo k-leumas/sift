@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Full-stack smoke test: build the image, bring up db -> setup -> worker, and
 # check that setup exited 0, the worker is healthy, and migrations and the
-# mailbox registry were applied. Used locally and by the CI job compose-smoke.
+# mailbox registry were applied. It also checks that the worker wrote a status
+# row for every enabled mailbox in a state reachable without IMAP (connecting
+# or error): its IMAP hosts are unroutable, so a smoke worker never syncs.
+# Used locally and by the CI job compose-smoke.
 # It builds and starts only db, setup and worker; the Bridge image is checked
 # separately by scripts/bridge-smoke.sh.
 #
@@ -40,8 +43,9 @@
 # removes the smoke Bridge volume (down -v never removes external volumes). It
 # only runs when CI=true or SMOKE_ALLOW_VOLUME_REMOVAL=yes is set.
 #
-# Env: SMOKE_TIMEOUT (seconds, default 300), COMPOSE_PROJECT_NAME, SIFT_DB_PORT
-# (beats the smoke .env), SIFT_BACKUP_HOST_DIR.
+# Env: SMOKE_TIMEOUT (seconds, default 300; bounds the whole run, including
+# the wait for those status rows), COMPOSE_PROJECT_NAME, SIFT_DB_PORT (beats
+# the smoke .env), SIFT_BACKUP_HOST_DIR.
 set -euo pipefail
 
 down=false
@@ -254,6 +258,30 @@ atleast() {
 
 atleast "migrations applied" 5 "select count(*) from drizzle.__drizzle_migrations"
 atleast "mailboxes registered" 1 "select count(*) from mailbox"
-atleast "mailboxes ok" 1 "select count(*) from mailbox_status where state = 'ok'"
+# At least one enabled mailbox, so the status wait below cannot pass on an
+# empty registry.
+atleast "mailboxes enabled" 1 "select count(*) from mailbox where disabled_at is null"
+
+# The smoke config points every IMAP host at imap.smoke.invalid, so no smoke
+# worker can sync, and none may. What the worker can show without IMAP: its
+# loop ran and recorded each enabled mailbox's failed connect, as connecting
+# (inside the startup grace) or error. The worker inserts the status row just
+# before that connect, so a row may briefly hold its insert default; only the
+# state at the deadline counts. SMOKE_TIMEOUT (the deadline above) bounds the
+# wait.
+no_status_sql="select count(*) from mailbox m where m.disabled_at is null
+  and not exists (select 1 from mailbox_status s
+    where s.mailbox_id = m.id and s.state in ('connecting', 'error'))"
+while :; do
+  missing=$(query "$no_status_sql") || fail "query failed: mailbox status"
+  missing=${missing//[[:space:]]/}
+  [ "$missing" = 0 ] && break
+  if [ "$SECONDS" -ge "$deadline" ]; then
+    fail "mailbox status: $missing enabled mailboxes have no connecting or error status row after ${timeout}s"
+  fi
+  sleep 2
+done
+atleast "mailbox status connecting or error" 1 \
+  "select count(*) from mailbox_status where state in ('connecting', 'error')"
 
 echo "compose smoke OK"
