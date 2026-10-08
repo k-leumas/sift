@@ -164,5 +164,21 @@ Held here so the scope is visible; each becomes its own milestone with its own r
 - **M6 Guardrails**: injection eval suite in CI, audit view, public demo on synthetic data
 - **M7 Extras**: draft replies to recruiters from `resume.yaml`, webhooks (for example n8n)
 
+### Phase 999.1: Follow-up — Phase 02 deferred UAT follow-up: Test 11 (BACKLOG)
+
+**Goal:** Resolve the UAT checkpoint deferred during Phase 02 verification
+**Source phase:** 02
+**Deferred at:** 2026-10-07 during /gsd-verify-work 02 session completion
+**Follow-ups:**
+- [ ] Test 11: README alone gets a new owner to an ingesting worker — owner reads the README quick start as a first-time owner, including the Proton-only scope and NTP clock notes (deferred 2026-10-07)
+
+### Phase 999.2: Follow-up — Phase 02 deferred UAT follow-up: Test 12 (BACKLOG)
+
+**Goal:** Resolve the UAT checkpoint deferred during Phase 02 verification
+**Source phase:** 02
+**Deferred at:** 2026-10-07 during /gsd-verify-work 02 session completion
+**Follow-ups:**
+- [ ] Test 12: Renovate opens a Bridge PR that bumps the tag and the commit together and the bridge-image job passes on GitHub's runner; waits on the Renovate app and a new upstream Bridge release (deferred 2026-10-07)
+
 ---
 *Roadmap created: 2026-10-02*
