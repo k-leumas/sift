@@ -554,7 +554,7 @@ blocked: 1
 - gap_id: G-02-4
   truth: "02-SPIKE-FINDINGS.md records the post-spike initial_backfill_days the owner intends"
   status: resolved
-  resolved_by: 02-20-PLAN
+  resolved_by: 02-20-PLAN.md
   resolved_at: 2026-10-07
   reason: "User reported: initial_backfill_days: 3"
   severity: minor
@@ -572,7 +572,7 @@ blocked: 1
 - gap_id: G-02-8
   truth: "README tells the owner to keep the host clock NTP-synced, since the watermark caps future INTERNALDATEs at the worker clock (WR-03) and Proton's server time sets INTERNALDATE"
   status: resolved
-  resolved_by: 02-20-PLAN
+  resolved_by: 02-20-PLAN.md
   resolved_at: 2026-10-07
   reason: "User reported: would making a note of this fact somewhere maybe in the readme this way the clocks can be set using the same timeserver and ideally never run into this situation"
   severity: minor
@@ -587,7 +587,7 @@ blocked: 1
 - gap_id: G-02-9
   truth: "README states that Sift supports only Proton Mail through Proton Bridge for now, and why (simpler logic, smaller test surface, security)"
   status: resolved
-  resolved_by: 02-20-PLAN
+  resolved_by: 02-20-PLAN.md
   resolved_at: 2026-10-07
   reason: "User reported: lets also make a note in the readme stating tha this only works with protonmail (for now) it simplifies our logic and shrinks the testing surface and more secuirty minded"
   severity: minor
@@ -603,7 +603,7 @@ blocked: 1
 - gap_id: G-02-14
   truth: "The ci workflow passes on main after the Phase 2 push"
   status: resolved
-  resolved_by: 02-21-PLAN
+  resolved_by: 02-21-PLAN.md
   resolved_at: 2026-10-07
   reason: "User reported: errror: https://github.com/k-leumas/sift/actions/runs/37572838343/job/112635131344#step:3:911"
   severity: major
