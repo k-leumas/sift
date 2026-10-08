@@ -1,14 +1,14 @@
 ---
-status: diagnosed
+status: partial
 phase: 02-bridge-spike-and-imap-ingest
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md, 02-04-SUMMARY.md, 02-05-SUMMARY.md, 02-06-SUMMARY.md, 02-07-SUMMARY.md, 02-08-SUMMARY.md, 02-09-SUMMARY.md, 02-10-SUMMARY.md, 02-11-SUMMARY.md, 02-12-SUMMARY.md, 02-13-SUMMARY.md, 02-14-SUMMARY.md, 02-15-SUMMARY.md, 02-16-SUMMARY.md, 02-17-SUMMARY.md, 02-18-SUMMARY.md, 02-19-SUMMARY.md, 02-VERIFICATION.md]
 started: 2026-10-07T03:22:35Z
-updated: 2026-10-07T04:53:39Z
+updated: 2026-10-08T02:11:13.889Z
 ---
 
 ## Current Test
 
-[testing paused — 1 items outstanding]
+[testing complete]
 
 ## Tests
 
@@ -64,7 +64,7 @@ result: pass
 ### 11. README alone gets a new owner to an ingesting worker
 expected: Reading the README quick start as a first-time owner, the steps from clone to a Bridge-connected, ingesting worker are clear and complete, including the interactive Bridge login (02-17 D7).
 result: skipped
-reason: "can i skip this one for now?" (owner deferred the README read-through; natural to redo after the G-02-8/G-02-9 README edits)
+reason: "skip - technically this can wait right?" (2026-10-07 resume: owner deferred the README read-through again after the G-02-8/G-02-9 edits landed; first deferral: "can i skip this one for now?")
 
 ### 12. Renovate Bridge bump PR
 expected: Renovate opens a Bridge PR that bumps the tag and the commit together and the bridge-image job passes on GitHub's runner (02-15 D7; needs the Renovate app and a new upstream Bridge release).
@@ -553,7 +553,9 @@ blocked: 1
 
 - gap_id: G-02-4
   truth: "02-SPIKE-FINDINGS.md records the post-spike initial_backfill_days the owner intends"
-  status: failed
+  status: resolved
+  resolved_by: 02-20-PLAN
+  resolved_at: 2026-10-07
   reason: "User reported: initial_backfill_days: 3"
   severity: minor
   test: 4
@@ -569,7 +571,9 @@ blocked: 1
     - "Leave the schema default, config.example.yaml and README default (30) unchanged unless the owner asks"
 - gap_id: G-02-8
   truth: "README tells the owner to keep the host clock NTP-synced, since the watermark caps future INTERNALDATEs at the worker clock (WR-03) and Proton's server time sets INTERNALDATE"
-  status: failed
+  status: resolved
+  resolved_by: 02-20-PLAN
+  resolved_at: 2026-10-07
   reason: "User reported: would making a note of this fact somewhere maybe in the readme this way the clocks can be set using the same timeserver and ideally never run into this situation"
   severity: minor
   test: 8
@@ -582,7 +586,9 @@ blocked: 1
     - "readme test pinning the sentence, matching how other README strings are pinned"
 - gap_id: G-02-9
   truth: "README states that Sift supports only Proton Mail through Proton Bridge for now, and why (simpler logic, smaller test surface, security)"
-  status: failed
+  status: resolved
+  resolved_by: 02-20-PLAN
+  resolved_at: 2026-10-07
   reason: "User reported: lets also make a note in the readme stating tha this only works with protonmail (for now) it simplifies our logic and shrinks the testing surface and more secuirty minded"
   severity: minor
   test: 9
@@ -596,7 +602,9 @@ blocked: 1
     - "Code paths for non-Bridge servers (implicit TLS, mid:/hdr: identity fallbacks) stay; removing them is a separate owner decision, out of scope"
 - gap_id: G-02-14
   truth: "The ci workflow passes on main after the Phase 2 push"
-  status: failed
+  status: resolved
+  resolved_by: 02-21-PLAN
+  resolved_at: 2026-10-07
   reason: "User reported: errror: https://github.com/k-leumas/sift/actions/runs/37572838343/job/112635131344#step:3:911"
   severity: major
   test: 14
