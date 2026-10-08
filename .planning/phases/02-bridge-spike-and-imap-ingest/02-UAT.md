@@ -1,9 +1,9 @@
 ---
-status: partial
+status: complete
 phase: 02-bridge-spike-and-imap-ingest
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md, 02-04-SUMMARY.md, 02-05-SUMMARY.md, 02-06-SUMMARY.md, 02-07-SUMMARY.md, 02-08-SUMMARY.md, 02-09-SUMMARY.md, 02-10-SUMMARY.md, 02-11-SUMMARY.md, 02-12-SUMMARY.md, 02-13-SUMMARY.md, 02-14-SUMMARY.md, 02-15-SUMMARY.md, 02-16-SUMMARY.md, 02-17-SUMMARY.md, 02-18-SUMMARY.md, 02-19-SUMMARY.md, 02-VERIFICATION.md]
 started: 2026-10-07T03:22:35Z
-updated: 2026-10-08T02:11:13.889Z
+updated: 2026-10-08T02:13:03.858Z
 ---
 
 ## Current Test
@@ -64,13 +64,12 @@ result: pass
 ### 11. README alone gets a new owner to an ingesting worker
 expected: Reading the README quick start as a first-time owner, the steps from clone to a Bridge-connected, ingesting worker are clear and complete, including the interactive Bridge login (02-17 D7).
 result: skipped
-reason: "skip - technically this can wait right?" (2026-10-07 resume: owner deferred the README read-through again after the G-02-8/G-02-9 edits landed; first deferral: "can i skip this one for now?")
+reason: "Deferred follow-up: skip - technically this can wait right?" (owner deferred the README read-through twice, 2026-10-07; moved to ROADMAP backlog 999.1)
 
 ### 12. Renovate Bridge bump PR
 expected: Renovate opens a Bridge PR that bumps the tag and the commit together and the bridge-image job passes on GitHub's runner (02-15 D7; needs the Renovate app and a new upstream Bridge release).
-result: blocked
-blocked_by: third-party
-reason: "blocked" (Renovate app/PR for upstream v3.27.1 not yet seen; bridge-image workflow already passed on GitHub run 37572704376)
+result: skipped
+reason: "Deferred follow-up: yes defer both and add them to the backlog" (was blocked on third-party: Renovate app/PR for upstream v3.27.1 not yet seen; bridge-image workflow already passed on GitHub run 37572704376; moved to ROADMAP backlog 999.2)
 
 ### 13. Re-run of 26 schema-rejected deliverables
 expected: These 26 deliverables in 02-09, 02-10, 02-13, 02-16, 02-17 and 02-18 have passing automated tests, but their coverage blocks use `kind: test`/`kind: command`, which the classifier rejects. Re-run on 2026-10-07: full suite 932/934, the 2 failures were 30 s timeouts against the Dovecot test server that moved between runs and passed 54/54 when re-run alone (bug-151 family); typecheck clean. You accept the re-run as covering them.
@@ -546,8 +545,8 @@ total: 90
 passed: 86
 issues: 2
 pending: 0
-skipped: 1
-blocked: 1
+skipped: 2
+blocked: 0
 
 ## Gaps
 
@@ -618,3 +617,12 @@ blocked: 1
     - "Assert instead that the worker wrote a mailbox_status row for every enabled registered mailbox, in a state reachable without IMAP (connecting or error), proving the worker loop started and reports status"
     - "Keep the migrations and registered-mailbox assertions; update compose-smoke.test.ts if it pins the old text"
     - "Verify with scripts/compose-smoke.sh locally and a green ci run on main"
+
+## Deferred Follow-Ups
+
+- test: 11
+  idea: "skip - technically this can wait right?"
+  deferred_at: 2026-10-07
+- test: 12
+  idea: "yes defer both and add them to the backlog"
+  deferred_at: 2026-10-07
