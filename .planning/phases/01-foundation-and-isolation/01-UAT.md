@@ -1,19 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-foundation-and-isolation
 source: [01-VERIFICATION.md]
 started: 2026-10-04T20:30:00Z
-updated: 2026-10-07T23:06:51Z
+updated: 2026-10-08T01:50:26.022Z
 ---
 
 ## Current Test
 
-number: 5
-name: Real-password grep after real ingest (re-verification 2026-10-07)
-expected: |
-  On the home machine, after Bridge has run bridge-init and ingested real mail, grepping config/
-  and a pg_dump of the `sift` database for each real Bridge IMAP password finds no match.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -35,14 +30,15 @@ result: pass
 
 ### 5. Real-password grep after real ingest (re-verification 2026-10-07)
 expected: On the home machine, after bridge-init and a real ingest, grepping config/ and a pg_dump of `sift` for each real Bridge IMAP password finds no match. (Test 2 passed before any mail was stored and before bridge-init wrote .env.mailboxes / .env.mailboxes.bak.)
-result: [pending]
+result: pass
+evidence: "2026-10-07 on home machine: 103549 messages / 173 bodies ingested; 3 passwords from .env.mailboxes; no match in config/ (2 files) or in a 176M plain pg_dump as sift_backup (11 COPY blocks)"
 
 ## Summary
 
 total: 5
-passed: 4
+passed: 5
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
