@@ -1280,3 +1280,16 @@
 | 16:49 | Created apps/worker/test/classify-leak.test.ts | — | ~3127 |
 | 16:56 | 03-10 executed: 23 hostile/pair fixtures, classify-injection/leak/hermetic tests (66 cases), mutation proofs | apps/worker/test/* | 43/43 verify, 257/257 classify | ~45000 |
 | 16:55 | Created .planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md | — | ~4757 |
+| 16:58 | Session end: 104 writes across 87 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 29 reads | ~273548 tok |
+| 17:01 | Edited README.md | inline fix | ~113 |
+| 17:01 | Edited README.md | expanded (+8 lines) | ~457 |
+| 17:01 | Edited README.md | expanded (+8 lines) | ~248 |
+| 17:01 | Edited README.md | expanded (+50 lines) | ~1092 |
+| 17:02 | Edited apps/worker/test/user-facing-text.test.ts | expanded (+58 lines) | ~836 |
+| 17:07 | Created apps/worker/test/llm-baseline.test.ts | — | ~3286 |
+| 17:07 | Created apps/worker/test/support/llm-baseline.ts | — | ~285 |
+| 17:09 | Created apps/worker/test/support/llm-baseline.ts | — | ~3468 |
+| 17:05 | 03-13 Task 1: README rules.yaml/Ollama/sift classify docs + CONTRIBUTING classification tests + doc test pins | README.md, CONTRIBUTING.md, apps/worker/test/user-facing-text.test.ts | 106/106, typecheck 0, commit 2a7b0ba | ~9000 |
+| 17:10 | 03-13 Task 2: live-baseline runner (RED 25ac512, GREEN 352b1bf), hermetic guard scans it | apps/worker/test/support/llm-baseline.ts, llm-baseline.test.ts, classify-hermetic.test.ts | 20/20; full suite 1605/1609, 4 bug-214 timeouts pass serially | ~8000 |
+| 17:19 | Created .planning/phases/03-tiered-classification-with-traces/03-USER-SETUP.md | — | ~618 |
+| 17:21 | Created .planning/phases/03-tiered-classification-with-traces/03-13-SUMMARY.md | — | ~4416 |

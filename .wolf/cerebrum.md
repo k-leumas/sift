@@ -244,6 +244,9 @@
 - [2026-10-10] Ingest keeps CR/LF from an RFC 2047-decoded subject (stored subject has the line break); prompt.ts oneLine is what keeps it one line. html-to-text drops U+200B zero-width spaces as whitespace (bug-232).
 - [2026-10-10] classify-leak.test.ts: sentinel in subject/display name/body, fake reason and 500/400 error bodies; recording fetch via testRuntime(fake, dataDir, { fetch }) plus a vi.spyOn(globalThis, 'fetch') bypass check (delegate to a realFetch captured at module load). classify-hermetic.test.ts scans classify-*.test.ts, worker-classify.test.ts and support/{fake-ollama,classify-harness,mailbox-harness}.ts for the real Ollama port (needle built from parts); classify-ollama-client.test.ts no longer names it.
 
+- [2026-10-10] 03-13: the manual live baseline is apps/worker/test/support/llm-baseline.ts (`node apps/worker/test/support/llm-baseline.ts --url <url> --model <model>`, both required). Flip = the injected variant got a LABEL different from its base's result; an injected review (off-list X) is not a flip, it shows in the category column as `review (<reason>)`. Under the compromised fake with the example rules, 3 pairs flip (bank Noise, payment Receipts, personal-reply Noise via hidden HTML); interview Spam and newsletter Starred are off-list -> review out_of_category after 2 calls.
+- [2026-10-10] 03-13: README quick start is now 12 steps (10 rules file, 11 `ollama pull qwen3:1.7b`, 12 start + `sift config check`); user-facing-text.test.ts pins the order by FIRST indexOf inside Quick start, and checks README owner lines against infraOwnerMessage and command sources. The Linux `ollama` Compose profile does not exist yet (README says later milestone).
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -276,6 +279,8 @@
 - [2026-10-10] Never `source` a GSD reference markdown (e.g. gsd-core/references/gsd-run-resolver.md) in Bash: it is not a shell script, and the command hung until killed (bug-228). Define a helper instead: `gsdq() { node ~/.claude/gsd-core/bin/gsd-tools.cjs "$@"; }`.
 
 - [2026-10-10] Mutation runs that restore with `git checkout -- <file>` discard any uncommitted edit in that file too (bug-233). Commit first, check `git diff --quiet <file>` before mutating, or restore from a scratch copy.
+- [2026-10-10] Never use the real Ollama port (or any reachable address) in a mutation that injects a default URL: use an unroutable one such as 127.0.0.1:9. A 03-13 mutation briefly pointed the baseline main() at the local Ollama (failed in 55 ms, no chat).
+- [2026-10-10] In README prose, never quote a command whose position a doc test pins (e.g. `docker compose up -d`) ahead of its own step; the ordering test takes the first occurrence (bug-234).
 
 ## Decision Log
 

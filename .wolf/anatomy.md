@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T22:55:59.052Z
-> Files: 561 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T23:21:17.187Z
+> Files: 565 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -19,7 +19,7 @@
 - `package.json` — Node.js package manifest (~286 tok)
 - `pnpm-lock.yaml` — pnpm lock file (~29253 tok)
 - `pnpm-workspace.yaml` (~79 tok)
-- `README.md` — Project documentation (~11079 tok)
+- `README.md` — Project documentation (~12786 tok)
 - `renovate.json` (~235 tok)
 - `tsconfig.base.json` (~107 tok)
 - `tsconfig.json` — TypeScript configuration (~50 tok)
@@ -214,11 +214,13 @@
 - `03-12-PLAN.md` — Exports USAGE (~5717 tok)
 - `03-12-SUMMARY.md` — Phase 3 Plan 12: sift classify Re-run Summary (~3798 tok)
 - `03-13-PLAN.md` — Exports BaselineRow (~4703 tok)
+- `03-13-SUMMARY.md` — Phase 3 Plan 13: Owner Docs and the Live-Baseline Runner Summary (~4140 tok)
 - `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~28765 tok)
 - `03-CONTEXT.md` — Phase 3: Tiered Classification with Traces - Context (~4038 tok)
 - `03-DISCUSSION-LOG.md` — Phase 3: Tiered Classification with Traces - Discussion Log (~1792 tok)
 - `03-PATTERNS.md` — Phase 3: Tiered Classification with Traces - Pattern Map (~3773 tok)
 - `03-RESEARCH.md` — Phase 3: Tiered Classification with Traces - Research (~17483 tok)
+- `03-USER-SETUP.md` — Phase 3: User Setup Required (~579 tok)
 - `03-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~2575 tok)
 - `COVERAGE.md` — API Coverage — Ollama REST API (local server at models.url) (~725 tok)
 
@@ -343,6 +345,7 @@
 - `ingest-resync.test.ts` — Five eligible messages stored in generation 1; the watermark is the newest (1 minute ago). (~5543 tok)
 - `lint-guard.test.ts` — Lint one file at apps/worker/src/<name> with the repository's biome.json. (~724 tok)
 - `live-ingest-record.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1152 tok)
+- `llm-baseline.test.ts` — The live-baseline runner against the compromised fake: 10 rows in fixed order, flips only for allowed classify-as targets, single origin, table format, refusals, usage (03-13). (~3286 tok)
 - `mailbox-batch.test.ts` — Owner-visible mailbox states (02-13 Task 2; D-26, D-33, D-34, D-40, D-72, (~5144 tok)
 - `mailbox-ops.test.ts` — Owner mailbox operations (02-16): `sift mailbox resume` releases a volume (~6167 tok)
 - `mailbox-rename-guard.test.ts` — D-07 rename guard: refusal with closed-port DB URL (no DB call), invalid slug message, rename once rules file exists. (~1296 tok)
@@ -354,7 +357,7 @@
 - `setup.test.ts` — Committed migrations, from the journal, so new migrations do not break this test. (~2468 tok)
 - `spike-findings.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1660 tok)
 - `supervisor.test.ts` — A promise that never settles: a hung batch. (~7687 tok)
-- `user-facing-text.test.ts` — D-69: until the mailbox hard-delete command exists, no owner-facing text and (~3520 tok)
+- `user-facing-text.test.ts` — D-69: until the mailbox hard-delete command exists, no owner-facing text and (~4371 tok)
 - `worker-classify.test.ts` — The shipped `sift worker` command classifies mail on its own (03-09 Task (~2343 tok)
 - `worker-errors.test.ts` — Brings in the vitest ProvidedContext augmentation that types inject('testDb'). (~827 tok)
 - `worker.test.ts` — Status rows read as the superuser, which bypasses RLS (test inspection only). (~1846 tok)
@@ -399,6 +402,7 @@
 - `fake-imap-server.ts` — A recording fake IMAP server for wire-level tests (D-80): it records every (~2409 tok)
 - `fake-ingest-store.ts` — In-memory IngestStore with the semantics of the @sift/db ingest use-cases (~4470 tok)
 - `fake-ollama.ts` — A scripted, recording fake Ollama for the classification tests (D-33, (~2906 tok)
+- `llm-baseline.ts` — Manual live baseline (03-13, AI-SPEC Set B): runBaseline({url, model, threshold?, fetch?}) sends the 5 synthetic pair .eml fixtures through createPreflight/runLlmTier/decide; formatBaselineTable; main(argv, io) CLI `--url --model` (required, exit 2 usage / 1 refusal). Never CI against a real model. (~3468 tok)
 - `mailbox-harness.ts` — Shared pieces of the worker-callback tests (02-13): a config entry for a (~2027 tok)
 - `privacy-scan.ts` — Address domains a committed spike or live-run document may name. (~806 tok)
 - `test-imap.ts` — Helpers for the Dovecot test server started by `scripts/test-imap.sh up`. (~2244 tok)

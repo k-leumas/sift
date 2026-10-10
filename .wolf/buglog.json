@@ -218,7 +218,7 @@
       "error_message": "Significant refactor of ",
       "file": "packages/db/test/isolation.test.ts",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 4→3 lines (2 removed)",
+      "fix": "Rewrote 4\u21923 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -351,7 +351,7 @@
       "timestamp": "2026-10-04T06:57:50.315Z",
       "error_message": "Missing await",
       "file": "apps/worker/src/commands/worker.ts",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -368,7 +368,7 @@
       "error_message": "Wrong reference: supervisor should be registry",
       "file": "apps/worker/src/commands/worker.ts",
       "root_cause": "Used \"supervisor\" instead of \"registry\"",
-      "fix": "Changed supervisor → registry",
+      "fix": "Changed supervisor \u2192 registry",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -383,7 +383,7 @@
       "timestamp": "2026-10-04T07:00:33.294Z",
       "error_message": "Missing error handling in unknown",
       "file": "apps/worker/src/commands/worker.ts",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -433,7 +433,7 @@
       "error_message": "Significant refactor of ",
       "file": "scripts/compose-smoke.sh",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 3→4 lines (2 removed)",
+      "fix": "Rewrote 3\u21924 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -500,7 +500,7 @@
       "error_message": "Significant refactor of ",
       "file": "README.md",
       "root_cause": "8 lines replaced/restructured",
-      "fix": "Rewrote 24→69 lines (8 removed) | Also: ├── config.example.yaml; └── .env.example",
+      "fix": "Rewrote 24\u219269 lines (8 removed) | Also: \u251c\u2500\u2500 config.example.yaml; \u2514\u2500\u2500 .env.example",
       "tags": [
         "auto-detected",
         "refactor",
@@ -532,7 +532,7 @@
       "error_message": "Significant refactor of ",
       "file": "CONTRIBUTING.md",
       "root_cause": "10 lines replaced/restructured",
-      "fix": "Rewrote 32→89 lines (10 removed)",
+      "fix": "Rewrote 32\u219289 lines (10 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -564,7 +564,7 @@
       "error_message": "Wrong operator: !== should be ===",
       "file": "apps/worker/test/user-facing-text.test.ts",
       "root_cause": "Used \"!==\" instead of \"===\"",
-      "fix": "Changed operator !== → ===",
+      "fix": "Changed operator !== \u2192 ===",
       "tags": [
         "auto-detected",
         "operator-fix",
@@ -596,7 +596,7 @@
       "error_message": "Wrong reference: open should be resolved",
       "file": ".planning/phases/01-foundation-and-isolation/deferred-items.md",
       "root_cause": "Used \"open\" instead of \"resolved\"",
-      "fix": "Changed open → resolved",
+      "fix": "Changed open \u2192 resolved",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1011,7 +1011,7 @@
       "error_message": "Wrong reference: VERIFICATION_PENDING should be exit",
       "file": ".planning/phases/01-foundation-and-isolation/01-REVIEW-FIX.md",
       "root_cause": "Used \"VERIFICATION_PENDING\" instead of \"exit\"",
-      "fix": "Changed VERIFICATION_PENDING → exit",
+      "fix": "Changed VERIFICATION_PENDING \u2192 exit",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1046,7 +1046,7 @@
       "error_message": "Wrong reference: core should be worker",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-02-PLAN.md",
       "root_cause": "Used \"core\" instead of \"worker\"",
-      "fix": "Changed core → worker",
+      "fix": "Changed core \u2192 worker",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1094,7 +1094,7 @@
       "error_message": "Wrong reference: files should be apps",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-08-PLAN.md",
       "root_cause": "Used \"files\" instead of \"apps\"",
-      "fix": "Changed files → apps",
+      "fix": "Changed files \u2192 apps",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1142,7 +1142,7 @@
       "error_message": "Wrong reference: five should be seven",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md",
       "root_cause": "Used \"five\" instead of \"seven\"",
-      "fix": "Changed five → seven",
+      "fix": "Changed five \u2192 seven",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1237,7 +1237,7 @@
       "timestamp": "2026-10-05T08:08:53.805Z",
       "error_message": "Missing await",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -1270,7 +1270,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md",
       "root_cause": "6 lines replaced/restructured",
-      "fix": "Rewrote 15→11 lines (6 removed) | Also: - \"capturePeerCertificate connects without trustin; - \"openImap with a pin captures the certificate fi | Also: capture.ts (this plan; the ONLY file under apps/wo; export interface CapturedCertificate { pem: string | Also: <task type=\"auto\" tdd=\"true\">; <name>Task 3: Credential-free certificate capture, | Also: | worker -> IMAP server (Bridge) over the Compose ; | capture handshake | A deliberately unverified TL",
+      "fix": "Rewrote 15\u219211 lines (6 removed) | Also: - \"capturePeerCertificate connects without trustin; - \"openImap with a pin captures the certificate fi | Also: capture.ts (this plan; the ONLY file under apps/wo; export interface CapturedCertificate { pem: string | Also: <task type=\"auto\" tdd=\"true\">; <name>Task 3: Credential-free certificate capture, | Also: | worker -> IMAP server (Bridge) over the Compose ; | capture handshake | A deliberately unverified TL",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1302,7 +1302,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 7→12 lines (2 removed) | Also: - Rename \"defines db, setup and worker\" to include; - Add `describe('bridge service (D-29..D-39, D-72,",
+      "fix": "Rewrote 7\u219212 lines (2 removed) | Also: - Rename \"defines db, setup and worker\" to include; - Add `describe('bridge service (D-29..D-39, D-72,",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1318,7 +1318,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-06-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→8 lines (2 removed) | Also: Scope extensions (scope.ts):; options: { target: readonly UniqueKey<T>[]; update | Also: finishResync(scope, folder, done: { uidvalidity; g; // persists last_resync_summary with gone = the nu | Also: - Add `upsert` to scopedTable (and therefore to ev; - If drizzle refuses the composite target or `xmax | Also: <fails_when>non-zero exit, a second storeMessages ; - `grep -n 'onConflictDoUpdate' packages/db/src/sc | Also: - finishResync computes the superseded and vanishe; Every function runs inside the caller's transactio | Also: - Scoped API: `ScopedTableApi.upsert(rows, { targe; - `@sift/db` exports: `storeMessages`, `getFolderS",
+      "fix": "Rewrote 5\u21928 lines (2 removed) | Also: Scope extensions (scope.ts):; options: { target: readonly UniqueKey<T>[]; update | Also: finishResync(scope, folder, done: { uidvalidity; g; // persists last_resync_summary with gone = the nu | Also: - Add `upsert` to scopedTable (and therefore to ev; - If drizzle refuses the composite target or `xmax | Also: <fails_when>non-zero exit, a second storeMessages ; - `grep -n 'onConflictDoUpdate' packages/db/src/sc | Also: - finishResync computes the superseded and vanishe; Every function runs inside the caller's transactio | Also: - Scoped API: `ScopedTableApi.upsert(rows, { targe; - `@sift/db` exports: `storeMessages`, `getFolderS",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1366,7 +1366,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-10-PLAN.md",
       "root_cause": "5 lines replaced/restructured",
-      "fix": "Rewrote 5→6 lines (5 removed) | Also: - finishResync supersedes or vanishes non-current ; It also exposes read helpers (messages, locations, | Also: <fails_when>non-zero exit, duplicates after a resu; - ingest-engine.test.ts passes the first-sync, bac | Also: - commitChunk failing on the second batch: the run; - During resync, new candidates above newMailCap g",
+      "fix": "Rewrote 5\u21926 lines (5 removed) | Also: - finishResync supersedes or vanishes non-current ; It also exposes read helpers (messages, locations, | Also: <fails_when>non-zero exit, duplicates after a resu; - ingest-engine.test.ts passes the first-sync, bac | Also: - commitChunk failing on the second batch: the run; - During resync, new candidates above newMailCap g",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1381,7 +1381,7 @@
       "timestamp": "2026-10-05T10:04:58.106Z",
       "error_message": "Missing error handling in unknown",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-10-PLAN.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -1446,7 +1446,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→5 lines (2 removed) | Also: <files>packages/db/src/schema/scoped.ts, packages/; - packages/db/test/support/seed.ts (seedScopedRows | Also: 3. Generate migrations:; - `pnpm db:generate --name=ingest_tables` produces | Also: - Indexes: `message_location_message_idx`, `messag; - Migrations: `0005_ingest_tables.sql`, `0006_inge",
+      "fix": "Rewrote 5\u21925 lines (2 removed) | Also: <files>packages/db/src/schema/scoped.ts, packages/; - packages/db/test/support/seed.ts (seedScopedRows | Also: 3. Generate migrations:; - `pnpm db:generate --name=ingest_tables` produces | Also: - Indexes: `message_location_message_idx`, `messag; - Migrations: `0005_ingest_tables.sql`, `0006_inge",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1462,7 +1462,7 @@
       "error_message": "Wrong reference: threat_model should be T",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-03-PLAN.md",
       "root_cause": "Used \"threat_model\" instead of \"T\"",
-      "fix": "Changed threat_model → T",
+      "fix": "Changed threat_model \u2192 T",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1494,7 +1494,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md",
       "root_cause": "4 lines replaced/restructured",
-      "fix": "Rewrote 7→8 lines (4 removed) | Also: - Doc comment cites D-03, Pitfall 9 and Postgres r; 3. `index.ts`: export INGEST_LOCK_CLASS, withInges",
+      "fix": "Rewrote 7\u21928 lines (4 removed) | Also: - Doc comment cites D-03, Pitfall 9 and Postgres r; 3. `index.ts`: export INGEST_LOCK_CLASS, withInges",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1510,7 +1510,7 @@
       "error_message": "Wrong reference: behavior should be Status",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-12-PLAN.md",
       "root_cause": "Used \"behavior\" instead of \"Status\"",
-      "fix": "Changed behavior → Status",
+      "fix": "Changed behavior \u2192 Status",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1542,7 +1542,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-13-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 3→6 lines (2 removed) | Also: - onBackfillProgress, which writes recordBackfillP; closeImap always runs in finally. | Also: <fails_when>non-zero exit; backfill progress not r; <human-check> | Also: - End-of-phase human check: the real-mailbox run i; - ROADMAP Phase 2 success criteria 3, 4 and 5 hold | Also: - ING-01 (edge probe: unclassified, unresolved): s; - ING-04 (edge probe: unclassified, unresolved): s",
+      "fix": "Rewrote 3\u21926 lines (2 removed) | Also: - onBackfillProgress, which writes recordBackfillP; closeImap always runs in finally. | Also: <fails_when>non-zero exit; backfill progress not r; <human-check> | Also: - End-of-phase human check: the real-mailbox run i; - ROADMAP Phase 2 success criteria 3, 4 and 5 hold | Also: - ING-01 (edge probe: unclassified, unresolved): s; - ING-04 (edge probe: unclassified, unresolved): s",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1558,7 +1558,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 3→5 lines (2 removed) | Also: - entrypoint.sh contains `pass show sift/canary`, ; <fails_when>non-zero exit (docker build failed at ",
+      "fix": "Rewrote 3\u21925 lines (2 removed) | Also: - entrypoint.sh contains `pass show sift/canary`, ; <fails_when>non-zero exit (docker build failed at ",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1590,7 +1590,7 @@
       "error_message": "Wrong reference: threat_model should be T",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-01-PLAN.md",
       "root_cause": "Used \"threat_model\" instead of \"T\"",
-      "fix": "Changed threat_model → T",
+      "fix": "Changed threat_model \u2192 T",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1638,7 +1638,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-04-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 4→4 lines (2 removed)",
+      "fix": "Rewrote 4\u21924 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1702,7 +1702,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-09-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 9→11 lines (2 removed) | Also: - Files: `apps/worker/src/imap/folder-source.ts`, ; - Symbols: `createFolderSource(client)`, `toUidSet",
+      "fix": "Rewrote 9\u219211 lines (2 removed) | Also: - Files: `apps/worker/src/imap/folder-source.ts`, ; - Symbols: `createFolderSource(client)`, `toUidSet",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1750,7 +1750,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→6 lines (2 removed) | Also: - `--label-test --uid <u>` with stdin \"LABEL\": cre; - `--label-test` without --uid and without --wait-",
+      "fix": "Rewrote 5\u21926 lines (2 removed) | Also: - `--label-test --uid <u>` with stdin \"LABEL\": cre; - `--label-test` without --uid and without --wait-",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1766,7 +1766,7 @@
       "error_message": "Wrong reference: threat_model should be T",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-11-PLAN.md",
       "root_cause": "Used \"threat_model\" instead of \"T\"",
-      "fix": "Changed threat_model → T",
+      "fix": "Changed threat_model \u2192 T",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1798,7 +1798,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-14-PLAN.md",
       "root_cause": "6 lines replaced/restructured",
-      "fix": "Rewrote 13→14 lines (6 removed) | Also: 8. `apps/worker/test/spike-findings.test.ts` reads; - every section heading above exists",
+      "fix": "Rewrote 13\u219214 lines (6 removed) | Also: 8. `apps/worker/test/spike-findings.test.ts` reads; - every section heading above exists",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1813,7 +1813,7 @@
       "timestamp": "2026-10-05T10:17:22.717Z",
       "error_message": "Missing error handling in unknown",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-14-PLAN.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -1830,7 +1830,7 @@
       "error_message": "Wrong reference: files should be apps",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-14-PLAN.md",
       "root_cause": "Used \"files\" instead of \"apps\"",
-      "fix": "Changed files → apps",
+      "fix": "Changed files \u2192 apps",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -1862,7 +1862,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-15-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→5 lines (2 removed)",
+      "fix": "Rewrote 5\u21925 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -1926,7 +1926,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-17-PLAN.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 4→5 lines (2 removed) | Also: - `docker compose up -d bridge`; host development ; - the same `imap.tls.pin_sha256` printed by `docke | Also: - Add the D-37 sentence, `FileVault` and `imap.tls; - Add `scripts/test-imap.sh up`, `docker volume cr",
+      "fix": "Rewrote 4\u21925 lines (2 removed) | Also: - `docker compose up -d bridge`; host development ; - the same `imap.tls.pin_sha256` printed by `docke | Also: - Add the D-37 sentence, `FileVault` and `imap.tls; - Add `scripts/test-imap.sh up`, `docker volume cr",
       "tags": [
         "auto-detected",
         "refactor",
@@ -2126,7 +2126,7 @@
       "error_message": "Wrong reference: set should be pipeline",
       "file": "apps/worker/test/imap-pin.test.ts",
       "root_cause": "Used \"set\" instead of \"pipeline\"",
-      "fix": "Changed set → pipeline",
+      "fix": "Changed set \u2192 pipeline",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -2312,7 +2312,7 @@
       "timestamp": "2026-10-05T19:29:12.986Z",
       "error_message": "Missing await",
       "file": "apps/worker/test/imap-pin.test.ts",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -2721,7 +2721,7 @@
       "error_message": "Wrong reference: inArray should be anyOf",
       "file": "packages/db/src/scope.ts",
       "root_cause": "Used \"inArray\" instead of \"anyOf\"",
-      "fix": "Changed inArray → anyOf",
+      "fix": "Changed inArray \u2192 anyOf",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -2768,7 +2768,7 @@
       "timestamp": "2026-10-06T20:52:47.605Z",
       "error_message": "Missing await",
       "file": "packages/db/test/scope.test.ts",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -2817,7 +2817,7 @@
       "error_message": "Significant refactor of ",
       "file": "packages/db/test/scope.test.ts",
       "root_cause": "5 lines replaced/restructured",
-      "fix": "Rewrote 5→8 lines (5 removed)",
+      "fix": "Rewrote 5\u21928 lines (5 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -2833,7 +2833,7 @@
       "error_message": "Significant refactor of ",
       "file": "README.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→5 lines (2 removed)",
+      "fix": "Rewrote 5\u21925 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -3069,7 +3069,7 @@
       "error_message": "Wrong reference: Sec should be pin",
       "file": ".planning/phases/02-bridge-spike-and-imap-ingest/02-20-PLAN.md",
       "root_cause": "Used \"Sec\" instead of \"pin\"",
-      "fix": "Changed Sec → pin",
+      "fix": "Changed Sec \u2192 pin",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -3226,7 +3226,7 @@
       "timestamp": "2026-10-07T08:30:23.398Z",
       "error_message": "Missing error handling in gitSucceeds",
       "file": "scripts/release.ts",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -3276,7 +3276,7 @@
       "timestamp": "2026-10-08T07:57:35.101Z",
       "error_message": "Missing error handling in unknown",
       "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block | Also: The model is `models.llm` from config (default `qwen3:1.7b`,; | Request field | Value | Why | | Also: This is a TypeScript project, so a **Zod 4.6.5 schema is the; - `z.toJSONSchema` produces the Ollama `format` (the grammar",
       "tags": [
         "auto-detected",
@@ -3292,7 +3292,7 @@
       "timestamp": "2026-10-08T08:06:28.569Z",
       "error_message": "Missing error handling in unknown",
       "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -3309,7 +3309,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
       "root_cause": "9 lines replaced/restructured",
-      "fix": "Rewrote 31→345 lines (9 removed)",
+      "fix": "Rewrote 31\u2192345 lines (9 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -3324,7 +3324,7 @@
       "timestamp": "2026-10-08T08:21:34.989Z",
       "error_message": "Missing error handling in unknown",
       "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
-      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
       "fix": "Added try/catch block | Also: **Tracing Tool:** **`decision.spans` in Postgres.** This is ; - **No external tracer.** Arize Phoenix (the workflow defaul",
       "tags": [
         "auto-detected",
@@ -3421,7 +3421,7 @@
       "error_message": "Significant refactor of ",
       "file": ".planning/phases/03-tiered-classification-with-traces/03-VALIDATION.md",
       "root_cause": "14 lines replaced/restructured",
-      "fix": "Rewrote 15→38 lines (14 removed) | Also: - [ ] `apps/worker/test/support/fake-ollama.ts` — ; - [ ] `apps/worker/test/support/classify-harness.t",
+      "fix": "Rewrote 15\u219238 lines (14 removed) | Also: - [ ] `apps/worker/test/support/fake-ollama.ts` \u2014 ; - [ ] `apps/worker/test/support/classify-harness.t",
       "tags": [
         "auto-detected",
         "refactor",
@@ -3470,7 +3470,7 @@
       "timestamp": "2026-10-10T19:02:18.919Z",
       "error_message": "Missing await",
       "file": "packages/db/test/catalog.test.ts",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -3587,8 +3587,8 @@
       "related_bugs": [
         "bug-206"
       ],
-      "occurrences": 1,
-      "last_seen": "2026-10-10T19:48:51.094Z"
+      "occurrences": 2,
+      "last_seen": "2026-10-10T23:12:00Z"
     },
     {
       "id": "bug-215",
@@ -3735,7 +3735,7 @@
       "error_message": "Significant refactor of ",
       "file": "apps/worker/test/classify-run.test.ts",
       "root_cause": "4 lines replaced/restructured",
-      "fix": "Rewrote 5→7 lines (4 removed)",
+      "fix": "Rewrote 5\u21927 lines (4 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -3910,6 +3910,41 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T22:55:00Z"
+    },
+    {
+      "id": "bug-234",
+      "timestamp": "2026-10-10T23:12:00Z",
+      "error_message": "README quick-start ordering test failed: 'docker compose up -d' found before 'ollama pull qwen3:1.7b'",
+      "file": "README.md",
+      "root_cause": "New step 10 prose mentioned `docker compose up -d` inline ('before the first docker compose up -d'); the ordering test uses the FIRST indexOf of each command inside Quick start",
+      "fix": "Reworded to 'before you start the stack (step 12)'; never quote an ordered command in prose ahead of its own step",
+      "tags": [
+        "docs",
+        "user-facing-text",
+        "ordering-test",
+        "readme"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T23:12:00Z"
+    },
+    {
+      "id": "bug-235",
+      "timestamp": "2026-10-10T23:12:00Z",
+      "error_message": "llm-baseline.test.ts: personal-reply expected review out_of_category but was labelled Noise",
+      "file": "apps/worker/test/llm-baseline.test.ts",
+      "root_cause": "Test helper read the injected 'classify as X' target from the raw HTML .eml ('Noise</p>'), while the compromised fake reads html-to-text output ('Noise')",
+      "fix": "Strip tags (/<[^>]*>/g -> ' ') before the classify-as regex in the helper",
+      "tags": [
+        "test",
+        "fake-ollama",
+        "compromised",
+        "html",
+        "pair-fixtures"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T23:12:00Z"
     }
   ]
 }
