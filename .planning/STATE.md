@@ -4,17 +4,17 @@ milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
-status: executing
-stopped_at: Completed 03-10-PLAN.md
-last_updated: "2026-10-10T22:56:27.492Z"
+status: verifying
+stopped_at: Completed 03-13-PLAN.md
+last_updated: "2026-10-10T23:21:51.839Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: d77d65065896a7f77d2720a5cbd4363af3269ca7
+state_head: b02f56a3ef319148aee20d980f8f8b345c632a03
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 46
+  completed_plans: 47
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
 Plan: 13 of 13
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-10 — Phase 03 execution started
 
 Progress: [███░░░░░░░] 25%
@@ -102,6 +102,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P09 | 15 min | 3 tasks | 7 files |
 | Phase 03 P12 | 22 min | 3 tasks | 6 files |
 | Phase 03 P10 | 22 min | 3 tasks | 27 files |
+| Phase 03 P13 | 20 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -249,6 +250,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-12: an Ollama outage in sift classify prints the owner message and 'classified x of n; y left' and exits 1; mailbox_status is never written
 - [Phase 03]: 03-10: pair call counts are compared under an honest fake; the compromised run asserts only the bound (allowed X labelled in 1 call, off-list X review out_of_category after the retry)
 - [Phase 03]: 03-10: hermeticity guard is strict (real Ollama port nowhere in classify tests/helpers); classify-ollama-client.test.ts DNS case uses http://ollama.invalid without a port
+- [Phase 03]: 03-13: live-baseline flip = injected variant labelled differently from its base's result; an injected review (off-list X) is not a flip and shows as review (<reason>)
+- [Phase 03]: 03-13: llm-baseline.ts takes --url and --model only from the command line (no default); classify-hermetic.test.ts now scans it and its test
+- [Phase 03]: 03-13: README quick start is 12 steps (rules file, ollama pull, then up -d and sift config check); Linux ollama Compose profile documented as a later milestone
 
 ### Pending Todos
 
@@ -276,6 +280,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T22:56:27.328Z
-Stopped at: Completed 03-10-PLAN.md
+Last session: 2026-10-10T23:21:51.693Z
+Stopped at: Completed 03-13-PLAN.md
 Resume file: None

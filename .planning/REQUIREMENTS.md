@@ -38,10 +38,10 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 
 ### Classification
 
-- [ ] **CLS-01**: Sift evaluates a hardcoded, versioned set of exact rules (sender, domain, phrase) for the mailbox deterministically in code; a match yields a category with no LLM call
-- [ ] **CLS-02**: When no exact rule matches, Sift calls the local LLM through Ollama with a prompt in separated parts: the mailbox's categories and judgment rules (trusted), then the email, fenced off and marked untrusted
+- [x] **CLS-01**: Sift evaluates a hardcoded, versioned set of exact rules (sender, domain, phrase) for the mailbox deterministically in code; a match yields a category with no LLM call
+- [x] **CLS-02**: When no exact rule matches, Sift calls the local LLM through Ollama with a prompt in separated parts: the mailbox's categories and judgment rules (trusted), then the email, fenced off and marked untrusted
 - [x] **CLS-03**: The LLM's output is constrained by JSON schema to a category from the mailbox's category list, a confidence, and a one-sentence reason; malformed or out-of-category output is retried once, then the message is sent to review
-- [ ] **CLS-04**: An LLM result below the confidence threshold (default 0.75) sends the message to review instead of labelling it
+- [x] **CLS-04**: An LLM result below the confidence threshold (default 0.75) sends the message to review instead of labelling it
 - [x] **CLS-05**: No tier can return a label outside the mailbox's category list, and no tier output can trigger any action other than the single label decision (no tool calls, no invented labels)
 - [x] **CLS-06**: The pipeline processes each ingested message exactly once per rule-set/prompt/model version combination unless explicitly re-run, and a failure in one message (Ollama down, malformed mail) does not stop the others
 
@@ -64,7 +64,7 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 
 ### Security Basics
 
-- [ ] **SEC-01**: Email content (subject, body, headers, attachment names) is treated as untrusted data everywhere: it is only ever placed in the fenced section of an LLM prompt, never in the trusted part, and never interpreted as instructions by exact rules or code
+- [x] **SEC-01**: Email content (subject, body, headers, attachment names) is treated as untrusted data everywhere: it is only ever placed in the fenced section of an LLM prompt, never in the trusted part, and never interpreted as instructions by exact rules or code
 - [ ] **SEC-02**: No email content, prompt, or trace is sent anywhere other than the configured model URL; there is no telemetry, analytics, or crash reporting in the worker
 
 ### End to End
@@ -134,10 +134,10 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | ING-02 | Phase 2 | Complete |
 | ING-03 | Phase 2 | Complete |
 | ING-04 | Phase 2 | Complete |
-| CLS-01 | Phase 3 | Pending |
-| CLS-02 | Phase 3 | Pending |
+| CLS-01 | Phase 3 | Complete |
+| CLS-02 | Phase 3 | Complete |
 | CLS-03 | Phase 3 | Complete |
-| CLS-04 | Phase 3 | Pending |
+| CLS-04 | Phase 3 | Complete |
 | CLS-05 | Phase 3 | Complete |
 | CLS-06 | Phase 3 | Complete |
 | TRC-01 | Phase 3 | Complete |
@@ -145,7 +145,7 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | TRC-03 | Phase 3 | Complete |
 | TRC-04 | Phase 3 | Complete |
 | TRC-06 | Phase 3 | Complete |
-| SEC-01 | Phase 3 | Pending |
+| SEC-01 | Phase 3 | Complete |
 | TRC-05 | Phase 4 | Pending |
 | ACT-01 | Phase 4 | Pending |
 | ACT-02 | Phase 4 | Pending |

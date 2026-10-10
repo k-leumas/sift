@@ -125,7 +125,7 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: 12/13 plans executed
+**Plans**: 13/13 plans executed
 
 Plans:
 **Wave 1**
@@ -151,7 +151,7 @@ Plans:
 - [x] 03-10-PLAN.md — Synthetic hostile fixtures and injection pairs through ingest and classification; leak and hermeticity guards (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 03-13-PLAN.md — README/CONTRIBUTING for rules.yaml, Ollama and sift classify; live-baseline runner and owner baseline (wave 6)
+- [x] 03-13-PLAN.md — README/CONTRIBUTING for rules.yaml, Ollama and sift classify; live-baseline runner and owner baseline (wave 6)
 
 ### Phase 4: Labels and Real-Inbox Run
 
@@ -176,7 +176,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
-| 3. Tiered Classification with Traces | v0.1 | 12/13 | In Progress | - |
+| 3. Tiered Classification with Traces | v0.1 | 13/13 | In Progress | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)

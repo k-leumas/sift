@@ -13,27 +13,27 @@
       "first_read": "2026-10-10T18:31:40.539Z"
     },
     "/Users/samuel/.claude/gsd-core/templates/summary.compact.md": {
-      "count": 12,
+      "count": 13,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.714Z"
     },
     "/Users/samuel/.claude/gsd-core/references/checkpoints.md": {
-      "count": 11,
+      "count": 12,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.108Z"
     },
     "/Users/samuel/.claude/gsd-core/references/tdd.md": {
-      "count": 11,
+      "count": 12,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.499Z"
     },
     "/Users/samuel/.claude/gsd-core/references/executor-examples.md": {
-      "count": 11,
+      "count": 12,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:42.506Z"
     },
     "/Users/samuel/.claude/gsd-core/references/worktree-path-safety.md": {
-      "count": 10,
+      "count": 11,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:42.932Z"
     },
@@ -78,7 +78,7 @@
       "first_read": "2026-10-10T19:57:39.782Z"
     },
     "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md": {
-      "count": 2,
+      "count": 3,
       "tokens": 28765,
       "first_read": "2026-10-10T20:32:03.346Z"
     },
@@ -133,7 +133,7 @@
       "first_read": "2026-10-10T22:30:03.438Z"
     },
     "/Users/samuel/dev/sift/apps/worker/test/support/fake-ollama.ts": {
-      "count": 1,
+      "count": 2,
       "tokens": 2906,
       "first_read": "2026-10-10T22:30:21.744Z"
     },
@@ -146,6 +146,66 @@
       "count": 3,
       "tokens": 8544,
       "first_read": "2026-10-10T22:37:27.481Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-13-PLAN.md": {
+      "count": 1,
+      "tokens": 4703,
+      "first_read": "2026-10-10T22:58:15.957Z"
+    },
+    "/Users/samuel/dev/sift/.planning/STATE.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-10-10T22:58:16.383Z"
+    },
+    "/Users/samuel/dev/sift/.planning/config.json": {
+      "count": 1,
+      "tokens": 558,
+      "first_read": "2026-10-10T22:58:16.938Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-11-SUMMARY.md": {
+      "count": 1,
+      "tokens": 3362,
+      "first_read": "2026-10-10T22:58:32.980Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-12-SUMMARY.md": {
+      "count": 1,
+      "tokens": 3798,
+      "first_read": "2026-10-10T22:58:33.278Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md": {
+      "count": 1,
+      "tokens": 4459,
+      "first_read": "2026-10-10T22:58:36.261Z"
+    },
+    "/Users/samuel/dev/sift/README.md": {
+      "count": 1,
+      "tokens": 11079,
+      "first_read": "2026-10-10T22:58:43.185Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts": {
+      "count": 1,
+      "tokens": 3520,
+      "first_read": "2026-10-10T22:58:46.696Z"
+    },
+    "/Users/samuel/dev/sift/CONTRIBUTING.md": {
+      "count": 1,
+      "tokens": 3680,
+      "first_read": "2026-10-10T22:58:47.287Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/classify/llm-tier.ts": {
+      "count": 1,
+      "tokens": 1551,
+      "first_read": "2026-10-10T23:04:12.005Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/classify/preflight.ts": {
+      "count": 1,
+      "tokens": 1425,
+      "first_read": "2026-10-10T23:04:12.604Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/src/classify/ollama-client.ts": {
+      "count": 1,
+      "tokens": 2514,
+      "first_read": "2026-10-10T23:04:12.884Z"
     }
   },
   "files_written": [
@@ -772,6 +832,66 @@
       "action": "create",
       "tokens": 5096,
       "at": "2026-10-10T22:55:59.069Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/README.md",
+      "action": "edit",
+      "tokens": 121,
+      "at": "2026-10-10T23:01:01.369Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/README.md",
+      "action": "edit",
+      "tokens": 490,
+      "at": "2026-10-10T23:01:02.141Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/README.md",
+      "action": "edit",
+      "tokens": 266,
+      "at": "2026-10-10T23:01:02.763Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/README.md",
+      "action": "edit",
+      "tokens": 1170,
+      "at": "2026-10-10T23:01:19.699Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts",
+      "action": "edit",
+      "tokens": 836,
+      "at": "2026-10-10T23:02:57.770Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/llm-baseline.test.ts",
+      "action": "create",
+      "tokens": 3286,
+      "at": "2026-10-10T23:07:25.087Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/support/llm-baseline.ts",
+      "action": "create",
+      "tokens": 285,
+      "at": "2026-10-10T23:07:41.387Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/support/llm-baseline.ts",
+      "action": "create",
+      "tokens": 3468,
+      "at": "2026-10-10T23:09:05.753Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-USER-SETUP.md",
+      "action": "create",
+      "tokens": 662,
+      "at": "2026-10-10T23:19:54.303Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-13-SUMMARY.md",
+      "action": "create",
+      "tokens": 4732,
+      "at": "2026-10-10T23:21:17.205Z"
     }
   ],
   "edit_counts": {
@@ -864,11 +984,17 @@
     "apps/worker/test/fixtures/mail/pair-newsletter.injected.eml": 1,
     "apps/worker/test/classify-hermetic.test.ts": 1,
     "apps/worker/test/classify-leak.test.ts": 1,
-    ".planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md": 1
+    ".planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md": 1,
+    "README.md": 4,
+    "apps/worker/test/user-facing-text.test.ts": 1,
+    "apps/worker/test/llm-baseline.test.ts": 1,
+    "apps/worker/test/support/llm-baseline.ts": 2,
+    ".planning/phases/03-tiered-classification-with-traces/03-USER-SETUP.md": 1,
+    ".planning/phases/03-tiered-classification-with-traces/03-13-SUMMARY.md": 1
   },
-  "anatomy_hits": 20,
+  "anatomy_hits": 31,
   "anatomy_misses": 8,
-  "repeated_reads_warned": 67,
+  "repeated_reads_warned": 74,
   "cerebrum_warnings": 0,
-  "stop_count": 17
+  "stop_count": 18
 }

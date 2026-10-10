@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-10-03T19:14:49.478Z",
   "lifetime": {
-    "total_tokens_estimated": 22021825,
-    "total_reads": 3467,
-    "total_writes": 8458,
+    "total_tokens_estimated": 22295373,
+    "total_reads": 3496,
+    "total_writes": 8562,
     "total_sessions": 26,
-    "anatomy_hits": 2257,
-    "anatomy_misses": 1154,
-    "repeated_reads_blocked": 2325,
-    "estimated_savings_vs_bare_cli": 3371307
+    "anatomy_hits": 2277,
+    "anatomy_misses": 1162,
+    "repeated_reads_blocked": 2393,
+    "estimated_savings_vs_bare_cli": 3425774
   },
   "sessions": [
     {
@@ -66126,6 +66126,717 @@
         "writes_count": 76,
         "repeated_reads_blocked": 62,
         "anatomy_lookups": 14
+      }
+    },
+    {
+      "id": "session-2026-10-10-1227",
+      "started": "2026-10-10T18:27:29.488Z",
+      "ended": "2026-10-10T22:58:10.747Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-phase.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/templates/summary.compact.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/checkpoints.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/tdd.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/executor-examples.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/gsd-core/references/worktree-path-safety.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md",
+          "tokens_estimated": 6842,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/load.ts",
+          "tokens_estimated": 2081,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/schema.ts",
+          "tokens_estimated": 3121,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/config/errors.ts",
+          "tokens_estimated": 328,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md",
+          "tokens_estimated": 3938,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-03-PLAN.md",
+          "tokens_estimated": 6490,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-04-PLAN.md",
+          "tokens_estimated": 5276,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/decide.ts",
+          "tokens_estimated": 913,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
+          "tokens_estimated": 28765,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/fdfa37f8-a256-4a49-9000-3ee506260767/tool-results/b2r4fmbo5.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-run.test.ts",
+          "tokens_estimated": 1480,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/classify-harness.ts",
+          "tokens_estimated": 4614,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-12-PLAN.md",
+          "tokens_estimated": 5717,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-cli.test.ts",
+          "tokens_estimated": 2059,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/classify.ts",
+          "tokens_estimated": 4848,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/fdfa37f8-a256-4a49-9000-3ee506260767/tool-results/b48n46hz8.txt",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-09-SUMMARY.md",
+          "tokens_estimated": 3289,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-05-SUMMARY.md",
+          "tokens_estimated": 3155,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-08-SUMMARY.md",
+          "tokens_estimated": 3948,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/fake-ollama.ts",
+          "tokens_estimated": 2906,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-batch.test.ts",
+          "tokens_estimated": 1981,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts",
+          "tokens_estimated": 8544,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/yaml-issues.ts",
+          "tokens_estimated": 1202,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/rules/schema.ts",
+          "tokens_estimated": 3193,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/rules/load.ts",
+          "tokens_estimated": 796,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/rules.test.ts",
+          "tokens_estimated": 6024,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/example-rules.test.ts",
+          "tokens_estimated": 1482,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/rules/path.ts",
+          "tokens_estimated": 363,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/rules/index.ts",
+          "tokens_estimated": 188,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/data/mailboxes/example/rules.example.yaml",
+          "tokens_estimated": 612,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-01-SUMMARY.md",
+          "tokens_estimated": 3127,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-02-SUMMARY.md",
+          "tokens_estimated": 2445,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/migrations/0008_classification_preflight.sql",
+          "tokens_estimated": 323,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/schema/prompt-version.ts",
+          "tokens_estimated": 447,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/catalog.test.ts",
+          "tokens_estimated": 206,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/classify-schema.test.ts",
+          "tokens_estimated": 6605,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/migrate.test.ts",
+          "tokens_estimated": 874,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-03-SUMMARY.md",
+          "tokens_estimated": 3576,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/llm-output.ts",
+          "tokens_estimated": 960,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/prompt.ts",
+          "tokens_estimated": 2303,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/spans.ts",
+          "tokens_estimated": 2006,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/index.ts",
+          "tokens_estimated": 306,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/prompt.test.ts",
+          "tokens_estimated": 3425,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/llm-output.test.ts",
+          "tokens_estimated": 1693,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/spans.test.ts",
+          "tokens_estimated": 1682,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/canonical.ts",
+          "tokens_estimated": 70,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/prompt-version.ts",
+          "tokens_estimated": 411,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/prompt-version.test.ts",
+          "tokens_estimated": 1288,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/canonical.ts",
+          "tokens_estimated": 417,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/prompt-version.ts",
+          "tokens_estimated": 1022,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-05-SUMMARY.md",
+          "tokens_estimated": 3606,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/exact-rules.ts",
+          "tokens_estimated": 1596,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/decide.ts",
+          "tokens_estimated": 913,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/exact-rules.test.ts",
+          "tokens_estimated": 4216,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/exact-rules.test.ts",
+          "tokens_estimated": 33,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/decide.test.ts",
+          "tokens_estimated": 2753,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/test/rules-hash.test.ts",
+          "tokens_estimated": 2054,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/rules/hash.ts",
+          "tokens_estimated": 437,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-04-SUMMARY.md",
+          "tokens_estimated": 3930,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/classify.ts",
+          "tokens_estimated": 2516,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/test/classify.test.ts",
+          "tokens_estimated": 3521,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-06-SUMMARY.md",
+          "tokens_estimated": 4275,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/ollama-client.ts",
+          "tokens_estimated": 2520,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/ollama-client.ts",
+          "tokens_estimated": 84,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/llm-tier.ts",
+          "tokens_estimated": 1339,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/fake-ollama.ts",
+          "tokens_estimated": 2906,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-llm-tier.test.ts",
+          "tokens_estimated": 1078,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-ollama-client.test.ts",
+          "tokens_estimated": 2377,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/llm-tier.ts",
+          "tokens_estimated": 179,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/llm-tier.ts",
+          "tokens_estimated": 56,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-preflight.test.ts",
+          "tokens_estimated": 3210,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/preflight.ts",
+          "tokens_estimated": 1412,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/single-flight.ts",
+          "tokens_estimated": 500,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/preflight.ts",
+          "tokens_estimated": 63,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-07-SUMMARY.md",
+          "tokens_estimated": 4318,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/config-check.ts",
+          "tokens_estimated": 935,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/config-check-rules.test.ts",
+          "tokens_estimated": 1767,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/mailbox-rename-guard.test.ts",
+          "tokens_estimated": 1296,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-11-SUMMARY.md",
+          "tokens_estimated": 3842,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/untrusted-email.ts",
+          "tokens_estimated": 491,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/run.ts",
+          "tokens_estimated": 5572,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/classify-harness.ts",
+          "tokens_estimated": 4448,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-run.test.ts",
+          "tokens_estimated": 1480,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-run.test.ts",
+          "tokens_estimated": 7529,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-run.test.ts",
+          "tokens_estimated": 113,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-run.test.ts",
+          "tokens_estimated": 29,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/support/classify-harness.ts",
+          "tokens_estimated": 176,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-trace.test.ts",
+          "tokens_estimated": 3803,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-08-SUMMARY.md",
+          "tokens_estimated": 4512,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/status.ts",
+          "tokens_estimated": 306,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-batch.test.ts",
+          "tokens_estimated": 1981,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/worker-classify.test.ts",
+          "tokens_estimated": 2343,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-09-SUMMARY.md",
+          "tokens_estimated": 3759,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/commands/classify.ts",
+          "tokens_estimated": 4848,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-cli.test.ts",
+          "tokens_estimated": 2059,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/refetch.ts",
+          "tokens_estimated": 1530,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-refetch.test.ts",
+          "tokens_estimated": 3654,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-12-SUMMARY.md",
+          "tokens_estimated": 4340,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-fence-close.eml",
+          "tokens_estimated": 135,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts",
+          "tokens_estimated": 3255,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-guessed-nonce.eml",
+          "tokens_estimated": 154,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-crlf-subject.eml",
+          "tokens_estimated": 132,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-display-name-category.eml",
+          "tokens_estimated": 111,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-bank-support-spoof.eml",
+          "tokens_estimated": 139,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-think.eml",
+          "tokens_estimated": 109,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-confidence-7.eml",
+          "tokens_estimated": 124,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-hidden-html.eml",
+          "tokens_estimated": 158,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-attachment-names.eml",
+          "tokens_estimated": 255,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-phishing-receipt.eml",
+          "tokens_estimated": 138,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-chat-roles.eml",
+          "tokens_estimated": 142,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-bank-notice.eml",
+          "tokens_estimated": 147,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-bank-notice.injected.eml",
+          "tokens_estimated": 166,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-payment-failure.eml",
+          "tokens_estimated": 138,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-payment-failure.injected.eml",
+          "tokens_estimated": 174,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-interview.eml",
+          "tokens_estimated": 138,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-interview.injected.eml",
+          "tokens_estimated": 159,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-personal-reply.eml",
+          "tokens_estimated": 122,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-personal-reply.injected.eml",
+          "tokens_estimated": 142,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-newsletter.eml",
+          "tokens_estimated": 133,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-newsletter.injected.eml",
+          "tokens_estimated": 142,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts",
+          "tokens_estimated": 202,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-ollama-client.test.ts",
+          "tokens_estimated": 25,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-hermetic.test.ts",
+          "tokens_estimated": 701,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-leak.test.ts",
+          "tokens_estimated": 3127,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md",
+          "tokens_estimated": 5096,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 100295,
+        "output_tokens_estimated": 173253,
+        "reads_count": 29,
+        "writes_count": 104,
+        "repeated_reads_blocked": 68,
+        "anatomy_lookups": 20
       }
     }
   ],
