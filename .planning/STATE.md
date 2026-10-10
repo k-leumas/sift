@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-10-10T20:07:11.686Z"
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-10-10T20:30:33.080Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: b385f7d0f35f821675adbb16b9e3b5482c4b16f0
+state_head: fd7a52708ecfc4742c7ce94f531f5fe7c6b6dbf8
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 6 of 13
+Plan: 7 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -95,6 +95,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P03 | 14 min | 2 tasks | 19 files |
 | Phase 03 P05 | 11 min | 2 tasks | 10 files |
 | Phase 03 P04 | 14 min | 3 tasks | 8 files |
+| Phase 03 P06 | 16 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -219,6 +220,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-04: decide() is the single decision assembler; LLM answer at confidence >= threshold labels, below is review low_confidence keeping llm.result and confidence
 - [Phase 03]: 03-04: nearest miss reported even at 0 met (D-12 literal, TRC-02 probe flagged); a phrase normalising to empty never matches
 - [Phase 03]: 03-04: rule-set hash = sha256 of canonicalJson({ format_version, rules }) over the validated rules; snapshot is a JSON copy of that text
+- [Phase 03]: 03-06: recordDecision stores createdAt = at, so decision.created_at and the 7-day body expiry share one clock; latestDecision orders by it
+- [Phase 03]: 03-06: recordDecision refuses before SQL on trace format version, llm span model/confidence vs typed columns, and exact rules with a prompt version, model or confidence
+- [Phase 03]: 03-06: candidates() refuses non-UUID ids, invalid since/before and a limit outside 1..1000 with TypeError before SQL
 
 ### Pending Todos
 
@@ -246,6 +250,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T20:07:11.201Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-10-10T20:30:17.778Z
+Stopped at: Completed 03-06-PLAN.md
 Resume file: None
