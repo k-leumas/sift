@@ -220,6 +220,29 @@ export async function pendingIdsOf(adminUrl: string, mailboxId: string): Promise
   return rows.map((r) => r.id);
 }
 
+/** The cached body's expires_at for a message (null when unset), read as the superuser. */
+export async function bodyExpiryOf(
+  adminUrl: string,
+  mailboxId: string,
+  messageId: string,
+): Promise<Date | null> {
+  const [row] = await asAdmin(adminUrl, mailboxId, (query) =>
+    query<{ expires_at: Date | null }>(
+      'select expires_at from message_body where mailbox_id = $1 and message_id = $2',
+      [mailboxId, messageId],
+    ),
+  );
+  if (row === undefined) throw new Error(`bodyExpiryOf: no body for ${messageId}`);
+  return row.expires_at;
+}
+
+/** E1 invariant for one mailbox ($1): labelled decisions outside their own snapshot. */
+export const LABELLED_OUTSIDE_SNAPSHOT_SQL = `select count(*)::int as n from decision d
+   join rule_set r on r.mailbox_id = d.mailbox_id and r.id = d.rule_set_id
+  where d.mailbox_id = $1 and d.outcome = 'labelled'
+    and not exists (select 1 from jsonb_array_elements(r.snapshot -> 'categories') c
+                     where c ->> 'name' = d.category)`;
+
 /**
  * E1 invariant over every mailbox in the database: labelled decisions whose
  * category is not a name in their own rule_set snapshot. Must be 0.
@@ -231,14 +254,7 @@ export async function labelledOutsideSnapshot(adminUrl: string): Promise<number>
     let total = 0;
     for (const { id } of mailboxes) {
       total += await asAdmin(adminUrl, id, async (query) => {
-        const [row] = await query<{ n: number }>(
-          `select count(*)::int as n from decision d
-             join rule_set r on r.mailbox_id = d.mailbox_id and r.id = d.rule_set_id
-            where d.mailbox_id = $1 and d.outcome = 'labelled'
-              and not exists (select 1 from jsonb_array_elements(r.snapshot -> 'categories') c
-                               where c ->> 'name' = d.category)`,
-          [id],
-        );
+        const [row] = await query<{ n: number }>(LABELLED_OUTSIDE_SNAPSHOT_SQL, [id]);
         return row?.n ?? 0;
       });
     }
