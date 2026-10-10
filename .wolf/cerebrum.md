@@ -225,6 +225,9 @@
 
 - [2026-10-10] 03-06: classification DB use-cases live in packages/db/src/classify.ts (recordDecision is the ONLY decision write path: parseDecisionSpans + typed-column consistency before SQL, createdAt = at, body expires_at set only where null). Candidate selection is Scope.classification.candidates (one Drizzle select, every subquery filters mailbox_id). ensurePromptVersion(db, material) in prompt-version.ts is unscoped (internalsOf(db).orm.transaction + advisory lock 815309003). stripNul is exported from ingest.ts for internal reuse only.
 - [2026-10-10] Drizzle `sql.param(value, column)` encodes a value with the column's mapToDriverValue (used for the (internal_date, id) < (...) keyset cursor).
+- [2026-10-10] 03-07: worker LLM I/O is apps/worker/src/classify/: ollama-client.ts (createOllamaClient(url, { timeoutMs, fetch }); helpers errorText/causeCode/statusCode/fetchFailure/isRecord shared with preflight.ts), llm-tier.ts (runLlmTier -> LlmTierResult; decided/review are assignable to decide()'s LlmVerdict), preflight.ts (createPreflight), single-flight.ts (createSingleFlight, gateClient, gatePreflight; never at module scope). input_too_long only for a 400 with context text (a 5xx stays infra); the attempt span detail is fixed text, never Ollama's error text.
+- [2026-10-10] Fake Ollama: apps/worker/test/support/fake-ollama.ts startFakeOllama({ chat, version, tags, show, compromised, charBudget }). okAnswer/contentAnswer `extra.message` merges into message (thinking, tool_calls), other keys at top level. A chat script ARRAY that runs out answers 500, so an unplanned extra call fails loudly; use a function for "always answer".
+- [2026-10-10] Node http server: IncomingMessage 'close' fires once the request body is consumed, not on connection loss; count requests in flight with `res.on('close')`, which fires on finish and on an aborted socket alike.
 
 ## Do-Not-Repeat
 

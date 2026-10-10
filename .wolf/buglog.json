@@ -3642,6 +3642,54 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T20:28:16Z"
+    },
+    {
+      "id": "bug-218",
+      "timestamp": "2026-10-10T20:34:22.517Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/src/classify/ollama-client.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:34:22.517Z"
+    },
+    {
+      "id": "bug-219",
+      "timestamp": "2026-10-10T20:39:07.528Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/src/classify/llm-tier.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:39:07.528Z"
+    },
+    {
+      "id": "bug-220",
+      "timestamp": "2026-10-10T20:39:08.146Z",
+      "error_message": "Type error",
+      "file": "apps/worker/src/classify/llm-tier.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:39:08.146Z"
     }
   ]
 }

@@ -1204,3 +1204,18 @@
 | 14:21 | Session end: 39 writes across 34 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 15 reads | ~101610 tok |
 | 14:30 | 03-06: Scope.classification.candidates, recordDecision/ensureRuleSet (413a981), RED a1bb3fc, GREEN 9fd17c5 ensurePromptVersion/latestDecision/restoreBody; packages/db 295/295 | packages/db/src/{scope,classify,prompt-version,ingest,index}.ts, test/{classify,scope}.test.ts | done | ~30000 |
 | 14:29 | Created .planning/phases/03-tiered-classification-with-traces/03-06-SUMMARY.md | — | ~3990 |
+| 14:31 | Session end: 40 writes across 35 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 15 reads | ~105885 tok |
+| 14:34 | Created apps/worker/src/classify/ollama-client.ts | — | ~2520 |
+| 14:34 | Edited apps/worker/src/classify/ollama-client.ts | isRecord() → get() | ~84 |
+| 14:34 | Created apps/worker/src/classify/llm-tier.ts | — | ~1339 |
+| 14:35 | Created apps/worker/test/support/fake-ollama.ts | — | ~2906 |
+| 14:35 | Created apps/worker/test/classify-llm-tier.test.ts | — | ~1078 |
+| 14:38 | Created apps/worker/test/classify-ollama-client.test.ts | — | ~2377 |
+| 14:39 | Edited apps/worker/src/classify/llm-tier.ts | added 1 condition(s) | ~179 |
+| 14:39 | Edited apps/worker/src/classify/llm-tier.ts | 1→4 lines | ~56 |
+| 14:40 | Created apps/worker/test/classify-preflight.test.ts | — | ~3210 |
+| 14:41 | Created apps/worker/src/classify/preflight.ts | — | ~1412 |
+| 14:41 | Created apps/worker/src/classify/single-flight.ts | — | ~500 |
+| 14:41 | Edited apps/worker/src/classify/preflight.ts | modified find() | ~63 |
+| 14:46 | 03-07: ollama-client/llm-tier tracer 045d088, RED 22ad1fb, GREEN ecdbb53 (E11 prompt_eval_count), RED dfd080d, GREEN d599cdc preflight + single-flight; worker suite 709/709 | apps/worker/src/classify/*, test/support/fake-ollama.ts, test/classify-{llm-tier,ollama-client,preflight}.test.ts | done | ~45000 |
+| 14:45 | Created .planning/phases/03-tiered-classification-with-traces/03-07-SUMMARY.md | — | ~4030 |

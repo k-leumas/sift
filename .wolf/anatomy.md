@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T20:29:42.924Z
-> Files: 508 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T20:45:59.566Z
+> Files: 517 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -202,6 +202,7 @@
 - `03-06-PLAN.md` — Exports CandidateQuery (~5447 tok)
 - `03-06-SUMMARY.md` — Phase 3 Plan 06: Classification Database Use-Cases Summary (~3740 tok)
 - `03-07-PLAN.md` — Exports InfraCode (~6432 tok)
+- `03-07-SUMMARY.md` — Phase 3 Plan 07: Ollama Client, LLM Tier, Preflight and Single Flight Summary (~3778 tok)
 - `03-08-PLAN.md` — Exports CLASSIFY_CHUNK_SIZE (~7992 tok)
 - `03-09-PLAN.md` — Exports ClassifyInfraError (~5291 tok)
 - `03-10-PLAN.md` (~5455 tok)
@@ -247,6 +248,13 @@
 
 - `cli.ts` — Exit code for usage errors (no command, unknown command). (~986 tok)
 - `command.ts` — Process boundary handed to every command, so commands stay testable. (~1039 tok)
+
+## apps/worker/src/classify/
+
+- `llm-tier.ts` — The LLM tier for one message (D-22..D-24, AI-SPEC section 4): call, (~1551 tok)
+- `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2514 tok)
+- `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
+- `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 
 ## apps/worker/src/commands/
 
@@ -298,6 +306,9 @@
 - `bridge-probe.test.ts` — Strings planted in every subject, From, To, body, Message-ID local part and folder name. (~7360 tok)
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2626 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
+- `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~1078 tok)
+- `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2377 tok)
+- `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3210 tok)
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~800 tok)
 - `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~6721 tok)
 - `compose.test.ts` — A long-syntax volume entry (`type: bind`, `source`, `target`, ...). (~4554 tok)
@@ -343,6 +354,7 @@
 - `fake-folder-source.ts` — In-memory FolderSource for the sync engine tests (02-10). Synthetic mail (~2284 tok)
 - `fake-imap-server.ts` — A recording fake IMAP server for wire-level tests (D-80): it records every (~2409 tok)
 - `fake-ingest-store.ts` — In-memory IngestStore with the semantics of the @sift/db ingest use-cases (~4470 tok)
+- `fake-ollama.ts` — A scripted, recording fake Ollama for the classification tests (D-33, (~2906 tok)
 - `mailbox-harness.ts` — Shared pieces of the worker-callback tests (02-13): a config entry for a (~2027 tok)
 - `privacy-scan.ts` — Address domains a committed spike or live-run document may name. (~806 tok)
 - `test-imap.ts` — Helpers for the Dovecot test server started by `scripts/test-imap.sh up`. (~2244 tok)
