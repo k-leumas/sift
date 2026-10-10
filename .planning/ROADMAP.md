@@ -125,13 +125,13 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: 2/13 plans executed
+**Plans**: 3/13 plans executed
 
 Plans:
 **Wave 1**
 - [x] 03-01-PLAN.md — rules.yaml strict schema and loader, data paths, committed example with .gitignore negation (owner checkpoint: category-name character set) (wave 1)
 - [x] 03-02-PLAN.md — Config tiers.llm.confidence_threshold (default 0.75) and first-sync backfill default 3 days (wave 1)
-- [ ] 03-03-PLAN.md — Schema: decision typed columns and spans, rule_set versions (append-only), unscoped prompt_version, migrations 0008-0010, test-support rows (wave 1)
+- [x] 03-03-PLAN.md — Schema: decision typed columns and spans, rule_set versions (append-only), unscoped prompt_version, migrations 0008-0010, test-support rows (wave 1)
 - [ ] 03-05-PLAN.md — Core contracts: fenced prompt, output schema and re-validation, spans schema, prompt-version hash (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -176,7 +176,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
-| 3. Tiered Classification with Traces | v0.1 | 2/13 | In Progress | - |
+| 3. Tiered Classification with Traces | v0.1 | 3/13 | In Progress | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)

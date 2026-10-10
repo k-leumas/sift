@@ -3464,6 +3464,56 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T19:51:00Z"
+    },
+    {
+      "id": "bug-208",
+      "timestamp": "2026-10-10T19:02:18.919Z",
+      "error_message": "Missing await",
+      "file": "packages/db/test/catalog.test.ts",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T19:02:18.919Z"
+    },
+    {
+      "id": "bug-209",
+      "timestamp": "2026-10-10T19:05:05.503Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/db/test/migrate.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T19:05:05.503Z"
+    },
+    {
+      "id": "bug-210",
+      "timestamp": "2026-10-10T19:13:10.000Z",
+      "error_message": "TS2322 in packages/db/test/scope.test.ts: Promise<folderSync rows> | Promise<label rows> not assignable to Promise<folderSync rows>; 'deleted' is of type 'unknown'",
+      "file": "packages/db/test/scope.test.ts",
+      "root_cause": "withMailbox<T> inferred T from a union of per-table update()/delete() results; it only worked while rule_set's key-only row type was a common supertype. 03-03 gave rule_set real columns and the inference failed.",
+      "fix": "Removed ruleSet from the mutable update/delete lists (now append-only) and passed the generic explicitly: withMailbox<{ mailboxId: string }[]>(...)",
+      "tags": [
+        "typescript",
+        "inference",
+        "drizzle",
+        "scope",
+        "03-03"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T19:13:10.000Z"
     }
   ]
 }

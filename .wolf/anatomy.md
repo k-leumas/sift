@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T18:56:19.181Z
-> Files: 477 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T19:14:09.009Z
+> Files: 486 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -194,6 +194,7 @@
 - `03-02-PLAN.md` — Exports DEFAULT_INITIAL_BACKFILL_DAYS (~3938 tok)
 - `03-02-SUMMARY.md` — Phase 3 Plan 02: LLM Confidence Threshold Config and 3-Day Backfill Summary (~2139 tok)
 - `03-03-PLAN.md` — Declares Existing (~6490 tok)
+- `03-03-SUMMARY.md` — Phase 3 Plan 03: Classification Schema (decision trace, rule_set snapshots, prompt_version) Summary (~3129 tok)
 - `03-04-PLAN.md` — Exports MatchableMessage (~5276 tok)
 - `03-05-PLAN.md` — Exports MODEL_OPTIONS (~6967 tok)
 - `03-06-PLAN.md` — Exports CandidateQuery (~5447 tok)
@@ -558,6 +559,9 @@
 - `0005_ingest_preflight.sql` — Preflight for 0006 (T-02-63): message and folder_sync gain NOT NULL and (~311 tok)
 - `0006_ingest_tables.sql` — SQL: tables: message_body, message_location, 45 alter(s) (~2323 tok)
 - `0007_ingest_tables_force_grants.sql` — SQL: 2 alter(s) (~157 tok)
+- `0008_classification_preflight.sql` — Preflight for 0009 (Phase 3): decision and rule_set gain NOT NULL columns (~302 tok)
+- `0009_classification_tables.sql` — SQL: tables: prompt_version; decision D-27 trace columns + 10 checks, rule_set version/hash/snapshot, decision_one_worker_per_message, message_pending_idx (~2600 tok)
+- `0010_classification_grants.sql` — GRANT SELECT, INSERT on prompt_version; REVOKE UPDATE, DELETE on rule_set from sift_app (~40 tok)
 
 ## packages/db/migrations/meta/
 
@@ -570,6 +574,9 @@
 - `0005_snapshot.json` (~5380 tok)
 - `0006_snapshot.json` (~10030 tok)
 - `0007_snapshot.json` (~10030 tok)
+- `0008_snapshot.json` (~10030 tok)
+- `0009_snapshot.json` (~13500 tok)
+- `0010_snapshot.json` (~13500 tok)
 
 ## packages/db/src/
 
@@ -595,17 +602,19 @@
 
 - `index.ts` — Every mailbox-scoped table: NOT NULL mailbox_id, forced RLS, one policy. (~310 tok)
 - `mailbox.ts` — Mailbox registry (D-06). Configuration, not mail-derived data, so it has no (~356 tok)
+- `prompt-version.ts` — Versioned LLM prompt templates (D-29). A decision made by the LLM tier (~447 tok)
 - `scoped.ts` — Mailbox-scoped tables (ISO-01). Each one has a NOT NULL mailbox_id that (~3368 tok)
 
 ## packages/db/test/
 
-- `catalog.test.ts` — Run SQL statements on `url` in order. (~2329 tok)
+- `catalog.test.ts` — Run SQL statements on `url` in order. (~2508 tok)
+- `classify-schema.test.ts` — The Phase 3 trace shape at the database level (D-27, D-29, D-03, D-15, (~6605 tok)
 - `connect.test.ts` — Worker startup against the database (D-55, Pitfall 11): only self-resolving (~2944 tok)
 - `global-setup.ts` — Migrate one throwaway template database per run with the real migrate() (~1009 tok)
 - `ingest.test.ts` — Ingest use-cases (ING-02, ING-04, D-14, D-15, D-07, D-17, D-21..D-25) on a (~8514 tok)
 - `isolation.test.ts` — Mailbox isolation at the database level (ISO-03, success criterion 4). (~3908 tok)
 - `lock.test.ts` — The cross-process ingest lock (D-03, RESEARCH Pattern 6, Pitfall 9). Two (~3464 tok)
-- `migrate.test.ts` — The trivial migration withExtraMigration appends after the committed ones. (~8706 tok)
+- `migrate.test.ts` — The trivial migration withExtraMigration appends after the committed ones. (~9565 tok)
 - `owner-rls.test.ts` — sift_owner owns the tables but FORCE RLS still applies to it (D-41), so (~1232 tok)
 - `registry-plan.test.ts` — RegistryRowLike: mailbox, config, row (~2155 tok)
 - `registry.test.ts` — The deferred mailbox hard-delete command (D-69): no output may name it. (~5015 tok)

@@ -8,12 +8,12 @@
       "first_read": "2026-10-10T18:27:39.095Z"
     },
     "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md": {
-      "count": 2,
+      "count": 3,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.539Z"
     },
     "/Users/samuel/.claude/gsd-core/templates/summary.compact.md": {
-      "count": 2,
+      "count": 3,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.714Z"
     },
@@ -61,6 +61,11 @@
       "count": 1,
       "tokens": 3938,
       "first_read": "2026-10-10T18:49:10.343Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-03-PLAN.md": {
+      "count": 1,
+      "tokens": 6490,
+      "first_read": "2026-10-10T18:58:16.753Z"
     }
   },
   "files_written": [
@@ -123,6 +128,42 @@
       "action": "create",
       "tokens": 2445,
       "at": "2026-10-10T18:56:19.206Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/db/migrations/0008_classification_preflight.sql",
+      "action": "create",
+      "tokens": 323,
+      "at": "2026-10-10T19:00:30.395Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/db/src/schema/prompt-version.ts",
+      "action": "create",
+      "tokens": 447,
+      "at": "2026-10-10T19:00:38.836Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/db/test/catalog.test.ts",
+      "action": "edit",
+      "tokens": 206,
+      "at": "2026-10-10T19:02:18.914Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/db/test/classify-schema.test.ts",
+      "action": "create",
+      "tokens": 6605,
+      "at": "2026-10-10T19:04:41.143Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/db/test/migrate.test.ts",
+      "action": "edit",
+      "tokens": 874,
+      "at": "2026-10-10T19:05:05.497Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-03-SUMMARY.md",
+      "action": "create",
+      "tokens": 3576,
+      "at": "2026-10-10T19:14:09.032Z"
     }
   ],
   "edit_counts": {
@@ -135,11 +176,17 @@
     "packages/core/src/rules/index.ts": 1,
     "data/mailboxes/example/rules.example.yaml": 1,
     ".planning/phases/03-tiered-classification-with-traces/03-01-SUMMARY.md": 1,
-    ".planning/phases/03-tiered-classification-with-traces/03-02-SUMMARY.md": 1
+    ".planning/phases/03-tiered-classification-with-traces/03-02-SUMMARY.md": 1,
+    "packages/db/migrations/0008_classification_preflight.sql": 1,
+    "packages/db/src/schema/prompt-version.ts": 1,
+    "packages/db/test/catalog.test.ts": 1,
+    "packages/db/test/classify-schema.test.ts": 1,
+    "packages/db/test/migrate.test.ts": 1,
+    ".planning/phases/03-tiered-classification-with-traces/03-03-SUMMARY.md": 1
   },
-  "anatomy_hits": 5,
+  "anatomy_hits": 6,
   "anatomy_misses": 6,
-  "repeated_reads_warned": 7,
+  "repeated_reads_warned": 9,
   "cerebrum_warnings": 0,
-  "stop_count": 4
+  "stop_count": 6
 }

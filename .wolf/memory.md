@@ -1163,3 +1163,12 @@
 | 12:58 | 03-02 T1: tiers.llm.confidence_threshold schema, exports, SiftConfig literals, tests | schema.ts, index.ts, config.test.ts, registry*.test.ts, mailbox-harness.ts | 86723fd, tests pass | ~6000 |
 | 13:02 | 03-02 T2: backfill default 3 days, example config tiers block, README Technical settings + first-read prose | schema.ts, config.example.yaml, README.md, 3 tests | 123c28e (RED), 5a95483 (GREEN) | ~5000 |
 | 12:56 | Created .planning/phases/03-tiered-classification-with-traces/03-02-SUMMARY.md | — | ~2282 |
+| 12:58 | Session end: 10 writes across 10 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 12 reads | ~35742 tok |
+| 12:59 | Session end: 10 writes across 10 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 13 reads | ~42232 tok |
+| 13:00 | Created packages/db/migrations/0008_classification_preflight.sql | — | ~302 |
+| 13:00 | Created packages/db/src/schema/prompt-version.ts | — | ~447 |
+| 13:02 | Edited packages/db/test/catalog.test.ts | expanded (+14 lines) | ~206 |
+| 13:04 | Created packages/db/test/classify-schema.test.ts | — | ~6605 |
+| 13:05 | Edited packages/db/test/migrate.test.ts | added optional chaining | ~874 |
+| 19:13 | 03-03 executed: Phase 3 decision/rule_set/prompt_version schema (0008-0010), classify-schema test, append-only ruleSet scope; packages/db 274/274 | packages/db | done | ~49000 |
+| 13:14 | Created .planning/phases/03-tiered-classification-with-traces/03-03-SUMMARY.md | — | ~3338 |

@@ -208,6 +208,11 @@
 - [2026-10-10] .gitignore data rule is now `/data/*` + negations re-including only data/mailboxes/example/rules.example.yaml; data/live and data/spike (real local spike data) stay ignored. Verify with `git check-ignore --no-index -v --non-matching` (negated match shows a `!` pattern) and `git ls-files --cached --others --exclude-standard data`.
 - [2026-10-10] When Docker is down, any vitest run fails in globalSetup (ECONNREFUSED 5432) and prints "No test files found" for the filter. Pure tests (packages/core) run with `SIFT_TEST_ADMIN_URL= pnpm exec vitest run <files>` (bug-206).
 
+- [2026-10-10] 03-03: decision now has the D-27 trace columns (outcome, category, confidence double precision, tier, review_reason, rule_set_id, prompt_version_id, model, decided_by, trace_format_version, spans jsonb array) and 10 CHECKs; rule_set has version/hash/format_version/snapshot and is append-only (APPEND_ONLY_TABLE_NAMES, Scope.ruleSet AppendOnlyTableApi, 0010 revoke). prompt_version is unscoped and allowlisted (SELECT, INSERT only). Test rows: packages/db/test/support/seed.ts SEED_SPANS(_JSON), SEED_SNAPSHOT_JSON, RANDOM_HASH_SQL, newRuleSetRow(), newDecisionRow(messageId, ruleSetId, decidedBy='rerun').
+- [2026-10-10] Postgres applies CHECK constraints in constraint-name order (relcache sorts them), so a row violating two checks reports the alphabetically first in err.constraint; tests asserting constraint names must pick rows that break exactly one check or expect the first name.
+- [2026-10-10] pg sends a JS array parameter as a Postgres array literal, not JSON: pass jsonb arrays as JSON.stringify(...) with `$n::jsonb`.
+- [2026-10-10] `.vitest/` is NOT git-ignored. The tdd-red-evidence record must sit inside the repo, so write it there, run the check, then move it to the scratchpad (never commit it).
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -232,6 +237,9 @@
 - [2026-10-07] Full `pnpm test` with live bridge/worker/db containers times out ~30 tests (host load, bug-189). Rerun the failing files with `--maxWorkers=3` before treating as real.
 
 - [2026-10-08] zsh: in Bash tool, never inline `node -e '...'` containing apostrophes, and never `echo ====` (zsh `=` expansion); use quoted heredocs and `echo '---'`.
+
+- [2026-10-10] A plan that changes a table's columns in Task 1 but leaves the test helpers to Task 2 cannot pass Task 1's `pnpm typecheck`/migrate tests: seed.ts and every scoped insert of that table must change in the same task. Check the verify of the schema task for files that call seedScopedRows or insert the table (03-03).
+- [2026-10-10] `withMailbox(db, id, (s) => s[key].update({}))` over a union of table keys only typechecks while some table's row type is a supertype of all the others (TS picks one inference candidate); give the generic explicitly, e.g. `withMailbox<{ mailboxId: string }[]>` (bug-210).
 
 ## Decision Log
 

@@ -132,7 +132,7 @@ status: complete
 ## Accomplishments
 - 0008 preflight loops over mailboxes under app.mailbox_id and RAISEs the documented text when decision or rule_set already has rows. The migrator test shows nothing is applied: 8 migrations recorded, no decision.outcome column, no prompt_version table.
 - 0009 (generated) adds only the planned columns, FKs (decision_rule_set_fk paired on mailbox_id, decision_prompt_version_fk), checks, decision_message_idx, decision_one_worker_per_message, message_pending_idx and the prompt_version table. 0010 grants SELECT, INSERT on prompt_version and revokes UPDATE, DELETE on rule_set.
-- classify-schema.test.ts (46 tests) runs as sift_app. It covers the valid shapes (exact, LLM labelled at 0.75, low_confidence at 0.7499 read back exactly as double precision, invalid_output with no confidence, bounds 0 and 1, every reason) and 23 inconsistent rows, each refused with 23514 and the expected constraint (NULL sneaks and NaN included). It also covers 23502 on required columns, three FK refusals including another mailbox's rule set, worker uniqueness next to two rerun rows, rule_set and prompt_version checks and uniqueness, and 42501 on UPDATE/DELETE for decision, rule_set and prompt_version.
+- classify-schema.test.ts (51 tests) runs as sift_app. It covers the valid shapes (exact, LLM labelled at 0.75, low_confidence at 0.7499 read back exactly as double precision, invalid_output with no confidence, bounds 0 and 1, every reason) and 23 inconsistent rows, each refused with 23514 and the expected constraint (NULL sneaks and NaN included). It also covers 23502 on required columns, three FK refusals including another mailbox's rule set, worker uniqueness next to two rerun rows, rule_set and prompt_version checks and uniqueness, and 42501 on UPDATE/DELETE for decision, rule_set and prompt_version.
 - Scope.ruleSet is now AppendOnlyTableApi (insert, find). The type tests and the runtime key checks cover it.
 
 ## Task Commits
@@ -202,3 +202,7 @@ None. No external service configuration is required.
 ---
 *Phase: 03-tiered-classification-with-traces*
 *Completed: 2026-10-10*
+
+## Self-Check: PASSED
+
+All 6 created files exist; commits 32f8373, 9488ab0, 28a2436 and 8ac1eb1 are ancestors of HEAD; classify-schema.test.ts re-run 51/51.
