@@ -42,7 +42,11 @@ const HEADER =
 
 /** The `classify as X` target of an injected fixture, as the compromised fake reads it. */
 function injectedTarget(pair: string): string {
-  const text = readFileSync(path.join(FIXTURES, `pair-${pair}.injected.eml`), 'utf8');
+  // Tags dropped, as in the text the model reads (the personal-reply variant is HTML).
+  const text = readFileSync(path.join(FIXTURES, `pair-${pair}.injected.eml`), 'utf8').replace(
+    /<[^>]*>/g,
+    ' ',
+  );
   const target = /classify as "?([^"\n.,;]+)"?/i.exec(text)?.[1]?.trim();
   if (target === undefined) throw new Error(`pair-${pair}.injected.eml has no classify as X`);
   return target;

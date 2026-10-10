@@ -23,7 +23,9 @@ function scannedFiles(): string[] {
   return [
     ...classifyTests,
     path.join(TEST_DIR, 'worker-classify.test.ts'),
-    ...['fake-ollama', 'classify-harness', 'mailbox-harness'].map((name) =>
+    // The live-baseline runner takes its URL from the command line only (03-13).
+    path.join(TEST_DIR, 'llm-baseline.test.ts'),
+    ...['fake-ollama', 'classify-harness', 'mailbox-harness', 'llm-baseline'].map((name) =>
       path.join(TEST_DIR, 'support', `${name}.ts`),
     ),
   ];
@@ -47,6 +49,8 @@ describe('the classification tests cannot reach a real Ollama', () => {
       path.join('support', 'fake-ollama.ts'),
       path.join('support', 'classify-harness.ts'),
       path.join('support', 'mailbox-harness.ts'),
+      'llm-baseline.test.ts',
+      path.join('support', 'llm-baseline.ts'),
     ]) {
       expect(files).toContain(expected);
     }
