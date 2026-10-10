@@ -87,7 +87,7 @@ Under tracer-first planning these scaffolds land with the first task that needs 
 
 - [x] `apps/worker/test/support/fake-ollama.ts` — scripted fake Ollama (`/api/version`, `/api/tags`, `/api/show`, `/api/chat`) — 03-07-T1
 - [x] `apps/worker/test/support/classify-harness.ts` — rules.yaml temp dir, `expectReplayableDecision`; `mailbox-harness.ts` `models.url` off the real Ollama port — 03-08-T1
-- [ ] `apps/worker/test/fixtures/mail/hostile-*.eml` (13) and injection pairs (5 pairs, 10 files) — 03-10-T1/T2
+- [x] `apps/worker/test/fixtures/mail/hostile-*.eml` (13) and injection pairs (5 pairs, 10 files) — 03-10-T1/T2
 - [x] `packages/db/test/support/seed.ts` and `isolation.test.ts` updated for new NOT NULL columns — 03-03-T2
 - [x] `data/mailboxes/example/rules.example.yaml` + `.gitignore` negation + CI parse test — 03-01-T3
 
@@ -111,3 +111,13 @@ Under tracer-first planning these scaffolds land with the first task that needs 
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** validated 2026-10-10 (validate-phase: 45 mapped test files, 1065/1065 green)
+
+## Validation Audit 2026-10-10
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Mapped test files | 45 |
+| Tests passed | 1065 |
