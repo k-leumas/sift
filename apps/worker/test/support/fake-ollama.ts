@@ -40,6 +40,8 @@ export interface FakeOllamaOptions {
   digest?: string;
   compromised?: boolean;
   charBudget?: number;
+  /** Listen on this port (restart a stopped fake at the same URL); default: any free port. */
+  port?: number;
 }
 
 export interface RecordedRequest {
@@ -264,7 +266,7 @@ export async function startFakeOllama(options: FakeOllamaOptions = {}): Promise<
     send(res, response);
   });
 
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await new Promise<void>((resolve) => server.listen(options.port ?? 0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
 
   return {
