@@ -3811,6 +3811,23 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T21:52:00Z"
+    },
+    {
+      "id": "bug-228",
+      "timestamp": "2026-10-10T22:12:00Z",
+      "error_message": "Bash command hung for 5 minutes and was moved to the background (exit 144 after kill)",
+      "file": "(agent shell command, no repo file)",
+      "root_cause": "The command ended with `source ~/.claude/gsd-core/references/gsd-run-resolver.md`; sourcing a markdown file runs its prose and fences as shell and blocked",
+      "fix": "Killed the shell processes; use a small helper gsdq() that runs node ~/.claude/gsd-core/bin/gsd-tools.cjs",
+      "tags": [
+        "shell",
+        "gsd",
+        "agent",
+        "hang"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T22:12:00Z"
     }
   ]
 }

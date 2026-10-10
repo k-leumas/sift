@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-09-PLAN.md
-last_updated: "2026-10-10T22:00:31.231Z"
+stopped_at: Completed 03-12-PLAN.md
+last_updated: "2026-10-10T22:26:22.486Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 21f822777559000ee822630d30b447e10ce88a09
+state_head: d93ead8b111b958845629e8e90c511895a5b5d92
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 44
+  completed_plans: 45
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 11 of 13
+Plan: 12 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -100,6 +100,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P11 | 25 min | 3 tasks | 10 files |
 | Phase 03 P08 | 18 min | 3 tasks | 7 files |
 | Phase 03 P09 | 15 min | 3 tasks | 7 files |
+| Phase 03 P12 | 22 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -241,6 +242,10 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-09: a busy or shutdown-aborted classify pass still records ok with the ingest time; pending mail is picked up next batch
 - [Phase 03]: 03-09: ClassifyInfraError is handled before MailboxSyncError, so the IMAP startup grace never shows an Ollama error as connecting
 - [Phase 03]: 03-09: rules_invalid resolves runBatch (no backoff) and stores the file and problems in last_error; the warn line carries the slug only
+- [Phase 03]: 03-12: every sift classify decision is decided_by rerun, also for a pending message; latestDecision returns it
+- [Phase 03]: 03-12: sift classify resolves the IMAP entry and password only when an expired body must be refetched; missing password refuses with the worker's password_missing text
+- [Phase 03]: 03-12: a refetch needs the location under the current UIDVALIDITY and an equal re-derived identity key; gone or changed mail is one skip line by id, exit 0
+- [Phase 03]: 03-12: an Ollama outage in sift classify prints the owner message and 'classified x of n; y left' and exits 1; mailbox_status is never written
 
 ### Pending Todos
 
@@ -268,6 +273,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T22:00:12.513Z
-Stopped at: Completed 03-09-PLAN.md
+Last session: 2026-10-10T22:26:22.323Z
+Stopped at: Completed 03-12-PLAN.md
 Resume file: None

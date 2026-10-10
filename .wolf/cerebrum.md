@@ -27,6 +27,7 @@
 
 ## Key Learnings
 
+- [2026-10-10] 03-12: `sift classify` is apps/worker/src/commands/classify.ts (classifyCommand(deps) is the testable core; run() only parses and wires). It reuses classifyCandidates with decidedBy 'rerun' + newPassState(null) (no cap), selects ids under one lock then classifies 5-id chunks each under its own lock (re-read pendingOnly for --all-pending). Expired bodies go through classify/refetch.ts refetchBodies (EXAMINE, location under current UIDVALIDITY, parseMessage identity key must equal stored, BODY.PEEK, restoreBody). The IMAP entry/password are resolved lazily, so tests of cached-body re-runs can use seedMailboxes + bare siftConfig().
 - [2026-10-10] 03-09: with `classify` set, runBatch writes mailbox status ONCE after classifyMailbox (outside the ingest lock): done/busy/aborted -> ok; rules_invalid -> error with syncedAt, batch resolves (no backoff); infra -> throws ClassifyInfraError, onBatchError records it before the MailboxSyncError grace logic (never connecting). Without `classify` the Phase 2 in-lock recordSyncSuccess path is unchanged.
 - [2026-10-10] A first sync with initial_backfill_days 0 stores nothing already in the folder (watermark = newest INTERNALDATE). Spawned-worker tests that need mail decided at the first batch set initial_backfill_days >= 1 (first backfill is eligible, D-21), then append later mail for the next poll (min poll_interval_seconds 10).
 - [2026-10-10] startFakeOllama({ port }) restarts a stopped fake at the same URL, so an outage-then-recovery test keeps one ClassifyRuntime (03-09).
@@ -267,6 +268,8 @@
 - [2026-10-10] A plan that changes a table's columns in Task 1 but leaves the test helpers to Task 2 cannot pass Task 1's `pnpm typecheck`/migrate tests: seed.ts and every scoped insert of that table must change in the same task. Check the verify of the schema task for files that call seedScopedRows or insert the table (03-03).
 - [2026-10-10] `withMailbox(db, id, (s) => s[key].update({}))` over a union of table keys only typechecks while some table's row type is a supertype of all the others (TS picks one inference candidate); give the generic explicitly, e.g. `withMailbox<{ mailboxId: string }[]>` (bug-210).
 - [2026-10-10] TDD RED evidence with vitest `--reporter=tap-flat`: failure diagnostics with multi-line diffs are emitted as unindented YAML, so the classifier reports 'Malformed TAP' (INVALID_RED invalid_record). Rerun only the target with `-t "<name>"` (others show `# SKIP`) and submit that record; the record file must sit inside the project dir (delete it after). If the TARGET's own diff is multi-line, -t does not help: use `--reporter=junit --outputFile=<in-project file> -t '<it>'` and set targetTest to `<describe> > <it>` (the bare it-name gives no_target_test_failure); add reportPath/runStartedAt/reportModifiedAt (bug-222).
+
+- [2026-10-10] Never `source` a GSD reference markdown (e.g. gsd-core/references/gsd-run-resolver.md) in Bash: it is not a shell script, and the command hung until killed (bug-228). Define a helper instead: `gsdq() { node ~/.claude/gsd-core/bin/gsd-tools.cjs "$@"; }`.
 
 ## Decision Log
 

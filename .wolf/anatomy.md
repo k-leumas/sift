@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T21:59:42.046Z
-> Files: 529 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T22:25:49.617Z
+> Files: 534 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -211,6 +211,7 @@
 - `03-11-PLAN.md` (~3839 tok)
 - `03-11-SUMMARY.md` — Phase 3 Plan 11: Rules File Edges (config check, rename guard, data mount) Summary (~3362 tok)
 - `03-12-PLAN.md` — Exports USAGE (~5717 tok)
+- `03-12-SUMMARY.md` — Phase 3 Plan 12: sift classify Re-run Summary (~3798 tok)
 - `03-13-PLAN.md` — Exports BaselineRow (~4703 tok)
 - `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~28765 tok)
 - `03-CONTEXT.md` — Phase 3: Tiered Classification with Traces - Context (~4038 tok)
@@ -257,6 +258,7 @@
 - `llm-tier.ts` — The LLM tier for one message (D-22..D-24, AI-SPEC section 4): call, (~1551 tok)
 - `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2514 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
+- `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1530 tok)
 - `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~5572 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 - `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
@@ -265,6 +267,7 @@
 
 - `bridge-probe.ts` — Largest earlier report --compare reads (a 200-entry sample is far smaller). (~2890 tok)
 - `bridge-trust.ts` — The owner's other, independent reading of the fingerprint (D-73, D-79). The (~1742 tok)
+- `classify.ts` — `sift classify <slug> (--message|--since|--all-pending) [--yes]` (03-12, D-17): select under the ingest lock, count, confirm >20, rerun decisions via classifyCandidates, refetch expired bodies (refetch.ts). (~5100 tok)
 - `config-apply.ts` — Show a path relative to the working directory when it lives under it. (~1341 tok)
 - `config-check.ts` — sift config check: schema, env overrides, then (unless --schema-only) password env + every mailbox's rules.yaml via @sift/core/rules (D-05). (~935 tok)
 - `mailbox-backfill.ts` — How long the backfill waits for the mailbox's ingest lock (D-03): one (~3855 tok)
@@ -312,9 +315,11 @@
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2626 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
 - `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~1981 tok)
+- `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~2059 tok)
 - `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~1078 tok)
 - `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2377 tok)
 - `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3210 tok)
+- `classify-refetch.test.ts` — D-32's refetch half (03-12, P2 D-08): a re-run of a message whose cached (~3654 tok)
 - `classify-run.test.ts` — The classification pass (03-08) against a real database as sift_app and (~7591 tok)
 - `classify-trace.test.ts` — Every way a decision can be made leaves a complete, closed and replayable (~3803 tok)
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~800 tok)

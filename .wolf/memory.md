@@ -1243,3 +1243,10 @@
 | 15:53 | Created apps/worker/test/worker-classify.test.ts | — | ~2343 |
 | 15:58 | 03-09: classification wired into runBatch + sift worker; tests classify-batch (8) and worker-classify (1); full worker+db suite 1055/1055 | mailbox-batch.ts, worker.ts, status.ts, tests | done | ~25000 |
 | 15:59 | Created .planning/phases/03-tiered-classification-with-traces/03-09-SUMMARY.md | — | ~3509 |
+| 16:01 | Session end: 71 writes across 58 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 19 reads | ~205002 tok |
+| 16:04 | Created apps/worker/src/commands/classify.ts | — | ~4848 |
+| 16:05 | Created apps/worker/test/classify-cli.test.ts | — | ~2059 |
+| 16:17 | Created apps/worker/src/classify/refetch.ts | — | ~1530 |
+| 16:19 | Created apps/worker/test/classify-refetch.test.ts | — | ~3654 |
+| 16:25 | Created .planning/phases/03-tiered-classification-with-traces/03-12-SUMMARY.md | — | ~4051 |
+| 16:27 | 03-12 executed: sift classify (rerun, confirm, lock, outage, refetch by identity); 4 code commits + SUMMARY d93ead8; worker suite 794/794 | apps/worker/src/commands/classify.ts, apps/worker/src/classify/refetch.ts | done | ~16000 |
