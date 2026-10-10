@@ -411,10 +411,10 @@ describe('scoped conflict helpers', () => {
     });
   });
 
-  it('keeps insertOrIgnore and upsert off the append-only tables (D-40)', async () => {
+  it('keeps insertOrIgnore and upsert off the append-only tables (D-40, D-03)', async () => {
     const mailboxId = await newMailbox();
     await withMailbox(app, mailboxId, async (s) => {
-      for (const table of [s.decision, s.labelEvent]) {
+      for (const table of [s.decision, s.labelEvent, s.ruleSet]) {
         expect(Object.keys(table).sort()).toEqual(['find', 'insert']);
         expect('insertOrIgnore' in table).toBe(false);
         expect('upsert' in table).toBe(false);

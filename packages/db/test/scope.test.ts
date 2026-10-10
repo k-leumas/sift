@@ -193,8 +193,13 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
       expect(s.decision.update).toBeUndefined();
       // @ts-expect-error label_event is append-only (D-40)
       expect(s.labelEvent.delete).toBeUndefined();
+      // @ts-expect-error rule-set snapshots are append-only (D-03)
+      expect(s.ruleSet.update).toBeUndefined();
+      // @ts-expect-error rule-set snapshots are append-only (D-03)
+      expect(s.ruleSet.delete).toBeUndefined();
       expect(Object.keys(s.decision).sort()).toEqual(['find', 'insert']);
       expect(Object.keys(s.labelEvent).sort()).toEqual(['find', 'insert']);
+      expect(Object.keys(s.ruleSet).sort()).toEqual(['find', 'insert']);
     });
   });
 

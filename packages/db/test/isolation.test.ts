@@ -2,7 +2,14 @@ import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { APPEND_ONLY_TABLE_NAMES, SCOPED_TABLE_NAMES } from '../src/schema/index.ts';
 import { connect, freshDatabase, type TestDatabase } from './support/db.ts';
-import { type ScopedRowIds, seedMailboxes, seedScopedRows } from './support/seed.ts';
+import {
+  RANDOM_HASH_SQL,
+  type ScopedRowIds,
+  SEED_SNAPSHOT_JSON,
+  SEED_SPANS_JSON,
+  seedMailboxes,
+  seedScopedRows,
+} from './support/seed.ts';
 
 /**
  * Mailbox isolation at the database level (ISO-03, success criterion 4).
@@ -51,6 +58,8 @@ const idColumn = (table: ScopedTable): string => (table === 'mailbox_status' ? '
 
 /** Distinct UIDs for inserted locations, so (folder, uidvalidity, uid) never collides. */
 let nextUid = 1_000;
+/** Distinct rule_set versions, above what seedScopedRows hands out (max + 1 per mailbox). */
+let nextRuleSetVersion = 1_000;
 
 /**
  * An insert that supplies every NOT NULL column of `table`, with unique
@@ -67,10 +76,27 @@ function insertStatement(
     case 'message':
       return [MESSAGE_INSERT, [mailboxId]];
     case 'label':
+      return ['insert into label (mailbox_id, message_id) values ($1, $2)', [mailboxId, messageId]];
     case 'decision':
+      // The mailbox's first rule set, read under the current scope: under a
+      // foreign or missing app.mailbox_id it is NULL, but RLS WITH CHECK runs
+      // before NOT NULL and the FKs, so 42501 still comes first. 'rerun' keeps
+      // repeated inserts clear of decision_one_worker_per_message.
       return [
-        `insert into ${table} (mailbox_id, message_id) values ($1, $2)`,
-        [mailboxId, messageId],
+        `insert into decision
+           (mailbox_id, message_id, outcome, category, tier, rule_set_id, decided_by,
+            trace_format_version, spans)
+         values ($1, $2, 'labelled', 'Seed', 'exact_rules',
+           (select id from rule_set where mailbox_id = $1 order by version limit 1),
+           'rerun', 1, $3::jsonb)`,
+        [mailboxId, messageId, SEED_SPANS_JSON],
+      ];
+    case 'rule_set':
+      nextRuleSetVersion += 1;
+      return [
+        `insert into rule_set (mailbox_id, version, hash, format_version, snapshot)
+         values ($1, $2, ${RANDOM_HASH_SQL}, 1, $3::jsonb)`,
+        [mailboxId, nextRuleSetVersion, SEED_SNAPSHOT_JSON],
       ];
     case 'message_location':
       nextUid += 1;
