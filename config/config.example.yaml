@@ -33,9 +33,11 @@ mailboxes:
         # it as plain text, so quoting it is optional.
         # pin_sha256: <fingerprint printed by docker compose run --rm bridge-init>
     ingest:
-      # The first sync reads this many days back, slowly in the background.
-      # 0 means only new mail. Changing it after the first sync does nothing.
-      initial_backfill_days: 30
+      # The first sync reads this many days back, slowly in the background
+      # (default 3, 0 = only new mail, up to 365). Changing it after the first
+      # sync does nothing; `sift mailbox backfill <slug> --days <n>` reads
+      # further back later.
+      initial_backfill_days: 3
       # More new messages than this in one check pauses the mailbox until
       # `sift mailbox resume <slug>`.
       new_mail_cap: 200
@@ -60,9 +62,11 @@ mailboxes:
         # it as plain text, so quoting it is optional.
         # pin_sha256: <fingerprint printed by docker compose run --rm bridge-init>
     ingest:
-      # The first sync reads this many days back, slowly in the background.
-      # 0 means only new mail. Changing it after the first sync does nothing.
-      initial_backfill_days: 30
+      # The first sync reads this many days back, slowly in the background
+      # (default 3, 0 = only new mail, up to 365). Changing it after the first
+      # sync does nothing; `sift mailbox backfill <slug> --days <n>` reads
+      # further back later.
+      initial_backfill_days: 3
       # More new messages than this in one check pauses the mailbox until
       # `sift mailbox resume <slug>`.
       new_mail_cap: 200
@@ -79,3 +83,9 @@ models:
 worker:
   # How often each mailbox is checked for new mail, in seconds (10 to 3600).
   poll_interval_seconds: 60
+
+tiers:
+  llm:
+    # An LLM answer below this confidence goes to review instead of getting
+    # a label (0 to 1).
+    confidence_threshold: 0.75

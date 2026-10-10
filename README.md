@@ -234,7 +234,7 @@ mailboxes:
         mode: starttls          # Bridge's STARTTLS; Sift never connects without TLS
         # pin_sha256: <the fingerprint printed by docker compose run --rm bridge-init>
     ingest:
-      initial_backfill_days: 30 # the first sync reads this many days back, in the background; 0 = new mail only
+      initial_backfill_days: 3  # the first sync reads this many days back, in the background; 0 = new mail only
       new_mail_cap: 200         # more new messages in one check holds the mailbox until `sift mailbox resume`
     labels:
       apply_as: proton_labels   # copies to Labels/<Category>; the only value accepted so far
@@ -260,16 +260,17 @@ models:
 worker:
   poll_interval_seconds: 60     # how often each mailbox is checked (10 to 3600)
 
-# Later milestones (not accepted by sift config check yet):
-# tiers:
+tiers:
+# A later milestone adds the classifier tier (not accepted by sift config check yet):
 #   classifier:
 #     confidence_threshold: 0.85
 #     min_examples_per_category: 15
 #     spot_check_rate: 0.05
-#   llm:
-#     confidence_threshold: 0.75
-#     examples_per_prompt: 6
-#
+  llm:
+    confidence_threshold: 0.75  # an LLM answer below this goes to review instead of a label (0 to 1)
+#     examples_per_prompt: 6    # later milestone
+
+# Later milestones (not accepted by sift config check yet):
 # quick_confirm:
 #   batch_size: 20
 #   max_per_day: 1
@@ -278,7 +279,7 @@ worker:
 #   enabled: true                 # label folders are compared on every worker poll
 ```
 
-[`config/config.example.yaml`](config/config.example.yaml) is the authoritative list of the keys the current version accepts. Unknown keys are rejected, with the path of each one in the error. The commented sections at the end (`tiers`, `quick_confirm`, `relabel_sync`) arrive with later milestones; until then, leave them out of your `config/config.yaml`. Every mailbox needs `imap.tls.pin_sha256`: paste it from the Bridge login ([Quick start](#quick-start), step 9). After editing the file, apply it with:
+[`config/config.example.yaml`](config/config.example.yaml) is the authoritative list of the keys the current version accepts. Unknown keys are rejected, with the path of each one in the error. `tiers.llm.confidence_threshold` is read today. The commented keys (`tiers.classifier`, `tiers.llm.examples_per_prompt`, `quick_confirm`, `relabel_sync`) arrive with later milestones; until then, leave them out of your `config/config.yaml`. Every mailbox needs `imap.tls.pin_sha256`: paste it from the Bridge login ([Quick start](#quick-start), step 9). After editing the file, apply it with:
 
 ```sh
 docker compose run --rm setup
@@ -403,7 +404,7 @@ Sift is designed for an always-on machine on your home network.
 
 ### Quick start
 
-What works today: the database, the one-shot `setup` service (migrations with a backup first, then your mailboxes registered from `config/config.yaml`), Proton Bridge in its own container, and the worker, which runs one loop per enabled mailbox and reads its mail over IMAP: new mail on every check, and the last 30 days slowly in the background. Classifying and labelling mail arrive next, with the rest of M1.
+What works today: the database, the one-shot `setup` service (migrations with a backup first, then your mailboxes registered from `config/config.yaml`), Proton Bridge in its own container, and the worker, which runs one loop per enabled mailbox and reads its mail over IMAP: new mail on every check, and the last 3 days slowly in the background. Classifying and labelling mail arrive next, with the rest of M1.
 
 1. Clone the repository:
 
@@ -487,8 +488,8 @@ What works today: the database, the one-shot `setup` service (migrations with a 
     Compose starts `db` and `bridge`, runs `setup` once, and starts `worker` when setup has finished.
 
     - **Port 1143.** The `bridge` service publishes IMAP on host loopback port 1143 (`127.0.0.1` only). If the desktop Proton Mail Bridge app runs on the same machine, it already holds that port: quit the app, or set `SIFT_BRIDGE_PORT` in `.env` to another port. Inside Compose the worker always reaches Bridge at `bridge:1143`.
-    - **First minutes.** `docker compose run --rm setup sift mailbox list` shows each mailbox's state. While Bridge starts, the worker shows `connecting` for up to a minute instead of an error. Then it reads the first 30 days of mail slowly in the background (`ingest.initial_backfill_days`), shown as `ok, backfilling <done> of <total>`, while new mail keeps arriving as usual.
-    - **Bridge's own first sync is slow.** As measured on Proton Bridge v3.27.0 in the M1 spike, Bridge needed well over 30 minutes to download a large account, newest mail first ([findings](.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md)). Older mail that Bridge had not downloaded yet when the 30-day read ran can be read later with `sift mailbox backfill` (see [Managing mailboxes](#managing-mailboxes)).
+    - **First minutes.** `docker compose run --rm setup sift mailbox list` shows each mailbox's state. While Bridge starts, the worker shows `connecting` for up to a minute instead of an error. Then it reads the last 3 days of mail slowly in the background (`ingest.initial_backfill_days`), shown as `ok, backfilling <done> of <total>`, while new mail keeps arriving as usual.
+    - **Bridge's own first sync is slow.** As measured on Proton Bridge v3.27.0 in the M1 spike, Bridge needed well over 30 minutes to download a large account, newest mail first ([findings](.planning/phases/02-bridge-spike-and-imap-ingest/02-SPIKE-FINDINGS.md)). Older mail that Bridge had not downloaded yet when the first read ran can be read later with `sift mailbox backfill` (see [Managing mailboxes](#managing-mailboxes)).
 
     `docker compose ps` shows the worker as `healthy` while it works. If it cannot read the mailbox registry or write its heartbeat three times in a row (about 30 seconds), for example because the database is unreachable, it logs the reason, exits with code 75, and Docker starts it again. While the database stays down, this repeats every minute or so until the database is back. `docker compose logs worker` shows the reason for each exit. A Bridge outage does not stop the worker: the affected mailbox shows an error in `sift mailbox list` until Bridge is back.
 
@@ -524,7 +525,7 @@ The mailboxes in `config/config.yaml` are the source of truth. Every change goes
 - **Remove a mailbox:** delete its entry from `config/config.yaml` and rerun setup. The mailbox is disabled and its data is kept.
 - **Bring it back:** add the same slug again and rerun setup. It is re-enabled with its data.
 - **Rename a mailbox:** run `docker compose run --rm setup sift mailbox rename <old> <new>`, change the slug in `config/config.yaml` to match, then rerun setup. The mailbox keeps its data under the new slug. If setup sees one slug disappear while a new one appears, it refuses to apply until you either rename the mailbox or rerun with `docker compose run --rm setup sift setup --confirm`, which disables the old mailbox and adds the new one.
-- **See every mailbox and its status:** `docker compose run --rm setup sift mailbox list`. Disabled mailboxes are listed too. The status is one of `ok` (with `, backfilling <done> of <total>` during the first 30-day read), `connecting`, `needs attention`, `error: <reason>`, `disabled since <date>` or `never run`.
+- **See every mailbox and its status:** `docker compose run --rm setup sift mailbox list`. Disabled mailboxes are listed too. The status is one of `ok` (with `, backfilling <done> of <total>` during the first read (3 days by default, `ingest.initial_backfill_days`)), `connecting`, `needs attention`, `error: <reason>`, `disabled since <date>` or `never run`.
 - **Needs attention:** if a single check would treat more than `ingest.new_mail_cap` messages (default 200) as new, for example after a mass move into the inbox, the worker processes none of them and holds the mailbox instead of flooding Sift. The status reads `needs attention: <n> new messages held; run sift mailbox resume <slug>`. When you have checked that the mail is expected, release the hold:
 
   ```sh
@@ -532,7 +533,7 @@ The mailboxes in `config/config.yaml` are the source of truth. Every change goes
   ```
 
   The next check processes the held messages, plus new mail up to the usual limit.
-- **Read older mail on demand:** the first 30-day read happens once. To read a range again, for example after Bridge finished its own first sync, run:
+- **Read older mail on demand:** the first read (3 days by default, `ingest.initial_backfill_days`) happens once. To read a range again, for example after Bridge finished its own first sync, run:
 
   ```sh
   docker compose run --rm worker sift mailbox backfill <slug> --days 3

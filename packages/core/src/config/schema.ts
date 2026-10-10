@@ -24,7 +24,7 @@ export type TlsMode = (typeof TLS_MODES)[number];
 export const PIN_SHA256_PATTERN = /^[A-Za-z0-9+/]{43}=$/;
 
 /** First-sync backfill window in days (D-74); 0 means only mail arriving after the first sync. */
-export const DEFAULT_INITIAL_BACKFILL_DAYS = 30;
+export const DEFAULT_INITIAL_BACKFILL_DAYS = 3;
 export const MIN_INITIAL_BACKFILL_DAYS = 0;
 export const MAX_INITIAL_BACKFILL_DAYS = 365;
 
