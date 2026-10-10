@@ -1219,3 +1219,9 @@
 | 14:41 | Edited apps/worker/src/classify/preflight.ts | modified find() | ~63 |
 | 14:46 | 03-07: ollama-client/llm-tier tracer 045d088, RED 22ad1fb, GREEN ecdbb53 (E11 prompt_eval_count), RED dfd080d, GREEN d599cdc preflight + single-flight; worker suite 709/709 | apps/worker/src/classify/*, test/support/fake-ollama.ts, test/classify-{llm-tier,ollama-client,preflight}.test.ts | done | ~45000 |
 | 14:45 | Created .planning/phases/03-tiered-classification-with-traces/03-07-SUMMARY.md | — | ~4030 |
+| 14:48 | Session end: 53 writes across 44 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 16 reads | ~154692 tok |
+| 14:50 | Created apps/worker/src/commands/config-check.ts | — | ~935 |
+| 14:50 | Created apps/worker/test/config-check-rules.test.ts | — | ~1767 |
+| 14:54 | Created apps/worker/test/mailbox-rename-guard.test.ts | — | ~1296 |
+| 15:14 | 03-11: config check reads rules files (D-05), rename guard (D-07), read-only /data mount + smoke data dir | config-check.ts, mailbox-rename.ts, compose.yaml, compose-smoke.sh, 6 tests | 5 commits, plan verify 123/123, full suite green (IMAP files serial) | ~45000 |
+| 15:15 | Created .planning/phases/03-tiered-classification-with-traces/03-11-SUMMARY.md | — | ~3586 |

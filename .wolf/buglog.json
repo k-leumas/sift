@@ -3690,6 +3690,44 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T20:39:08.146Z"
+    },
+    {
+      "id": "bug-221",
+      "timestamp": "2026-10-10T21:00:00Z",
+      "error_message": "Adding the D-07 rename guard would break the spawned CLI rename tests in packages/db/test/registry.test.ts (rename jobs -> job-search and nope -> home ran with cwd REPO_ROOT and no SIFT_DATA, so the refusal fired before the expected DB result)",
+      "file": "packages/db/test/registry.test.ts",
+      "root_cause": "New precondition (new slug's rules.yaml must exist) on an existing command; existing tests call it without a data directory",
+      "fix": "registry CLI describe creates <tmp>/data/mailboxes/{job-search,home}/rules.yaml in beforeAll and passes SIFT_DATA to every spawned sift call",
+      "tags": [
+        "rename",
+        "D-07",
+        "SIFT_DATA",
+        "tests",
+        "03-11"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T21:00:00Z"
+    },
+    {
+      "id": "bug-222",
+      "timestamp": "2026-10-10T21:00:00Z",
+      "error_message": "TDD RED evidence: vitest tap-flat output malformed (multi-line actual/expected) even with -t; JUnit record rejected as INVALID_RED no_target_test_failure",
+      "file": "(RED evidence record, scratch)",
+      "root_cause": "tap-flat emits multi-line diffs unindented; the JUnit adapter matches the target by the testcase name, which for vitest is '<describe> > <it>', so the bare it-name does not match",
+      "fix": "Use --reporter=junit --outputFile=<in-project file> -t '<it name>' and set targetTest to '<describe> > <it name>' (the qualified name the report emits); add reportPath/runStartedAt/reportModifiedAt",
+      "tags": [
+        "tdd",
+        "red-evidence",
+        "vitest",
+        "junit",
+        "gsd"
+      ],
+      "related_bugs": [
+        "bug-217"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T21:00:00Z"
     }
   ]
 }

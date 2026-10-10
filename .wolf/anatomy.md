@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T20:45:59.566Z
-> Files: 517 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T21:15:22.512Z
+> Files: 520 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -207,6 +207,7 @@
 - `03-09-PLAN.md` — Exports ClassifyInfraError (~5291 tok)
 - `03-10-PLAN.md` (~5455 tok)
 - `03-11-PLAN.md` (~3839 tok)
+- `03-11-SUMMARY.md` — Phase 3 Plan 11: Rules File Edges (config check, rename guard, data mount) Summary (~3362 tok)
 - `03-12-PLAN.md` — Exports USAGE (~5717 tok)
 - `03-13-PLAN.md` — Exports BaselineRow (~4703 tok)
 - `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~28765 tok)
@@ -261,10 +262,10 @@
 - `bridge-probe.ts` — Largest earlier report --compare reads (a 200-entry sample is far smaller). (~2890 tok)
 - `bridge-trust.ts` — The owner's other, independent reading of the fingerprint (D-73, D-79). The (~1742 tok)
 - `config-apply.ts` — Show a path relative to the working directory when it lives under it. (~1341 tok)
-- `config-check.ts` — Show a path relative to the working directory when it lives under it. (~580 tok)
+- `config-check.ts` — sift config check: schema, env overrides, then (unless --schema-only) password env + every mailbox's rules.yaml via @sift/core/rules (D-05). (~935 tok)
 - `mailbox-backfill.ts` — How long the backfill waits for the mailbox's ingest lock (D-03): one (~3855 tok)
 - `mailbox-list.ts` — Left-align every column but the last to its widest cell. (~984 tok)
-- `mailbox-rename.ts` — `sift mailbox rename <old-slug> <new-slug>` (D-32, D-63). Changes the slug (~519 tok)
+- `mailbox-rename.ts` — `sift mailbox rename <old> <new>` (D-32, D-63); refuses before any DB call until <SIFT_DATA>/mailboxes/<new>/rules.yaml exists (D-07). (~700 tok)
 - `mailbox-resume.ts` — `sift mailbox resume <slug>` (D-26). The volume valve holds new mail when a (~591 tok)
 - `migrate.ts` — Show a path relative to the working directory when it lives under it. (~848 tok)
 - `setup.ts` — Show a path relative to the working directory when it lives under it. (~591 tok)
@@ -312,6 +313,7 @@
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~800 tok)
 - `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~6721 tok)
 - `compose.test.ts` — A long-syntax volume entry (`type: bind`, `source`, `target`, ...). (~4554 tok)
+- `config-check-rules.test.ts` — In-process config check with temp config + SIFT_DATA: valid, missing, positioned problems, --schema-only reads no rules (03-11). (~1767 tok)
 - `dependencies.test.ts` — Supply-chain checks for the worker's npm dependencies (D-77): owner-approved (~1733 tok)
 - `drift.test.ts` — Brings in the vitest ProvidedContext augmentation that types inject('testDb'). (~1218 tok)
 - `imap-capture.test.ts` — FakeImapServer: fake, sourceFiles, source (~2204 tok)
@@ -327,6 +329,7 @@
 - `live-ingest-record.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1152 tok)
 - `mailbox-batch.test.ts` — Owner-visible mailbox states (02-13 Task 2; D-26, D-33, D-34, D-40, D-72, (~5144 tok)
 - `mailbox-ops.test.ts` — Owner mailbox operations (02-16): `sift mailbox resume` releases a volume (~6167 tok)
+- `mailbox-rename-guard.test.ts` — D-07 rename guard: refusal with closed-port DB URL (no DB call), invalid slug message, rename once rules file exists. (~1296 tok)
 - `no-secret-leak.test.ts` — FND-02 / success criterion 2 (automated half, T-01-46): a mailbox password (~2748 tok)
 - `node-version.test.ts` — .nvmrc without the leading "v" and surrounding whitespace, e.g. 26.10.0. (~323 tok)
 - `read-only-ingest.test.ts` — T-02-31 / D-11: ingest never changes the owner's mail. folder-source.ts (~750 tok)

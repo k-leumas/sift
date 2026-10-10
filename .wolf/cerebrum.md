@@ -229,6 +229,8 @@
 - [2026-10-10] Fake Ollama: apps/worker/test/support/fake-ollama.ts startFakeOllama({ chat, version, tags, show, compromised, charBudget }). okAnswer/contentAnswer `extra.message` merges into message (thinking, tool_calls), other keys at top level. A chat script ARRAY that runs out answers 500, so an unplanned extra call fails loudly; use a function for "always answer".
 - [2026-10-10] Node http server: IncomingMessage 'close' fires once the request body is consumed, not on connection loss; count requests in flight with `res.on('close')`, which fires on finish and on an aborted socket alike.
 
+- [2026-10-10] 03-11: full `sift config check` (not --schema-only, not setup) loads every mailbox's <SIFT_DATA>/mailboxes/<slug>/rules.yaml after the password check; OK line ends '; password env vars present; rules files valid'. Tests that spawn the full check need SIFT_DATA with rules files (packages/core/test/env.test.ts copies the example). `sift mailbox rename` refuses before any DB call until the new slug's rules.yaml exists (D-07), so spawned rename tests need SIFT_DATA too (registry.test.ts). worker and setup mount ${SIFT_DATA_HOST_DIR:-./data}:/data:ro with SIFT_DATA=/data; compose-smoke exports .smoke/<project>/data.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -256,7 +258,7 @@
 
 - [2026-10-10] A plan that changes a table's columns in Task 1 but leaves the test helpers to Task 2 cannot pass Task 1's `pnpm typecheck`/migrate tests: seed.ts and every scoped insert of that table must change in the same task. Check the verify of the schema task for files that call seedScopedRows or insert the table (03-03).
 - [2026-10-10] `withMailbox(db, id, (s) => s[key].update({}))` over a union of table keys only typechecks while some table's row type is a supertype of all the others (TS picks one inference candidate); give the generic explicitly, e.g. `withMailbox<{ mailboxId: string }[]>` (bug-210).
-- [2026-10-10] TDD RED evidence with vitest `--reporter=tap-flat`: failure diagnostics with multi-line diffs are emitted as unindented YAML, so the classifier reports 'Malformed TAP' (INVALID_RED invalid_record). Rerun only the target with `-t "<name>"` (others show `# SKIP`) and submit that record; the record file must sit inside the project dir (delete it after).
+- [2026-10-10] TDD RED evidence with vitest `--reporter=tap-flat`: failure diagnostics with multi-line diffs are emitted as unindented YAML, so the classifier reports 'Malformed TAP' (INVALID_RED invalid_record). Rerun only the target with `-t "<name>"` (others show `# SKIP`) and submit that record; the record file must sit inside the project dir (delete it after). If the TARGET's own diff is multi-line, -t does not help: use `--reporter=junit --outputFile=<in-project file> -t '<it>'` and set targetTest to `<describe> > <it>` (the bare it-name gives no_target_test_failure); add reportPath/runStartedAt/reportModifiedAt (bug-222).
 
 ## Decision Log
 
