@@ -240,6 +240,10 @@
 - [2026-10-10] 03-08: when a tracer task builds the whole module, later tdd tasks' tests pass at RED. Prove they bite with one-at-a-time mutations of the implementation (python replace + `command cp -f` restore) and, if wanted, a junit RED record of a mutated run; say so in the SUMMARY instead of inventing a RED.
 - [2026-10-10] Superuser (SIFT_TEST_ADMIN_URL) bypasses RLS and can UPDATE append-only rule_set/decision rows inside a rolled-back transaction: usable for invariant-query positive controls.
 
+- [2026-10-10] 03-10: apps/worker/test/classify-injection.test.ts holds the D-33 wire checks (hostile-*.eml / pair-*.eml through Dovecot + runBatch). Helpers there: split(body) cuts a chat request at its own nonce (each real marker line once), expectFenceHolds(request, benign, injected) compares system message, request fields and nonce-normalised fixed text; fake scripts key on the fenced from_address (bySender). Fixture Message-IDs must be unique per mailbox (identity key), so a pair's .injected.eml has its own Message-ID. Doveadm appends dominate run time (~45 s for the file).
+- [2026-10-10] Ingest keeps CR/LF from an RFC 2047-decoded subject (stored subject has the line break); prompt.ts oneLine is what keeps it one line. html-to-text drops U+200B zero-width spaces as whitespace (bug-232).
+- [2026-10-10] classify-leak.test.ts: sentinel in subject/display name/body, fake reason and 500/400 error bodies; recording fetch via testRuntime(fake, dataDir, { fetch }) plus a vi.spyOn(globalThis, 'fetch') bypass check (delegate to a realFetch captured at module load). classify-hermetic.test.ts scans classify-*.test.ts, worker-classify.test.ts and support/{fake-ollama,classify-harness,mailbox-harness}.ts for the real Ollama port (needle built from parts); classify-ollama-client.test.ts no longer names it.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -270,6 +274,8 @@
 - [2026-10-10] TDD RED evidence with vitest `--reporter=tap-flat`: failure diagnostics with multi-line diffs are emitted as unindented YAML, so the classifier reports 'Malformed TAP' (INVALID_RED invalid_record). Rerun only the target with `-t "<name>"` (others show `# SKIP`) and submit that record; the record file must sit inside the project dir (delete it after). If the TARGET's own diff is multi-line, -t does not help: use `--reporter=junit --outputFile=<in-project file> -t '<it>'` and set targetTest to `<describe> > <it>` (the bare it-name gives no_target_test_failure); add reportPath/runStartedAt/reportModifiedAt (bug-222).
 
 - [2026-10-10] Never `source` a GSD reference markdown (e.g. gsd-core/references/gsd-run-resolver.md) in Bash: it is not a shell script, and the command hung until killed (bug-228). Define a helper instead: `gsdq() { node ~/.claude/gsd-core/bin/gsd-tools.cjs "$@"; }`.
+
+- [2026-10-10] Mutation runs that restore with `git checkout -- <file>` discard any uncommitted edit in that file too (bug-233). Commit first, check `git diff --quiet <file>` before mutating, or restore from a scratch copy.
 
 ## Decision Log
 

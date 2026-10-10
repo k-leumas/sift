@@ -1250,3 +1250,33 @@
 | 16:19 | Created apps/worker/test/classify-refetch.test.ts | — | ~3654 |
 | 16:25 | Created .planning/phases/03-tiered-classification-with-traces/03-12-SUMMARY.md | — | ~4051 |
 | 16:27 | 03-12 executed: sift classify (rerun, confirm, lock, outage, refetch by identity); 4 code commits + SUMMARY d93ead8; worker suite 794/794 | apps/worker/src/commands/classify.ts, apps/worker/src/classify/refetch.ts | done | ~16000 |
+| 16:29 | Session end: 76 writes across 62 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 22 reads | ~234057 tok |
+| 16:33 | Created apps/worker/test/fixtures/mail/hostile-fence-close.eml | — | ~126 |
+| 16:34 | Created apps/worker/test/classify-injection.test.ts | — | ~3255 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-guessed-nonce.eml | — | ~144 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-crlf-subject.eml | — | ~123 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-display-name-category.eml | — | ~103 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-bank-support-spoof.eml | — | ~130 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-think.eml | — | ~102 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-confidence-7.eml | — | ~115 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-hidden-html.eml | — | ~147 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-attachment-names.eml | — | ~238 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-phishing-receipt.eml | — | ~129 |
+| 16:36 | Created apps/worker/test/fixtures/mail/hostile-chat-roles.eml | — | ~133 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-bank-notice.eml | — | ~137 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-bank-notice.injected.eml | — | ~155 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-payment-failure.eml | — | ~128 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-payment-failure.injected.eml | — | ~163 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-interview.eml | — | ~129 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-interview.injected.eml | — | ~149 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-personal-reply.eml | — | ~114 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-personal-reply.injected.eml | — | ~133 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-newsletter.eml | — | ~124 |
+| 16:37 | Created apps/worker/test/fixtures/mail/pair-newsletter.injected.eml | — | ~132 |
+| 16:41 | Edited apps/worker/test/classify-injection.test.ts | 3→3 lines | ~38 |
+| 16:42 | Edited apps/worker/test/classify-injection.test.ts | added optional chaining | ~202 |
+| 16:48 | Edited apps/worker/test/classify-ollama-client.test.ts | "http://ollama.invalid:114" → "http://ollama.invalid" | ~25 |
+| 16:48 | Created apps/worker/test/classify-hermetic.test.ts | — | ~701 |
+| 16:49 | Created apps/worker/test/classify-leak.test.ts | — | ~3127 |
+| 16:56 | 03-10 executed: 23 hostile/pair fixtures, classify-injection/leak/hermetic tests (66 cases), mutation proofs | apps/worker/test/* | 43/43 verify, 257/257 classify | ~45000 |
+| 16:55 | Created .planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md | — | ~4757 |

@@ -3828,6 +3828,88 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T22:12:00Z"
+    },
+    {
+      "id": "bug-229",
+      "timestamp": "2026-10-10T22:41:03.004Z",
+      "error_message": "Type error",
+      "file": "apps/worker/test/classify-injection.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T22:41:03.004Z"
+    },
+    {
+      "id": "bug-230",
+      "timestamp": "2026-10-10T22:42:21.103Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/test/classify-injection.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T22:42:21.103Z"
+    },
+    {
+      "id": "bug-231",
+      "timestamp": "2026-10-10T22:48:51.979Z",
+      "error_message": "Incorrect value in code",
+      "file": "apps/worker/test/classify-ollama-client.test.ts",
+      "root_cause": "Had 'http://ollama.invalid:11434'",
+      "fix": "Changed to 'http://ollama.invalid'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T22:48:51.979Z"
+    },
+    {
+      "id": "bug-232",
+      "timestamp": "2026-10-10T22:55:00Z",
+      "error_message": "fenced block carries \"\\u200b\": expected the zero-width space inside the fence of hostile-hidden-html",
+      "file": "apps/worker/test/classify-injection.test.ts",
+      "root_cause": "html-to-text treats U+200B as whitespace and drops it at ingest, so zero-width characters around hidden HTML text never reach the prompt",
+      "fix": "Dropped the zero-width expectation; the hidden text itself is still asserted inside the fence",
+      "tags": [
+        "html-to-text",
+        "zero-width",
+        "fixture",
+        "03-10"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T22:55:00Z"
+    },
+    {
+      "id": "bug-233",
+      "timestamp": "2026-10-10T22:55:00Z",
+      "error_message": "mutation restore with git checkout reverted an uncommitted edit to classify-ollama-client.test.ts",
+      "file": "apps/worker/test/classify-ollama-client.test.ts",
+      "root_cause": "The mutation runner restores each file with git checkout --; the mutated test file still had an uncommitted (wanted) edit, which was discarded with the mutation",
+      "fix": "Reapplied the edit; mutate only files with no uncommitted changes (git diff --quiet first) or restore from a scratch copy",
+      "tags": [
+        "mutation-testing",
+        "git-checkout",
+        "workflow",
+        "03-10"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T22:55:00Z"
     }
   ]
 }

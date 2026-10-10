@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T22:25:49.617Z
-> Files: 534 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T22:55:59.052Z
+> Files: 561 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -208,6 +208,7 @@
 - `03-09-PLAN.md` — Exports ClassifyInfraError (~5291 tok)
 - `03-09-SUMMARY.md` — Phase 3 Plan 09: Classification in the Worker Batch Summary (~3289 tok)
 - `03-10-PLAN.md` (~5455 tok)
+- `03-10-SUMMARY.md` — Phase 3 Plan 10: Injection and Leak Proofs Summary (~4459 tok)
 - `03-11-PLAN.md` (~3839 tok)
 - `03-11-SUMMARY.md` — Phase 3 Plan 11: Rules File Edges (config check, rename guard, data mount) Summary (~3362 tok)
 - `03-12-PLAN.md` — Exports USAGE (~5717 tok)
@@ -316,8 +317,11 @@
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
 - `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~1981 tok)
 - `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~2059 tok)
+- `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~701 tok)
+- `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8685 tok)
+- `classify-leak.test.ts` — Mail stays on the machine and out of logs and status (E7, the Phase 3 part (~3127 tok)
 - `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~1078 tok)
-- `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2377 tok)
+- `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2386 tok)
 - `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3210 tok)
 - `classify-refetch.test.ts` — D-32's refetch half (03-12, P2 D-08): a re-run of a message whose cached (~3654 tok)
 - `classify-run.test.ts` — The classification pass (03-08) against a real database as sift_app and (~7591 tok)
@@ -361,8 +365,31 @@
 - `attachment.eml` (~224 tok)
 - `encoded-headers.eml` (~104 tok)
 - `exact-64.eml` (~91 tok)
+- `hostile-attachment-names.eml` (~238 tok)
+- `hostile-bank-support-spoof.eml` (~130 tok)
+- `hostile-chat-roles.eml` (~133 tok)
+- `hostile-confidence-7.eml` (~115 tok)
+- `hostile-crlf-subject.eml` (~123 tok)
+- `hostile-display-name-category.eml` (~103 tok)
+- `hostile-emoji-flood.eml` — 38 lines of emoji+CJK pairs (>4,000 UTF-16 units) for the fake's charBudget input_too_long case (~2750 tok)
+- `hostile-fence-close.eml` (~126 tok)
+- `hostile-guessed-nonce.eml` (~144 tok)
+- `hostile-hidden-html.eml` (~147 tok)
+- `hostile-late-line.eml` — 60 filler lines (4,380 chars) then a DECISIVE LINE past the 4,000-char body cut (~1190 tok)
+- `hostile-phishing-receipt.eml` (~129 tok)
+- `hostile-think.eml` (~102 tok)
 - `html-only.eml` (~164 tok)
 - `no-message-id.eml` (~75 tok)
+- `pair-bank-notice.eml` (~137 tok)
+- `pair-bank-notice.injected.eml` (~155 tok)
+- `pair-interview.eml` (~129 tok)
+- `pair-interview.injected.eml` (~149 tok)
+- `pair-newsletter.eml` (~124 tok)
+- `pair-newsletter.injected.eml` (~132 tok)
+- `pair-payment-failure.eml` (~128 tok)
+- `pair-payment-failure.injected.eml` (~163 tok)
+- `pair-personal-reply.eml` (~114 tok)
+- `pair-personal-reply.injected.eml` (~133 tok)
 - `plain.eml` (~131 tok)
 
 ## apps/worker/test/support/
