@@ -50,6 +50,8 @@ beforeAll(async () => {
     'connect',
     'backfill',
     'no-status',
+    'err-plain',
+    'err-synced',
     ...PAIRS.map(([from, to]) => pairSlug(from, to)),
   ]);
   app = createAppDb(fresh.appUrl);
@@ -115,6 +117,50 @@ describe('connecting and needs_attention (D-34, D-26)', () => {
         approved: null,
       },
     );
+  });
+});
+
+describe('recordSyncError with and without syncedAt (D-05, D-16)', () => {
+  it('without syncedAt keeps last_sync_at and the valve counts as they were', async () => {
+    const id = ids['err-plain'] as string;
+    const synced = new Date('2026-10-05T07:00:00.000Z');
+    const at = new Date('2026-10-05T08:00:00.000Z');
+    await withMailbox(app, id, (s) => recordSyncSuccess(s, synced));
+    await withMailbox(app, id, (s) =>
+      s.mailboxStatus.upsert({ heldNewCount: 12, approvedNewCount: 12 }),
+    );
+    await withMailbox(app, id, (s) =>
+      recordSyncError(s, new Error('IMAP server unreachable secret-pw'), ['secret-pw'], at),
+    );
+    const status = await statusOf(id);
+    expect(status?.state).toBe('error');
+    expect(status?.lastError).toBe('IMAP server unreachable [REDACTED]');
+    expect(status?.lastSeenAt?.toISOString()).toBe(at.toISOString());
+    expect(status?.lastSyncAt?.toISOString()).toBe(synced.toISOString());
+    expect(status?.heldNewCount).toBe(12);
+    expect(status?.approvedNewCount).toBe(12);
+  });
+
+  it('with syncedAt sets last_sync_at, clears the valve counts, redacts and caps last_error', async () => {
+    const id = ids['err-synced'] as string;
+    const synced = new Date('2026-10-05T09:00:00.000Z');
+    const at = new Date('2026-10-05T09:00:05.000Z');
+    await withMailbox(app, id, (s) =>
+      s.mailboxStatus.upsert({ heldNewCount: 30, approvedNewCount: 30 }),
+    );
+    const long = `rules problem secret-pw ${'x'.repeat(2000)}`;
+    await withMailbox(app, id, (s) =>
+      recordSyncError(s, new Error(long), ['secret-pw'], at, { syncedAt: synced }),
+    );
+    const status = await statusOf(id);
+    expect(status?.state).toBe('error');
+    expect(status?.lastError?.startsWith('rules problem [REDACTED] x')).toBe(true);
+    expect(status?.lastError).toHaveLength(1000);
+    expect(status?.lastError).not.toContain('secret-pw');
+    expect(status?.lastSeenAt?.toISOString()).toBe(at.toISOString());
+    expect(status?.lastSyncAt?.toISOString()).toBe(synced.toISOString());
+    expect(status?.heldNewCount).toBeNull();
+    expect(status?.approvedNewCount).toBeNull();
   });
 });
 

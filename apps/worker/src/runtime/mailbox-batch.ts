@@ -17,6 +17,8 @@ import {
   withIngestLock,
   withMailbox,
 } from '@sift/db';
+import type { InfraCode } from '../classify/ollama-client.ts';
+import { type ClassifyRuntime, classifyMailbox } from '../classify/run.ts';
 import {
   classifyImapError,
   closeImap,
@@ -121,6 +123,26 @@ export function ownerMessageFor(
   return { kind, message: messageFor(kind, ctx) };
 }
 
+/**
+ * Ollama could not classify this mailbox's mail after a successful ingest
+ * (D-16): unreachable, timed out, model missing and the like. runBatch
+ * rejects with it so the supervisor backs off (P1 D-51), and onBatchError
+ * records the owner message with last_sync_at of the ingest. The message is
+ * infraOwnerMessage's fixed template, never Ollama's own error text (T-03-25).
+ */
+export class ClassifyInfraError extends Error {
+  readonly code: InfraCode;
+  /** When the batch's ingest finished; the mail was fetched even though it was not classified. */
+  readonly syncedAt: Date;
+
+  constructor(code: InfraCode, message: string, syncedAt: Date) {
+    super(message);
+    this.name = 'ClassifyInfraError';
+    this.code = code;
+    this.syncedAt = syncedAt;
+  }
+}
+
 function syncError(
   kind: MailboxSyncErrorKind,
   ctx: OwnerMessageContext,
@@ -151,6 +173,13 @@ export interface MailboxIngestOptions {
   sleep?: (ms: number) => Promise<void>;
   /** Tests only; defaults to the engine's BACKFILL_SLICE_SIZE. */
   backfillSliceSize?: number;
+  /**
+   * Classification after each successful ingest (D-14). `sift worker` passes
+   * one runtime, with one single-flight gate, shared by every mailbox (D-19).
+   * Absent: no classification, and status is written inside the ingest lock
+   * as in Phase 2.
+   */
+  classify?: ClassifyRuntime;
 }
 
 /** The config entry for a registry row: same IMAP identity (D-64). Also used by sift mailbox backfill. */
@@ -226,6 +255,16 @@ export function storedError(error: unknown): unknown {
  * (D-34), otherwise a specific owner message (ownerMessageFor) or the
  * redacted error.
  *
+ * With `ingest.classify`, a synced or resynced ingest is followed by the
+ * classification pass in the same batch, after the ingest lock is released
+ * (the pass takes it per chunk), and status is written once at the end
+ * (D-14): ok when the pass finished, was busy or was stopped by shutdown; an
+ * error naming the rules file when rules.yaml is missing or invalid, without
+ * rejecting, so ingest keeps its cadence (D-05); a ClassifyInfraError
+ * rejection for an Ollama outage, so the mailbox backs off (D-16). A mailbox
+ * held by the volume valve is not classified, so its needs_attention state
+ * (which sift mailbox resume needs) is never overwritten.
+ *
  * `secrets` are the mailbox password values; recordSyncError masks them in
  * last_error (D-51, T-01-40).
  */
@@ -291,122 +330,180 @@ export function createMailboxCallbacks(
       if (password === undefined || password === '') throw syncError('password_missing', ctx);
 
       const log = boundLog(slug);
-      const locked = await withIngestLock(db, mailbox.id, async (session) => {
-        // requireActive rechecks disabled_at inside the lock (D-45).
-        const hold = await session.run(
-          async (scope) => {
-            await recordMailboxSeen(scope, nowDate());
-            return readHold(scope);
-          },
-          { requireActive: true },
-        );
-        if (hold.state === 'needs_attention' && hold.approved === null) {
-          ingest.log.info({ mailbox: slug }, `waiting for sift mailbox resume ${slug}`);
-          return;
-        }
-
-        let client: ImapFlow;
-        try {
-          client = await open({
-            host: entry.imap.host,
-            port: entry.imap.port,
-            user: entry.imap.username,
-            pass: password,
-            tls: { mode: entry.imap.tls.mode, pinSha256: entry.imap.tls.pin_sha256 },
-          });
-        } catch (error) {
-          throw syncError(classifyImapError(error), ctx, error);
-        }
-
-        const imapErrors = new WeakSet<object>();
-        const lastDiff = lastRemovalDiffAt.get(mailbox.id);
-        const removalDiff =
-          lastDiff === undefined || nowMs() - lastDiff >= REMOVAL_DIFF_INTERVAL_MS;
-        let outcome: IngestOutcome;
-        try {
-          const cap = entry.ingest.new_mail_cap;
-          outcome = await runIngest({
-            source: trackedSource(createFolderSource(client), imapErrors),
-            store: createDbStore(session),
-            folder: entry.imap.folder,
-            trustPmHeader: trustsPmHeader(entry),
-            newMailCap: hold.approved === null ? cap : hold.approved + cap,
-            initialBackfillDays: entry.ingest.initial_backfill_days,
-            // The engine awaits this only after a commit resolved, so it never
-            // overlaps a store call on the (non-re-entrant) session.
-            onBackfillProgress: (p) => session.run((scope) => recordBackfillProgress(scope, p)),
-            removalDiff,
-            now: nowDate,
-            signal,
-            log,
-            ...(ingest.sleep === undefined ? {} : { sleep: ingest.sleep }),
-            ...(ingest.backfillSliceSize === undefined
-              ? {}
-              : { backfillSliceSize: ingest.backfillSliceSize }),
-          });
-        } catch (error) {
-          if (typeof error === 'object' && error !== null && imapErrors.has(error)) {
-            throw syncError(ingestKind(error, client), ctx, error);
+      const classify = ingest.classify;
+      /** Resolves to the ingest time when the ingest synced or resynced. */
+      const locked = await withIngestLock(
+        db,
+        mailbox.id,
+        async (session): Promise<Date | undefined> => {
+          // requireActive rechecks disabled_at inside the lock (D-45).
+          const hold = await session.run(
+            async (scope) => {
+              await recordMailboxSeen(scope, nowDate());
+              return readHold(scope);
+            },
+            { requireActive: true },
+          );
+          if (hold.state === 'needs_attention' && hold.approved === null) {
+            ingest.log.info({ mailbox: slug }, `waiting for sift mailbox resume ${slug}`);
+            return;
           }
-          throw error;
-        } finally {
-          // Bounded at 5 s and never throws (02-18), so the lock is released
-          // even when the server never answers LOGOUT.
-          await closeImap(client);
-        }
 
-        switch (outcome.kind) {
-          case 'synced':
-          case 'resynced': {
-            // A resync compares every location, so it counts as a removal diff.
-            if (removalDiff || outcome.kind === 'resynced') {
-              lastRemovalDiffAt.set(mailbox.id, nowMs());
+          let client: ImapFlow;
+          try {
+            client = await open({
+              host: entry.imap.host,
+              port: entry.imap.port,
+              user: entry.imap.username,
+              pass: password,
+              tls: { mode: entry.imap.tls.mode, pinSha256: entry.imap.tls.pin_sha256 },
+            });
+          } catch (error) {
+            throw syncError(classifyImapError(error), ctx, error);
+          }
+
+          const imapErrors = new WeakSet<object>();
+          const lastDiff = lastRemovalDiffAt.get(mailbox.id);
+          const removalDiff =
+            lastDiff === undefined || nowMs() - lastDiff >= REMOVAL_DIFF_INTERVAL_MS;
+          let outcome: IngestOutcome;
+          try {
+            const cap = entry.ingest.new_mail_cap;
+            outcome = await runIngest({
+              source: trackedSource(createFolderSource(client), imapErrors),
+              store: createDbStore(session),
+              folder: entry.imap.folder,
+              trustPmHeader: trustsPmHeader(entry),
+              newMailCap: hold.approved === null ? cap : hold.approved + cap,
+              initialBackfillDays: entry.ingest.initial_backfill_days,
+              // The engine awaits this only after a commit resolved, so it never
+              // overlaps a store call on the (non-re-entrant) session.
+              onBackfillProgress: (p) => session.run((scope) => recordBackfillProgress(scope, p)),
+              removalDiff,
+              now: nowDate,
+              signal,
+              log,
+              ...(ingest.sleep === undefined ? {} : { sleep: ingest.sleep }),
+              ...(ingest.backfillSliceSize === undefined
+                ? {}
+                : { backfillSliceSize: ingest.backfillSliceSize }),
+            });
+          } catch (error) {
+            if (typeof error === 'object' && error !== null && imapErrors.has(error)) {
+              throw syncError(ingestKind(error, client), ctx, error);
             }
-            await session.run((scope) => recordSyncSuccess(scope, nowDate()));
-            if (outcome.kind === 'synced') {
-              ingest.log.info(
-                {
-                  mailbox: slug,
-                  firstSync: outcome.firstSync,
-                  stored: outcome.stored,
-                  historical: outcome.historical,
-                  vanished: outcome.vanished,
-                  backfill: outcome.backfill,
-                },
-                'mailbox synced',
+            throw error;
+          } finally {
+            // Bounded at 5 s and never throws (02-18), so the lock is released
+            // even when the server never answers LOGOUT.
+            await closeImap(client);
+          }
+
+          switch (outcome.kind) {
+            case 'synced':
+            case 'resynced': {
+              // A resync compares every location, so it counts as a removal diff.
+              if (removalDiff || outcome.kind === 'resynced') {
+                lastRemovalDiffAt.set(mailbox.id, nowMs());
+              }
+              const syncedAt = nowDate();
+              // With classification, status is written once after the pass (D-14).
+              if (classify === undefined) {
+                await session.run((scope) => recordSyncSuccess(scope, syncedAt));
+              }
+              if (outcome.kind === 'synced') {
+                ingest.log.info(
+                  {
+                    mailbox: slug,
+                    firstSync: outcome.firstSync,
+                    stored: outcome.stored,
+                    historical: outcome.historical,
+                    vanished: outcome.vanished,
+                    backfill: outcome.backfill,
+                  },
+                  'mailbox synced',
+                );
+              } else {
+                ingest.log.info({ mailbox: slug, resync: outcome.counts }, 'mailbox synced');
+              }
+              return syncedAt;
+            }
+            case 'needs_attention':
+              await session.run((scope) =>
+                recordNeedsAttention(scope, outcome.candidateNew, slug, nowDate()),
               );
-            } else {
-              ingest.log.info({ mailbox: slug, resync: outcome.counts }, 'mailbox synced');
-            }
-            return;
+              ingest.log.warn(
+                { mailbox: slug, held: outcome.candidateNew, cap: entry.ingest.new_mail_cap },
+                `new mail held by the volume limit; run sift mailbox resume ${slug}`,
+              );
+              return;
+            case 'aborted':
+              ingest.log.info(
+                { mailbox: slug, stored: outcome.stored },
+                'ingest stopped between chunks',
+              );
+              return;
           }
-          case 'needs_attention':
-            await session.run((scope) =>
-              recordNeedsAttention(scope, outcome.candidateNew, slug, nowDate()),
-            );
-            ingest.log.warn(
-              { mailbox: slug, held: outcome.candidateNew, cap: entry.ingest.new_mail_cap },
-              `new mail held by the volume limit; run sift mailbox resume ${slug}`,
-            );
-            return;
-          case 'aborted':
-            ingest.log.info(
-              { mailbox: slug, stored: outcome.stored },
-              'ingest stopped between chunks',
-            );
-            return;
-        }
-      });
+        },
+      );
       if (!locked.acquired) {
         // D-03: a CLI backfill (or another worker) has the mailbox. Not an
         // error: no status write and no backoff; the next poll tries again.
         ingest.log.info({ mailbox: slug }, 'ingest busy (another process holds mailbox)');
+        return;
+      }
+      const syncedAt = locked.value;
+      if (classify === undefined || syncedAt === undefined) return;
+
+      const outcome = await classifyMailbox({
+        db,
+        mailbox: { id: mailbox.id, slug },
+        model: ingest.config.models.llm,
+        threshold: ingest.config.tiers.llm.confidence_threshold,
+        runtime: classify,
+        signal,
+        log,
+        now: nowDate,
+      });
+      switch (outcome.kind) {
+        case 'done':
+        case 'busy':
+        case 'aborted':
+          await withMailbox(db, mailbox.id, (scope) => recordSyncSuccess(scope, syncedAt));
+          return;
+        case 'rules_invalid':
+          // D-05: not a batch failure, so ingest keeps its cadence. The
+          // message names the rules file and its problems, never mail text.
+          await withMailbox(db, mailbox.id, (scope) =>
+            recordSyncError(scope, new Error(outcome.message), secrets, nowDate(), { syncedAt }),
+          );
+          ingest.log.warn(
+            { mailbox: slug },
+            'mail not classified: the rules file has problems (see sift mailbox list)',
+          );
+          return;
+        case 'infra':
+          // D-16: onBatchError records it; the rejection makes the supervisor back off.
+          throw new ClassifyInfraError(outcome.code, outcome.message, syncedAt);
+        default: {
+          const unhandled: never = outcome;
+          throw new Error(`unhandled classify outcome ${String(unhandled)}`);
+        }
       }
     },
 
     async onBatchError(mailbox: MailboxEntry, error: unknown): Promise<void> {
       if (error instanceof MailboxDisabledError) {
         await withMailbox(db, mailbox.id, recordDisabled);
+        return;
+      }
+      if (error instanceof ClassifyInfraError) {
+        // The ingest worked: never connecting, whatever the startup grace (D-16).
+        await withMailbox(db, mailbox.id, (scope) =>
+          recordSyncError(scope, new Error(error.message), secrets, nowDate(), {
+            syncedAt: error.syncedAt,
+          }),
+        );
         return;
       }
       if (error instanceof MailboxSyncError) {

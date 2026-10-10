@@ -8,8 +8,11 @@ import {
   secretValues,
 } from '@sift/core/config';
 import { codedCause, createLogger, redactText } from '@sift/core/log';
+import { resolveDataPath } from '@sift/core/rules';
 import { createAppDb, requireDatabaseUrl } from '@sift/db';
 import { assertUnprivilegedRole, connectWithRetry, DatabaseStartupError } from '@sift/db/connect';
+import { createClassifyRuntime } from '../classify/run.ts';
+import { createSingleFlight } from '../classify/single-flight.ts';
 import type { CommandIO } from '../command.ts';
 import { createHeartbeat, defaultHeartbeatFile } from '../runtime/heartbeat.ts';
 import { createMailboxCallbacks } from '../runtime/mailbox-batch.ts';
@@ -60,6 +63,13 @@ function databaseCause(error: unknown): unknown {
  * (D-34), then the supervisor.
  * Nothing touches the database before the env check (D-35), so a missing
  * password produces exactly one log line.
+ *
+ * Each batch classifies the mail it ingested (D-14): the owner's rules come
+ * from SIFT_DATA (default ./data, mailboxes/<slug>/rules.yaml) and the model
+ * from models.url (after the SIFT_MODELS_URL override). One single-flight
+ * gate, created here, is shared by every mailbox, so at most one Ollama
+ * request is in flight across the process (D-19). A rules problem or an
+ * Ollama outage shows in the mailbox's status, never as a worker exit.
  *
  * Exit codes: 0 after SIGTERM/SIGINT, 1 for config and startup errors, and
  * EXIT_HEARTBEAT_STALLED (75) after MAX_MISSED_HEARTBEATS missed heartbeats in
@@ -140,8 +150,13 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
       return 1;
     }
 
+    // D-19: one gate for the whole process, shared by every mailbox's batch.
+    const gate = createSingleFlight();
+    const dataDir = resolveDataPath(io.env, io.cwd);
+    const classify = createClassifyRuntime({ dataDir, modelsUrl: config.models.url, gate });
+
     const supervisor = createSupervisor({
-      ...createMailboxCallbacks(db, secrets, { config, env: io.env, log }),
+      ...createMailboxCallbacks(db, secrets, { config, env: io.env, log, classify }),
       heartbeat: createHeartbeat(defaultHeartbeatFile(io.env)),
       log,
       pollIntervalMs: config.worker.poll_interval_seconds * 1000,
@@ -153,6 +168,7 @@ export async function run(_args: readonly string[], io: CommandIO): Promise<numb
       {
         mailboxes: config.mailboxes.length,
         pollIntervalSeconds: config.worker.poll_interval_seconds,
+        dataDir,
       },
       'worker started',
     );

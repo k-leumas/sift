@@ -32,18 +32,28 @@ export async function recordSyncSuccess(scope: Scope, at: Date = new Date()): Pr
 /**
  * A sync run failed. last_error is redacted with the given secret values
  * before it is stored, then truncated (D-51: no secrets in last_error).
+ *
+ * `syncedAt` is for a batch whose ingest succeeded but whose classification
+ * could not run (a rules file problem or an Ollama outage, D-05, D-16): the
+ * mail was fetched, so last_sync_at moves to the ingest time and the volume
+ * valve's held and approved counts are cleared, exactly as recordSyncSuccess
+ * would have done, while the state still shows the error.
  */
 export async function recordSyncError(
   scope: Scope,
   error: unknown,
   secrets: readonly string[],
   at: Date = new Date(),
+  options: { syncedAt?: Date } = {},
 ): Promise<void> {
   const text = String(error instanceof Error ? error.message : error);
   await scope.mailboxStatus.upsert({
     state: 'error',
     lastError: redactText(text, secrets).slice(0, LAST_ERROR_MAX),
     lastSeenAt: at,
+    ...(options.syncedAt === undefined
+      ? {}
+      : { lastSyncAt: options.syncedAt, heldNewCount: null, approvedNewCount: null }),
   });
 }
 
