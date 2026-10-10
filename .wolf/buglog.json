@@ -3430,6 +3430,23 @@
       "related_bugs": [],
       "occurrences": 2,
       "last_seen": "2026-10-10T08:42:11.866Z"
+    },
+    {
+      "id": "bug-206",
+      "timestamp": "2026-10-10T18:33:00Z",
+      "error_message": "vitest: No test files found, exiting with code 1 (filter lists the files) plus Unhandled AggregateError ECONNREFUSED 127.0.0.1:5432",
+      "file": "packages/db/test/global-setup.ts",
+      "root_cause": "Docker daemon was not running, so the DB globalSetup could not connect; vitest then reports the filtered files as not found",
+      "fix": "Run DB-free test files with SIFT_TEST_ADMIN_URL= (empty) so globalSetup skips the database; start Docker for DB tests",
+      "tags": [
+        "vitest",
+        "global-setup",
+        "docker",
+        "test-env"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T18:33:00Z"
     }
   ]
 }

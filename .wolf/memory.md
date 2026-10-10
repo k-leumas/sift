@@ -1148,3 +1148,13 @@
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+| 12:32 | Created packages/core/src/yaml-issues.ts | — | ~1202 |
+| 12:34 | Created packages/core/src/rules/schema.ts | — | ~3193 |
+| 12:35 | Created packages/core/src/rules/load.ts | — | ~796 |
+| 12:36 | Created packages/core/test/rules.test.ts | — | ~6024 |
+| 12:40 | Created packages/core/test/example-rules.test.ts | — | ~1482 |
+| 12:41 | Created packages/core/src/rules/path.ts | — | ~363 |
+| 12:41 | Created packages/core/src/rules/index.ts | — | ~188 |
+| 12:41 | Created data/mailboxes/example/rules.example.yaml | — | ~612 |
+| 12:44 | 03-01: rules.yaml schema/loader, yaml-issues.ts move, data paths, example rules, .gitignore negations | packages/core/src/rules/*, packages/core/src/yaml-issues.ts, data/mailboxes/example/rules.example.yaml, .gitignore | 187 core tests + typecheck green | ~60000 |
+| 12:46 | Created .planning/phases/03-tiered-classification-with-traces/03-01-SUMMARY.md | — | ~2919 |

@@ -201,6 +201,10 @@
 - [2026-10-08] The GSD eval-planner tool scan (grep for langfuse|langsmith|arize|phoenix|...) false-positives in sift: `arize` matches "summarized"/"summarizeError" in apps/worker/src/runtime/. No eval or tracing tool is in the repo; decision.spans is the trace store.
 - [2026-10-10] Phase 3 research seams: `.gitignore` has `data/` (whole dir), so a committed data/mailboxes/example/rules.example.yaml needs `/data/*` + single-file negations; compose mounts only /config (no data). apps/worker/test/support/mailbox-harness.ts sets models.url `http://localhost:11434` and a real Ollama 0.18.2 runs on this Mac: classification wired into runBatch must be injectable or e2e tests hit a real model. Six test files name 11434 as a config value, so a "no 11434 in tests" guard fails. The scoped API has no joins/order/limit: the pending query must live in scope.ts (like messageBody.deleteExpired). seedScopedRows/isolation/scope/ingest tests insert key-only decision/rule_set rows.
 
+- [2026-10-10] 03-01: @sift/core/rules (packages/core/src/rules/) parses data/mailboxes/<slug>/rules.yaml; YAML position + Zod-issue helpers now live in packages/core/src/yaml-issues.ts (shared with config/load.ts). Category names are ASCII (owner chose "ascii"; Unicode deferred to Phase 4 Bridge UTF-7 check). A list-level issue (min/max on an array) is located at the list node, i.e. its FIRST ITEM line for a block sequence, not the key line.
+- [2026-10-10] .gitignore data rule is now `/data/*` + negations re-including only data/mailboxes/example/rules.example.yaml; data/live and data/spike (real local spike data) stay ignored. Verify with `git check-ignore --no-index -v --non-matching` (negated match shows a `!` pattern) and `git ls-files --cached --others --exclude-standard data`.
+- [2026-10-10] When Docker is down, any vitest run fails in globalSetup (ECONNREFUSED 5432) and prints "No test files found" for the filter. Pure tests (packages/core) run with `SIFT_TEST_ADMIN_URL= pnpm exec vitest run <files>` (bug-206).
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->

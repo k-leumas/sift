@@ -2,19 +2,19 @@
 gsd_state_version: "1.0"
 milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
-current_phase: 02
-current_phase_name: Bridge Spike and IMAP Ingest
+current_phase: 03
+current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-10-08T07:17:30.689Z"
-last_activity: 2026-10-07
-last_activity_desc: Phase 02 execution started
-state_head: 1992f3b58f2f779f87e993d1ad1258e5b8676ee4
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-10-10T18:47:15.685Z"
+last_activity: 2026-10-10
+last_activity_desc: Phase 03 execution started
+state_head: 6db4332f9fab1dd5ce788944f5579b15e944707f
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 34
-  completed_plans: 34
+  total_plans: 47
+  completed_plans: 35
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** Every incoming email is auto-labelled correctly or explicitly held for the owner, entirely on local hardware, with a decision trace explaining why.
-**Current focus:** Phase 02 — Bridge Spike and IMAP Ingest
+**Current focus:** Phase 03 — Tiered Classification with Traces
 
 ## Current Position
 
-Phase: 02 (Bridge Spike and IMAP Ingest) — EXECUTING
-Plan: 21 of 21
-Status: All 21 plans complete (UAT gap closure 02-20, 02-21 done); phase verification pending
-Last activity: 2026-10-07 - Completed quick task 261007-2ke: commit-driven versioning (pnpm release, CI tag check, sift --version)
+Phase: 03 (Tiered Classification with Traces) — EXECUTING
+Plan: 2 of 13
+Status: Ready to execute
+Last activity: 2026-10-10 — Phase 03 execution started
 
 Progress: [███░░░░░░░] 25%
 
@@ -90,6 +90,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P17 | 15 min | 2 tasks | 3 files |
 | Phase 02 P19 | 4h40m | 3 tasks | 2 files |
 | Phase 02 P21 | 21 min | 3 tasks | 6 files |
+| Phase 03 P01 | 13 min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -198,6 +199,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-19: live-ingest doc-contract test accepts a backfill value differing from the spike only with a documented Deviation from D-84 (owner override 30 -> 1)
 - [Phase 02]: 02-21: compose-smoke checks connecting or error status per enabled mailbox, never ok (smoke IMAP hosts are imap.smoke.invalid); only the state at the SMOKE_TIMEOUT deadline counts
 - [Phase 02]: 02-21: CI attempt-1 UIDVALIDITY flake in imap-folder-source.test.ts logged as bug-191, not fixed in this plan (passed on rerun)
+- [Phase 03]: 03-01: rules.yaml category names are ASCII only (owner chose ascii: A-Z, a-z, 0-9, single spaces, - and &; 1-40 chars; no /); Unicode deferred until Phase 4 verifies Bridge modified-UTF-7 folder names
+- [Phase 03]: 03-01: YAML position and Zod-issue helpers live in packages/core/src/yaml-issues.ts, shared by config.yaml and rules.yaml loaders; list-level issues sit at the first list item
+- [Phase 03]: 03-01: rule labels match category names exactly (case-sensitive, untrimmed); rules: [] or no rules key is valid, rules: null is an error; match entries normalised in the schema for D-03 hashing
+- [Phase 03]: 03-01: .gitignore uses /data/* with negations re-including only data/mailboxes/example/rules.example.yaml; SIFT_DATA (default ./data) locates data/mailboxes/<slug>/rules.yaml via rulesPathFor
 
 ### Pending Todos
 
@@ -225,6 +230,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-08T07:17:29.498Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-tiered-classification-with-traces/03-CONTEXT.md
+Last session: 2026-10-10T18:46:51.832Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None

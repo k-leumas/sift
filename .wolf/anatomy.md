@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T12:00:01.352Z
-> Files: 467 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T18:46:06.965Z
+> Files: 476 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -190,6 +190,7 @@
 ## .planning/phases/03-tiered-classification-with-traces/
 
 - `03-01-PLAN.md` — Exports ConfigIssue (~6842 tok)
+- `03-01-SUMMARY.md` — Phase 3 Plan 01: Rules File Schema, Loader and Example Summary (~2736 tok)
 - `03-02-PLAN.md` — Exports DEFAULT_INITIAL_BACKFILL_DAYS (~3938 tok)
 - `03-03-PLAN.md` — Declares Existing (~6490 tok)
 - `03-04-PLAN.md` — Exports MatchableMessage (~5276 tok)
@@ -402,6 +403,10 @@
 - `worker-t1.log` (~160 tok)
 - `worker-t1b.log` (~446 tok)
 
+## data/mailboxes/example/
+
+- `rules.example.yaml` — Example rules file for one mailbox. (~612 tok)
+
 ## data/spike/
 
 - `probe-0-sync-1.json` (~405 tok)
@@ -509,6 +514,7 @@
 
 - `index.ts` — Highest `version:` value in config.yaml that this build understands. (~211 tok)
 - `log.ts` — Fields censored in every log line (D-23, T-01-16), at the depths Sift logs (~981 tok)
+- `yaml-issues.ts` — YAML position and Zod-issue mapping shared by the config.yaml and rules.yaml (~1202 tok)
 
 ## packages/core/src/config/
 
@@ -519,12 +525,21 @@
 - `schema.ts` — Default Ollama endpoint as seen from inside the Compose network (D-60). (~3121 tok)
 - `slug.ts` — Mailbox slug shape (D-63): lowercase ASCII words joined by single hyphens. (~394 tok)
 
+## packages/core/src/rules/
+
+- `index.ts` — @sift/core/rules barrel: schema, loader, data paths (~188 tok)
+- `load.ts` — parseRulesText/loadRules: 256 KiB + 50-alias caps, positioned issues via yaml-issues.ts, never writes (~796 tok)
+- `path.ts` — resolveDataPath (SIFT_DATA, default ./data), rulesPathFor (validateSlug first), RULES_EXAMPLE_PATH (~363 tok)
+- `schema.ts` — Strict Zod RulesFile: version 1, 2-20 ascii categories, judgment, exact rules (from/domain/phrase/in), label-in-categories check (~3193 tok)
+
 ## packages/core/test/
 
 - `config.test.ts` — Extra raw lines appended inside the imap mapping (6-space indent). (~5454 tok)
 - `env.test.ts` — A value that must never appear in any message. (~1734 tok)
 - `example-config.test.ts` — Declares EXAMPLE (~1178 tok)
+- `example-rules.test.ts` — data paths, example rules file (README categories, example.test only), .gitignore check-ignore cases (~1482 tok)
 - `log.test.ts` — Declares capture (~1286 tok)
+- `rules.test.ts` — rules.yaml schema/loader: normalisation, every rejection with path+line, five-problem file order, file caps (~6024 tok)
 
 ## packages/db/
 

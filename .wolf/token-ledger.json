@@ -3,12 +3,12 @@
   "created_at": "2026-10-03T19:14:49.478Z",
   "lifetime": {
     "total_tokens_estimated": 20399427,
-    "total_reads": 3239,
+    "total_reads": 3241,
     "total_writes": 7897,
     "total_sessions": 26,
     "anatomy_hits": 2139,
-    "anatomy_misses": 1059,
-    "repeated_reads_blocked": 1929,
+    "anatomy_misses": 1061,
+    "repeated_reads_blocked": 1931,
     "estimated_savings_vs_bare_cli": 3347707
   },
   "sessions": [
@@ -61666,6 +61666,50 @@
         "writes_count": 38,
         "repeated_reads_blocked": 9,
         "anatomy_lookups": 13
+      }
+    },
+    {
+      "id": "session-2026-10-10-1227",
+      "started": "2026-10-10T18:27:29.488Z",
+      "ended": "2026-10-10T18:30:58.908Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-phase.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 0,
+        "reads_count": 1,
+        "writes_count": 0,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 0
+      }
+    },
+    {
+      "id": "session-2026-10-10-1227",
+      "started": "2026-10-10T18:27:29.488Z",
+      "ended": "2026-10-10T18:31:39.854Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/execute-phase.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 0,
+        "reads_count": 1,
+        "writes_count": 0,
+        "repeated_reads_blocked": 1,
+        "anatomy_lookups": 0
       }
     }
   ],
