@@ -125,7 +125,7 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: 6/13 plans executed
+**Plans**: 7/13 plans executed
 
 Plans:
 **Wave 1**
@@ -137,7 +137,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 - [x] 03-04-PLAN.md — Exact-rule matcher with nearest miss, decide() with threshold and review reasons, rule-set content hash (wave 2)
 - [x] 03-06-PLAN.md — @sift/db: pending and re-run queries, recordDecision single write path, ensureRuleSet, ensurePromptVersion, restoreBody (wave 2)
-- [ ] 03-07-PLAN.md — Ollama client, LLM tier (retry once), preflight, single-flight gate, fake Ollama (wave 2)
+- [x] 03-07-PLAN.md — Ollama client, LLM tier (retry once), preflight, single-flight gate, fake Ollama (wave 2)
 - [ ] 03-11-PLAN.md — sift config check validates rules files, rename guard (D-07), read-only data mount in Compose (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -176,7 +176,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
-| 3. Tiered Classification with Traces | v0.1 | 6/13 | In Progress | - |
+| 3. Tiered Classification with Traces | v0.1 | 7/13 | In Progress | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)

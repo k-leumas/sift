@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-06-PLAN.md
-last_updated: "2026-10-10T20:30:33.080Z"
+stopped_at: Completed 03-07-PLAN.md
+last_updated: "2026-10-10T20:46:45.850Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: fd7a52708ecfc4742c7ce94f531f5fe7c6b6dbf8
+state_head: f5380e51bd9a5cf07e3b3228158549ba1b4c55f2
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 40
+  completed_plans: 41
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 7 of 13
+Plan: 8 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -96,6 +96,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P05 | 11 min | 2 tasks | 10 files |
 | Phase 03 P04 | 14 min | 3 tasks | 8 files |
 | Phase 03 P06 | 16 min | 2 tasks | 7 files |
+| Phase 03 P07 | 13 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -223,6 +224,10 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-06: recordDecision stores createdAt = at, so decision.created_at and the 7-day body expiry share one clock; latestDecision orders by it
 - [Phase 03]: 03-06: recordDecision refuses before SQL on trace format version, llm span model/confidence vs typed columns, and exact rules with a prompt version, model or confidence
 - [Phase 03]: 03-06: candidates() refuses non-UUID ids, invalid since/before and a limit outside 1..1000 with TypeError before SQL
+- [Phase 03]: 03-07: input_too_long only for HTTP 400 with context text; a 5xx mentioning context stays infra server_error
+- [Phase 03]: 03-07: input_too_long attempt span detail is fixed text, never Ollama error text (T-03-25)
+- [Phase 03]: 03-07: preflight fails closed on any set remote_host/remote_model and matches an untagged name against :latest
+- [Phase 03]: 03-07: client reports a missing response model as null; bad metric counters become null
 
 ### Pending Todos
 
@@ -250,6 +255,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T20:30:17.778Z
-Stopped at: Completed 03-06-PLAN.md
+Last session: 2026-10-10T20:46:45.523Z
+Stopped at: Completed 03-07-PLAN.md
 Resume file: None
