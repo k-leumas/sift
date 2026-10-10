@@ -5,8 +5,10 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./classify": "./src/classify/index.ts",
     "./config": "./src/config/index.ts",
-    "./log": "./src/log.ts"
+    "./log": "./src/log.ts",
+    "./rules": "./src/rules/index.ts"
   },
   "dependencies": {
     "pino": "10.3.1",

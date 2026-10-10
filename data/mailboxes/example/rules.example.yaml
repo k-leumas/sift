@@ -1,0 +1,60 @@
+# Example rules file for one mailbox.
+#
+# Copy it to data/mailboxes/<slug>/rules.yaml (the slug from config.yaml), edit
+# it, and check it with: sift config check
+#
+# - Category names become Proton label folders (Labels/<name>), so choose them
+#   with care: letters, digits, single spaces, - and &, 1 to 40 characters.
+# - Exact rules run in file order and the first matching rule wins.
+# - from and domain match the From address only. A domain also matches its
+#   subdomains (example.test matches mail.example.test).
+# - Within one rule every condition must hold; a list inside a condition means
+#   any one of its entries.
+# - Mail that no rule matches goes to the local LLM, which reads the category
+#   descriptions and the judgment lines below.
+#
+# This file is committed as an example: it uses only example.test addresses.
+# Your real rules.yaml stays out of git.
+
+version: 1
+
+categories:
+  - name: Important
+    description: things I need to act on or reply to personally
+  - name: Job search
+    description: recruiters, interviews, applications, offers
+  - name: Receipts
+    description: orders, invoices, shipping updates
+  - name: Reading
+    description: newsletters and articles I might read later
+  - name: Noise
+    description: promotions, marketing, social notifications
+
+# Plain-English guidance for the LLM, one sentence per line.
+judgment:
+  - Anything from my landlord or property manager is Important.
+  - Recruiter emails about frontend or AI roles are Job search; crypto or web3 ones are Noise.
+  - Newsletters are Reading, unless they mention me by name; then they are Important.
+  - Never mark anything from my bank as Noise.
+
+rules:
+  - kind: exact
+    name: bank alerts
+    match:
+      domain: [bank.example.test]
+    label: Important
+
+  - kind: exact
+    name: shop order confirmations
+    match:
+      from: [receipts@shop.example.test]
+      phrase: [order confirmation]
+      in: subject # where phrase looks: subject, body or any (default any)
+    label: Receipts
+
+  - kind: exact
+    name: interview invitations
+    match:
+      phrase: [invite you to an interview]
+      in: body
+    label: Job search

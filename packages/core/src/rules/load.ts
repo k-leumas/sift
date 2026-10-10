@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { LineCounter, parseDocument } from 'yaml';
 import type { ConfigIssue } from '../config/errors.ts';
 import { byPosition, requiredErrorMap, yamlSyntaxIssues, zodIssues } from '../yaml-issues.ts';
+import { RULES_EXAMPLE_PATH } from './path.ts';
 import { type RulesConfig, RulesFile } from './schema.ts';
 
 export type RulesLoadResult =
@@ -13,9 +14,6 @@ export const RULES_FILE_MAX_BYTES = 262_144;
 
 /** Alias expansion cap (T-03-01), as for config.yaml (T-01-14). */
 const MAX_ALIAS_COUNT = 50;
-
-/** Repo-relative example the owner copies; kept here so path.ts and messages agree. */
-const EXAMPLE = 'data/mailboxes/example/rules.example.yaml';
 
 function failure(message: string, source: string): RulesLoadResult {
   return { ok: false, issues: [{ path: [], message }], source };
@@ -64,7 +62,7 @@ export async function loadRules(path: string): Promise<RulesLoadResult> {
     const code = (error as NodeJS.ErrnoException).code;
     return failure(
       code === 'ENOENT'
-        ? `rules file not found: ${path}. Copy ${EXAMPLE} to that path and edit it`
+        ? `rules file not found: ${path}. Copy ${RULES_EXAMPLE_PATH} to that path and edit it`
         : `cannot read rules file ${path} (${code ?? 'unknown error'})`,
       path,
     );

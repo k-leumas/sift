@@ -154,5 +154,11 @@ backups/*
 !backups/.gitkeep
 # Throwaway files of scripts/compose-smoke.sh (dumps, generated config)
 .smoke/
-# Local runtime data
-data/
+# Local runtime data. Only the example rules file is committed (D-04); real
+# rules.yaml files, eval sets and shared-rules.md hold real senders.
+/data/*
+!/data/mailboxes/
+/data/mailboxes/*
+!/data/mailboxes/example/
+/data/mailboxes/example/*
+!/data/mailboxes/example/rules.example.yaml
