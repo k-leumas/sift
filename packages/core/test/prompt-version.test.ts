@@ -15,7 +15,7 @@ import { PROMPT_MATERIAL_PARTS, promptMaterialFrom } from '../src/classify/promp
  * changes this hash, which means a new prompt_version row. Update the constant
  * deliberately, never to make a failing test pass by accident.
  */
-const EXPECTED_PROMPT_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
+const EXPECTED_PROMPT_HASH = '8bd77eefeaa3de33f29d99ffb88d789e37cb3a3e88d77e995bd4d1193e707d97';
 
 const README_CATEGORIES = ['Important', 'Job search', 'Receipts', 'Reading', 'Noise'];
 

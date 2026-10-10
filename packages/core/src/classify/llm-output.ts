@@ -7,7 +7,10 @@ import { z } from 'zod';
  * the grammar does not enforce every rule (number ranges in particular).
  */
 
-/** Longest reason the grammar lets the model write (also bounds output tokens). */
+/**
+ * Longest reason the grammar lets the model write (also bounds output tokens).
+ * The grammar and Zod 4.6 both count it in code points, so code is never looser.
+ */
 export const REASON_MAX_CHARS = 200;
 
 /**
