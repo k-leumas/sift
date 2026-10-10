@@ -100,7 +100,10 @@ export interface MessageBodyApi extends ScopedTableApi<typeof messageBody> {
   deleteExpired(at: Date): Promise<number>;
 }
 
-/** Append-only tables (D-40): no update or delete, by type as well as by privilege. */
+/**
+ * Append-only tables (D-40: decision, label_event; D-03: rule_set): no update
+ * or delete, by type as well as by privilege.
+ */
 export interface AppendOnlyTableApi<T extends PgTable> {
   insert: ScopedTableApi<T>['insert'];
   find: ScopedTableApi<T>['find'];
@@ -126,7 +129,12 @@ export interface Scope {
   readonly messageBody: MessageBodyApi;
   readonly label: ScopedTableApi<typeof label>;
   readonly folderSync: ScopedTableApi<typeof folderSync>;
-  readonly ruleSet: ScopedTableApi<typeof ruleSet>;
+  /**
+   * Rule-set snapshots (D-03): append-only, because every decision replays
+   * against the exact snapshot it references. A changed rules.yaml is a new
+   * row with the next version, never an edit.
+   */
+  readonly ruleSet: AppendOnlyTableApi<typeof ruleSet>;
   readonly decision: AppendOnlyTableApi<typeof decision>;
   readonly labelEvent: AppendOnlyTableApi<typeof labelEvent>;
   readonly mailboxStatus: MailboxStatusApi;
@@ -468,7 +476,7 @@ export async function runScoped<T>(
       messageBody: messageBodyApi(ctx),
       label: scopedTable(ctx, label),
       folderSync: scopedTable(ctx, folderSync),
-      ruleSet: scopedTable(ctx, ruleSet),
+      ruleSet: appendOnlyTable(ctx, ruleSet),
       decision: appendOnlyTable(ctx, decision),
       labelEvent: appendOnlyTable(ctx, labelEvent),
       mailboxStatus: mailboxStatusApi(ctx),
