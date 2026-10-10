@@ -46,6 +46,7 @@ function config(...mailboxes: MailboxConfig[]): SiftConfig {
       llm: 'qwen3:1.7b',
     },
     worker: { poll_interval_seconds: 60 },
+    tiers: { llm: { confidence_threshold: 0.75 } },
   };
 }
 

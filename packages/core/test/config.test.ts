@@ -41,7 +41,7 @@ const MODELS = [
 
 function configYaml(
   mailboxes: string[] = [mailbox()],
-  options: { models?: string; worker?: string; head?: string } = {},
+  options: { models?: string; worker?: string; head?: string; tiers?: string } = {},
 ): string {
   return [
     options.head ?? 'version: 1',
@@ -49,6 +49,7 @@ function configYaml(
     ...mailboxes,
     options.models ?? MODELS,
     options.worker ?? 'worker:\n  poll_interval_seconds: 60',
+    ...(options.tiers === undefined ? [] : [options.tiers]),
     '',
   ].join('\n');
 }
@@ -328,6 +329,75 @@ describe('strictness of the new blocks (P1 D-57/D-59)', () => {
     expect(issues).toHaveLength(1);
     expect(formatPath(issues[0]?.path ?? [])).toBe('worker.ingest');
     expect(issues[0]?.message).toContain('unrecognized key');
+  });
+});
+
+const THRESHOLD_MESSAGE = 'confidence_threshold must be a number from 0 to 1';
+const THRESHOLD_PATH = 'tiers.llm.confidence_threshold';
+
+function withThreshold(value: string): string {
+  return configYaml(undefined, { tiers: `tiers:\n  llm:\n    confidence_threshold: ${value}` });
+}
+
+describe('tiers.llm.confidence_threshold (D-25)', () => {
+  it.each([
+    ['no tiers key', undefined],
+    ['an empty tiers block', 'tiers: {}'],
+    ['an empty llm block', 'tiers:\n  llm: {}'],
+  ])('defaults to 0.75 with %s', (_name, tiers) => {
+    const config = parsed(configYaml(undefined, { tiers }));
+    expect(config.tiers).toEqual({ llm: { confidence_threshold: 0.75 } });
+    expect(config.tiers.llm.confidence_threshold).toBe(0.75);
+  });
+
+  it.each([
+    ['0', 0],
+    ['0.75', 0.75],
+    ['0.9', 0.9],
+    ['1', 1],
+  ])('accepts %s (inclusive range)', (value, expected) => {
+    expect(parsed(withThreshold(value)).tiers.llm.confidence_threshold).toBe(expected);
+  });
+
+  it.each(['-0.01', '1.01', '"0.9"', 'true'])('rejects %s at its YAML path', (value) => {
+    const text = withThreshold(value);
+    const lines = text.split('\n');
+    const line = lines.findIndex((l) => l.includes('confidence_threshold:')) + 1;
+    const column = (lines[line - 1]?.indexOf(value) ?? -1) + 1;
+    const issues = issuesOf(text);
+    expect(issues).toHaveLength(1);
+    const [issue] = issues;
+    expect(formatPath(issue?.path ?? [])).toBe(THRESHOLD_PATH);
+    expect(issue?.message).toBe(THRESHOLD_MESSAGE);
+    expect(line).toBeGreaterThan(0);
+    expect(issue?.line).toBe(line);
+    expect(issue?.column).toBe(column);
+  });
+
+  it('rejects tiers.classifier as an unrecognized key', () => {
+    const issues = issuesOf(configYaml(undefined, { tiers: 'tiers:\n  classifier: {}' }));
+    expect(issues).toHaveLength(1);
+    expect(formatPath(issues[0]?.path ?? [])).toBe('tiers.classifier');
+    expect(issues[0]?.message).toContain('unrecognized key');
+  });
+
+  it('rejects tiers.llm.examples_per_prompt as an unrecognized key', () => {
+    const text = configYaml(undefined, { tiers: 'tiers:\n  llm:\n    examples_per_prompt: 6' });
+    const issues = issuesOf(text);
+    expect(issues).toHaveLength(1);
+    expect(formatPath(issues[0]?.path ?? [])).toBe('tiers.llm.examples_per_prompt');
+    expect(issues[0]?.message).toContain('unrecognized key');
+  });
+
+  it('rejects a tiers value that is not a mapping', () => {
+    expect(messagesAt(configYaml(undefined, { tiers: 'tiers: 5' }), 'tiers')).toEqual([
+      'tiers must be a mapping',
+    ]);
+  });
+
+  it('rejects an llm value that is not a mapping', () => {
+    const text = configYaml(undefined, { tiers: 'tiers:\n  llm: 0.9' });
+    expect(messagesAt(text, 'tiers.llm')).toEqual(['tiers.llm must be a mapping']);
   });
 });
 

@@ -33,6 +33,15 @@ export const DEFAULT_NEW_MAIL_CAP = 200;
 export const MIN_NEW_MAIL_CAP = 1;
 export const MAX_NEW_MAIL_CAP = 10_000;
 
+/**
+ * LLM tier confidence threshold (D-25): an LLM answer below it goes to review
+ * instead of getting a label. Inclusive range: 0 labels every answer, 1 only
+ * a fully confident one.
+ */
+export const DEFAULT_CONFIDENCE_THRESHOLD = 0.75;
+export const MIN_CONFIDENCE_THRESHOLD = 0;
+export const MAX_CONFIDENCE_THRESHOLD = 1;
+
 /** Shape rule for `password_env` (D-62): an environment variable name. */
 export const ENV_VAR_NAME_PATTERN = /^[A-Z_][A-Z0-9_]*$/;
 
@@ -199,6 +208,28 @@ export const Worker = z.strictObject(
   { error: unlessMissing('worker must be a mapping') },
 );
 
+const confidenceThresholdMessage = `confidence_threshold must be a number from ${MIN_CONFIDENCE_THRESHOLD} to ${MAX_CONFIDENCE_THRESHOLD}`;
+
+/** LLM tier settings (D-25). */
+export const LlmTier = z.strictObject(
+  {
+    confidence_threshold: z
+      .number({ error: unlessMissing(confidenceThresholdMessage) })
+      .min(MIN_CONFIDENCE_THRESHOLD, confidenceThresholdMessage)
+      .max(MAX_CONFIDENCE_THRESHOLD, confidenceThresholdMessage)
+      .default(DEFAULT_CONFIDENCE_THRESHOLD),
+  },
+  { error: unlessMissing('tiers.llm must be a mapping') },
+);
+
+/** Classification tier settings (D-25). Only the LLM tier has settings today. */
+export const Tiers = z.strictObject(
+  {
+    llm: LlmTier.default({ confidence_threshold: DEFAULT_CONFIDENCE_THRESHOLD }),
+  },
+  { error: unlessMissing('tiers must be a mapping') },
+);
+
 function field(value: unknown, key: string): unknown {
   return typeof value === 'object' && value !== null
     ? (value as Record<string, unknown>)[key]
@@ -291,6 +322,7 @@ export const Config = z.strictObject(
       .superRefine(checkMailboxDuplicates, { when: () => true }),
     models: Models,
     worker: Worker.default({ poll_interval_seconds: DEFAULT_POLL_INTERVAL_SECONDS }),
+    tiers: Tiers.default({ llm: { confidence_threshold: DEFAULT_CONFIDENCE_THRESHOLD } }),
   },
   { error: unlessMissing('the config file must be a mapping of keys (version, mailboxes, ...)') },
 );
@@ -301,4 +333,6 @@ export type IngestConfig = z.output<typeof Ingest>;
 export type MailboxConfig = z.output<typeof Mailbox>;
 export type ModelsConfig = z.output<typeof Models>;
 export type WorkerConfig = z.output<typeof Worker>;
+export type LlmTierConfig = z.output<typeof LlmTier>;
+export type TiersConfig = z.output<typeof Tiers>;
 export type SiftConfig = z.output<typeof Config>;
