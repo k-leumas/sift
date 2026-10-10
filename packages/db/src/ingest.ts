@@ -90,8 +90,10 @@ export interface StoreOptions {
  * Remove NUL from every string, including nested object keys and values
  * (RESEARCH Pitfall 7: PostgreSQL rejects 0x00 in text and jsonb, which would
  * make a chunk fail on every retry). Dates and other values pass through.
+ *
+ * @internal Shared with classify.ts (restoreBody); not re-exported from index.ts.
  */
-function stripNul<V>(value: V): V {
+export function stripNul<V>(value: V): V {
   if (typeof value === 'string') return value.replaceAll('\u0000', '') as V;
   if (Array.isArray(value)) return value.map((v) => stripNul(v)) as V;
   if (value !== null && typeof value === 'object' && !(value instanceof Date)) {

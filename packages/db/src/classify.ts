@@ -5,6 +5,7 @@ import {
   TRACE_FORMAT_VERSION,
 } from '@sift/core/classify';
 import type { InferSelectModel } from 'drizzle-orm';
+import { stripNul } from './ingest.ts';
 import type { decision } from './schema/index.ts';
 import type { Scope } from './scope.ts';
 
@@ -190,19 +191,51 @@ export async function ensureRuleSet(
   return { id: row.id, version: row.version, created: true };
 }
 
-/** RED stub: replaced by the implementation in the GREEN commit. */
-export async function latestDecision(
-  _scope: Scope,
-  _messageId: string,
-): Promise<DecisionRow | null> {
-  return null;
+/**
+ * The current decision of a message (D-17): the newest by created_at, then
+ * id; null when it has none.
+ *
+ * Runs in the caller's transaction (the scope).
+ */
+export async function latestDecision(scope: Scope, messageId: string): Promise<DecisionRow | null> {
+  const rows = await scope.decision.find({ messageId });
+  let latest: DecisionRow | null = null;
+  for (const row of rows) {
+    if (
+      latest === null ||
+      row.createdAt.getTime() > latest.createdAt.getTime() ||
+      (row.createdAt.getTime() === latest.createdAt.getTime() && row.id > latest.id)
+    ) {
+      latest = row;
+    }
+  }
+  return latest;
 }
 
-/** RED stub: replaced by the implementation in the GREEN commit. */
+/**
+ * Put back a refetched body (D-32) when the message has none: NUL characters
+ * are removed, and expires_at stays null so the next decision sets it.
+ * Returns true when a row was written; an existing body is left untouched.
+ *
+ * Runs in the caller's transaction (the scope).
+ */
 export async function restoreBody(
-  _scope: Scope,
-  _messageId: string,
-  _body: { bodyText: string; source: 'text_plain' | 'text_html' | 'none'; truncated: boolean },
+  scope: Scope,
+  messageId: string,
+  body: { bodyText: string; source: 'text_plain' | 'text_html' | 'none'; truncated: boolean },
 ): Promise<boolean> {
-  return false;
+  const clean = stripNul(body);
+  const inserted = await scope.messageBody.insertOrIgnore(
+    [
+      {
+        messageId,
+        bodyText: clean.bodyText,
+        source: clean.source,
+        truncated: clean.truncated,
+        expiresAt: null,
+      },
+    ],
+    { target: ['messageId'] },
+  );
+  return inserted.length > 0;
 }
