@@ -1,112 +1,18 @@
 {
-  "session_id": "session-2026-10-07-0056",
-  "started": "2026-10-07T06:56:32.692Z",
+  "session_id": "session-2026-10-10-1227",
+  "started": "2026-10-10T18:27:29.488Z",
   "files_read": {
-    "/Users/samuel/dev/sift/apps/worker/src/spike/probe.ts": {
-      "count": 1,
-      "tokens": 7000,
-      "first_read": "2026-10-07T06:59:15.523Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-probe.ts": {
-      "count": 1,
-      "tokens": 3200,
-      "first_read": "2026-10-07T06:59:19.465Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/test/bridge-probe.test.ts": {
+    "/Users/samuel/.claude/gsd-core/workflows/execute-phase.md": {
       "count": 2,
-      "tokens": 7000,
-      "first_read": "2026-10-07T06:59:31.262Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/imap/connect.ts": {
-      "count": 1,
-      "tokens": 2500,
-      "first_read": "2026-10-07T06:59:36.342Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/imap/capture.ts": {
-      "count": 1,
-      "tokens": 2600,
-      "first_read": "2026-10-07T06:59:37.127Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/imap/pin.ts": {
-      "count": 1,
-      "tokens": 420,
-      "first_read": "2026-10-07T06:59:37.266Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/test/imap-capture.test.ts": {
-      "count": 1,
-      "tokens": 2197,
-      "first_read": "2026-10-07T06:59:45.793Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/test/imap-connect.test.ts": {
-      "count": 1,
-      "tokens": 3648,
-      "first_read": "2026-10-07T06:59:56.851Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts": {
-      "count": 1,
-      "tokens": 4766,
-      "first_read": "2026-10-07T07:00:08.368Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/test/mailbox-batch.test.ts": {
-      "count": 1,
-      "tokens": 4529,
-      "first_read": "2026-10-07T07:00:22.477Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/ingest/run.ts": {
-      "count": 1,
-      "tokens": 7084,
-      "first_read": "2026-10-07T07:00:29.314Z"
-    },
-    "/Users/samuel/dev/sift/packages/db/src/lock.ts": {
-      "count": 1,
-      "tokens": 1700,
-      "first_read": "2026-10-07T07:00:36.561Z"
-    },
-    "/Users/samuel/dev/sift/packages/db/test/lock.test.ts": {
-      "count": 1,
-      "tokens": 3000,
-      "first_read": "2026-10-07T07:00:42.169Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/commands/bridge-trust.ts": {
-      "count": 1,
-      "tokens": 1485,
-      "first_read": "2026-10-07T07:00:57.240Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/src/commands/mailbox-backfill.ts": {
-      "count": 1,
-      "tokens": 3586,
-      "first_read": "2026-10-07T07:01:25.782Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/test/user-facing-text.test.ts": {
-      "count": 1,
-      "tokens": 3015,
-      "first_read": "2026-10-07T07:01:52.746Z"
-    },
-    "/Users/samuel/dev/sift/scripts/compose-smoke.sh": {
-      "count": 1,
-      "tokens": 3300,
-      "first_read": "2026-10-07T07:03:19.090Z"
-    },
-    "/Users/samuel/dev/sift/apps/worker/test/compose-smoke.test.ts": {
-      "count": 1,
-      "tokens": 6700,
-      "first_read": "2026-10-07T07:03:34.851Z"
+      "tokens": 0,
+      "first_read": "2026-10-10T18:27:39.095Z"
     }
   },
-  "files_written": [
-    {
-      "file": "/Users/samuel/dev/sift/apps/worker/test/read-only-ingest.test.ts",
-      "action": "create",
-      "tokens": 746,
-      "at": "2026-10-07T07:11:30.737Z"
-    }
-  ],
-  "edit_counts": {
-    "apps/worker/test/read-only-ingest.test.ts": 1
-  },
-  "anatomy_hits": 18,
-  "anatomy_misses": 0,
+  "files_written": [],
+  "edit_counts": {},
+  "anatomy_hits": 0,
+  "anatomy_misses": 1,
   "repeated_reads_warned": 1,
   "cerebrum_warnings": 0,
-  "stop_count": 4
+  "stop_count": 0
 }

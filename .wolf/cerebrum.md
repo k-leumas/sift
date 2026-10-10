@@ -5,12 +5,15 @@
 > Last updated: 2026-10-03
 
 ## User Preferences
+- [2026-10-07] Owner: tests for repo-level tooling (scripts/, release) go in a root `test/` folder (vitest include `test/**/*.test.ts`), not apps/worker/test/. Pre-existing tooling tests in apps/worker/test were left in place.
 
 - Commands for the user to paste must be single-line (e.g. `psql -Atc "..."`), never heredocs: a pasted heredoc broke their zsh terminal (2026-10-07, phase 02 UAT).
 
 - UAT checkpoints: give concrete copy-paste commands and the exact expected output for each check; a bare 'expected:' line left the user unsure what to verify (2026-10-05).
 
 <!-- How the user likes things done. Code style, tools, patterns, communication. -->
+
+- 2026-10-07 (quick 261007-2ke): owner wants tests of root scripts in a root `test/` folder (test/<name>.test.ts), not in apps/worker/test; pre-existing tests stay where they are. Moves of already-committed files go in a follow-up `git mv` commit, never a history rewrite.
 
 - 2026-10-05 (plan-phase 2): when an option needs a precondition, the user answers "option N as long as …" or writes their own design (e.g. a separate `bridge-init` one-shot service instead of either offered mount option). Record such answers verbatim as decisions; prefer stating a security rule in its precise form ("never send credentials or data over an unverified connection") over listing exceptions to a blunter rule.
 
@@ -19,7 +22,15 @@
 
 - 2026-10-04: `.claude/`, `.wolf/`, `.gsd/`, `.planning/` and `CLAUDE.md` are code. Track and commit them like source; never exclude them from commits or leave them staged. Still scan them for secrets before committing.
 
+- Owner wants a short first-sync backfill: default `ingest.initial_backfill_days` is 3, not 30 (Phase 3 D-20, amends P2 D-74). (2026-10-08)
+- In Phase 3 discuss, owner picked every recommended option; prefers fail-closed, append-only, no automatic reclassification. (2026-10-08)
+
 ## Key Learnings
+
+- **Re-verifying an old phase (2026-10-07):** a completed phase's VERIFICATION.md goes `stale` whenever later phases touch its covered files; `/gsd-execute-phase N` then resumes at the gates. `evaluation-scope --since <last review>` returns `degraded / no-task-commits-since` and widens to every later phase's files — treat that as an empty incremental review scope, not as a review of phase N. Locally DB tests can't run (no Postgres, Docker down); CI on the pushed HEAD is the evidence.
+- [2026-10-07] Releases (quick 261007-2ke): `pnpm release [--dry-run]` (scripts/release.ts + pure scripts/release-plan.ts) cuts vX.Y.Z locally from Conventional Commits since the last v* tag; CI .github/workflows/release-tag.yml runs scripts/release-check.ts on pushed tags; `sift --version` reads apps/worker/package.json. All four package.json files carry the same version (0.0.0 = never released).
+- [2026-10-07] Tests for root files (scripts/) live in the ROOT `test/` folder (vitest include + root tsconfig include `test/**/*.ts`), helpers in test/support/. The root has no `yaml` dependency: load it with `createRequire(<root>/apps/worker/package.json)('yaml')` (test/support/release-repo.ts parseYaml) instead of adding one.
+- [2026-10-07] Exec latency in this agent shell can reach ~1 s per git/node spawn (near-zero CPU). Tests that need git repos should build template repos once (beforeAll) and cpSync per test (test/support/release-repo.ts releaseRepos()).
 - [2026-10-07] Read-only ingest is pinned by apps/worker/test/read-only-ingest.test.ts: only apps/worker/src/spike/probe.ts may call ImapFlow write methods or open a mailbox without readOnly. A new write path elsewhere needs an owner decision, not an allowlist edit.
 
 - [2026-10-07] A smoke assertion must use a state reachable with the smoke's unroutable IMAP host (imap.smoke.invalid): mailbox_status ok is unreachable since Phase 2, so compose-smoke waits (inside SMOKE_TIMEOUT) for connecting or error per enabled mailbox. Right after "worker healthy" a row may be missing or at its insert default (recordMailboxSeen upserts before connect), so only the state at the deadline counts (G-02-14, 02-21).
@@ -185,10 +196,16 @@
 - [2026-10-07] The root vitest config has no junit reporter: `--outputFile.junit=<path>` alone writes nothing. For RED evidence pass `--reporter=default --reporter=junit --outputFile.junit=<scratch>/red.xml` (02-20).
 - [2026-10-07] In a GSD worktree agent, the Bash isolation guard rejects any command whose text it reads as git (even the word inside an inline node script, or `$(git ...)` substitutions); run plain one-git-command calls and edit files with the Edit tool.
 
+- Phase 3 rules/categories live in gitignored `data/mailboxes/<slug>/rules.yaml` (strict Zod, versioned by content hash into rule_set); prompt versions in an unscoped, catalog-allowlisted `prompt_version` table. (2026-10-08)
+
+- [2026-10-08] The GSD eval-planner tool scan (grep for langfuse|langsmith|arize|phoenix|...) false-positives in sift: `arize` matches "summarized"/"summarizeError" in apps/worker/src/runtime/. No eval or tracing tool is in the repo; decision.spans is the trace store.
+- [2026-10-10] Phase 3 research seams: `.gitignore` has `data/` (whole dir), so a committed data/mailboxes/example/rules.example.yaml needs `/data/*` + single-file negations; compose mounts only /config (no data). apps/worker/test/support/mailbox-harness.ts sets models.url `http://localhost:11434` and a real Ollama 0.18.2 runs on this Mac: classification wired into runBatch must be injectable or e2e tests hit a real model. Six test files name 11434 as a config value, so a "no 11434 in tests" guard fails. The scoped API has no joins/order/limit: the pending query must live in scope.ts (like messageBody.deleteExpired). seedScopedRows/isolation/scope/ingest tests insert key-only decision/rule_set rows.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
 <!-- Format: [YYYY-MM-DD] Description of what went wrong and what to do instead. -->
+- [2026-10-07] Scripted slice edits (`s[:a] + new + s[b:]`) with a non-unique anchor duplicated half of scripts/release.ts. Use anchors unique to the target block and `assert a < b` (or the Edit tool) (bug-194).
 - [2026-10-06] Two describes in one test file that both seed the same slug clash on mailbox_slug unique (one per-file freshDatabase). Give a describe its own freshDatabase or use distinct slugs.
 - [2026-10-03] Agent Bash runs zsh: `FILES="a b"; git add $FILES` does NOT word-split. Use an array `FILES=(a b); git add "${FILES[@]}"`.
 - [2026-10-03] The git index holds the user's pre-staged .wolf/.claude files. Always commit with an explicit pathspec (`git commit -- <files>`) so they are not swept in.
@@ -206,6 +223,8 @@
 - [2026-10-05] In agent zsh, `g` is an alias, so `g() {...}` is a parse error, and `G="node x.cjs"; $G ...` does not word-split. Define helpers with an unaliased name (e.g. `gsdq() { node .../gsd-tools.cjs "$@"; }`).
 - [2026-10-07] GSD worktree merge: OpenWolf auto-scan in the main checkout indexes `.claude/worktrees/agent-*` files into `.wolf/anatomy.md`, and that uncommitted noise blocks `worktree.cleanup-wave` (bug-188). Before cleanup, check `git diff .wolf/anatomy.md`; if only timestamp + worktree-path entries, save and `git checkout -- .wolf/anatomy.md`.
 - [2026-10-07] Full `pnpm test` with live bridge/worker/db containers times out ~30 tests (host load, bug-189). Rerun the failing files with `--maxWorkers=3` before treating as real.
+
+- [2026-10-08] zsh: in Bash tool, never inline `node -e '...'` containing apostrophes, and never `echo ====` (zsh `=` expansion); use quoted heredocs and `echo '---'`.
 
 ## Decision Log
 
@@ -231,3 +250,6 @@
 
 - 2026-10-05 Owner preference (sift phase 2): when a durable key format changes, check whether old-format keys can already be stored and migrate or dual-read if so; prefer a DB check constraint that makes the old format unstorable. Durable tuning values must be named constants, and computed values like watermarks should be logged.
 - [2026-10-05] zsh: `$VAR:apps/...` applies the `:a` modifier (also :h :t :r :e ...). Always write `"${VAR}:path"` for git rev:path specs, and never redirect `git show` straight onto a tracked file (a failure empties it); write to scratch and copy on success.
+
+- 2026-10-08 (Phase 3 AI-SPEC §5-7): Evals = Vitest + node:http fake Ollama + synthetic fixtures (E1-E11 are the P3 CI gates); live-model quality (E12-E15, live paired injection) is a manual baseline in P3, gated in M4/M6. Arize Phoenix/Promptfoo/Langfuse not used: SEC-02 forbids any trace destination besides the model URL, and decision.spans already is the trace store. Accepted residual: in-list injection steering is not caught online; Phase 4 must decide before applying labels.
+- 2026-10-10 (plan-phase 3): 13 plans / 6 waves. Planner choices: decision.decided_by ('worker'|'rerun') + partial unique index decision_one_worker_per_message; rule_set made append-only (A4, costly not one-way); prompt_version unscoped + advisory lock 815309003; MODEL_OPTIONS/REQUEST_FLAGS/RETRY_NOTE moved to @sift/core/classify (prompt hash material); classification takes the ingest lock per 5-message chunk; mailboxes held in needs_attention are NOT classified (resume needs that state); rules errors do not reject runBatch; per-message poison 500 left as infra (flagged); ASCII-vs-Unicode category names is a checkpoint:decision in 03-01 (auto_select ascii).

@@ -3204,6 +3204,232 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-10-07T06:25:29Z"
+    },
+    {
+      "id": "bug-192",
+      "timestamp": "2026-10-07T08:29:28.702Z",
+      "error_message": "Missing guard clause",
+      "file": "scripts/release-plan.ts",
+      "root_cause": "No early return/throw for edge case: releasable.length === 0",
+      "fix": "Added guard clause: if (releasable.length === 0)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T08:29:28.702Z"
+    },
+    {
+      "id": "bug-193",
+      "timestamp": "2026-10-07T08:30:23.398Z",
+      "error_message": "Missing error handling in gitSucceeds",
+      "file": "scripts/release.ts",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T08:30:23.398Z"
+    },
+    {
+      "id": "bug-194",
+      "timestamp": "2026-10-07T00:30:00Z",
+      "error_message": "scripts/release.ts had localDate/readCommits/main duplicated after a scripted edit (grep showed two `git(root, ['tag'` calls)",
+      "file": "scripts/release.ts",
+      "root_cause": "python s.index('  } catch (error) {') matched the catch inside git() before main(), so s[:start]+new+s[end:] with end<start duplicated the tail",
+      "fix": "git checkout -- scripts/release.ts, redo with an anchor unique to main ('} catch (error) {\\n    if (error instanceof ReleaseRefusedError') and assert start < end",
+      "tags": [
+        "scripted-edit",
+        "anchor",
+        "duplication",
+        "release"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-07T00:30:00Z"
+    },
+    {
+      "id": "bug-195",
+      "timestamp": "2026-10-07T00:30:00Z",
+      "error_message": "release e2e tests took 5-16 s each (vitest whole-file 2 min); git exec from the test took 0.3-1.5 s wall with ~0 CPU",
+      "file": "test/release.test.ts",
+      "root_cause": "host exec latency (sandbox/endpoint scanning) multiplied by ~10 git calls + a node spawn per test when every test rebuilt its repo",
+      "fix": "test/support/release-repo.ts releaseRepos(): build fresh and released template repos once in beforeAll, cpSync a copy per test (remote URL relative so copies stay valid); under full pnpm test load a case still hit 30 s, so release e2e describes and their beforeAll use a 120 s timeout (1e275d9)",
+      "tags": [
+        "slow-test",
+        "git",
+        "vitest",
+        "exec-latency"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-07T00:30:00Z"
+    },
+    {
+      "id": "bug-196",
+      "timestamp": "2026-10-08T07:57:35.101Z",
+      "error_message": "Missing error handling in unknown",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: The model is `models.llm` from config (default `qwen3:1.7b`,; | Request field | Value | Why | | Also: This is a TypeScript project, so a **Zod 4.6.5 schema is the; - `z.toJSONSchema` produces the Ollama `format` (the grammar",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-08T08:01:24.112Z"
+    },
+    {
+      "id": "bug-197",
+      "timestamp": "2026-10-08T08:06:28.569Z",
+      "error_message": "Missing error handling in unknown",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-08T08:06:28.569Z"
+    },
+    {
+      "id": "bug-198",
+      "timestamp": "2026-10-08T08:20:49.481Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
+      "root_cause": "9 lines replaced/restructured",
+      "fix": "Rewrote 31→345 lines (9 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-08T08:20:49.481Z"
+    },
+    {
+      "id": "bug-199",
+      "timestamp": "2026-10-08T08:21:34.989Z",
+      "error_message": "Missing error handling in unknown",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: **Tracing Tool:** **`decision.spans` in Postgres.** This is ; - **No external tracer.** Arize Phoenix (the workflow defaul",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-08T08:21:58.372Z"
+    },
+    {
+      "id": "bug-200",
+      "timestamp": "2026-10-10T07:55:49.652Z",
+      "error_message": "commitlint rejected docs(03) research commit (body line > 100 chars)",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-RESEARCH.md",
+      "root_cause": "single -m body paragraph longer than the 100-char body-max-line-length",
+      "fix": "split the body into several -m lines under 100 chars",
+      "tags": [
+        "commitlint",
+        "git",
+        "commit-message"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T07:55:49.652Z"
+    },
+    {
+      "id": "bug-201",
+      "timestamp": "2026-10-10T08:17:51.886Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md",
+      "root_cause": "Had `git status --ignored data`",
+      "fix": "Changed to `git ls-files --cached --others --exclude-standard",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-10T08:17:58.780Z"
+    },
+    {
+      "id": "bug-202",
+      "timestamp": "2026-10-10T08:19:42.064Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md",
+      "root_cause": "Had \"Config OK: 2 mailboxes\"",
+      "fix": "Changed to `SIFT_CONFIG=config/config.example.yaml node apps/",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T08:19:42.064Z"
+    },
+    {
+      "id": "bug-203",
+      "timestamp": "2026-10-10T08:39:10.736Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md",
+      "root_cause": "Had `grep -n \"",
+      "fix": "Changed to `grep -c \"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T08:39:10.736Z"
+    },
+    {
+      "id": "bug-204",
+      "timestamp": "2026-10-10T08:40:30.493Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-13-PLAN.md",
+      "root_cause": "Had `node --env-file-if-exists=.env.development apps/w",
+      "fix": "Changed to `pnpm install`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T08:40:30.494Z"
+    },
+    {
+      "id": "bug-205",
+      "timestamp": "2026-10-10T08:42:06.894Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-VALIDATION.md",
+      "root_cause": "14 lines replaced/restructured",
+      "fix": "Rewrote 15→38 lines (14 removed) | Also: - [ ] `apps/worker/test/support/fake-ollama.ts` — ; - [ ] `apps/worker/test/support/classify-harness.t",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-10T08:42:11.866Z"
     }
   ]
 }

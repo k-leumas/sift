@@ -125,7 +125,33 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: TBD
+**Plans**: 13 plans
+
+Plans:
+**Wave 1**
+- [ ] 03-01-PLAN.md — rules.yaml strict schema and loader, data paths, committed example with .gitignore negation (owner checkpoint: category-name character set) (wave 1)
+- [ ] 03-02-PLAN.md — Config tiers.llm.confidence_threshold (default 0.75) and first-sync backfill default 3 days (wave 1)
+- [ ] 03-03-PLAN.md — Schema: decision typed columns and spans, rule_set versions (append-only), unscoped prompt_version, migrations 0008-0010, test-support rows (wave 1)
+- [ ] 03-05-PLAN.md — Core contracts: fenced prompt, output schema and re-validation, spans schema, prompt-version hash (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 03-04-PLAN.md — Exact-rule matcher with nearest miss, decide() with threshold and review reasons, rule-set content hash (wave 2)
+- [ ] 03-06-PLAN.md — @sift/db: pending and re-run queries, recordDecision single write path, ensureRuleSet, ensurePromptVersion, restoreBody (wave 2)
+- [ ] 03-07-PLAN.md — Ollama client, LLM tier (retry once), preflight, single-flight gate, fake Ollama (wave 2)
+- [ ] 03-11-PLAN.md — sift config check validates rules files, rename guard (D-07), read-only data mount in Compose (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 03-08-PLAN.md — Classification pass: locked chunks, newest first, 25-call cap, outage handling, per-message isolation, replayable traces (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 03-09-PLAN.md — Worker batch runs classification after ingest, per-mailbox status for rules and Ollama errors, sift worker wiring (wave 4)
+- [ ] 03-12-PLAN.md — `sift classify <slug>` re-runs with count/confirm and lock, identity-checked body refetch (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 03-10-PLAN.md — Synthetic hostile fixtures and injection pairs through ingest and classification; leak and hermeticity guards (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 03-13-PLAN.md — README/CONTRIBUTING for rules.yaml, Ollama and sift classify; live-baseline runner and owner baseline (wave 6)
 
 ### Phase 4: Labels and Real-Inbox Run
 

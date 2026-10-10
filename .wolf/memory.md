@@ -982,3 +982,169 @@
 | 01:11 | Created apps/worker/test/read-only-ingest.test.ts | — | ~746 |
 | 01:16 | Closed 02 security test gaps: read-only-ingest.test.ts + bridge-smoke insecure-vault step (smoke run OK) | apps/worker/test/read-only-ingest.test.ts, scripts/bridge-smoke.sh, 02-SECURITY.md | 8a96221, 45ac0f4 | ~25k |
 | 01:16 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 18 reads | ~68476 tok |
+| 01:22 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:24 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:28 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:29 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:33 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:37 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:49 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:51 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 01:54 | Session end: 1 writes across 1 files (read-only-ingest.test.ts) | 19 reads | ~68476 tok |
+| 02:02 | Created .planning/quick/261007-2ke-add-commit-driven-versioning-local-pnpm-/261007-2ke-PLAN.md | — | ~10358 |
+| 02:02 | planned quick 261007-2ke commit-driven versioning (pnpm release, release-tag CI check, sift --version) | .planning/quick/261007-2ke-add-commit-driven-versioning-local-pnpm-/261007-2ke-PLAN.md | plan valid, 3 tasks | ~60k |
+| 02:03 | Session end: 2 writes across 2 files (read-only-ingest.test.ts, 261007-2ke-PLAN.md) | 19 reads | ~79574 tok |
+| 02:05 | Created scripts/release-plan.ts | — | ~1570 |
+| 02:05 | Created scripts/release.ts | — | ~1486 |
+| 02:05 | Created apps/worker/test/release.test.ts | — | ~1865 |
+| 02:07 | Created apps/worker/test/release-plan.test.ts | — | ~2245 |
+| 02:13 | Session end: 6 writes across 6 files (read-only-ingest.test.ts, 261007-2ke-PLAN.md, release-plan.ts, release.ts, release.test.ts) | 22 reads | ~98316 tok |
+| 02:17 | Session end: 6 writes across 6 files (read-only-ingest.test.ts, 261007-2ke-PLAN.md, release-plan.ts, release.ts, release.test.ts) | 22 reads | ~98316 tok |
+| 02:26 | Created test/support/release-repo.ts | — | ~1985 |
+| 02:26 | Created test/release.test.ts | — | ~2422 |
+| 02:29 | Edited scripts/release-plan.ts | added 3 condition(s) | ~327 |
+| 02:30 | Edited scripts/release.ts | added error handling | ~721 |
+| 02:33 | Created test/release-check.test.ts | — | ~2040 |
+| 02:34 | Created scripts/release-check.ts | — | ~913 |
+| 02:34 | Edited scripts/release-check.ts | modified if() | ~50 |
+| 02:34 | Created .github/workflows/release-tag.yml | — | ~291 |
+| 02:38 | quick 261007-2ke: pnpm release, release-check CI workflow, sift --version; tests moved to root test/ per owner change | scripts/release*.ts, test/, .github/workflows/release-tag.yml, apps/worker/src/cli.ts, CONTRIBUTING.md | 4 commits, targeted tests 217/217 | ~60000 |
+| 02:45 | Created .planning/quick/261007-2ke-add-commit-driven-versioning-local-pnpm-/261007-2ke-SUMMARY.md | — | ~2350 |
+| 02:50 | Quick 261007-2ke: commit-driven versioning (pnpm release, release-tag CI check, sift --version, root test/) | scripts/release*.ts, test/, .github/workflows/release-tag.yml | complete f7315d9 | ~80k |
+| 02:50 | Session end: 15 writes across 11 files (read-only-ingest.test.ts, 261007-2ke-PLAN.md, release-plan.ts, release.ts, release.test.ts) | 23 reads | ~111069 tok |
+
+## Session: 2026-10-07 16:33
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-10-07 16:49
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-10-07 16:52
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:05 | Created .planning/phases/01-foundation-and-isolation/01-VERIFICATION.md | — | ~7724 |
+| 17:06 | gsd-verifier re-verified phase 01 vs HEAD (Phase 2 + release tooling): 103/103, human_needed (real-password grep) | .planning/phases/01-foundation-and-isolation/01-VERIFICATION.md | committed | ~60k |
+| 17:07 | execute-phase 01 re-run: stale verification → validate (nyquist_compliant fix), secure re-audit, code review skipped (no phase-1 commits since review), verifier human_needed 103/103; UAT test 5 added | .planning/phases/01-foundation-and-isolation/01-{VALIDATION,SECURITY,VERIFICATION,UAT}.md | human_needed | ~60k |
+| 17:07 | Session end: 1 writes across 1 files (01-VERIFICATION.md) | 4 reads | ~15481 tok |
+
+## Session: 2026-10-08 19:36
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 19:44 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/cebbb202-797d-4722-8acc-b337e3c0522d/scratchpad/password-grep.sh | — | ~386 |
+| 19:44 | Session end: 1 writes across 1 files (password-grep.sh) | 1 reads | ~413 tok |
+| 19:45 | Session end: 1 writes across 1 files (password-grep.sh) | 1 reads | ~413 tok |
+| 19:51 | verify-work 01: UAT test 5 (real-password grep after ingest) passed; 01-UAT complete 5/5; VERIFICATION status→passed; transition skipped (phase 1 already complete, STATE on 02) | 01-UAT.md, 01-VERIFICATION.md | done | ~8k |
+| 19:51 | Session end: 1 writes across 1 files (password-grep.sh) | 1 reads | ~413 tok |
+
+## Session: 2026-10-08 19:54
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-10-08 20:48
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:29 | Created .planning/phases/03-tiered-classification-with-traces/03-DISCUSS-CHECKPOINT.json | — | ~696 |
+| 00:43 | Session end: 1 writes across 1 files (03-DISCUSS-CHECKPOINT.json) | 6 reads | ~7071 tok |
+| 01:16 | Created .planning/phases/03-tiered-classification-with-traces/03-CONTEXT.md | — | ~4308 |
+| 01:17 | Created .planning/phases/03-tiered-classification-with-traces/03-DISCUSSION-LOG.md | — | ~1911 |
+| 01:20 | Phase 3 discuss complete: 03-CONTEXT.md (33 decisions) + DISCUSSION-LOG committed (1992f3b), STATE session recorded | .planning/phases/03-* | done | ~1500 |
+| 01:18 | Session end: 3 writes across 3 files (03-DISCUSS-CHECKPOINT.json, 03-CONTEXT.md, 03-DISCUSSION-LOG.md) | 6 reads | ~13734 tok |
+
+## Session: 2026-10-08 01:19
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-10-08 01:34
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 01:36 | gsd-framework-selector P3: no new deps, Ollama /api/chat via native fetch + Zod 4 toJSONSchema; alt ollama@0.6.4 (MIT) | 03-CONTEXT.md, package.json files | recommendation returned | ~45k |
+| 01:49 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/a6f5c35a-9d83-4791-8806-d5eb65937153/scratchpad/llm/llm-output.ts | — | ~667 |
+| 01:49 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/a6f5c35a-9d83-4791-8806-d5eb65937153/scratchpad/llm/prompt.ts | — | ~1255 |
+| 01:50 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/a6f5c35a-9d83-4791-8806-d5eb65937153/scratchpad/llm/ollama-client.ts | — | ~1722 |
+| 01:50 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/a6f5c35a-9d83-4791-8806-d5eb65937153/scratchpad/llm/llm-tier.ts | — | ~1150 |
+| 01:51 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/a6f5c35a-9d83-4791-8806-d5eb65937153/scratchpad/llm/try.ts | — | ~1114 |
+| 01:55 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/a6f5c35a-9d83-4791-8806-d5eb65937153/scratchpad/llm/llm-smoke.ts | — | ~686 |
+| 01:57 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | added error handling | ~4289 |
+| 01:59 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | added error handling | ~5337 |
+| 02:01 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | added error handling | ~4881 |
+| 02:02 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | 2→2 lines | ~47 |
+| 02:02 | gsd-ai-researcher: wrote AI-SPEC sections 3, 4, 4b (direct Ollama /api/chat + Zod 4; verified grammar/truncate/think live on Ollama 0.18.2) | .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | done | ~60k |
+| 02:03 | Session end: 10 writes across 7 files (llm-output.ts, prompt.ts, ollama-client.ts, llm-tier.ts, try.ts) | 4 reads | ~44726 tok |
+| 02:06 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | added error handling | ~3264 |
+| 02:06 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | 2→2 lines | ~20 |
+| 02:06 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | modified classifier() | ~529 |
+| 02:06 | gsd-domain-researcher wrote AI-SPEC Section 1b (domain context: personal email triage rubric, failure modes, GDPR household/AI Act scope, owner eval roles) | .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | done | ~25k |
+| 02:07 | Session end: 13 writes across 7 files (llm-output.ts, prompt.ts, ollama-client.ts, llm-tier.ts, try.ts) | 6 reads | ~52091 tok |
+| 02:20 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | modified PASS() | ~7516 |
+| 02:21 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | added error handling | ~1927 |
+| 02:21 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | added error handling | ~1263 |
+| 02:22 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | inline fix | ~12 |
+| 02:22 | Edited .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | 7→7 lines | ~120 |
+| 02:23 | gsd-eval-planner: wrote AI-SPEC §5 (15 eval dims, E1–E11 P3 CI gates, sets A/B/C), §6 (5 online guardrails, residual in-list steering risk, flywheel), §7 (decision.spans, alerts, weekly sampling); ticked checklist | .planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md | done | ~12000 |
+| 02:25 | Session end: 18 writes across 7 files (llm-output.ts, prompt.ts, ollama-client.ts, llm-tier.ts, try.ts) | 6 reads | ~63702 tok |
+
+## Session: 2026-10-10 01:42
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 01:54 | Created .planning/phases/03-tiered-classification-with-traces/03-RESEARCH.md | — | ~18649 |
+| 01:56 | Session end: 1 writes across 1 files (03-RESEARCH.md) | 9 reads | ~80526 tok |
+| 01:58 | Created .planning/phases/03-tiered-classification-with-traces/03-PATTERNS.md | — | ~4025 |
+| 01:59 | Session end: 2 writes across 2 files (03-RESEARCH.md, 03-PATTERNS.md) | 9 reads | ~84838 tok |
+| 02:17 | Created .planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md | — | ~7303 |
+| 02:17 | Edited .planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md | yaml() → nothing() | ~111 |
+| 02:17 | Edited .planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md | "git status --ignored data" → "git ls-files --cached --o" | ~30 |
+| 02:17 | Edited .planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md | "data/" → "Local runtime data" | ~35 |
+| 02:17 | Edited .planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md | "data/" → "Local runtime data" | ~17 |
+| 02:18 | Edited .planning/phases/03-tiered-classification-with-traces/03-01-PLAN.md | nothing() → case() | ~80 |
+| 02:19 | Created .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | — | ~4129 |
+| 02:19 | Edited .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | inline fix | ~54 |
+| 02:19 | Edited .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | 2→2 lines | ~75 |
+| 02:19 | Edited .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | 1→2 lines | ~60 |
+| 02:21 | Created .planning/phases/03-tiered-classification-with-traces/03-03-PLAN.md | — | ~6923 |
+| 02:23 | Created .planning/phases/03-tiered-classification-with-traces/03-05-PLAN.md | — | ~7432 |
+| 02:25 | Created .planning/phases/03-tiered-classification-with-traces/03-04-PLAN.md | — | ~5628 |
+| 02:27 | Created .planning/phases/03-tiered-classification-with-traces/03-06-PLAN.md | — | ~5808 |
+| 02:29 | Created .planning/phases/03-tiered-classification-with-traces/03-07-PLAN.md | — | ~6859 |
+| 02:31 | Created .planning/phases/03-tiered-classification-with-traces/03-08-PLAN.md | — | ~8511 |
+| 02:31 | Edited .planning/phases/03-tiered-classification-with-traces/03-08-PLAN.md | inline fix | ~53 |
+| 02:31 | Edited .planning/phases/03-tiered-classification-with-traces/03-08-PLAN.md | inline fix | ~16 |
+| 02:33 | Created .planning/phases/03-tiered-classification-with-traces/03-09-PLAN.md | — | ~5644 |
+| 02:34 | Created .planning/phases/03-tiered-classification-with-traces/03-11-PLAN.md | — | ~4079 |
+| 02:35 | Edited .planning/phases/03-tiered-classification-with-traces/03-11-PLAN.md | inline fix | ~42 |
+| 02:35 | Edited .planning/phases/03-tiered-classification-with-traces/03-11-PLAN.md | inline fix | ~61 |
+| 02:36 | Created .planning/phases/03-tiered-classification-with-traces/03-12-PLAN.md | — | ~6058 |
+| 02:36 | Edited .planning/phases/03-tiered-classification-with-traces/03-12-PLAN.md | inline fix | ~77 |
+| 02:36 | Edited .planning/phases/03-tiered-classification-with-traces/03-12-PLAN.md | inline fix | ~37 |
+| 02:38 | Created .planning/phases/03-tiered-classification-with-traces/03-10-PLAN.md | — | ~5819 |
+| 02:39 | Edited .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | inline fix | ~111 |
+| 02:39 | Edited .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | inline fix | ~44 |
+| 02:39 | Edited .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | inline fix | ~56 |
+| 02:39 | Edited .planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md | inline fix | ~21 |
+| 02:40 | Created .planning/phases/03-tiered-classification-with-traces/03-13-PLAN.md | — | ~5015 |
+| 02:40 | Edited .planning/phases/03-tiered-classification-with-traces/03-13-PLAN.md | "node --env-file-if-exists" → "pnpm install" | ~42 |
+| 02:41 | Created .planning/phases/03-tiered-classification-with-traces/COVERAGE.md | — | ~795 |
+| 02:42 | Edited .planning/phases/03-tiered-classification-with-traces/03-VALIDATION.md | expanded (+23 lines) | ~1976 |
+| 02:42 | Edited .planning/phases/03-tiered-classification-with-traces/03-VALIDATION.md | 5→7 lines | ~203 |
+| 02:42 | Edited .planning/ROADMAP.md | expanded (+26 lines) | ~602 |
+| 02:44 | Session end: 38 writes across 18 files (03-RESEARCH.md, 03-PATTERNS.md, 03-01-PLAN.md, 03-02-PLAN.md, 03-03-PLAN.md) | 16 reads | ~207451 tok |
+
+## Session: 2026-10-10 12:23
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-10-10 12:27
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
