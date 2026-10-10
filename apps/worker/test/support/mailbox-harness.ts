@@ -53,7 +53,8 @@ export function siftConfig(...mailboxes: MailboxConfig[]): SiftConfig {
     mailboxes,
     models: {
       provider: 'ollama',
-      url: 'http://localhost:11434',
+      // Unroutable: no worker test can reach a real Ollama on this machine (RESEARCH Pitfall 1).
+      url: 'http://ollama.invalid',
       embeddings: 'nomic-embed-text',
       llm: 'qwen3:1.7b',
     },

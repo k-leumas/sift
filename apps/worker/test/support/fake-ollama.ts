@@ -47,6 +47,8 @@ export interface RecordedRequest {
   path: string;
   body: unknown;
   origin: string;
+  /** What the fake answered (the replay check compares attempts' raw output with it). */
+  response?: FakeResponse;
 }
 
 export interface FakeOllama {
@@ -235,12 +237,13 @@ export async function startFakeOllama(options: FakeOllamaOptions = {}): Promise<
       body = text === '' ? null : JSON.parse(text);
     } catch {}
     const path = new URL(req.url ?? '/', 'http://fake').pathname;
-    recorded.push({
+    const entry: RecordedRequest = {
       method: req.method ?? '',
       path,
       body,
       origin: `http://${req.headers.host ?? ''}`,
-    });
+    };
+    recorded.push(entry);
 
     let response: FakeResponse;
     if (path === '/api/chat' && req.method === 'POST') response = chatResponse(body);
@@ -248,6 +251,7 @@ export async function startFakeOllama(options: FakeOllamaOptions = {}): Promise<
     else if (path === '/api/tags' && req.method === 'GET') response = defaults['/api/tags'];
     else if (path === '/api/show' && req.method === 'POST') response = defaults['/api/show'];
     else response = { status: 404, json: { error: '404 page not found' } };
+    entry.response = response;
 
     if (response.delayMs !== undefined && response.delayMs > 0) {
       const timer = setTimeout(() => {
