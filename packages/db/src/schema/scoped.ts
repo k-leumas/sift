@@ -3,6 +3,7 @@ import {
   bigint,
   boolean,
   check,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -11,10 +12,12 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { mailboxIsolation } from '../rls.ts';
 import { mailbox } from './mailbox.ts';
+import { promptVersion } from './prompt-version.ts';
 
 /**
  * Mailbox-scoped tables (ISO-01). Each one has a NOT NULL mailbox_id that
@@ -84,6 +87,10 @@ export const message = pgTable(
       'message_identity_key_check',
       sql`${t.identityKey} ~ '^(pm:.+|mid:.+|hdr:v[0-9]+:[0-9a-f]{64})$'`,
     ),
+    // The classification pending scan: eligible mail, newest first.
+    index('message_pending_idx')
+      .on(t.mailboxId, t.internalDate.desc(), t.id.desc())
+      .where(sql`eligible_for_classification`),
     mailboxIsolation(),
   ],
 );
@@ -232,13 +239,82 @@ export const label = pgTable(
   ],
 );
 
-/** Append-only decision trace rows (D-40), keyed to a message like label. */
+/** The rule-set snapshot stored on rule_set: the parsed rules.yaml content (D-03). */
+export type RuleSetSnapshot = Record<string, unknown>;
+
+/**
+ * Append-only rule-set snapshots (D-03, TRC-04). A row is written whenever a
+ * mailbox's rules.yaml content changes, and every decision references the
+ * snapshot it was made against, so it can be replayed exactly. sift_app may
+ * only read and insert rows (0010).
+ *
+ * version counts up from 1 per mailbox. hash is the 64-char lowercase hex
+ * SHA-256 of the normalised snapshot, unique per mailbox so identical content
+ * is stored once. format_version is the snapshot layout version, and snapshot
+ * is the normalised rules document as a JSON object.
+ */
+export const ruleSet = pgTable(
+  'rule_set',
+  {
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
+    mailboxId: mailboxId(),
+    version: integer('version').notNull(),
+    hash: text('hash').notNull(),
+    formatVersion: integer('format_version').notNull(),
+    snapshot: jsonb('snapshot').$type<RuleSetSnapshot>().notNull(),
+    ...timestamps(),
+  },
+  (t) => [
+    unique('rule_set_mailbox_id_id_key').on(t.mailboxId, t.id),
+    unique('rule_set_mailbox_id_hash_key').on(t.mailboxId, t.hash),
+    unique('rule_set_mailbox_id_version_key').on(t.mailboxId, t.version),
+    check('rule_set_version_check', sql`${t.version} >= 1 and ${t.formatVersion} >= 1`),
+    check('rule_set_hash_check', sql`${t.hash} ~ '^[0-9a-f]{64}$'`),
+    check('rule_set_snapshot_check', sql`jsonb_typeof(${t.snapshot}) = 'object'`),
+    mailboxIsolation(),
+  ],
+);
+
+/**
+ * Append-only decision traces (D-40, D-27, TRC-01), keyed to a message like
+ * label. One row records one classification of one message:
+ *
+ * - outcome: 'labelled' (category holds the label) or 'review' (held for the
+ *   owner; review_reason says why, D-31: low_confidence, invalid_output,
+ *   out_of_category or input_too_long).
+ * - tier: which tier decided, 'exact_rules' or 'llm'. An exact-rule decision
+ *   is always labelled and carries no confidence, prompt version or model
+ *   (D-13). An LLM decision always names its prompt_version and model.
+ * - confidence: the LLM's confidence, 0..1 in double precision. Present
+ *   exactly when the LLM gave a usable answer: a labelled LLM decision or a
+ *   low_confidence review.
+ * - rule_set_id: the rule-set snapshot the decision was made against.
+ * - decided_by: 'worker' for the automatic decision (at most one per message,
+ *   D-15) or 'rerun' for an owner-requested re-classification, which appends
+ *   next to it and never replaces it (D-17).
+ * - trace_format_version and spans: the trace itself, a JSON array of span
+ *   objects whose shape is validated in code.
+ *
+ * Every check names its nullable columns explicitly, because a check
+ * constraint accepts a NULL result.
+ */
 export const decision = pgTable(
   'decision',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     mailboxId: mailboxId(),
     messageId: uuid('message_id').notNull(),
+    outcome: text('outcome').notNull(),
+    category: text('category'),
+    confidence: doublePrecision('confidence'),
+    tier: text('tier').notNull(),
+    reviewReason: text('review_reason'),
+    ruleSetId: uuid('rule_set_id').notNull(),
+    promptVersionId: uuid('prompt_version_id'),
+    model: text('model'),
+    decidedBy: text('decided_by').notNull(),
+    traceFormatVersion: integer('trace_format_version').notNull(),
+    spans: jsonb('spans').$type<readonly unknown[]>().notNull(),
     ...timestamps(),
   },
   (t) => [
@@ -248,6 +324,46 @@ export const decision = pgTable(
       columns: [t.mailboxId, t.messageId],
       foreignColumns: [message.mailboxId, message.id],
     }).onDelete('restrict'),
+    foreignKey({
+      name: 'decision_rule_set_fk',
+      columns: [t.mailboxId, t.ruleSetId],
+      foreignColumns: [ruleSet.mailboxId, ruleSet.id],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'decision_prompt_version_fk',
+      columns: [t.promptVersionId],
+      foreignColumns: [promptVersion.id],
+    }).onDelete('restrict'),
+    index('decision_message_idx').on(t.mailboxId, t.messageId),
+    // At most one automatic decision per message; reruns append freely.
+    uniqueIndex('decision_one_worker_per_message')
+      .on(t.mailboxId, t.messageId)
+      .where(sql`decided_by = 'worker'`),
+    check('decision_outcome_check', sql`${t.outcome} in ('labelled', 'review')`),
+    check(
+      'decision_category_check',
+      sql`(${t.outcome} = 'labelled') = (${t.category} is not null)`,
+    ),
+    check('decision_tier_check', sql`${t.tier} in ('exact_rules', 'llm')`),
+    check(
+      'decision_review_reason_check',
+      sql`((${t.outcome} = 'review') = (${t.reviewReason} is not null)) and (${t.reviewReason} is null or ${t.reviewReason} in ('low_confidence', 'invalid_output', 'out_of_category', 'input_too_long'))`,
+    ),
+    check(
+      'decision_exact_rules_check',
+      sql`${t.tier} <> 'exact_rules' or (${t.outcome} = 'labelled' and ${t.confidence} is null and ${t.promptVersionId} is null and ${t.model} is null)`,
+    ),
+    check(
+      'decision_llm_check',
+      sql`${t.tier} <> 'llm' or (${t.promptVersionId} is not null and ${t.model} is not null)`,
+    ),
+    check(
+      'decision_confidence_check',
+      sql`(${t.confidence} is null or (${t.confidence} >= 0 and ${t.confidence} <= 1)) and ((${t.tier} = 'llm' and (${t.outcome} = 'labelled' or ${t.reviewReason} is not distinct from 'low_confidence')) = (${t.confidence} is not null))`,
+    ),
+    check('decision_decided_by_check', sql`${t.decidedBy} in ('worker', 'rerun')`),
+    check('decision_trace_format_check', sql`${t.traceFormatVersion} >= 1`),
+    check('decision_spans_check', sql`jsonb_typeof(${t.spans}) = 'array'`),
     mailboxIsolation(),
   ],
 );
@@ -312,14 +428,4 @@ export const labelEvent = pgTable(
     ...timestamps(),
   },
   (t) => [unique('label_event_mailbox_id_id_key').on(t.mailboxId, t.id), mailboxIsolation()],
-);
-
-export const ruleSet = pgTable(
-  'rule_set',
-  {
-    id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    mailboxId: mailboxId(),
-    ...timestamps(),
-  },
-  (t) => [unique('rule_set_mailbox_id_id_key').on(t.mailboxId, t.id), mailboxIsolation()],
 );

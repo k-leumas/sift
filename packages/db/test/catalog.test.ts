@@ -158,6 +158,20 @@ describe('catalog privilege and role checks (D-37, D-40, D-66)', () => {
     expect(violations).toEqual(['public.decision: sift_app has UPDATE, expected none']);
   });
 
+  it('reports an UPDATE grant on the unscoped prompt_version registry (D-29)', async () => {
+    const violations = await violationsAfter((db) =>
+      run(db.ownerUrl, 'grant update on prompt_version to sift_app'),
+    );
+    expect(violations).toEqual(['public.prompt_version: sift_app has UPDATE, expected none']);
+  });
+
+  it('reports an UPDATE grant on the append-only rule_set (D-03)', async () => {
+    const violations = await violationsAfter((db) =>
+      run(db.ownerUrl, 'grant update on rule_set to sift_app'),
+    );
+    expect(violations).toEqual(['public.rule_set: sift_app has UPDATE, expected none']);
+  });
+
   it('reports column-level SELECT and INSERT grants that has_table_privilege misses', async () => {
     const violations = await violationsAfter((db) =>
       run(

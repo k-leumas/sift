@@ -1,6 +1,7 @@
 import type { mailbox } from './mailbox.ts';
 
 export { mailbox } from './mailbox.ts';
+export { promptVersion } from './prompt-version.ts';
 export {
   decision,
   folderSync,
@@ -12,6 +13,7 @@ export {
   messageBody,
   messageLocation,
   type ResyncSummary,
+  type RuleSetSnapshot,
   ruleSet,
 } from './scoped.ts';
 
@@ -28,8 +30,12 @@ export const SCOPED_TABLE_NAMES = [
   'rule_set',
 ] as const;
 
-/** Scoped tables where sift_app may only SELECT and INSERT (D-40). */
-export const APPEND_ONLY_TABLE_NAMES = ['decision', 'label_event'] as const;
+/**
+ * Scoped tables where sift_app may only SELECT and INSERT (D-40): decision
+ * traces, label events and the rule-set snapshots decisions replay against
+ * (D-03).
+ */
+export const APPEND_ONLY_TABLE_NAMES = ['decision', 'label_event', 'rule_set'] as const;
 
 /** The fixed mailbox registry column set (D-06, asserted by the catalog test). */
 export const MAILBOX_COLUMNS = [

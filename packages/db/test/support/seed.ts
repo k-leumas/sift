@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { connect } from './db.ts';
 
 /**
@@ -64,6 +65,89 @@ export async function seedImapMailbox(
   }
 }
 
+/**
+ * The smallest complete trace for an exact-rule decision (the 03-05 span
+ * layout): one exact-rules match, the classifier span skipped, a pending
+ * label action. Test rows use it so decision_spans_check and later trace
+ * readers see a realistic value.
+ */
+export const SEED_SPANS: readonly unknown[] = [
+  {
+    kind: 'exact_rules',
+    rules_checked: 1,
+    matches: [{ index: 0, name: 'rules[0]', label: 'Seed' }],
+    winner: { index: 0, name: 'rules[0]', label: 'Seed' },
+    nearest_miss: null,
+  },
+  { kind: 'classifier', status: 'skipped', reason: 'not trained' },
+  { kind: 'action', status: 'pending', intent: { type: 'label', label: 'Seed' } },
+];
+
+/** SEED_SPANS as a JSON text parameter (`$n::jsonb`); pg would send a JS array as a Postgres array. */
+export const SEED_SPANS_JSON = JSON.stringify(SEED_SPANS);
+
+/** A rule-set snapshot object accepted by rule_set_snapshot_check. */
+export const SEED_SNAPSHOT_JSON = '{"version":1,"categories":[],"judgment":[],"rules":[]}';
+
+/**
+ * SQL for a random 64-char lowercase hex hash, so every inserted rule_set row
+ * has its own (mailbox_id, hash).
+ */
+export const RANDOM_HASH_SQL = "encode(sha256(gen_random_uuid()::text::bytea), 'hex')";
+
+/**
+ * Versions for rule_set rows written through the scoped API. They start far
+ * above what seedScopedRows hands out (max + 1 per mailbox), so the two never
+ * meet on rule_set_mailbox_id_version_key.
+ */
+let nextRuleSetVersion = 1_000_000;
+
+/** A complete rule_set row for `s.ruleSet.insert`, with its own version and hash. */
+export function newRuleSetRow(): {
+  version: number;
+  hash: string;
+  formatVersion: number;
+  snapshot: Record<string, unknown>;
+} {
+  nextRuleSetVersion += 1;
+  return {
+    version: nextRuleSetVersion,
+    hash: randomBytes(32).toString('hex'),
+    formatVersion: 1,
+    snapshot: JSON.parse(SEED_SNAPSHOT_JSON) as Record<string, unknown>,
+  };
+}
+
+/**
+ * A complete exact-rule labelled decision for `s.decision.insert`. decidedBy
+ * defaults to 'rerun', which decision_one_worker_per_message never limits.
+ */
+export function newDecisionRow(
+  messageId: string,
+  ruleSetId: string,
+  decidedBy: 'worker' | 'rerun' = 'rerun',
+): {
+  messageId: string;
+  outcome: string;
+  category: string;
+  tier: string;
+  ruleSetId: string;
+  decidedBy: string;
+  traceFormatVersion: number;
+  spans: readonly unknown[];
+} {
+  return {
+    messageId,
+    outcome: 'labelled',
+    category: 'Seed',
+    tier: 'exact_rules',
+    ruleSetId,
+    decidedBy,
+    traceFormatVersion: 1,
+    spans: SEED_SPANS,
+  };
+}
+
 export interface ScopedRowIds {
   messageId: string;
   messageLocationId: string;
@@ -120,9 +204,23 @@ export async function seedScopedRows(ownerUrl: string, mailboxId: string): Promi
       'insert into label (mailbox_id, message_id) values ($1, $2) returning id',
       [mailboxId, messageId],
     );
+    // rule_set first: the decision references the snapshot it was made against.
+    // version is the next one for this mailbox, so repeated calls stay unique.
+    const ruleSetId = await insertId(
+      `insert into rule_set (mailbox_id, version, hash, format_version, snapshot)
+       select $1::uuid, coalesce(max(version), 0) + 1, ${RANDOM_HASH_SQL}, 1, $2::jsonb
+         from rule_set where mailbox_id = $1::uuid
+       returning id`,
+      [mailboxId, SEED_SNAPSHOT_JSON],
+    );
+    // A complete automatic exact-rule decision for the fresh message.
     const decisionId = await insertId(
-      'insert into decision (mailbox_id, message_id) values ($1, $2) returning id',
-      [mailboxId, messageId],
+      `insert into decision
+         (mailbox_id, message_id, outcome, category, tier, rule_set_id, decided_by,
+          trace_format_version, spans)
+       values ($1, $2, 'labelled', 'Seed', 'exact_rules', $3, 'worker', 1, $4::jsonb)
+       returning id`,
+      [mailboxId, messageId, ruleSetId, SEED_SPANS_JSON],
     );
     const folderSyncId = await insertId(
       `insert into folder_sync (mailbox_id, folder, uidvalidity, last_uid, internal_date_watermark)
@@ -134,9 +232,6 @@ export async function seedScopedRows(ownerUrl: string, mailboxId: string): Promi
       'insert into label_event (mailbox_id) values ($1) returning id',
       [mailboxId],
     );
-    const ruleSetId = await insertId('insert into rule_set (mailbox_id) values ($1) returning id', [
-      mailboxId,
-    ]);
     await owner.query(
       `insert into mailbox_status (mailbox_id, last_error) values ($1, null)
        on conflict (mailbox_id) do nothing`,

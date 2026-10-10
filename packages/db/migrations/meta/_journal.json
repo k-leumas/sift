@@ -57,6 +57,27 @@
       "when": 1791222022511,
       "tag": "0007_ingest_tables_force_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791658823259,
+      "tag": "0008_classification_preflight",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791658910163,
+      "tag": "0009_classification_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791658921210,
+      "tag": "0010_classification_grants",
+      "breakpoints": true
     }
   ]
 }

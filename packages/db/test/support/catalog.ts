@@ -8,6 +8,8 @@ import { APPEND_ONLY_TABLE_NAMES, MAILBOX_COLUMNS } from '../../src/schema/index
  */
 export const CATALOG_ALLOWLIST: Record<string, string> = {
   'public.mailbox': 'unscoped mailbox registry: configuration, not mail-derived (D-06)',
+  'public.prompt_version':
+    'unscoped prompt-template registry: code-derived, not mail-derived (D-29)',
   'drizzle.__drizzle_migrations': 'migration bookkeeping owned by sift_owner (D-37)',
 };
 
@@ -312,6 +314,10 @@ function expectedAppDml(qualified: string, scoped: boolean): Set<Privilege> | nu
   }
   if (qualified === 'drizzle.__drizzle_migrations') {
     return new Set();
+  }
+  if (qualified === 'public.prompt_version') {
+    // Append-only like the scoped trace tables: a prompt version is never edited (D-29).
+    return new Set(['SELECT', 'INSERT']);
   }
   if (!scoped) {
     return null;

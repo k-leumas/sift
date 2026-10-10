@@ -423,6 +423,76 @@ describe('migrate() preflight for the Phase 2 ingest schema (T-02-63)', () => {
   });
 });
 
+describe('migrate() preflight for the Phase 3 classification schema (0008)', () => {
+  it('refuses a database whose rule_set table already has rows and applies nothing', async () => {
+    const empty = await emptyDatabase();
+    const folder = await mkdtemp(path.join(tmpdir(), 'sift-migrations-'));
+    try {
+      // A Phase 2 database: only the migrations before the 0008 preflight.
+      await cp(MIGRATIONS_FOLDER, folder, { recursive: true });
+      const journalPath = path.join(folder, 'meta', '_journal.json');
+      const journal = JSON.parse(await readFile(journalPath, 'utf8')) as {
+        entries: { tag: string }[];
+      };
+      const preflight = journal.entries.findIndex((e) => e.tag === '0008_classification_preflight');
+      expect(preflight).toBe(8);
+      journal.entries = journal.entries.slice(0, preflight);
+      await writeFile(journalPath, JSON.stringify(journal, null, 2));
+      const appPassword = requireEnv('SIFT_DB_APP_PASSWORD');
+      await migrate({
+        ownerUrl: empty.ownerUrl,
+        appPassword,
+        migrationsFolder: folder,
+        backup: false,
+      });
+
+      // A Phase 2 shaped (key-only) rule_set row, written by hand as the owner.
+      const { legacy } = await seedMailboxes(empty.ownerUrl, ['legacy']);
+      if (legacy === undefined) {
+        throw new Error('seedMailboxes returned no id for "legacy"');
+      }
+      const owner = await connect(empty.ownerUrl);
+      try {
+        await owner.query('begin');
+        await owner.query("select set_config('app.mailbox_id', $1, true)", [legacy]);
+        await owner.query('insert into rule_set (mailbox_id) values ($1)', [legacy]);
+        await owner.query('commit');
+      } finally {
+        await owner.end();
+      }
+
+      const run = migrate({ ownerUrl: empty.ownerUrl, appPassword, backup: false });
+      await expect(run).rejects.toThrow(MigrationFailedError);
+      await expect(run).rejects.toThrow(
+        /^Sift's Phase 3 schema adds required columns to decision and rule_set/,
+      );
+      await expect(run).rejects.toThrow('mailbox legacy already has rows there');
+
+      const check = await connect(empty.ownerUrl);
+      try {
+        const applied = await check.query<{ n: number }>(
+          'select count(*)::int as n from drizzle.__drizzle_migrations',
+        );
+        expect(applied.rows[0]?.n).toBe(preflight);
+        const column = await check.query<{ n: number }>(
+          `select count(*)::int as n from information_schema.columns
+            where table_schema = 'public' and table_name = 'decision' and column_name = 'outcome'`,
+        );
+        expect(column.rows[0]?.n).toBe(0);
+        const table = await check.query<{ name: string | null }>(
+          "select to_regclass('public.prompt_version')::text as name",
+        );
+        expect(table.rows[0]?.name).toBeNull();
+      } finally {
+        await check.end();
+      }
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+      await empty.drop();
+    }
+  });
+});
+
 describe('migrate() backups (D-29, D-66)', () => {
   it('backs up before applying pending migrations', async (ctx) => {
     const pgDump = requirePgDump(ctx);

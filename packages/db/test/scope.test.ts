@@ -22,7 +22,13 @@ import {
   withMailbox,
 } from '../src/index.ts';
 import { connect, freshDatabase, type TestDatabase } from './support/db.ts';
-import { type ScopedRowIds, seedMailboxes, seedScopedRows } from './support/seed.ts';
+import {
+  newDecisionRow,
+  newRuleSetRow,
+  type ScopedRowIds,
+  seedMailboxes,
+  seedScopedRows,
+} from './support/seed.ts';
 
 /**
  * The scoped API (ISO-04, D-42..D-45): the only data-access surface app code
@@ -196,9 +202,10 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
     const rows = await withMailbox(app, A, async (s) => {
       const [msg] = await s.message.insert([newMessage()]);
       const messageId = msg?.id as string;
+      const ruleSet = await s.ruleSet.insert([newRuleSetRow()]);
       return {
         label: await s.label.insert([{ messageId }]),
-        decision: await s.decision.insert([{ messageId }]),
+        decision: await s.decision.insert([newDecisionRow(messageId, ruleSet[0]?.id as string)]),
         messageLocation: await s.messageLocation.insert([
           { messageId, folder: 'INBOX', uidvalidity: 7, uid: 1, generation: 1 },
         ]),
@@ -207,7 +214,7 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
         ]),
         folderSync: await s.folderSync.insert([newFolderSync()]),
         labelEvent: await s.labelEvent.insert([{}]),
-        ruleSet: await s.ruleSet.insert([{}]),
+        ruleSet,
       };
     });
     for (const inserted of Object.values(rows)) {
@@ -274,25 +281,20 @@ describe('application filter without RLS (superuser connection)', () => {
   });
 
   it('update({}) under A touches only A rows', async () => {
-    const mutable = [
-      'message',
-      'messageLocation',
-      'messageBody',
-      'label',
-      'folderSync',
-      'ruleSet',
-    ] as const;
+    const mutable = ['message', 'messageLocation', 'messageBody', 'label', 'folderSync'] as const;
     const tables = {
       message: 'message',
       messageLocation: 'message_location',
       messageBody: 'message_body',
       label: 'label',
       folderSync: 'folder_sync',
-      ruleSet: 'rule_set',
     };
     for (const key of mutable) {
       const beforeB = await adminRows(tables[key], B);
-      const updated = await withMailbox(admin, A, (s) => s[key].update({}));
+      // The tables' row types share no common supertype, so name the part this test reads.
+      const updated = await withMailbox<{ mailboxId: string }[]>(admin, A, (s) =>
+        s[key].update({}),
+      );
       expect(updated.length, key).toBeGreaterThan(0);
       expect(
         updated.every((r) => r.mailboxId === A),
@@ -308,11 +310,11 @@ describe('application filter without RLS (superuser connection)', () => {
       ['messageBody', 'message_body'],
       ['label', 'label'],
       ['folderSync', 'folder_sync'],
-      ['ruleSet', 'rule_set'],
     ] as const;
     for (const [key, table] of deletable) {
       const beforeB = await adminRows(table, B);
-      const deleted = await withMailbox(admin, A, (s) => s[key].delete());
+      // The tables' row types share no common supertype, so name the part this test reads.
+      const deleted = await withMailbox<{ mailboxId: string }[]>(admin, A, (s) => s[key].delete());
       expect(deleted.length, table).toBeGreaterThan(0);
       expect(
         deleted.every((r) => r.mailboxId === A),

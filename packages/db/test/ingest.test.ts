@@ -22,7 +22,7 @@ import {
   withMailbox,
 } from '../src/index.ts';
 import { connect, freshDatabase, type TestDatabase } from './support/db.ts';
-import { seedMailboxes } from './support/seed.ts';
+import { newDecisionRow, newRuleSetRow, seedMailboxes } from './support/seed.ts';
 
 /**
  * Ingest use-cases (ING-02, ING-04, D-14, D-15, D-07, D-17, D-21..D-25) on a
@@ -586,7 +586,8 @@ describe('removals and the body cache (D-07, D-17)', () => {
 
     const deleted = await withMailbox(app, mailboxId, async (s) => {
       const ids = await idsByKey(s, [stillLive, decided, orphan]);
-      await s.decision.insert([{ messageId: ids.get(decided) as string }]);
+      const [ruleSet] = await s.ruleSet.insert([newRuleSetRow()]);
+      await s.decision.insert([newDecisionRow(ids.get(decided) as string, ruleSet?.id as string)]);
       const inbox = await liveLocations(s, 'INBOX');
       await markLocationsRemoved(
         s,
