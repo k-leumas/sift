@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-12-PLAN.md
-last_updated: "2026-10-10T22:26:22.486Z"
+stopped_at: Completed 03-10-PLAN.md
+last_updated: "2026-10-10T22:56:27.492Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: d93ead8b111b958845629e8e90c511895a5b5d92
+state_head: d77d65065896a7f77d2720a5cbd4363af3269ca7
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 45
+  completed_plans: 46
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 12 of 13
+Plan: 13 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -101,6 +101,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P08 | 18 min | 3 tasks | 7 files |
 | Phase 03 P09 | 15 min | 3 tasks | 7 files |
 | Phase 03 P12 | 22 min | 3 tasks | 6 files |
+| Phase 03 P10 | 22 min | 3 tasks | 27 files |
 
 ## Accumulated Context
 
@@ -246,6 +247,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-12: sift classify resolves the IMAP entry and password only when an expired body must be refetched; missing password refuses with the worker's password_missing text
 - [Phase 03]: 03-12: a refetch needs the location under the current UIDVALIDITY and an equal re-derived identity key; gone or changed mail is one skip line by id, exit 0
 - [Phase 03]: 03-12: an Ollama outage in sift classify prints the owner message and 'classified x of n; y left' and exits 1; mailbox_status is never written
+- [Phase 03]: 03-10: pair call counts are compared under an honest fake; the compromised run asserts only the bound (allowed X labelled in 1 call, off-list X review out_of_category after the retry)
+- [Phase 03]: 03-10: hermeticity guard is strict (real Ollama port nowhere in classify tests/helpers); classify-ollama-client.test.ts DNS case uses http://ollama.invalid without a port
 
 ### Pending Todos
 
@@ -273,6 +276,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T22:26:22.323Z
-Stopped at: Completed 03-12-PLAN.md
+Last session: 2026-10-10T22:56:27.328Z
+Stopped at: Completed 03-10-PLAN.md
 Resume file: None

@@ -8,32 +8,32 @@
       "first_read": "2026-10-10T18:27:39.095Z"
     },
     "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md": {
-      "count": 11,
+      "count": 12,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.539Z"
     },
     "/Users/samuel/.claude/gsd-core/templates/summary.compact.md": {
-      "count": 11,
+      "count": 12,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.714Z"
     },
     "/Users/samuel/.claude/gsd-core/references/checkpoints.md": {
-      "count": 10,
+      "count": 11,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.108Z"
     },
     "/Users/samuel/.claude/gsd-core/references/tdd.md": {
-      "count": 10,
+      "count": 11,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.499Z"
     },
     "/Users/samuel/.claude/gsd-core/references/executor-examples.md": {
-      "count": 10,
+      "count": 11,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:42.506Z"
     },
     "/Users/samuel/.claude/gsd-core/references/worktree-path-safety.md": {
-      "count": 9,
+      "count": 10,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:42.932Z"
     },
@@ -78,7 +78,7 @@
       "first_read": "2026-10-10T19:57:39.782Z"
     },
     "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-AI-SPEC.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 28765,
       "first_read": "2026-10-10T20:32:03.346Z"
     },
@@ -93,8 +93,8 @@
       "first_read": "2026-10-10T21:25:28.248Z"
     },
     "/Users/samuel/dev/sift/apps/worker/test/support/classify-harness.ts": {
-      "count": 1,
-      "tokens": 4448,
+      "count": 2,
+      "tokens": 4614,
       "first_read": "2026-10-10T21:30:58.472Z"
     },
     "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-12-PLAN.md": {
@@ -111,6 +111,41 @@
       "count": 1,
       "tokens": 4848,
       "first_read": "2026-10-10T22:17:57.179Z"
+    },
+    "/Users/samuel/.claude/projects/-Users-samuel-dev-sift/fdfa37f8-a256-4a49-9000-3ee506260767/tool-results/b48n46hz8.txt": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-10-10T22:29:49.674Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-09-SUMMARY.md": {
+      "count": 1,
+      "tokens": 3289,
+      "first_read": "2026-10-10T22:30:02.286Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-05-SUMMARY.md": {
+      "count": 1,
+      "tokens": 3155,
+      "first_read": "2026-10-10T22:30:02.610Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-08-SUMMARY.md": {
+      "count": 1,
+      "tokens": 3948,
+      "first_read": "2026-10-10T22:30:03.438Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/test/support/fake-ollama.ts": {
+      "count": 1,
+      "tokens": 2906,
+      "first_read": "2026-10-10T22:30:21.744Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/test/classify-batch.test.ts": {
+      "count": 1,
+      "tokens": 1981,
+      "first_read": "2026-10-10T22:30:22.509Z"
+    },
+    "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts": {
+      "count": 3,
+      "tokens": 8544,
+      "first_read": "2026-10-10T22:37:27.481Z"
     }
   },
   "files_written": [
@@ -569,6 +604,174 @@
       "action": "create",
       "tokens": 4340,
       "at": "2026-10-10T22:25:49.636Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-fence-close.eml",
+      "action": "create",
+      "tokens": 135,
+      "at": "2026-10-10T22:33:19.573Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts",
+      "action": "create",
+      "tokens": 3255,
+      "at": "2026-10-10T22:34:15.629Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-guessed-nonce.eml",
+      "action": "create",
+      "tokens": 154,
+      "at": "2026-10-10T22:36:30.239Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-crlf-subject.eml",
+      "action": "create",
+      "tokens": 132,
+      "at": "2026-10-10T22:36:30.877Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-display-name-category.eml",
+      "action": "create",
+      "tokens": 111,
+      "at": "2026-10-10T22:36:31.551Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-bank-support-spoof.eml",
+      "action": "create",
+      "tokens": 139,
+      "at": "2026-10-10T22:36:32.188Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-think.eml",
+      "action": "create",
+      "tokens": 109,
+      "at": "2026-10-10T22:36:32.901Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-confidence-7.eml",
+      "action": "create",
+      "tokens": 124,
+      "at": "2026-10-10T22:36:33.585Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-hidden-html.eml",
+      "action": "create",
+      "tokens": 158,
+      "at": "2026-10-10T22:36:34.238Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-attachment-names.eml",
+      "action": "create",
+      "tokens": 255,
+      "at": "2026-10-10T22:36:35.344Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-phishing-receipt.eml",
+      "action": "create",
+      "tokens": 138,
+      "at": "2026-10-10T22:36:36.017Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/hostile-chat-roles.eml",
+      "action": "create",
+      "tokens": 142,
+      "at": "2026-10-10T22:36:36.674Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-bank-notice.eml",
+      "action": "create",
+      "tokens": 147,
+      "at": "2026-10-10T22:37:15.549Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-bank-notice.injected.eml",
+      "action": "create",
+      "tokens": 166,
+      "at": "2026-10-10T22:37:16.148Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-payment-failure.eml",
+      "action": "create",
+      "tokens": 138,
+      "at": "2026-10-10T22:37:16.836Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-payment-failure.injected.eml",
+      "action": "create",
+      "tokens": 174,
+      "at": "2026-10-10T22:37:17.512Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-interview.eml",
+      "action": "create",
+      "tokens": 138,
+      "at": "2026-10-10T22:37:18.226Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-interview.injected.eml",
+      "action": "create",
+      "tokens": 159,
+      "at": "2026-10-10T22:37:18.973Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-personal-reply.eml",
+      "action": "create",
+      "tokens": 122,
+      "at": "2026-10-10T22:37:19.789Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-personal-reply.injected.eml",
+      "action": "create",
+      "tokens": 142,
+      "at": "2026-10-10T22:37:20.451Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-newsletter.eml",
+      "action": "create",
+      "tokens": 133,
+      "at": "2026-10-10T22:37:21.134Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/fixtures/mail/pair-newsletter.injected.eml",
+      "action": "create",
+      "tokens": 142,
+      "at": "2026-10-10T22:37:21.870Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts",
+      "action": "edit",
+      "tokens": 38,
+      "at": "2026-10-10T22:41:03.001Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/classify-injection.test.ts",
+      "action": "edit",
+      "tokens": 202,
+      "at": "2026-10-10T22:42:21.099Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/classify-ollama-client.test.ts",
+      "action": "edit",
+      "tokens": 25,
+      "at": "2026-10-10T22:48:51.976Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/classify-hermetic.test.ts",
+      "action": "create",
+      "tokens": 701,
+      "at": "2026-10-10T22:48:52.645Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/apps/worker/test/classify-leak.test.ts",
+      "action": "create",
+      "tokens": 3127,
+      "at": "2026-10-10T22:49:28.963Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md",
+      "action": "create",
+      "tokens": 5096,
+      "at": "2026-10-10T22:55:59.069Z"
     }
   ],
   "edit_counts": {
@@ -613,7 +816,7 @@
     "apps/worker/src/classify/llm-tier.ts": 3,
     "apps/worker/test/support/fake-ollama.ts": 1,
     "apps/worker/test/classify-llm-tier.test.ts": 1,
-    "apps/worker/test/classify-ollama-client.test.ts": 1,
+    "apps/worker/test/classify-ollama-client.test.ts": 2,
     "apps/worker/test/classify-preflight.test.ts": 1,
     "apps/worker/src/classify/preflight.ts": 2,
     "apps/worker/src/classify/single-flight.ts": 1,
@@ -636,11 +839,36 @@
     "apps/worker/test/classify-cli.test.ts": 1,
     "apps/worker/src/classify/refetch.ts": 1,
     "apps/worker/test/classify-refetch.test.ts": 1,
-    ".planning/phases/03-tiered-classification-with-traces/03-12-SUMMARY.md": 1
+    ".planning/phases/03-tiered-classification-with-traces/03-12-SUMMARY.md": 1,
+    "apps/worker/test/fixtures/mail/hostile-fence-close.eml": 1,
+    "apps/worker/test/classify-injection.test.ts": 3,
+    "apps/worker/test/fixtures/mail/hostile-guessed-nonce.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-crlf-subject.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-display-name-category.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-bank-support-spoof.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-think.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-confidence-7.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-hidden-html.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-attachment-names.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-phishing-receipt.eml": 1,
+    "apps/worker/test/fixtures/mail/hostile-chat-roles.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-bank-notice.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-bank-notice.injected.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-payment-failure.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-payment-failure.injected.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-interview.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-interview.injected.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-personal-reply.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-personal-reply.injected.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-newsletter.eml": 1,
+    "apps/worker/test/fixtures/mail/pair-newsletter.injected.eml": 1,
+    "apps/worker/test/classify-hermetic.test.ts": 1,
+    "apps/worker/test/classify-leak.test.ts": 1,
+    ".planning/phases/03-tiered-classification-with-traces/03-10-SUMMARY.md": 1
   },
-  "anatomy_hits": 14,
-  "anatomy_misses": 7,
-  "repeated_reads_warned": 56,
+  "anatomy_hits": 20,
+  "anatomy_misses": 8,
+  "repeated_reads_warned": 67,
   "cerebrum_warnings": 0,
-  "stop_count": 16
+  "stop_count": 17
 }
