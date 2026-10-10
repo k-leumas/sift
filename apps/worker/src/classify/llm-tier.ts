@@ -44,6 +44,9 @@ const CONTEXT_400_DETAIL = 'Ollama refused the prompt as longer than the context
 
 const MAX_ATTEMPTS = 2;
 
+/** Prompt tokens at which the answer's room (num_predict) is gone: treated as input_too_long. */
+const CONTEXT_BUDGET = MODEL_OPTIONS.num_ctx - MODEL_OPTIONS.num_predict;
+
 function metricsSpan(metrics: LlmCallMetrics): NonNullable<LlmAttemptSpan['metrics']> {
   return {
     total_duration_ns: metrics.totalDurationNs,
@@ -106,6 +109,21 @@ export async function runLlmTier(
       done_reason: result.doneReason,
       metrics: metricsSpan(result.metrics),
     };
+
+    // E11: a prompt that filled the context left no room to be read whole, even if
+    // Ollama did not refuse it. Same input next time, so no retry.
+    const promptTokens = result.metrics.promptEvalCount;
+    if (promptTokens !== null && promptTokens >= CONTEXT_BUDGET) {
+      attempts.push({
+        ...base,
+        validation: {
+          ok: false,
+          code: 'input_too_long',
+          detail: 'prompt_eval_count reached the context budget',
+        },
+      });
+      return { kind: 'review', reason: 'input_too_long', attempts, responseModel };
+    }
 
     const checked =
       result.doneReason === 'length'

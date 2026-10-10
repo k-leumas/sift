@@ -343,7 +343,8 @@ describe('only validated message.content counts (CLS-05, E2)', () => {
   });
 
   it('an empty thinking field is recorded as null', async () => {
-    const { result } = await tierAgainst([jsonAnswer(VALID, { message: { thinking: '' } })]);
+    const { result, f } = await tierAgainst([jsonAnswer(VALID, { message: { thinking: '' } })]);
+    expect(f.chatBodies()).toHaveLength(1);
     expect(result.kind === 'decided' && result.attempts[0]?.thinking).toBeNull();
   });
 });
