@@ -104,5 +104,91 @@ export function decide(input: DecideInput): DecisionDraft {
     };
   }
 
-  throw new TypeError('decide: the LLM branch is not implemented yet');
+  // Unreachable after the checks above; it narrows `llm` for the type checker.
+  if (llm === undefined) throw new TypeError('decide: no LLM verdict was given');
+  return decideLlm(exact, llm.verdict, llm.context, input.threshold);
+}
+
+type LlmOutcome = {
+  result: LlmSpan['result'];
+  confidence: number | null;
+} & (
+  | { outcome: 'labelled'; category: string; reviewReason: null }
+  | { outcome: 'review'; category: null; reviewReason: ReviewReason }
+);
+
+/** D-24, D-26, D-31: a valid answer at or above the threshold labels; anything else reviews. */
+function llmOutcome(verdict: LlmVerdict, threshold: number): LlmOutcome {
+  if (verdict.kind === 'review') {
+    return {
+      outcome: 'review',
+      category: null,
+      reviewReason: verdict.reason,
+      result: null,
+      confidence: null,
+    };
+  }
+  const { output } = verdict;
+  const result = {
+    reason: output.reason,
+    category: output.category,
+    confidence: output.confidence,
+  };
+  if (output.confidence >= threshold) {
+    return {
+      outcome: 'labelled',
+      category: output.category,
+      reviewReason: null,
+      result,
+      confidence: output.confidence,
+    };
+  }
+  // Below the threshold: the answer and its confidence stay in the trace, the category does not.
+  return {
+    outcome: 'review',
+    category: null,
+    reviewReason: 'low_confidence',
+    result,
+    confidence: output.confidence,
+  };
+}
+
+function decideLlm(
+  exact: ExactRulesSpan,
+  verdict: LlmVerdict,
+  context: LlmSpanContext,
+  threshold: number,
+): DecisionDraft {
+  const decided = llmOutcome(verdict, threshold);
+  const action: ActionSpan =
+    decided.outcome === 'labelled'
+      ? labelAction(decided.category)
+      : {
+          kind: 'action',
+          status: 'pending',
+          intent: { type: 'review', reason: decided.reviewReason },
+        };
+  const spans = decisionSpansSchema.parse([
+    exact,
+    { ...CLASSIFIER_SKIPPED_SPAN },
+    {
+      kind: 'llm',
+      ...context,
+      attempts: verdict.attempts,
+      result: decided.result,
+      confidence: decided.confidence,
+      threshold,
+    },
+    action,
+  ]);
+  return {
+    outcome: decided.outcome,
+    category: decided.category,
+    confidence: decided.confidence,
+    tier: 'llm',
+    reviewReason: decided.reviewReason,
+    model: context.model,
+    traceFormatVersion: TRACE_FORMAT_VERSION,
+    spans,
+  };
 }
