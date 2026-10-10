@@ -8,27 +8,27 @@
       "first_read": "2026-10-10T18:27:39.095Z"
     },
     "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md": {
-      "count": 3,
+      "count": 4,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.539Z"
     },
     "/Users/samuel/.claude/gsd-core/templates/summary.compact.md": {
-      "count": 3,
+      "count": 4,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.714Z"
     },
     "/Users/samuel/.claude/gsd-core/references/checkpoints.md": {
-      "count": 2,
+      "count": 3,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.108Z"
     },
     "/Users/samuel/.claude/gsd-core/references/tdd.md": {
-      "count": 2,
+      "count": 3,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.499Z"
     },
     "/Users/samuel/.claude/gsd-core/references/executor-examples.md": {
-      "count": 2,
+      "count": 3,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:42.506Z"
     },
@@ -164,6 +164,84 @@
       "action": "create",
       "tokens": 3576,
       "at": "2026-10-10T19:14:09.032Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/llm-output.ts",
+      "action": "create",
+      "tokens": 960,
+      "at": "2026-10-10T19:18:22.228Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/prompt.ts",
+      "action": "create",
+      "tokens": 2303,
+      "at": "2026-10-10T19:18:48.429Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/spans.ts",
+      "action": "create",
+      "tokens": 2006,
+      "at": "2026-10-10T19:19:17.644Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/index.ts",
+      "action": "create",
+      "tokens": 306,
+      "at": "2026-10-10T19:19:18.543Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/test/prompt.test.ts",
+      "action": "create",
+      "tokens": 3425,
+      "at": "2026-10-10T19:20:13.830Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/test/llm-output.test.ts",
+      "action": "create",
+      "tokens": 1693,
+      "at": "2026-10-10T19:22:09.129Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/test/spans.test.ts",
+      "action": "create",
+      "tokens": 1682,
+      "at": "2026-10-10T19:23:21.806Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/canonical.ts",
+      "action": "create",
+      "tokens": 70,
+      "at": "2026-10-10T19:24:06.013Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/prompt-version.ts",
+      "action": "create",
+      "tokens": 411,
+      "at": "2026-10-10T19:24:07.077Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/test/prompt-version.test.ts",
+      "action": "create",
+      "tokens": 1288,
+      "at": "2026-10-10T19:24:08.052Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/canonical.ts",
+      "action": "create",
+      "tokens": 417,
+      "at": "2026-10-10T19:25:11.406Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/packages/core/src/classify/prompt-version.ts",
+      "action": "create",
+      "tokens": 1022,
+      "at": "2026-10-10T19:25:12.657Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-05-SUMMARY.md",
+      "action": "create",
+      "tokens": 3606,
+      "at": "2026-10-10T19:28:37.778Z"
     }
   ],
   "edit_counts": {
@@ -182,11 +260,22 @@
     "packages/db/test/catalog.test.ts": 1,
     "packages/db/test/classify-schema.test.ts": 1,
     "packages/db/test/migrate.test.ts": 1,
-    ".planning/phases/03-tiered-classification-with-traces/03-03-SUMMARY.md": 1
+    ".planning/phases/03-tiered-classification-with-traces/03-03-SUMMARY.md": 1,
+    "packages/core/src/classify/llm-output.ts": 1,
+    "packages/core/src/classify/prompt.ts": 1,
+    "packages/core/src/classify/spans.ts": 1,
+    "packages/core/src/classify/index.ts": 1,
+    "packages/core/test/prompt.test.ts": 1,
+    "packages/core/test/llm-output.test.ts": 1,
+    "packages/core/test/spans.test.ts": 1,
+    "packages/core/src/classify/canonical.ts": 2,
+    "packages/core/src/classify/prompt-version.ts": 2,
+    "packages/core/test/prompt-version.test.ts": 1,
+    ".planning/phases/03-tiered-classification-with-traces/03-05-SUMMARY.md": 1
   },
   "anatomy_hits": 6,
   "anatomy_misses": 6,
-  "repeated_reads_warned": 9,
+  "repeated_reads_warned": 14,
   "cerebrum_warnings": 0,
-  "stop_count": 6
+  "stop_count": 7
 }
