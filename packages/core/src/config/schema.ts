@@ -37,7 +37,7 @@ export const MAX_NEW_MAIL_CAP = 10_000;
 export const ENV_VAR_NAME_PATTERN = /^[A-Z_][A-Z0-9_]*$/;
 
 /** Render a scalar for an error message. Only used for non-secret values (version). */
-function describe(value: unknown): string {
+export function describe(value: unknown): string {
   if (typeof value === 'string') return JSON.stringify(value);
   if (typeof value === 'number' || typeof value === 'boolean' || value === null) {
     return String(value);
@@ -46,7 +46,7 @@ function describe(value: unknown): string {
 }
 
 /** Returns undefined for a missing value so the generic "is required" message applies. */
-function unlessMissing(message: string) {
+export function unlessMissing(message: string) {
   return (issue: { input?: unknown }) => (issue.input === undefined ? undefined : message);
 }
 
