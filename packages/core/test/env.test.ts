@@ -1,4 +1,7 @@
 import { spawnSync } from 'node:child_process';
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   applyEnvOverrides,
@@ -12,6 +15,9 @@ import { describe, expect, it } from 'vitest';
 
 const EXAMPLE = fileURLToPath(new URL('../../../config/config.example.yaml', import.meta.url));
 const CLI = fileURLToPath(new URL('../../../apps/worker/src/cli.ts', import.meta.url));
+const EXAMPLE_RULES = fileURLToPath(
+  new URL('../../../data/mailboxes/example/rules.example.yaml', import.meta.url),
+);
 
 /** A value that must never appear in any message. */
 const SENTINEL = 'sentinel-Zq9!value';
@@ -145,10 +151,26 @@ describe('sift config check env step', () => {
   });
 
   it('exits 0 when the variables are present, never printing their values', () => {
-    const run = check({ SIFT_PERSONAL_IMAP_PASSWORD: SENTINEL, SIFT_JOBS_IMAP_PASSWORD: 'y' });
-    expect(run.status).toBe(0);
-    expect(run.stdout).toContain('password env vars present');
-    expect(run.stdout + run.stderr).not.toContain(SENTINEL);
+    // The full check also reads each mailbox's rules file (D-05): give both
+    // example mailboxes a copy of the committed example rules file.
+    const data = mkdtempSync(join(tmpdir(), 'sift-env-data-'));
+    try {
+      for (const slug of ['personal', 'job-search']) {
+        mkdirSync(join(data, 'mailboxes', slug), { recursive: true });
+        copyFileSync(EXAMPLE_RULES, join(data, 'mailboxes', slug, 'rules.yaml'));
+      }
+      const run = check({
+        SIFT_PERSONAL_IMAP_PASSWORD: SENTINEL,
+        SIFT_JOBS_IMAP_PASSWORD: 'y',
+        SIFT_DATA: data,
+      });
+      expect(run.stderr).toBe('');
+      expect(run.status).toBe(0);
+      expect(run.stdout).toContain('password env vars present');
+      expect(run.stdout + run.stderr).not.toContain(SENTINEL);
+    } finally {
+      rmSync(data, { recursive: true, force: true });
+    }
   });
 
   it('skips the presence check with --schema-only (D-67)', () => {
