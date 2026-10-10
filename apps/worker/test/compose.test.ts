@@ -100,6 +100,7 @@ function dotenvKeys(file: string): string[] {
 const WORKER_ENV_ALLOWED = new Set([
   'SIFT_DATABASE_URL',
   'SIFT_CONFIG',
+  'SIFT_DATA',
   'SIFT_HEARTBEAT_FILE',
   'SIFT_LOG_LEVEL',
   'SIFT_MODELS_URL',
@@ -254,6 +255,26 @@ describe('ordering and lifecycle (D-27, D-53, D-54, D-60)', () => {
       expect(mounts, `${name} config mount`).toEqual([expected]);
     }
   });
+
+  it('mounts the data directory read-only at /data and points SIFT_DATA at it', () => {
+    for (const name of ['setup', 'worker']) {
+      const svc = service(name);
+      const mounts = shortVolumes(svc).filter((v) => v.includes(':/data'));
+      // Only compose-smoke sets SIFT_DATA_HOST_DIR; owners mount ./data.
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+      expect(mounts, `${name} data mount`).toEqual(['${SIFT_DATA_HOST_DIR:-./data}:/data:ro']);
+      expect(env(svc).SIFT_DATA, `${name} SIFT_DATA`).toBe('/data');
+    }
+  });
+
+  it('never mounts the owner data directory writable (T-03-41)', () => {
+    for (const [name, svc] of Object.entries(compose.services ?? {})) {
+      for (const entry of shortVolumes(svc)) {
+        if (!entry.includes('SIFT_DATA_HOST_DIR') && !entry.startsWith('./data')) continue;
+        expect(entry.endsWith(':ro'), `${name} mount ${entry}`).toBe(true);
+      }
+    }
+  });
 });
 
 describe('.env.mailboxes.example', () => {
@@ -391,12 +412,14 @@ describe('Bridge vault, secrets and mounts across services (D-32, D-37, D-38, D-
     expect(dependsOn).not.toContain('bridge-init');
   });
 
-  it('leaves the worker and setup mounts as in Phase 1 (no certificate mount)', () => {
+  it('gives the worker and setup only config, backups (setup) and data mounts (no certificate mount)', () => {
     // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
     const config = '${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro';
     // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
     const backups = '${SIFT_BACKUP_HOST_DIR:-./backups}:/backups';
-    expect(service('worker').volumes).toEqual([config]);
-    expect(service('setup').volumes).toEqual([config, backups]);
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: Compose interpolation, not JS
+    const data = '${SIFT_DATA_HOST_DIR:-./data}:/data:ro';
+    expect(service('worker').volumes).toEqual([config, data]);
+    expect(service('setup').volumes).toEqual([config, backups, data]);
   });
 });

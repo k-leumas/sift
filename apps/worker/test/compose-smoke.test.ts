@@ -69,7 +69,7 @@ function runSmoke(
       '  exit 0',
       'fi',
       `echo "$SIFT_PGDATA_VOLUME $*" >> '${dockerLog}'`,
-      `echo "$SIFT_BACKUP_HOST_DIR|$SIFT_CONFIG_HOST_DIR|$SIFT_MAILBOXES_ENV_FILE|$SIFT_IMAGE" >> '${envLog}'`,
+      `echo "$SIFT_BACKUP_HOST_DIR|$SIFT_CONFIG_HOST_DIR|$SIFT_MAILBOXES_ENV_FILE|$SIFT_IMAGE|$SIFT_DATA_HOST_DIR" >> '${envLog}'`,
       `echo "$SIFT_BRIDGE_VOLUME|$SIFT_MAILBOXES_BAK_FILE" >> '${bridgeEnvLog}'`,
       '[ "$1" != volume ] || exit 0',
       'case "$*" in *" build "*) [ -z "$SHIM_BUILD_OK" ] || exit 0 ;; esac',
@@ -108,14 +108,15 @@ interface ExportedEnv {
   configDir: string;
   mailboxesEnvFile: string;
   image: string;
+  dataDir: string;
 }
 
 /** Smoke variables as seen by the first docker invocation, or undefined. */
 function exportedEnv(): ExportedEnv | undefined {
   if (!existsSync(envLog)) return undefined;
-  const [backupDir = '', configDir = '', mailboxesEnvFile = '', image = ''] =
+  const [backupDir = '', configDir = '', mailboxesEnvFile = '', image = '', dataDir = ''] =
     readFileSync(envLog, 'utf8').split('\n')[0]?.split('|') ?? [];
-  return { backupDir, configDir, mailboxesEnvFile, image };
+  return { backupDir, configDir, mailboxesEnvFile, image, dataDir };
 }
 
 /** SIFT_BACKUP_HOST_DIR as seen by the first docker invocation, or undefined. */
@@ -371,7 +372,10 @@ describe('scripts/compose-smoke.sh shares no files or image with the owner stack
       configDir: path.join(smokeDir(), 'config'),
       mailboxesEnvFile: path.join(smokeDir(), '.env.mailboxes'),
       image: 'sift-smoke:local',
+      dataDir: path.join(smokeDir(), 'data'),
     });
+    // The smoke stack's own data dir exists (world-readable) before the first docker call.
+    expect(statSync(path.join(smokeDir(), 'data', 'mailboxes')).mode & 0o777).toBe(0o755);
     for (const file of ['.env', '.env.mailboxes', 'config/config.yaml']) {
       expect(readFileSync(path.join(smokeDir(), file), 'utf8'), file).not.toContain(
         'OWNER-SENTINEL',
