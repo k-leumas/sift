@@ -25,6 +25,12 @@
 # throwaway stack that shares none of your files, image or volume. Likewise
 # SIFT_BRIDGE_IMAGE, SIFT_BRIDGE_VOLUME and SIFT_MAILBOXES_BAK_FILE exist only
 # for the smoke scripts. Leave them unset.
+#
+# The worker and setup mount ./data read-only at /data (SIFT_DATA=/data): each
+# mailbox's rules file is data/mailboxes/<slug>/rules.yaml, and Sift never
+# writes there. SIFT_DATA_HOST_DIR exists only for compose-smoke; owners keep
+# ./data. On Linux, create the directory before the first `docker compose up`
+# (mkdir -p data/mailboxes/<slug>), or Docker creates it owned by root.
 
 services:
   db:
@@ -67,12 +73,16 @@ services:
       SIFT_DB_APP_PASSWORD: ${SIFT_DB_APP_PASSWORD:?set in .env}
       SIFT_CONFIG: /config/config.yaml
       SIFT_BACKUP_DIR: /backups
+      SIFT_DATA: /data
     volumes:
       - ${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro
       # Must be writable by uid 1000 (the image's node user).
       # SIFT_BACKUP_HOST_DIR exists only so scripts/compose-smoke.sh keeps its
       # throwaway dumps out of your ./backups; leave it unset.
       - ${SIFT_BACKUP_HOST_DIR:-./backups}:/backups
+      # Read-only: setup never reads rules files, but `sift mailbox rename`
+      # (run in this service) checks that the new rules file exists (D-07).
+      - ${SIFT_DATA_HOST_DIR:-./data}:/data:ro
     depends_on:
       db:
         condition: service_healthy
@@ -92,9 +102,12 @@ services:
     environment:
       SIFT_DATABASE_URL: postgres://sift_app:${SIFT_DB_APP_PASSWORD:?set in .env}@db:5432/sift
       SIFT_CONFIG: /config/config.yaml
+      SIFT_DATA: /data
       SIFT_HEARTBEAT_FILE: /tmp/sift/heartbeat
     volumes:
       - ${SIFT_CONFIG_HOST_DIR:-./config}:/config:ro
+      # Rules files (data/mailboxes/<slug>/rules.yaml), read-only.
+      - ${SIFT_DATA_HOST_DIR:-./data}:/data:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

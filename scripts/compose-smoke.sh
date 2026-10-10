@@ -114,8 +114,11 @@ real_dir() { (cd "$1" && pwd -P); }
 # ownership on bind mounts (Docker Desktop on macOS does not), so the config dir
 # and config.yaml must be readable by others and the backup dir must be owned
 # by uid 1000. The .env files stay 0600: only the compose CLI on the host reads
-# them.
+# them. The data dir (rules files, mounted read-only at /data) is created here
+# and world-readable too, so Docker never creates it as root and the smoke
+# stack never mounts your ./data.
 (umask 022 && mkdir -p ".smoke/$project/config")
+(umask 022 && mkdir -p ".smoke/$project/data/mailboxes")
 smoke_dir=$(real_dir ".smoke/$project")
 umask 077
 
@@ -162,6 +165,8 @@ done < .env.mailboxes.example > "$smoke_dir/.env.mailboxes"
   config/config.example.yaml > "$smoke_dir/config/config.yaml")
 
 export SIFT_CONFIG_HOST_DIR=$smoke_dir/config
+# The smoke stack's own data dir, never ./data (mounted read-only at /data).
+export SIFT_DATA_HOST_DIR=$smoke_dir/data
 export SIFT_MAILBOXES_ENV_FILE=$smoke_dir/.env.mailboxes
 export SIFT_IMAGE=sift-smoke:local
 
