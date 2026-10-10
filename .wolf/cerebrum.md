@@ -231,6 +231,10 @@
 
 - [2026-10-10] 03-11: full `sift config check` (not --schema-only, not setup) loads every mailbox's <SIFT_DATA>/mailboxes/<slug>/rules.yaml after the password check; OK line ends '; password env vars present; rules files valid'. Tests that spawn the full check need SIFT_DATA with rules files (packages/core/test/env.test.ts copies the example). `sift mailbox rename` refuses before any DB call until the new slug's rules.yaml exists (D-07), so spawned rename tests need SIFT_DATA too (registry.test.ts). worker and setup mount ${SIFT_DATA_HOST_DIR:-./data}:/data:ro with SIFT_DATA=/data; compose-smoke exports .smoke/<project>/data.
 
+- [2026-10-10] 03-08: apps/worker/src/classify/run.ts is the classification pass: classifyMailbox (rules read every pass via loadMailboxRules, 5-message chunks each under its own withIngestLock, keyset cursor, 25 chat calls / 500 examined per pass) and classifyCandidates (shared with the 03-12 re-run; ctx.state = newPassState(cap or null)). Outcomes: done | rules_invalid | infra | busy | aborted; infraOwnerMessage never shows Ollama detail except a bare code. Test support: apps/worker/test/support/classify-harness.ts (seedPendingMessages, writeRules, BASIC_RULES, testRuntime, decisionsOf, pendingIdsOf, ruleSetsOf, bodyExpiryOf, expectReplayableDecision, LABELLED_OUTSIDE_SNAPSHOT_SQL). fake-ollama RecordedRequest now has `response` (what the fake answered).
+- [2026-10-10] 03-08: when a tracer task builds the whole module, later tdd tasks' tests pass at RED. Prove they bite with one-at-a-time mutations of the implementation (python replace + `command cp -f` restore) and, if wanted, a junit RED record of a mutated run; say so in the SUMMARY instead of inventing a RED.
+- [2026-10-10] Superuser (SIFT_TEST_ADMIN_URL) bypasses RLS and can UPDATE append-only rule_set/decision rows inside a rolled-back transaction: usable for invariant-query positive controls.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->

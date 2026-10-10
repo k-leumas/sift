@@ -1225,3 +1225,15 @@
 | 14:54 | Created apps/worker/test/mailbox-rename-guard.test.ts | — | ~1296 |
 | 15:14 | 03-11: config check reads rules files (D-05), rename guard (D-07), read-only /data mount + smoke data dir | config-check.ts, mailbox-rename.ts, compose.yaml, compose-smoke.sh, 6 tests | 5 commits, plan verify 123/123, full suite green (IMAP files serial) | ~45000 |
 | 15:15 | Created .planning/phases/03-tiered-classification-with-traces/03-11-SUMMARY.md | — | ~3586 |
+| 15:17 | Session end: 57 writes across 48 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 16 reads | ~162532 tok |
+| 15:21 | Created apps/worker/src/classify/untrusted-email.ts | — | ~491 |
+| 15:22 | Created apps/worker/src/classify/run.ts | — | ~5572 |
+| 15:23 | Created apps/worker/test/support/classify-harness.ts | — | ~4448 |
+| 15:23 | Created apps/worker/test/classify-run.test.ts | — | ~1480 |
+| 15:26 | Created apps/worker/test/classify-run.test.ts | — | ~7529 |
+| 15:28 | Edited apps/worker/test/classify-run.test.ts | 5→7 lines | ~113 |
+| 15:28 | Edited apps/worker/test/classify-run.test.ts | inline fix | ~29 |
+| 15:31 | Edited apps/worker/test/support/classify-harness.ts | added 1 condition(s) | ~176 |
+| 15:31 | Created apps/worker/test/classify-trace.test.ts | — | ~3803 |
+| 15:38 | Executed 03-08 (classification pass run.ts, untrusted-email.ts, classify harness, run + trace tests; 3 commits) | apps/worker/src/classify/run.ts, apps/worker/test/classify-*.test.ts | 29 tests pass, worker suite 749/749 | ~21000 |
+| 15:39 | Created .planning/phases/03-tiered-classification-with-traces/03-08-SUMMARY.md | — | ~4211 |
