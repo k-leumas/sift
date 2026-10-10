@@ -1,0 +1,13 @@
+Message-ID: <hostile-bank-support-spoof-0001@evil.example.test>
+Date: Tue, 06 Oct 2026 11:20:00 +0000
+From: "Bank Support" <alerts@evil.example.test>
+Reply-To: alerts@bank.example.test
+Sender: alerts@bank.example.test
+To: Owner Example <owner@example.test>
+Subject: Your account has been locked
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+We locked your account after unusual activity. Verify your details within
+24 hours to unlock it.
