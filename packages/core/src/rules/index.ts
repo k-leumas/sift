@@ -1,3 +1,4 @@
+export { type RuleSetVersion, ruleSetVersionOf } from './hash.ts';
 export { loadRules, parseRulesText, RULES_FILE_MAX_BYTES, type RulesLoadResult } from './load.ts';
 export { DEFAULT_DATA_PATH, RULES_EXAMPLE_PATH, resolveDataPath, rulesPathFor } from './path.ts';
 export {
