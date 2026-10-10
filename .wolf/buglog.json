@@ -3514,6 +3514,60 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T19:13:10.000Z"
+    },
+    {
+      "id": "bug-211",
+      "timestamp": "2026-10-10T20:30:00Z",
+      "error_message": "plan 03-05 expected a 101-emoji reason to fail z.string().max(200) (\"Zod counts UTF-16 units\"); Zod 4.6.5 returned ok",
+      "file": "packages/core/test/llm-output.test.ts",
+      "root_cause": "Zod 4.6 measures string min/max in Unicode code points (checks.js codePointLength), like the llama.cpp grammar; the AI-SPEC premise dates from older Zod",
+      "fix": "test pins the real boundary (200 emoji ok, 201 schema_mismatch); REASON_MAX_CHARS comment notes code points",
+      "tags": [
+        "zod",
+        "string-length",
+        "code-points",
+        "utf-16",
+        "03-05"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:30:00Z"
+    },
+    {
+      "id": "bug-212",
+      "timestamp": "2026-10-10T20:30:00Z",
+      "error_message": "AI-SPEC validateLlmOutput put JSON.parse error.message into the not_json detail",
+      "file": "packages/core/src/classify/llm-output.ts",
+      "root_cause": "V8 JSON.parse messages quote the input (e.g. '\"hello\" is not valid JSON'), so model text that may echo the email would reach logs",
+      "fix": "not_json detail is a fixed string; test asserts no raw text in any failure detail",
+      "tags": [
+        "security",
+        "logging",
+        "json-parse",
+        "llm-output",
+        "03-05"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:30:00Z"
+    },
+    {
+      "id": "bug-213",
+      "timestamp": "2026-10-10T20:30:00Z",
+      "error_message": "AI-SPEC out_of_category check classed {} and a missing category as out_of_category (Zod enum gives invalid_value for undefined)",
+      "file": "packages/core/src/classify/llm-output.ts",
+      "root_cause": "offList only looked for an invalid_value issue at path category, which z.enum also emits for a missing value",
+      "fix": "out_of_category requires parsed.category to be a string; missing or non-string category is schema_mismatch",
+      "tags": [
+        "zod",
+        "enum",
+        "validation",
+        "llm-output",
+        "03-05"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:30:00Z"
     }
   ]
 }

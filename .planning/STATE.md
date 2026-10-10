@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-10-10T19:15:00.620Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-10-10T19:29:45.787Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 8ac1eb1eeaca3ff7c02f291e42fab97c00882529
+state_head: 7040bd31ee1158b6d24b4ce41d91c730c0493be4
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 4 of 13
+Plan: 5 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -93,6 +93,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P01 | 13 min | 3 tasks | 12 files |
 | Phase 03 P02 | 6 min | 2 tasks | 10 files |
 | Phase 03 P03 | 14 min | 2 tasks | 19 files |
+| Phase 03 P05 | 11 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,10 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-03: decision has D-27 trace columns + 10 NULL-safe CHECKs; decision_one_worker_per_message partial unique index; reruns append (decided_by rerun)
 - [Phase 03]: 03-03: rule_set is append-only (0010 revoke, APPEND_ONLY_TABLE_NAMES, Scope.ruleSet AppendOnlyTableApi); prompt_version is unscoped, allowlisted, SELECT/INSERT only
 - [Phase 03]: 03-03: test rows come from seed.ts helpers (SEED_SPANS_JSON, newRuleSetRow, newDecisionRow); Postgres reports the name-first violated CHECK
+- [Phase 03]: 03-05: out_of_category needs a string category; missing/non-string category is schema_mismatch (Zod enum reports missing as invalid_value)
+- [Phase 03]: 03-05: validateLlmOutput details carry issue paths/codes only; not_json detail is fixed (V8 JSON.parse quotes input)
+- [Phase 03]: 03-05: reason cap counted in code points (Zod 4.6.5 = grammar); 201 code points fail, plan's UTF-16 premise was stale
+- [Phase 03]: 03-05: MODEL_OPTIONS/REQUEST_FLAGS/RETRY_NOTE live in core prompt.ts; prompt_version 1 hash pinned 8bd77eef...7d97
 
 ### Pending Todos
 
@@ -237,6 +242,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T19:15:00.407Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-10-10T19:29:45.518Z
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None

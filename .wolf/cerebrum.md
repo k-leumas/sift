@@ -27,6 +27,11 @@
 
 ## Key Learnings
 
+- [2026-10-10] Zod 4.6.5 measures string `.min()`/`.max()` in Unicode code points (checks.js codePointLength), not UTF-16 units; it matches the llama.cpp grammar's maxLength. Do not assume `.length` semantics (03-05, bug-211).
+- [2026-10-10] Zod 4 `z.enum` reports a MISSING value as `invalid_value` (same as an off-list one). Check `typeof value === 'string'` before calling a failure "out of list" (03-05, bug-213).
+- [2026-10-10] V8 `JSON.parse` error messages quote the input; never pass `error.message` from parsing untrusted/model text into logs or stored details (03-05, bug-212).
+- [2026-10-10] packages/core/src/classify is the LLM-tier contract: prompt.ts (render, MODEL_OPTIONS, REQUEST_FLAGS, RETRY_NOTE), llm-output.ts, spans.ts (decision.spans), canonical.ts (shared hash JSON), prompt-version.ts. EXPECTED_PROMPT_HASH in prompt-version.test.ts must be updated deliberately on any prompt/option/limit change (new prompt_version row, D-29).
+
 - [2026-10-10] 03-02: config.yaml has a `tiers.llm.confidence_threshold` block (strict Tiers/LlmTier, 0..1 inclusive, default 0.75). Any new top-level defaulted key in Config makes it required on z.output SiftConfig, so hand-built SiftConfig literals (mailbox-harness.ts siftConfig, packages/db registry*.test.ts) must gain it; `pnpm typecheck` finds them.
 - [2026-10-10] 03-02: DEFAULT_INITIAL_BACKFILL_DAYS is 3 (D-20). README's Technical settings YAML is parsed with loadConfig after stripping `#` lines (user-facing-text.test.ts), so a commented key nested under an active block must use `# ` + original indentation at column 0.
 

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T19:14:09.009Z
-> Files: 486 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T19:28:37.757Z
+> Files: 497 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -197,6 +197,7 @@
 - `03-03-SUMMARY.md` — Phase 3 Plan 03: Classification Schema (decision trace, rule_set snapshots, prompt_version) Summary (~3129 tok)
 - `03-04-PLAN.md` — Exports MatchableMessage (~5276 tok)
 - `03-05-PLAN.md` — Exports MODEL_OPTIONS (~6967 tok)
+- `03-05-SUMMARY.md` — Phase 3 Plan 05: LLM Prompt, Output and Trace Contracts Summary (~3155 tok)
 - `03-06-PLAN.md` — Exports CandidateQuery (~5447 tok)
 - `03-07-PLAN.md` — Exports InfraCode (~6432 tok)
 - `03-08-PLAN.md` — Exports CLASSIFY_CHUNK_SIZE (~7992 tok)
@@ -518,6 +519,15 @@
 - `log.ts` — Fields censored in every log line (D-23, T-01-16), at the depths Sift logs (~981 tok)
 - `yaml-issues.ts` — YAML position and Zod-issue mapping shared by the config.yaml and rules.yaml (~1202 tok)
 
+## packages/core/src/classify/
+
+- `canonical.ts` — canonicalJson (sorted keys, TypeError on lossy values) + sha256Hex; shared by prompt and rule-set hashes (~417 tok)
+- `index.ts` — @sift/core/classify barrel: llm-output, prompt, spans, canonical, promptMaterial (~306 tok)
+- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~960 tok)
+- `prompt-version.ts` — promptMaterial(): category-independent placeholder template + schema/options/flags/limits hash (D-29); promptMaterialFrom(parts) for tests (~1022 tok)
+- `prompt.ts` — renderSystem/renderUser (nonce fence, 300-char one-line headers, 4000-char body cut), MODEL_OPTIONS, REQUEST_FLAGS, RETRY_NOTE (~2303 tok)
+- `spans.ts` — decisionSpansSchema (exact_rules, classifier skipped, [llm], action pending), TRACE_FORMAT_VERSION, LLM_SPAN_OPTIONS (~2006 tok)
+
 ## packages/core/src/config/
 
 - `env.ts` — Source label for issues that come from the process environment. (~810 tok)
@@ -540,8 +550,12 @@
 - `env.test.ts` — A value that must never appear in any message. (~1734 tok)
 - `example-config.test.ts` — Declares EXAMPLE (~1178 tok)
 - `example-rules.test.ts` — data paths, example rules file (README categories, example.test only), .gitignore check-ignore cases (~1482 tok)
+- `llm-output.test.ts` — AI-SPEC section 4b, [verified] generated format for these three categories. (~1693 tok)
 - `log.test.ts` — Declares capture (~1286 tok)
+- `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1288 tok)
+- `prompt.test.ts` — README-style rules snapshot (the example rules file's categories and judgment). (~3425 tok)
 - `rules.test.ts` — rules.yaml schema/loader: normalisation, every rejection with path+line, five-problem file order, file caps (~6024 tok)
+- `spans.test.ts` — decision.spans valid layouts (3/4 spans) and 23 rejection cases (order, strictness, attempts) (~1682 tok)
 
 ## packages/db/
 

@@ -1172,3 +1172,18 @@
 | 13:05 | Edited packages/db/test/migrate.test.ts | added optional chaining | ~874 |
 | 19:13 | 03-03 executed: Phase 3 decision/rule_set/prompt_version schema (0008-0010), classify-schema test, append-only ruleSet scope; packages/db 274/274 | packages/db | done | ~49000 |
 | 13:14 | Created .planning/phases/03-tiered-classification-with-traces/03-03-SUMMARY.md | — | ~3338 |
+| 13:16 | Session end: 16 writes across 16 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 13 reads | ~54263 tok |
+| 13:18 | Created packages/core/src/classify/llm-output.ts | — | ~960 |
+| 13:18 | Created packages/core/src/classify/prompt.ts | — | ~2303 |
+| 13:19 | Created packages/core/src/classify/spans.ts | — | ~2006 |
+| 13:19 | Created packages/core/src/classify/index.ts | — | ~306 |
+| 13:20 | Created packages/core/test/prompt.test.ts | — | ~3425 |
+| 13:22 | Created packages/core/test/llm-output.test.ts | — | ~1693 |
+| 13:23 | Created packages/core/test/spans.test.ts | — | ~1682 |
+| 13:24 | Created packages/core/src/classify/canonical.ts | — | ~70 |
+| 13:24 | Created packages/core/src/classify/prompt-version.ts | — | ~411 |
+| 13:24 | Created packages/core/test/prompt-version.test.ts | — | ~1288 |
+| 13:25 | Created packages/core/src/classify/canonical.ts | — | ~417 |
+| 13:25 | Created packages/core/src/classify/prompt-version.ts | — | ~1022 |
+| 13:27 | 03-05: classify contracts (prompt fence, output re-validation, spans schema, prompt hash) + 4 test files, 117 tests | packages/core/src/classify/*, packages/core/test/{prompt,llm-output,spans,prompt-version}.test.ts | 3 commits, core 321 tests pass | ~30000 |
+| 13:28 | Created .planning/phases/03-tiered-classification-with-traces/03-05-SUMMARY.md | — | ~3366 |
