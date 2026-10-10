@@ -160,9 +160,11 @@ describe('README quick start (D-28, D-56, D-58)', () => {
       .split('\n')
       .filter((line) => !line.trimStart().startsWith('#'))
       .join('\n');
-    // Later-milestone blocks stay in the README, but only as comments.
-    expect(active).not.toMatch(/^(tiers|quick_confirm|relabel_sync):/m);
-    expect(technicalSettingsYaml()).toMatch(/^# tiers:/m);
+    // tiers.llm.confidence_threshold is read today (D-25); later-milestone keys stay as comments.
+    expect(active).not.toMatch(/^(quick_confirm|relabel_sync):/m);
+    expect(active).toMatch(/^tiers:\n {2}llm:\n {4}confidence_threshold: 0\.75/m);
+    expect(active).not.toMatch(/^\s+(classifier|examples_per_prompt):/m);
+    expect(technicalSettingsYaml()).toMatch(/^#\s+classifier:/m);
     const dir = mkdtempSync(path.join(tmpdir(), 'sift-readme-config-'));
     try {
       const file = path.join(dir, 'config.yaml');

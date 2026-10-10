@@ -169,7 +169,7 @@ describe('imap.tls and ingest defaults (D-74, D-78)', () => {
     const [first] = config.mailboxes;
     expect(first?.imap.tls).toEqual({ mode: 'starttls' });
     expect(first?.imap.tls.pin_sha256).toBeUndefined();
-    expect(first?.ingest).toEqual({ initial_backfill_days: 30, new_mail_cap: 200 });
+    expect(first?.ingest).toEqual({ initial_backfill_days: 3, new_mail_cap: 200 });
     expect(config.version).toBe(1);
   });
 
@@ -182,7 +182,7 @@ describe('imap.tls and ingest defaults (D-74, D-78)', () => {
     ]);
     const [first] = parsed(text).mailboxes;
     expect(first?.imap.tls).toEqual({ mode: 'starttls' });
-    expect(first?.ingest).toEqual({ initial_backfill_days: 30, new_mail_cap: 200 });
+    expect(first?.ingest).toEqual({ initial_backfill_days: 3, new_mail_cap: 200 });
   });
 
   it('keeps each mailbox its own ingest block', () => {
@@ -200,9 +200,19 @@ describe('imap.tls and ingest defaults (D-74, D-78)', () => {
     ]);
     const ingest = parsed(text).mailboxes.map((m) => m.ingest);
     expect(ingest).toEqual([
-      { initial_backfill_days: 30, new_mail_cap: 50 },
+      { initial_backfill_days: 3, new_mail_cap: 50 },
       { initial_backfill_days: 0, new_mail_cap: 200 },
     ]);
+  });
+
+  it('keeps an explicit initial_backfill_days of 30 as written (D-20)', () => {
+    const text = configYaml([
+      mailbox({ mailboxExtra: ['    ingest:', '      initial_backfill_days: 30'] }),
+    ]);
+    expect(parsed(text).mailboxes[0]?.ingest).toEqual({
+      initial_backfill_days: 30,
+      new_mail_cap: 200,
+    });
   });
 
   it('keeps worker.poll_interval_seconds at its default of 60', () => {

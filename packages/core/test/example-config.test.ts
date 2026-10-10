@@ -16,7 +16,7 @@ describe('config/config.example.yaml (D-61)', () => {
     expect(result.config.models.url).toBe('http://host.docker.internal:11434');
   });
 
-  it('targets the Compose bridge service with the D-74 defaults on every mailbox (D-29)', async () => {
+  it('targets the Compose bridge service with a 3-day first backfill on every mailbox (D-20, D-29)', async () => {
     const result = await loadConfig(EXAMPLE);
     if (!result.ok) throw new Error(`example config is invalid: ${JSON.stringify(result.issues)}`);
     expect(result.config.version).toBe(1);
@@ -24,8 +24,17 @@ describe('config/config.example.yaml (D-61)', () => {
       expect(mailbox.imap.host).toBe('bridge');
       expect(mailbox.imap.port).toBe(1143);
       expect(mailbox.imap.tls).toEqual({ mode: 'starttls' });
-      expect(mailbox.ingest).toEqual({ initial_backfill_days: 30, new_mail_cap: 200 });
+      expect(mailbox.ingest).toEqual({ initial_backfill_days: 3, new_mail_cap: 200 });
     }
+  });
+
+  it('sets the LLM confidence threshold in an active tiers block (D-25)', async () => {
+    const result = await loadConfig(EXAMPLE);
+    if (!result.ok) throw new Error(`example config is invalid: ${JSON.stringify(result.issues)}`);
+    expect(result.config.tiers).toEqual({ llm: { confidence_threshold: 0.75 } });
+    expect(readFileSync(EXAMPLE, 'utf8')).toMatch(
+      /^tiers:\n {2}llm:\n(?: {4}#.*\n)* {4}confidence_threshold: 0\.75$/m,
+    );
   });
 
   it('places each commented pin_sha256 line inside a tls block, ready to uncomment', () => {
