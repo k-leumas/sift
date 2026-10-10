@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T21:39:55.675Z
-> Files: 526 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T21:59:42.046Z
+> Files: 529 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -206,6 +206,7 @@
 - `03-08-PLAN.md` — Exports CLASSIFY_CHUNK_SIZE (~7992 tok)
 - `03-08-SUMMARY.md` — Phase 3 Plan 08: Classification Pass Summary (~3948 tok)
 - `03-09-PLAN.md` — Exports ClassifyInfraError (~5291 tok)
+- `03-09-SUMMARY.md` — Phase 3 Plan 09: Classification in the Worker Batch Summary (~3289 tok)
 - `03-10-PLAN.md` (~5455 tok)
 - `03-11-PLAN.md` (~3839 tok)
 - `03-11-SUMMARY.md` — Phase 3 Plan 11: Rules File Edges (config check, rename guard, data mount) Summary (~3362 tok)
@@ -310,6 +311,7 @@
 - `bridge-probe.test.ts` — Strings planted in every subject, From, To, body, Message-ID local part and folder name. (~7360 tok)
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2626 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
+- `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~1981 tok)
 - `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~1078 tok)
 - `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2377 tok)
 - `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3210 tok)
@@ -344,6 +346,7 @@
 - `spike-findings.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1660 tok)
 - `supervisor.test.ts` — A promise that never settles: a hung batch. (~7687 tok)
 - `user-facing-text.test.ts` — D-69: until the mailbox hard-delete command exists, no owner-facing text and (~3520 tok)
+- `worker-classify.test.ts` — The shipped `sift worker` command classifies mail on its own (03-09 Task (~2343 tok)
 - `worker-errors.test.ts` — Brings in the vitest ProvidedContext augmentation that types inject('testDb'). (~827 tok)
 - `worker.test.ts` — Status rows read as the superuser, which bypasses RLS (test inspection only). (~1846 tok)
 
@@ -634,7 +637,7 @@
 - `registry-read.ts` — Every mailbox row, ordered by slug, disabled ones included. The registry (~161 tok)
 - `rls.ts` — Roles are created outside drizzle-kit: sift_owner by db/bootstrap.sql and (~283 tok)
 - `scope.ts` — A registered mailbox-scoped table: it has a mailbox_id column. Scope.classification.candidates (pending/re-run query, keyset paged) since 03-06. (~6600 tok)
-- `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer). (~1102 tok)
+- `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer). (~1258 tok)
 
 ## packages/db/src/owner/
 

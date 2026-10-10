@@ -27,6 +27,10 @@
 
 ## Key Learnings
 
+- [2026-10-10] 03-09: with `classify` set, runBatch writes mailbox status ONCE after classifyMailbox (outside the ingest lock): done/busy/aborted -> ok; rules_invalid -> error with syncedAt, batch resolves (no backoff); infra -> throws ClassifyInfraError, onBatchError records it before the MailboxSyncError grace logic (never connecting). Without `classify` the Phase 2 in-lock recordSyncSuccess path is unchanged.
+- [2026-10-10] A first sync with initial_backfill_days 0 stores nothing already in the folder (watermark = newest INTERNALDATE). Spawned-worker tests that need mail decided at the first batch set initial_backfill_days >= 1 (first backfill is eligible, D-21), then append later mail for the next poll (min poll_interval_seconds 10).
+- [2026-10-10] startFakeOllama({ port }) restarts a stopped fake at the same URL, so an outage-then-recovery test keeps one ClassifyRuntime (03-09).
+- [2026-10-10] Mutation checks: a mutation that only adds a comment proves nothing; confirm each mutation changes behaviour (its target test must fail) before counting the test as biting (03-09).
 - [2026-10-10] Zod 4.6.5 measures string `.min()`/`.max()` in Unicode code points (checks.js codePointLength), not UTF-16 units; it matches the llama.cpp grammar's maxLength. Do not assume `.length` semantics (03-05, bug-211).
 - [2026-10-10] Zod 4 `z.enum` reports a MISSING value as `invalid_value` (same as an off-list one). Check `typeof value === 'string'` before calling a failure "out of list" (03-05, bug-213).
 - [2026-10-10] V8 `JSON.parse` error messages quote the input; never pass `error.message` from parsing untrusted/model text into logs or stored details (03-05, bug-212).

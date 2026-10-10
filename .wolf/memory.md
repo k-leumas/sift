@@ -1237,3 +1237,9 @@
 | 15:31 | Created apps/worker/test/classify-trace.test.ts | — | ~3803 |
 | 15:38 | Executed 03-08 (classification pass run.ts, untrusted-email.ts, classify harness, run + trace tests; 3 commits) | apps/worker/src/classify/run.ts, apps/worker/test/classify-*.test.ts | 29 tests pass, worker suite 749/749 | ~21000 |
 | 15:39 | Created .planning/phases/03-tiered-classification-with-traces/03-08-SUMMARY.md | — | ~4211 |
+| 15:43 | Session end: 67 writes across 54 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 19 reads | ~196613 tok |
+| 15:44 | Edited packages/db/src/status.ts | modified recordSyncError() | ~306 |
+| 15:46 | Created apps/worker/test/classify-batch.test.ts | — | ~1981 |
+| 15:53 | Created apps/worker/test/worker-classify.test.ts | — | ~2343 |
+| 15:58 | 03-09: classification wired into runBatch + sift worker; tests classify-batch (8) and worker-classify (1); full worker+db suite 1055/1055 | mailbox-batch.ts, worker.ts, status.ts, tests | done | ~25000 |
+| 15:59 | Created .planning/phases/03-tiered-classification-with-traces/03-09-SUMMARY.md | — | ~3509 |

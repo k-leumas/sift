@@ -3779,6 +3779,38 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T21:32:00Z"
+    },
+    {
+      "id": "bug-226",
+      "timestamp": "2026-10-10T21:44:06.580Z",
+      "error_message": "Type error",
+      "file": "packages/db/src/status.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T21:44:06.580Z"
+    },
+    {
+      "id": "bug-227",
+      "timestamp": "2026-10-10T21:52:00Z",
+      "error_message": "Mutation 'leak-detail' still passed the Ollama 500 sentinel test",
+      "file": "apps/worker/src/classify/run.ts (working-tree mutation only)",
+      "root_cause": "The mutation only inserted a comment, so behaviour did not change; the test was fine",
+      "fix": "Replaced it with a real leak (server_error message appends ctx.detail); the sentinel test then failed as expected; file restored",
+      "tags": [
+        "mutation-check",
+        "test-process",
+        "03-09"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T21:52:00Z"
     }
   ]
 }
