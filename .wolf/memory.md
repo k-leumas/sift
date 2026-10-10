@@ -1187,3 +1187,13 @@
 | 13:25 | Created packages/core/src/classify/prompt-version.ts | — | ~1022 |
 | 13:27 | 03-05: classify contracts (prompt fence, output re-validation, spans schema, prompt hash) + 4 test files, 117 tests | packages/core/src/classify/*, packages/core/test/{prompt,llm-output,spans,prompt-version}.test.ts | 3 commits, core 321 tests pass | ~30000 |
 | 13:28 | Created .planning/phases/03-tiered-classification-with-traces/03-05-SUMMARY.md | — | ~3366 |
+| 13:50 | Session end: 29 writes across 25 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 13 reads | ~73452 tok |
+| 13:52 | Created packages/core/src/classify/exact-rules.ts | — | ~1596 |
+| 13:53 | Created packages/core/src/classify/decide.ts | — | ~913 |
+| 13:54 | Created packages/core/test/exact-rules.test.ts | — | ~4216 |
+| 13:55 | Edited packages/core/test/exact-rules.test.ts | 1→2 lines | ~33 |
+| 13:56 | Created packages/core/test/decide.test.ts | — | ~2753 |
+| 14:00 | Created packages/core/test/rules-hash.test.ts | — | ~2054 |
+| 14:01 | Created packages/core/src/rules/hash.ts | — | ~437 |
+| 14:05 | Created .planning/phases/03-tiered-classification-with-traces/03-04-SUMMARY.md | — | ~3668 |
+| 14:08 | 03-04 done: exact-rules matcher, decide(), ruleSetVersionOf + tests (400 core tests pass); SUMMARY b385f7d; bug-215 test-data typo; cerebrum learnings added | packages/core/src/classify/{exact-rules,decide}.ts, rules/hash.ts | complete | ~12k |

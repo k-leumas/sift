@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T19:28:37.757Z
-> Files: 497 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T20:05:31.794Z
+> Files: 504 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -196,6 +196,7 @@
 - `03-03-PLAN.md` — Declares Existing (~6490 tok)
 - `03-03-SUMMARY.md` — Phase 3 Plan 03: Classification Schema (decision trace, rule_set snapshots, prompt_version) Summary (~3129 tok)
 - `03-04-PLAN.md` — Exports MatchableMessage (~5276 tok)
+- `03-04-SUMMARY.md` — Phase 3 Plan 04: Exact Rules, decide() and Rule-Set Hash Summary (~3438 tok)
 - `03-05-PLAN.md` — Exports MODEL_OPTIONS (~6967 tok)
 - `03-05-SUMMARY.md` — Phase 3 Plan 05: LLM Prompt, Output and Trace Contracts Summary (~3155 tok)
 - `03-06-PLAN.md` — Exports CandidateQuery (~5447 tok)
@@ -522,7 +523,9 @@
 ## packages/core/src/classify/
 
 - `canonical.ts` — canonicalJson (sorted keys, TypeError on lossy values) + sha256Hex; shared by prompt and rule-set hashes (~417 tok)
-- `index.ts` — @sift/core/classify barrel: llm-output, prompt, spans, canonical, promptMaterial (~306 tok)
+- `decide.ts` — decide({exact, llm?, threshold}) -> DecisionDraft: exact winner labelled; LLM verdict labelled at >= threshold else review low_confidence/invalid_output/out_of_category/input_too_long; spans parsed by decisionSpansSchema (~1500 tok)
+- `exact-rules.ts` — matchExactRules(rules, MatchableMessage) -> exact_rules span: From address/domain only, label-boundary subdomains, NFKC literal phrases, every match, first wins, nearest miss (~1596 tok)
+- `index.ts` — @sift/core/classify barrel: decide, matchExactRules, llm-output, prompt, spans, canonical, promptMaterial (~380 tok)
 - `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~960 tok)
 - `prompt-version.ts` — promptMaterial(): category-independent placeholder template + schema/options/flags/limits hash (D-29); promptMaterialFrom(parts) for tests (~1022 tok)
 - `prompt.ts` — renderSystem/renderUser (nonce fence, 300-char one-line headers, 4000-char body cut), MODEL_OPTIONS, REQUEST_FLAGS, RETRY_NOTE (~2303 tok)
@@ -539,7 +542,8 @@
 
 ## packages/core/src/rules/
 
-- `index.ts` — @sift/core/rules barrel: schema, loader, data paths (~188 tok)
+- `hash.ts` — ruleSetVersionOf(rules) -> { hash: sha256(canonicalJson({format_version, rules})), formatVersion, snapshot (plain-JSON copy) } (D-03) (~437 tok)
+- `index.ts` — @sift/core/rules barrel: schema, loader, data paths, ruleSetVersionOf (ExactRuleSchema is NOT exported; tests import rules/schema.ts) (~200 tok)
 - `load.ts` — parseRulesText/loadRules: 256 KiB + 50-alias caps, positioned issues via yaml-issues.ts, never writes (~796 tok)
 - `path.ts` — resolveDataPath (SIFT_DATA, default ./data), rulesPathFor (validateSlug first), RULES_EXAMPLE_PATH (~363 tok)
 - `schema.ts` — Strict Zod RulesFile: version 1, 2-20 ascii categories, judgment, exact rules (from/domain/phrase/in), label-in-categories check (~3193 tok)
@@ -547,13 +551,16 @@
 ## packages/core/test/
 
 - `config.test.ts` — Extra raw lines appended inside the imap mapping (6-space indent). (~5454 tok)
+- `decide.test.ts` — decide() LLM verdicts: threshold boundaries (0.7499/0.75, 0.89/0.9, 0 at 0), review reasons, llm span contents, input checks (~2753 tok)
 - `env.test.ts` — A value that must never appear in any message. (~1734 tok)
+- `exact-rules.test.ts` — E9 Set A table (23 cases: spoofs, look-alikes, metacharacters, NFKC, AND/OR), nearest miss, determinism, source has no pattern builder, exact decide() (~4311 tok)
 - `example-config.test.ts` — Declares EXAMPLE (~1178 tok)
 - `example-rules.test.ts` — data paths, example rules file (README categories, example.test only), .gitignore check-ignore cases (~1482 tok)
 - `llm-output.test.ts` — AI-SPEC section 4b, [verified] generated format for these three categories. (~1693 tok)
 - `log.test.ts` — Declares capture (~1286 tok)
 - `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1288 tok)
 - `prompt.test.ts` — README-style rules snapshot (the example rules file's categories and judgment). (~3425 tok)
+- `rules-hash.test.ts` — ruleSetVersionOf: formatting-only YAML variants keep the hash, meaning changes alter it, snapshot plain JSON (~2054 tok)
 - `rules.test.ts` — rules.yaml schema/loader: normalisation, every rejection with path+line, five-problem file order, file caps (~6024 tok)
 - `spans.test.ts` — decision.spans valid layouts (3/4 spans) and 23 rejection cases (order, strictness, attempts) (~1682 tok)
 

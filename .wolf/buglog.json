@@ -3589,6 +3589,24 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-10-10T19:48:51.094Z"
+    },
+    {
+      "id": "bug-215",
+      "timestamp": "2026-10-10T19:55:08.180Z",
+      "error_message": "exact-rules.test.ts NFKC case failed: expected [0] got [] (full-width subject did not match 'order confirmation')",
+      "file": "packages/core/test/exact-rules.test.ts",
+      "root_cause": "Test data typo: the full-width subject spelled only ORDER CONFIRM (ATION missing). Biome also rewrote the \\uFF.. escapes into literal characters, so a sed on the escape text silently matched nothing",
+      "fix": "Spelled the full-width word in full with the Edit tool and added a comment naming U+3000; the matcher was correct",
+      "tags": [
+        "test-data",
+        "nfkc",
+        "biome",
+        "unicode-escape",
+        "exact-rules"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T19:55:08.180Z"
     }
   ]
 }

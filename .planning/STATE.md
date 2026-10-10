@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-10-10T19:29:45.787Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-10-10T20:07:11.686Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 7040bd31ee1158b6d24b4ce41d91c730c0493be4
+state_head: b385f7d0f35f821675adbb16b9e3b5482c4b16f0
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 5 of 13
+Plan: 6 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -94,6 +94,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P02 | 6 min | 2 tasks | 10 files |
 | Phase 03 P03 | 14 min | 2 tasks | 19 files |
 | Phase 03 P05 | 11 min | 2 tasks | 10 files |
+| Phase 03 P04 | 14 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -215,6 +216,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-05: validateLlmOutput details carry issue paths/codes only; not_json detail is fixed (V8 JSON.parse quotes input)
 - [Phase 03]: 03-05: reason cap counted in code points (Zod 4.6.5 = grammar); 201 code points fail, plan's UTF-16 premise was stale
 - [Phase 03]: 03-05: MODEL_OPTIONS/REQUEST_FLAGS/RETRY_NOTE live in core prompt.ts; prompt_version 1 hash pinned 8bd77eef...7d97
+- [Phase 03]: 03-04: decide() is the single decision assembler; LLM answer at confidence >= threshold labels, below is review low_confidence keeping llm.result and confidence
+- [Phase 03]: 03-04: nearest miss reported even at 0 met (D-12 literal, TRC-02 probe flagged); a phrase normalising to empty never matches
+- [Phase 03]: 03-04: rule-set hash = sha256 of canonicalJson({ format_version, rules }) over the validated rules; snapshot is a JSON copy of that text
 
 ### Pending Todos
 
@@ -242,6 +246,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T19:29:45.518Z
-Stopped at: Completed 03-05-PLAN.md
+Last session: 2026-10-10T20:07:11.201Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None

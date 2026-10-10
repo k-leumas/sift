@@ -218,6 +218,11 @@
 - [2026-10-10] pg sends a JS array parameter as a Postgres array literal, not JSON: pass jsonb arrays as JSON.stringify(...) with `$n::jsonb`.
 - [2026-10-10] `.vitest/` is NOT git-ignored. The tdd-red-evidence record must sit inside the repo, so write it there, run the check, then move it to the scratchpad (never commit it).
 
+- [2026-10-10] 03-04: decide() in packages/core/src/classify/decide.ts is the ONLY decision assembler (exact winner -> labelled; LLM verdict -> labelled at confidence >= threshold, else review). Worker (03-08) must call matchExactRules then decide, never build spans by hand. ruleSetVersionOf (rules/hash.ts) hashes canonicalJson({ format_version, rules }) of the validated object; snapshot is a JSON copy of that text.
+- [2026-10-10] `biome check --write` rewrites `\uXXXX` escapes in TS string literals to the literal characters. A later sed on the escape text then matches nothing; edit such lines with the Edit tool.
+- [2026-10-10] TS does not track `let x: T | null = null` assignments made inside a forEach callback (x stays narrowed to null after it). Use for-of over `.entries()` when a loop updates a "best so far" variable.
+- [2026-10-10] ExactRuleSchema / CategorySchema are not exported from @sift/core/rules; core tests import them from ../src/rules/schema.ts to build normalised rules.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
