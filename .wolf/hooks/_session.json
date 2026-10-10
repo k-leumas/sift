@@ -8,32 +8,32 @@
       "first_read": "2026-10-10T18:27:39.095Z"
     },
     "/Users/samuel/.claude/gsd-core/workflows/execute-plan.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.539Z"
     },
     "/Users/samuel/.claude/gsd-core/templates/summary.compact.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:40.714Z"
     },
     "/Users/samuel/.claude/gsd-core/references/checkpoints.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.108Z"
     },
     "/Users/samuel/.claude/gsd-core/references/tdd.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:41.499Z"
     },
     "/Users/samuel/.claude/gsd-core/references/executor-examples.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:42.506Z"
     },
     "/Users/samuel/.claude/gsd-core/references/worktree-path-safety.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-10-10T18:31:42.932Z"
     },
@@ -56,6 +56,11 @@
       "count": 1,
       "tokens": 328,
       "first_read": "2026-10-10T18:32:01.857Z"
+    },
+    "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-02-PLAN.md": {
+      "count": 1,
+      "tokens": 3938,
+      "first_read": "2026-10-10T18:49:10.343Z"
     }
   },
   "files_written": [
@@ -112,6 +117,12 @@
       "action": "create",
       "tokens": 3127,
       "at": "2026-10-10T18:46:07.003Z"
+    },
+    {
+      "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-02-SUMMARY.md",
+      "action": "create",
+      "tokens": 2445,
+      "at": "2026-10-10T18:56:19.206Z"
     }
   ],
   "edit_counts": {
@@ -123,11 +134,12 @@
     "packages/core/src/rules/path.ts": 1,
     "packages/core/src/rules/index.ts": 1,
     "data/mailboxes/example/rules.example.yaml": 1,
-    ".planning/phases/03-tiered-classification-with-traces/03-01-SUMMARY.md": 1
+    ".planning/phases/03-tiered-classification-with-traces/03-01-SUMMARY.md": 1,
+    ".planning/phases/03-tiered-classification-with-traces/03-02-SUMMARY.md": 1
   },
-  "anatomy_hits": 4,
+  "anatomy_hits": 5,
   "anatomy_misses": 6,
-  "repeated_reads_warned": 1,
+  "repeated_reads_warned": 7,
   "cerebrum_warnings": 0,
-  "stop_count": 2
+  "stop_count": 4
 }

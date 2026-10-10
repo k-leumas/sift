@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-10-10T18:47:15.685Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-10-10T18:56:58.102Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 6db4332f9fab1dd5ce788944f5579b15e944707f
+state_head: 6932ac9c54958db7c37803e5aacaa55ea6e0d7d8
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 2 of 13
+Plan: 3 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -91,6 +91,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 02 P19 | 4h40m | 3 tasks | 2 files |
 | Phase 02 P21 | 21 min | 3 tasks | 6 files |
 | Phase 03 P01 | 13 min | 3 tasks | 12 files |
+| Phase 03 P02 | 6 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -203,6 +204,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-01: YAML position and Zod-issue helpers live in packages/core/src/yaml-issues.ts, shared by config.yaml and rules.yaml loaders; list-level issues sit at the first list item
 - [Phase 03]: 03-01: rule labels match category names exactly (case-sensitive, untrimmed); rules: [] or no rules key is valid, rules: null is an error; match entries normalised in the schema for D-03 hashing
 - [Phase 03]: 03-01: .gitignore uses /data/* with negations re-including only data/mailboxes/example/rules.example.yaml; SIFT_DATA (default ./data) locates data/mailboxes/<slug>/rules.yaml via rulesPathFor
+- [Phase 03]: 03-02: tiers.llm.confidence_threshold is a strict 0..1 inclusive number, default 0.75 (absent, tiers: {} or llm: {}); text, booleans and out-of-range values are rejected at the YAML path
+- [Phase 03]: 03-02: DEFAULT_INITIAL_BACKFILL_DAYS is 3 (D-20); README Technical settings keeps tiers.classifier and examples_per_prompt as column-0 comments inside the active tiers block
 
 ### Pending Todos
 
@@ -230,6 +233,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T18:46:51.832Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-10-10T18:56:57.871Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

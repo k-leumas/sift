@@ -3447,6 +3447,23 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T18:33:00Z"
+    },
+    {
+      "id": "bug-207",
+      "timestamp": "2026-10-10T19:51:00Z",
+      "error_message": "config.test.ts tiers threshold reject cases: expected 21 to be 20 (issue.line)",
+      "file": "packages/core/test/config.test.ts",
+      "root_cause": "Hand-counted the configYaml() fixture lines wrong (the default mailbox() item is 9 lines, not 11)",
+      "fix": "Derive expected line/column from the generated text (findIndex of the key line, indexOf the value) instead of hardcoding",
+      "tags": [
+        "vitest",
+        "config",
+        "line-number",
+        "fixture"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T19:51:00Z"
     }
   ]
 }

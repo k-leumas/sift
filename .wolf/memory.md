@@ -1158,3 +1158,8 @@
 | 12:41 | Created data/mailboxes/example/rules.example.yaml | — | ~612 |
 | 12:44 | 03-01: rules.yaml schema/loader, yaml-issues.ts move, data paths, example rules, .gitignore negations | packages/core/src/rules/*, packages/core/src/yaml-issues.ts, data/mailboxes/example/rules.example.yaml, .gitignore | 187 core tests + typecheck green | ~60000 |
 | 12:46 | Created .planning/phases/03-tiered-classification-with-traces/03-01-SUMMARY.md | — | ~2919 |
+| 12:49 | Session end: 9 writes across 9 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 11 reads | ~29359 tok |
+| 12:54 | Session end: 9 writes across 9 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 12 reads | ~33297 tok |
+| 12:58 | 03-02 T1: tiers.llm.confidence_threshold schema, exports, SiftConfig literals, tests | schema.ts, index.ts, config.test.ts, registry*.test.ts, mailbox-harness.ts | 86723fd, tests pass | ~6000 |
+| 13:02 | 03-02 T2: backfill default 3 days, example config tiers block, README Technical settings + first-read prose | schema.ts, config.example.yaml, README.md, 3 tests | 123c28e (RED), 5a95483 (GREEN) | ~5000 |
+| 12:56 | Created .planning/phases/03-tiered-classification-with-traces/03-02-SUMMARY.md | — | ~2282 |

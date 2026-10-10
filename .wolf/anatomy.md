@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T18:46:06.965Z
-> Files: 476 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T18:56:19.181Z
+> Files: 477 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -192,6 +192,7 @@
 - `03-01-PLAN.md` — Exports ConfigIssue (~6842 tok)
 - `03-01-SUMMARY.md` — Phase 3 Plan 01: Rules File Schema, Loader and Example Summary (~2736 tok)
 - `03-02-PLAN.md` — Exports DEFAULT_INITIAL_BACKFILL_DAYS (~3938 tok)
+- `03-02-SUMMARY.md` — Phase 3 Plan 02: LLM Confidence Threshold Config and 3-Day Backfill Summary (~2139 tok)
 - `03-03-PLAN.md` — Declares Existing (~6490 tok)
 - `03-04-PLAN.md` — Exports MatchableMessage (~5276 tok)
 - `03-05-PLAN.md` — Exports MODEL_OPTIONS (~6967 tok)

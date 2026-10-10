@@ -27,6 +27,9 @@
 
 ## Key Learnings
 
+- [2026-10-10] 03-02: config.yaml has a `tiers.llm.confidence_threshold` block (strict Tiers/LlmTier, 0..1 inclusive, default 0.75). Any new top-level defaulted key in Config makes it required on z.output SiftConfig, so hand-built SiftConfig literals (mailbox-harness.ts siftConfig, packages/db registry*.test.ts) must gain it; `pnpm typecheck` finds them.
+- [2026-10-10] 03-02: DEFAULT_INITIAL_BACKFILL_DAYS is 3 (D-20). README's Technical settings YAML is parsed with loadConfig after stripping `#` lines (user-facing-text.test.ts), so a commented key nested under an active block must use `# ` + original indentation at column 0.
+
 - **Re-verifying an old phase (2026-10-07):** a completed phase's VERIFICATION.md goes `stale` whenever later phases touch its covered files; `/gsd-execute-phase N` then resumes at the gates. `evaluation-scope --since <last review>` returns `degraded / no-task-commits-since` and widens to every later phase's files — treat that as an empty incremental review scope, not as a review of phase N. Locally DB tests can't run (no Postgres, Docker down); CI on the pushed HEAD is the evidence.
 - [2026-10-07] Releases (quick 261007-2ke): `pnpm release [--dry-run]` (scripts/release.ts + pure scripts/release-plan.ts) cuts vX.Y.Z locally from Conventional Commits since the last v* tag; CI .github/workflows/release-tag.yml runs scripts/release-check.ts on pushed tags; `sift --version` reads apps/worker/package.json. All four package.json files carry the same version (0.0.0 = never released).
 - [2026-10-07] Tests for root files (scripts/) live in the ROOT `test/` folder (vitest include + root tsconfig include `test/**/*.ts`), helpers in test/support/. The root has no `yaml` dependency: load it with `createRequire(<root>/apps/worker/package.json)('yaml')` (test/support/release-repo.ts parseYaml) instead of adding one.
