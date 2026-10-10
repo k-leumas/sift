@@ -3607,6 +3607,41 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T19:55:08.180Z"
+    },
+    {
+      "id": "bug-216",
+      "timestamp": "2026-10-10T20:28:16Z",
+      "error_message": "pnpm lint (biome ci) failed: formatting in new classify.ts/scope.ts/classify.test.ts; useOptionalChain warning on messageIds check",
+      "file": "packages/db/src/scope.ts",
+      "root_cause": "Hand-written code not run through biome before lint",
+      "fix": "pnpm exec biome check --write on the touched files; rewrote `messageIds !== undefined && messageIds.some(...)` as `messageIds?.some(...)`",
+      "tags": [
+        "biome",
+        "lint",
+        "formatting",
+        "03-06"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:28:16Z"
+    },
+    {
+      "id": "bug-217",
+      "timestamp": "2026-10-10T20:28:16Z",
+      "error_message": "gsd check tdd-red-evidence: INVALID_RED invalid_record (Non-TAP data in report, Malformed TAP); also 'path escapes its allowed directory' for a scratchpad record",
+      "file": "packages/db/test/classify.test.ts",
+      "root_cause": "vitest tap-flat writes multi-line assertion diffs as unindented YAML; the classifier only reads record files inside the project directory",
+      "fix": "Rerun only the target test with -t so the report has one diagnostic block; write the record to the project root, classify, delete it",
+      "tags": [
+        "tdd",
+        "tap",
+        "vitest",
+        "red-evidence",
+        "gsd"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-10T20:28:16Z"
     }
   ]
 }

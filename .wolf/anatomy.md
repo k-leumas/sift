@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T20:05:31.794Z
-> Files: 504 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T20:29:42.924Z
+> Files: 508 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -200,6 +200,7 @@
 - `03-05-PLAN.md` — Exports MODEL_OPTIONS (~6967 tok)
 - `03-05-SUMMARY.md` — Phase 3 Plan 05: LLM Prompt, Output and Trace Contracts Summary (~3155 tok)
 - `03-06-PLAN.md` — Exports CandidateQuery (~5447 tok)
+- `03-06-SUMMARY.md` — Phase 3 Plan 06: Classification Database Use-Cases Summary (~3740 tok)
 - `03-07-PLAN.md` — Exports InfraCode (~6432 tok)
 - `03-08-PLAN.md` — Exports CLASSIFY_CHUNK_SIZE (~7992 tok)
 - `03-09-PLAN.md` — Exports ClassifyInfraError (~5291 tok)
@@ -602,14 +603,16 @@
 ## packages/db/src/
 
 - `app-db.ts` — Pool size. Defaults to 4. (~1433 tok)
+- `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32): recordDecision (single validated write path + first-decision body expiry), ensureRuleSet, latestDecision, restoreBody. (~2700 tok)
 - `connect.ts` — Worker startup against the database (D-55, Pitfall 11). Docker can restart (~2320 tok)
 - `index.ts` — Database connection-string variables. Values are secrets and are never logged. (~634 tok)
 - `ingest.ts` — Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23). (~5548 tok)
 - `lock.ts` — Seed of `hashtextextended(mailbox_id, seed)`: every mailbox gets its own (~1758 tok)
+- `prompt-version.ts` — ensurePromptVersion(db, material): unscoped prompt_version upsert by hash under pg_advisory_xact_lock(PROMPT_VERSION_LOCK_KEY 815309003), next global version (D-29) (~520 tok)
 - `registry-plan.ts` — Pure diff between config.yaml and the mailbox registry (D-32, D-34). (~2384 tok)
 - `registry-read.ts` — Every mailbox row, ordered by slug, disabled ones included. The registry (~161 tok)
 - `rls.ts` — Roles are created outside drizzle-kit: sift_owner by db/bootstrap.sql and (~283 tok)
-- `scope.ts` — A registered mailbox-scoped table: it has a mailbox_id column. (~5327 tok)
+- `scope.ts` — A registered mailbox-scoped table: it has a mailbox_id column. Scope.classification.candidates (pending/re-run query, keyset paged) since 03-06. (~6600 tok)
 - `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer). (~1102 tok)
 
 ## packages/db/src/owner/
@@ -630,6 +633,7 @@
 
 - `catalog.test.ts` — Run SQL statements on `url` in order. (~2508 tok)
 - `classify-schema.test.ts` — The Phase 3 trace shape at the database level (D-27, D-29, D-03, D-15, (~6605 tok)
+- `classify.test.ts` — Classification use-cases (D-03, D-15, D-17, D-18, D-27, D-29, D-32, (~3521 tok)
 - `connect.test.ts` — Worker startup against the database (D-55, Pitfall 11): only self-resolving (~2944 tok)
 - `global-setup.ts` — Migrate one throwaway template database per run with the real migrate() (~1009 tok)
 - `ingest.test.ts` — Ingest use-cases (ING-02, ING-04, D-14, D-15, D-07, D-17, D-21..D-25) on a (~8514 tok)

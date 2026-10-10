@@ -223,6 +223,9 @@
 - [2026-10-10] TS does not track `let x: T | null = null` assignments made inside a forEach callback (x stays narrowed to null after it). Use for-of over `.entries()` when a loop updates a "best so far" variable.
 - [2026-10-10] ExactRuleSchema / CategorySchema are not exported from @sift/core/rules; core tests import them from ../src/rules/schema.ts to build normalised rules.
 
+- [2026-10-10] 03-06: classification DB use-cases live in packages/db/src/classify.ts (recordDecision is the ONLY decision write path: parseDecisionSpans + typed-column consistency before SQL, createdAt = at, body expires_at set only where null). Candidate selection is Scope.classification.candidates (one Drizzle select, every subquery filters mailbox_id). ensurePromptVersion(db, material) in prompt-version.ts is unscoped (internalsOf(db).orm.transaction + advisory lock 815309003). stripNul is exported from ingest.ts for internal reuse only.
+- [2026-10-10] Drizzle `sql.param(value, column)` encodes a value with the column's mapToDriverValue (used for the (internal_date, id) < (...) keyset cursor).
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -250,6 +253,7 @@
 
 - [2026-10-10] A plan that changes a table's columns in Task 1 but leaves the test helpers to Task 2 cannot pass Task 1's `pnpm typecheck`/migrate tests: seed.ts and every scoped insert of that table must change in the same task. Check the verify of the schema task for files that call seedScopedRows or insert the table (03-03).
 - [2026-10-10] `withMailbox(db, id, (s) => s[key].update({}))` over a union of table keys only typechecks while some table's row type is a supertype of all the others (TS picks one inference candidate); give the generic explicitly, e.g. `withMailbox<{ mailboxId: string }[]>` (bug-210).
+- [2026-10-10] TDD RED evidence with vitest `--reporter=tap-flat`: failure diagnostics with multi-line diffs are emitted as unindented YAML, so the classifier reports 'Malformed TAP' (INVALID_RED invalid_record). Rerun only the target with `-t "<name>"` (others show `# SKIP`) and submit that record; the record file must sit inside the project dir (delete it after).
 
 ## Decision Log
 

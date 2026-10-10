@@ -1197,3 +1197,10 @@
 | 14:01 | Created packages/core/src/rules/hash.ts | — | ~437 |
 | 14:05 | Created .planning/phases/03-tiered-classification-with-traces/03-04-SUMMARY.md | — | ~3668 |
 | 14:08 | 03-04 done: exact-rules matcher, decide(), ruleSetVersionOf + tests (400 core tests pass); SUMMARY b385f7d; bug-215 test-data typo; cerebrum learnings added | packages/core/src/classify/{exact-rules,decide}.ts, rules/hash.ts | complete | ~12k |
+| 14:09 | Session end: 37 writes across 32 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 15 reads | ~95573 tok |
+| 14:13 | Created packages/db/src/classify.ts | — | ~2516 |
+| 14:14 | Session end: 38 writes across 33 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 15 reads | ~98089 tok |
+| 14:15 | Created packages/db/test/classify.test.ts | — | ~3521 |
+| 14:21 | Session end: 39 writes across 34 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 15 reads | ~101610 tok |
+| 14:30 | 03-06: Scope.classification.candidates, recordDecision/ensureRuleSet (413a981), RED a1bb3fc, GREEN 9fd17c5 ensurePromptVersion/latestDecision/restoreBody; packages/db 295/295 | packages/db/src/{scope,classify,prompt-version,ingest,index}.ts, test/{classify,scope}.test.ts | done | ~30000 |
+| 14:29 | Created .planning/phases/03-tiered-classification-with-traces/03-06-SUMMARY.md | — | ~3990 |
