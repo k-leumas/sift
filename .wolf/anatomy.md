@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T21:15:22.512Z
-> Files: 520 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T21:39:55.675Z
+> Files: 526 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -204,6 +204,7 @@
 - `03-07-PLAN.md` — Exports InfraCode (~6432 tok)
 - `03-07-SUMMARY.md` — Phase 3 Plan 07: Ollama Client, LLM Tier, Preflight and Single Flight Summary (~3778 tok)
 - `03-08-PLAN.md` — Exports CLASSIFY_CHUNK_SIZE (~7992 tok)
+- `03-08-SUMMARY.md` — Phase 3 Plan 08: Classification Pass Summary (~3948 tok)
 - `03-09-PLAN.md` — Exports ClassifyInfraError (~5291 tok)
 - `03-10-PLAN.md` (~5455 tok)
 - `03-11-PLAN.md` (~3839 tok)
@@ -255,7 +256,9 @@
 - `llm-tier.ts` — The LLM tier for one message (D-22..D-24, AI-SPEC section 4): call, (~1551 tok)
 - `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2514 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
+- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~5572 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
+- `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
 
 ## apps/worker/src/commands/
 
@@ -310,6 +313,8 @@
 - `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~1078 tok)
 - `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2377 tok)
 - `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3210 tok)
+- `classify-run.test.ts` — The classification pass (03-08) against a real database as sift_app and (~7591 tok)
+- `classify-trace.test.ts` — Every way a decision can be made leaves a complete, closed and replayable (~3803 tok)
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~800 tok)
 - `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~6721 tok)
 - `compose.test.ts` — A long-syntax volume entry (`type: bind`, `source`, `target`, ...). (~4554 tok)
@@ -354,6 +359,7 @@
 
 ## apps/worker/test/support/
 
+- `classify-harness.ts` — Shared pieces of the classification-pass tests (03-08): stored pending (~4614 tok)
 - `fake-folder-source.ts` — In-memory FolderSource for the sync engine tests (02-10). Synthetic mail (~2284 tok)
 - `fake-imap-server.ts` — A recording fake IMAP server for wire-level tests (D-80): it records every (~2409 tok)
 - `fake-ingest-store.ts` — In-memory IngestStore with the semantics of the @sift/db ingest use-cases (~4470 tok)
