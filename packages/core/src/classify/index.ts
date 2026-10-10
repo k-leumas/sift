@@ -1,5 +1,13 @@
 export { canonicalJson, sha256Hex } from './canonical.ts';
 export {
+  type DecideInput,
+  type DecisionDraft,
+  decide,
+  type LlmSpanContext,
+  type LlmVerdict,
+} from './decide.ts';
+export { type MatchableMessage, matchExactRules } from './exact-rules.ts';
+export {
   type LlmOutput,
   type LlmOutputSchema,
   llmOutputSchema,
