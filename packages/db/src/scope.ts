@@ -1,7 +1,9 @@
 import {
   and,
+  desc,
   eq,
   getTableColumns,
+  gte,
   type InferInsertModel,
   type InferSelectModel,
   isNull,
@@ -24,6 +26,7 @@ import {
   messageLocation,
   ruleSet,
 } from './schema/index.ts';
+import type { MessageAttachment } from './schema/scoped.ts';
 
 type Tx = Parameters<Parameters<NodePgDatabase['transaction']>[0]>[0];
 
@@ -119,6 +122,57 @@ export interface MailboxStatusApi {
   ): Promise<MailboxStatusRow>;
 }
 
+/**
+ * Which messages a classification run looks at (D-15, D-17, D-18).
+ *
+ * pendingOnly selects eligible messages with a live location and no decision
+ * yet: the worker's pending set. Without it, eligible live messages are
+ * selected whether decided or not, for owner-requested re-runs (D-17), and
+ * each candidate says whether it was already decided.
+ *
+ * Results are newest INTERNALDATE first, id breaking ties. `before` is the
+ * keyset cursor: the (internalDate, id) of the last row of the previous page;
+ * the next page starts strictly after it. `limit` is an integer 1..1000.
+ */
+export interface CandidateQuery {
+  pendingOnly: boolean;
+  /** Only these messages. An empty list selects nothing, without SQL. */
+  messageIds?: readonly string[];
+  /** Only messages with INTERNALDATE at or after this. */
+  since?: Date;
+  limit: number;
+  before?: { internalDate: Date; id: string };
+}
+
+/** The cached body of a candidate (D-06). */
+export interface CandidateBody {
+  text: string;
+  source: 'text_plain' | 'text_html' | 'none';
+  truncated: boolean;
+  expiresAt: Date | null;
+}
+
+/** One message to classify, with what the tiers read (D-08). */
+export interface ClassifyCandidate {
+  id: string;
+  identityKey: string;
+  internalDate: Date;
+  fromAddress: string | null;
+  fromDomain: string | null;
+  subject: string | null;
+  headers: Record<string, string[]>;
+  attachments: MessageAttachment[];
+  /** Null when the body row is gone (expired or swept); a refetch restores it. */
+  body: CandidateBody | null;
+  /** True when the message already has a decision (always false for pendingOnly). */
+  decided: boolean;
+}
+
+/** The classification queries the generic table helpers cannot express. */
+export interface ClassificationApi {
+  candidates(query: CandidateQuery): Promise<ClassifyCandidate[]>;
+}
+
 /** Everything app code can do with one mailbox's data (D-43). */
 export interface Scope {
   readonly mailboxId: string;
@@ -138,6 +192,8 @@ export interface Scope {
   readonly decision: AppendOnlyTableApi<typeof decision>;
   readonly labelEvent: AppendOnlyTableApi<typeof labelEvent>;
   readonly mailboxStatus: MailboxStatusApi;
+  /** Candidate selection for classification (D-15, D-17). */
+  readonly classification: ClassificationApi;
 }
 
 export interface WithMailboxOptions {
@@ -424,6 +480,118 @@ function mailboxStatusApi(ctx: ScopeContext): MailboxStatusApi {
   });
 }
 
+/** The largest page candidates() returns. */
+const MAX_CANDIDATE_LIMIT = 1000;
+
+function assertCandidateQuery(query: CandidateQuery): void {
+  const { limit, messageIds, since, before } = query;
+  if (!Number.isInteger(limit) || limit < 1 || limit > MAX_CANDIDATE_LIMIT) {
+    throw new TypeError(`candidates: limit must be an integer from 1 to ${MAX_CANDIDATE_LIMIT}`);
+  }
+  if (messageIds?.some((id) => typeof id !== 'string' || !UUID.test(id))) {
+    throw new TypeError('candidates: every message id must be a UUID');
+  }
+  if (since !== undefined && !(since instanceof Date && Number.isFinite(since.getTime()))) {
+    throw new TypeError('candidates: since must be a valid Date');
+  }
+  if (
+    before !== undefined &&
+    !(
+      before.internalDate instanceof Date &&
+      Number.isFinite(before.internalDate.getTime()) &&
+      typeof before.id === 'string' &&
+      UUID.test(before.id)
+    )
+  ) {
+    throw new TypeError('candidates: before needs a valid internalDate and a UUID id');
+  }
+}
+
+/**
+ * The pending and re-run queries (D-15, D-17, D-18). One statement: message
+ * left-joined to its body, with EXISTS over live locations and decisions.
+ * Every table in it, subqueries included, is filtered by the scope's mailbox
+ * in SQL as well as by RLS (ISO-04).
+ */
+function classificationApi(ctx: ScopeContext): ClassificationApi {
+  const { tx, mailboxId } = ctx;
+  return Object.freeze({
+    async candidates(query: CandidateQuery): Promise<ClassifyCandidate[]> {
+      ctx.assertOpen();
+      assertCandidateQuery(query);
+      if (query.messageIds !== undefined && query.messageIds.length === 0) return [];
+
+      const decided = sql<boolean>`exists (select 1 from ${decision} where ${decision.mailboxId} = ${mailboxId} and ${decision.messageId} = ${message.id})`;
+      const live = sql`exists (select 1 from ${messageLocation} where ${messageLocation.mailboxId} = ${mailboxId} and ${messageLocation.messageId} = ${message.id} and ${messageLocation.removedAt} is null)`;
+      const conditions: SQL[] = [
+        eq(message.mailboxId, mailboxId),
+        eq(message.eligibleForClassification, true),
+        live,
+      ];
+      if (query.pendingOnly) conditions.push(sql`not ${decided}`);
+      if (query.messageIds !== undefined) conditions.push(anyOf(message.id, query.messageIds));
+      if (query.since !== undefined) conditions.push(gte(message.internalDate, query.since));
+      if (query.before !== undefined) {
+        const { internalDate, id } = query.before;
+        conditions.push(
+          sql`(${message.internalDate}, ${message.id}) < (${sql.param(internalDate, message.internalDate)}, ${sql.param(id, message.id)})`,
+        );
+      }
+
+      const rows = await tx
+        .select({
+          id: message.id,
+          identityKey: message.identityKey,
+          internalDate: message.internalDate,
+          fromAddress: message.fromAddress,
+          fromDomain: message.fromDomain,
+          subject: message.subject,
+          headers: message.headers,
+          attachments: message.attachments,
+          bodyId: messageBody.id,
+          bodyText: messageBody.bodyText,
+          bodySource: messageBody.source,
+          bodyTruncated: messageBody.truncated,
+          bodyExpiresAt: messageBody.expiresAt,
+          decided: decided.mapWith(Boolean),
+        })
+        .from(message)
+        .leftJoin(
+          messageBody,
+          and(
+            eq(messageBody.mailboxId, mailboxId),
+            eq(messageBody.mailboxId, message.mailboxId),
+            eq(messageBody.messageId, message.id),
+          ),
+        )
+        .where(and(...conditions))
+        .orderBy(desc(message.internalDate), desc(message.id))
+        .limit(query.limit);
+
+      return rows.map((row) => ({
+        id: row.id,
+        identityKey: row.identityKey,
+        internalDate: row.internalDate,
+        fromAddress: row.fromAddress,
+        fromDomain: row.fromDomain,
+        subject: row.subject,
+        headers: row.headers,
+        attachments: row.attachments,
+        body:
+          row.bodyId === null
+            ? null
+            : {
+                text: row.bodyText as string,
+                source: row.bodySource as CandidateBody['source'],
+                truncated: row.bodyTruncated as boolean,
+                expiresAt: row.bodyExpiresAt,
+              },
+        decided: row.decided,
+      }));
+    },
+  });
+}
+
 /**
  * Throw unless the scope's mailbox exists and is enabled (D-45). Processing
  * entry points (ingest, classify, apply labels) call this; reading status
@@ -480,6 +648,7 @@ export async function runScoped<T>(
       decision: appendOnlyTable(ctx, decision),
       labelEvent: appendOnlyTable(ctx, labelEvent),
       mailboxStatus: mailboxStatusApi(ctx),
+      classification: classificationApi(ctx),
     });
     contexts.set(scope, ctx);
     try {

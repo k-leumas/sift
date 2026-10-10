@@ -30,6 +30,13 @@ export {
   createAppDb,
 } from './app-db.ts';
 export {
+  DECISION_BODY_RETENTION_MS,
+  type DecisionRow,
+  ensureRuleSet,
+  type RecordDecisionInput,
+  recordDecision,
+} from './classify.ts';
+export {
   type AttachmentMeta,
   advanceFolderSync,
   type BackfillCursor,
@@ -64,6 +71,10 @@ export {
 export { type RegistryRow, readRegistry } from './registry-read.ts';
 export {
   type AppendOnlyTableApi,
+  type CandidateBody,
+  type CandidateQuery,
+  type ClassificationApi,
+  type ClassifyCandidate,
   type ConflictRow,
   InvalidMailboxIdError,
   MailboxDisabledError,

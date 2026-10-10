@@ -164,6 +164,7 @@ describe('withMailbox as sift_app (RLS and helper filter both in force)', () => 
   it('hands the callback only per-table helpers', async () => {
     const keys = await withMailbox(app, A, async (s) => Object.keys(s).sort());
     expect(keys).toEqual([
+      'classification',
       'decision',
       'folderSync',
       'label',
@@ -258,6 +259,39 @@ describe('application filter without RLS (superuser connection)', () => {
     }
     const status = await withMailbox(admin, A, (s) => s.mailboxStatus.get());
     expect(status?.mailboxId).toBe(A);
+  });
+
+  it('classification.candidates under A returns only A messages, by its own filter (ISO-04)', async () => {
+    const result = await withMailbox(admin, A, async (s) => ({
+      all: await s.classification.candidates({ pendingOnly: false, limit: 1000 }),
+      pending: await s.classification.candidates({ pendingOnly: true, limit: 1000 }),
+      byBId: await s.classification.candidates({
+        pendingOnly: false,
+        limit: 1000,
+        messageIds: [seededB.messageId],
+      }),
+    }));
+    const eligibleLiveA = await adminQuery<{ id: string }>(
+      `select m.id from message m
+        where m.mailbox_id = $1 and m.eligible_for_classification
+          and exists (select 1 from message_location l
+                       where l.mailbox_id = m.mailbox_id and l.message_id = m.id
+                         and l.removed_at is null)
+        order by m.id`,
+      [A],
+    );
+    expect(result.all.length).toBeGreaterThan(0);
+    expect(result.all.map((c) => c.id).sort()).toEqual(eligibleLiveA.map((r) => r.id));
+    expect(result.all.map((c) => c.id)).toContain(seededA.messageId);
+    expect(result.all.map((c) => c.id)).not.toContain(seededB.messageId);
+    // The seeded A message has a worker decision, and A's body row joins A's message only.
+    expect(result.all.find((c) => c.id === seededA.messageId)).toMatchObject({
+      decided: true,
+      body: { text: 'seed body' },
+    });
+    expect(result.pending.map((c) => c.id)).not.toContain(seededA.messageId);
+    expect(result.pending.map((c) => c.id)).not.toContain(seededB.messageId);
+    expect(result.byBId).toEqual([]);
   });
 
   it('a match on a B id under A finds, updates and deletes nothing', async () => {
@@ -927,6 +961,9 @@ describe('@sift/db export surface', () => {
         'MailboxNotFoundError',
         'ScopeClosedError',
         'createAppDb',
+        'DECISION_BODY_RETENTION_MS',
+        'ensureRuleSet',
+        'recordDecision',
         'readHold',
         'readRegistry',
         'recordBackfillProgress',
