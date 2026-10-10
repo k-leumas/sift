@@ -1,3 +1,4 @@
+export { canonicalJson, sha256Hex } from './canonical.ts';
 export {
   type LlmOutput,
   type LlmOutputSchema,
@@ -27,6 +28,7 @@ export {
   trustedInputFrom,
   type UntrustedEmail,
 } from './prompt.ts';
+export { type PromptMaterial, promptMaterial } from './prompt-version.ts';
 export {
   type ActionSpan,
   ActionSpanSchema,
