@@ -14,6 +14,7 @@ import {
   requireDatabaseUrl,
   withIngestLock,
 } from '@sift/db';
+import { type RefetchDeps, RefetchFailedError, refetchBodies } from '../classify/refetch.ts';
 import {
   CLASSIFY_CHUNK_SIZE,
   type ClassifyContext,
@@ -28,7 +29,12 @@ import {
 import { createSingleFlight } from '../classify/single-flight.ts';
 import type { CommandIO } from '../command.ts';
 import type { openImap } from '../imap/connect.ts';
-import { storedError } from '../runtime/mailbox-batch.ts';
+import {
+  configEntryFor,
+  MailboxSyncError,
+  ownerMessageFor,
+  storedError,
+} from '../runtime/mailbox-batch.ts';
 
 const COMMAND = 'sift classify';
 export const USAGE =
@@ -126,6 +132,12 @@ function selectionOf(selector: Selector): Omit<CandidateQuery, 'limit' | 'before
  * lock, so the command never classifies alongside the worker (P2 D-03). The
  * lock is retried for `lockWaitMs`, then the command refuses. It is not held
  * while the owner reads the prompt.
+ *
+ * A selected message whose cached body has expired is refetched from IMAP
+ * first (D-32, refetchBodies): read-only, by its location under the current
+ * UIDVALIDITY, and only when the server copy's identity key equals the stored
+ * one. A message that is gone or no longer matches is skipped with one line
+ * naming its id. No IMAP connection is opened when every body is cached.
  *
  * An Ollama outage stops the command (exit 1) with the owner message and the
  * counts done and left. The command never writes mailbox_status. Output holds
@@ -237,34 +249,83 @@ export async function classifyCommand(deps: ClassifyCommandDeps): Promise<0 | 1>
       state,
       now: deps.now ?? (() => new Date()),
     };
-    /** Selected messages that will not be classified by this run (expired, gone, decided meanwhile). */
+    /** Selected messages this run will not classify (gone, changed, decided meanwhile). */
     let dropped = 0;
     const classified = (): number => state.labelled + state.review;
+
+    let refetch: RefetchDeps | undefined;
+    /** The IMAP entry and password, resolved when a body first needs a refetch (D-32). */
+    const refetchDeps = (): RefetchDeps => {
+      if (refetch !== undefined) return refetch;
+      const entry = configEntryFor(deps.config, row);
+      if (entry === undefined) {
+        throw new ClassifyStop(
+          `mailbox ${slug} is not in the config file this command loaded, so its expired bodies cannot be refetched`,
+        );
+      }
+      const password = deps.env[entry.imap.password_env];
+      if (password === undefined || password === '') {
+        const owner = {
+          slug,
+          host: entry.imap.host,
+          port: entry.imap.port,
+          pinned: entry.imap.tls.pin_sha256 !== undefined,
+          passwordEnv: entry.imap.password_env,
+        };
+        throw new ClassifyStop(
+          ownerMessageFor(new MailboxSyncError('password_missing', ''), owner).message,
+        );
+      }
+      secrets.push(password);
+      refetch = {
+        entry,
+        password,
+        ...(deps.openImap === undefined ? {} : { openImap: deps.openImap }),
+      };
+      return refetch;
+    };
 
     for (let start = 0; start < total; start += CLASSIFY_CHUNK_SIZE) {
       const chunk = ids.slice(start, start + CLASSIFY_CHUNK_SIZE);
       const step = await underLock(async (session) => {
+        const read = async (messageIds: readonly string[]): Promise<ClassifyCandidate[]> =>
+          messageIds.length === 0
+            ? []
+            : session.run(
+                (s) =>
+                  s.classification.candidates({
+                    pendingOnly: selection.pendingOnly,
+                    messageIds,
+                    limit: messageIds.length,
+                  }),
+                { requireActive: true },
+              );
         // Re-read under this lock: --all-pending skips what the worker decided meanwhile.
-        const candidates = await session.run(
-          (s) =>
-            s.classification.candidates({
-              pendingOnly: selection.pendingOnly,
-              messageIds: chunk,
-              limit: chunk.length,
-            }),
-          { requireActive: true },
-        );
+        let candidates = await read(chunk);
         dropped += chunk.length - candidates.length;
-        const ready: ClassifyCandidate[] = [];
-        for (const c of candidates) {
-          if (c.body !== null) {
-            ready.push(c);
-            continue;
+        if (candidates.some((c) => c.body === null)) {
+          const results = await refetchBodies(session, candidates, refetchDeps());
+          for (const [id, result] of results) {
+            if (result === 'restored') continue;
+            dropped += 1;
+            deps.stderr(
+              result === 'gone'
+                ? `message ${id}: its body is no longer on the server; skipped`
+                : `message ${id}: the server copy no longer matches; skipped`,
+            );
           }
-          dropped += 1;
-          deps.stderr(`message ${c.id}: body expired; skipped`);
+          // Re-read, so a restored body is classified exactly as stored.
+          const usable = candidates.filter((c) => {
+            const result = results.get(c.id);
+            return result === undefined || result === 'restored';
+          });
+          candidates = await read(usable.map((c) => c.id));
         }
-        return classifyCandidates(session, ready, ctx);
+        return classifyCandidates(
+          session,
+          candidates.filter((c) => c.body !== null),
+          ctx,
+        );
       });
       if (step === 'aborted') return fail(STOPPED);
       if (state.llmBlocked !== null) {
@@ -291,7 +352,9 @@ export async function classifyCommand(deps: ClassifyCommandDeps): Promise<0 | 1>
     );
     return 0;
   } catch (error) {
-    if (error instanceof ClassifyStop) return fail(error.message);
+    if (error instanceof ClassifyStop || error instanceof RefetchFailedError) {
+      return fail(error.message);
+    }
     if (error instanceof MailboxDisabledError) {
       return fail(`mailbox ${slug} is disabled; nothing changed`);
     }
