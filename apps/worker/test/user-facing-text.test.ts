@@ -103,8 +103,65 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     'imap.tls.pin_sha256',
     'Proton Bridge v3.27.0',
     '02-SPIKE-FINDINGS.md',
+    // Phase 3: the rules file, the local model and the re-run command (D-01, D-05, D-07, D-17).
+    'mkdir -p data/mailboxes/<slug> && cp data/mailboxes/example/rules.example.yaml data/mailboxes/<slug>/rules.yaml',
+    'ollama pull qwen3:1.7b',
+    'docker compose run --rm --no-deps worker sift config check',
+    'Config OK: 2 mailboxes (personal, job-search); password env vars present; rules files valid',
+    'rules files valid',
+    'Labels/<Category>',
+    'docker compose run --rm --no-deps worker sift classify <slug> --all-pending',
+    'sift classify <slug> --all-pending',
+    '--since <YYYY-MM-DD>',
+    '--message <id>',
+    '`--yes`',
+    'mv data/mailboxes/<old> data/mailboxes/<new>',
+    'not trained',
+    'Nothing is written into your mailbox yet',
   ])('contains %s', (text) => {
     expect(readme).toContain(text);
+  });
+
+  it('creates the rules file and pulls the model before the first docker compose up -d', () => {
+    const quickStart = readme.slice(
+      readme.indexOf('### Quick start'),
+      readme.indexOf('### Managing mailboxes'),
+    );
+    const steps = [
+      'pin_sha256',
+      'cp data/mailboxes/example/rules.example.yaml data/mailboxes/<slug>/rules.yaml',
+      'ollama pull qwen3:1.7b',
+      'docker compose up -d',
+      'docker compose run --rm --no-deps worker sift config check',
+    ].map((step) => quickStart.indexOf(step));
+    expect(steps.every((i) => i >= 0)).toBe(true);
+    expect([...steps].sort((a, b) => a - b)).toEqual(steps);
+    // The model pull works today, so it is no longer listed under later milestones.
+    const later = quickStart.slice(quickStart.indexOf('**Arriving in later milestones**'));
+    expect(later).not.toContain('qwen3:1.7b');
+  });
+
+  it('quotes the owner lines exactly as the code prints them', async () => {
+    const { infraOwnerMessage } = await import('../src/classify/run.ts');
+    const ctx = { modelsUrl: 'http://host.docker.internal:11434', model: 'qwen3:1.7b' };
+    for (const line of [
+      infraOwnerMessage('unreachable', { ...ctx, status: null, detail: 'ECONNREFUSED' }),
+      infraOwnerMessage('model_missing', { ...ctx, status: null, detail: '' }),
+    ]) {
+      expect(readme).toContain(`error: ${line}`);
+    }
+    const sources: Record<string, string[]> = {
+      'apps/worker/src/commands/config-check.ts': ['password env vars present; rules files valid'],
+      'apps/worker/src/commands/classify.ts': [
+        'Classify them? Type yes to continue:',
+        '--message <id> | --since <YYYY-MM-DD> | --all-pending) [--yes]',
+      ],
+      'packages/core/src/rules/load.ts': ['rules file not found: '],
+      'apps/worker/src/classify/run.ts': ['. See them all with: '],
+    };
+    for (const [file, texts] of Object.entries(sources)) {
+      for (const text of texts) expect(read(file), file).toContain(text);
+    }
   });
 
   it('copies the example files in the same order the compose smoke test creates them', () => {
@@ -266,6 +323,11 @@ describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
     'chore(release): v',
     'sift --version',
     '.github/workflows/release-tag.yml',
+    // Phase 3: classification tests are hermetic; the live baseline is manual.
+    'apps/worker/test/support/fake-ollama.ts',
+    'pnpm vitest run classify',
+    'data/mailboxes/<slug>/rules.yaml',
+    'node apps/worker/test/support/llm-baseline.ts --url',
   ])('contains %s', (text) => {
     expect(contributing).toContain(text);
   });
