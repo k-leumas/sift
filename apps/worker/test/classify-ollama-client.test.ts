@@ -90,7 +90,7 @@ describe('transport failures (E5 client half)', () => {
   });
 
   it('an unresolvable host is infra unreachable with a DNS code', async () => {
-    const client = createOllamaClient('http://ollama.invalid:11434', { timeoutMs: 10_000 });
+    const client = createOllamaClient('http://ollama.invalid', { timeoutMs: 10_000 });
     const result = await client.chat(REQUEST, new AbortController().signal);
     expect(result.kind === 'infra' && result.code).toBe('unreachable');
     expect(result.kind === 'infra' && result.detail).toMatch(/^(ENOTFOUND|EAI_AGAIN)$/);
