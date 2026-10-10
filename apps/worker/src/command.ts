@@ -73,6 +73,12 @@ export const COMMANDS: readonly CommandSpec[] = [
     summary: 'Count, confirm, then ingest the last n days (default 3) of a mailbox',
   },
   {
+    path: ['classify'],
+    file: 'classify.ts',
+    usage: 'sift classify <slug> (--message <id> | --since <YYYY-MM-DD> | --all-pending) [--yes]',
+    summary: 'Classify pending messages of a mailbox again, or re-run decided ones',
+  },
+  {
     path: ['bridge', 'probe'],
     file: 'bridge-probe.ts',
     usage:
