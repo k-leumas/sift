@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-08-PLAN.md
-last_updated: "2026-10-10T21:40:50.834Z"
+stopped_at: Completed 03-09-PLAN.md
+last_updated: "2026-10-10T22:00:31.231Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 9d0fe5deab58b18ae32a55f0a3d42162573e6ba4
+state_head: 21f822777559000ee822630d30b447e10ce88a09
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 43
+  completed_plans: 44
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 10 of 13
+Plan: 11 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -99,6 +99,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P07 | 13 min | 3 tasks | 8 files |
 | Phase 03 P11 | 25 min | 3 tasks | 10 files |
 | Phase 03 P08 | 18 min | 3 tasks | 7 files |
+| Phase 03 P09 | 15 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -237,6 +238,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-08: classification takes the ingest lock per 5-message chunk; state.ruleSetId is cached only after its transaction commits
 - [Phase 03]: 03-08: infraOwnerMessage never shows Ollama detail except a bare code; timeout seconds come from the client's own detail (10 s preflight, 120 s chat)
 - [Phase 03]: 03-08: worker test harness models.url is http://ollama.invalid; fake-ollama records its answer per request for the E8 replay check
+- [Phase 03]: 03-09: a busy or shutdown-aborted classify pass still records ok with the ingest time; pending mail is picked up next batch
+- [Phase 03]: 03-09: ClassifyInfraError is handled before MailboxSyncError, so the IMAP startup grace never shows an Ollama error as connecting
+- [Phase 03]: 03-09: rules_invalid resolves runBatch (no backoff) and stores the file and problems in last_error; the warn line carries the slug only
 
 ### Pending Todos
 
@@ -264,6 +268,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T21:40:50.681Z
-Stopped at: Completed 03-08-PLAN.md
+Last session: 2026-10-10T22:00:12.513Z
+Stopped at: Completed 03-09-PLAN.md
 Resume file: None
