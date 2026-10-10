@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { MailboxConfig, SiftConfig } from '@sift/core/config';
@@ -256,6 +256,12 @@ describe('registry CLI (config apply, mailbox list, mailbox rename)', () => {
   beforeAll(async () => {
     db = await freshDatabase();
     dir = await mkdtemp(path.join(tmpdir(), 'sift-registry-'));
+    // D-07: rename refuses until <data>/mailboxes/<new-slug>/rules.yaml exists.
+    // The owner has already moved the folders for the new slugs used below.
+    for (const slug of ['job-search', 'home']) {
+      await mkdir(path.join(dir, 'data', 'mailboxes', slug), { recursive: true });
+      await writeFile(path.join(dir, 'data', 'mailboxes', slug, 'rules.yaml'), 'version: 1\n');
+    }
   });
 
   afterAll(async () => {
@@ -297,6 +303,7 @@ ${entries.join('')}models:
   function sift(configFile: string | null, ...args: string[]) {
     const env: Record<string, string> = {
       SIFT_OWNER_DATABASE_URL: db.ownerUrl,
+      SIFT_DATA: path.join(dir, 'data'),
       PATH: process.env.PATH ?? '',
     };
     if (configFile !== null) env.SIFT_CONFIG = configFile;
