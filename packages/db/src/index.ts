@@ -33,8 +33,10 @@ export {
   DECISION_BODY_RETENTION_MS,
   type DecisionRow,
   ensureRuleSet,
+  latestDecision,
   type RecordDecisionInput,
   recordDecision,
+  restoreBody,
 } from './classify.ts';
 export {
   type AttachmentMeta,
@@ -68,6 +70,7 @@ export {
   IngestSessionBusyError,
   withIngestLock,
 } from './lock.ts';
+export { ensurePromptVersion, PROMPT_VERSION_LOCK_KEY } from './prompt-version.ts';
 export { type RegistryRow, readRegistry } from './registry-read.ts';
 export {
   type AppendOnlyTableApi,

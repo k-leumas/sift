@@ -189,3 +189,20 @@ export async function ensureRuleSet(
   if (row === undefined) throw new Error('ensureRuleSet: the insert returned no row');
   return { id: row.id, version: row.version, created: true };
 }
+
+/** RED stub: replaced by the implementation in the GREEN commit. */
+export async function latestDecision(
+  _scope: Scope,
+  _messageId: string,
+): Promise<DecisionRow | null> {
+  return null;
+}
+
+/** RED stub: replaced by the implementation in the GREEN commit. */
+export async function restoreBody(
+  _scope: Scope,
+  _messageId: string,
+  _body: { bodyText: string; source: 'text_plain' | 'text_html' | 'none'; truncated: boolean },
+): Promise<boolean> {
+  return false;
+}

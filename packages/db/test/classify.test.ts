@@ -1,5 +1,17 @@
 import { randomUUID } from 'node:crypto';
-import { type DecisionDraft, decide, type ExactRulesSpan } from '@sift/core/classify';
+import {
+  type DecisionDraft,
+  decide,
+  type ExactRulesSpan,
+  LLM_SPAN_OPTIONS,
+  type LlmAttemptSpan,
+  type LlmSpanContext,
+  type LlmVerdict,
+  type PromptMaterial,
+  promptMaterial,
+  REVIEW_REASONS,
+  type ReviewReason,
+} from '@sift/core/classify';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
@@ -7,10 +19,14 @@ import {
   type ClassifyCandidate,
   createAppDb,
   DECISION_BODY_RETENTION_MS,
+  ensurePromptVersion,
   ensureRuleSet,
+  latestDecision,
   markLocationsRemoved,
+  PROMPT_VERSION_LOCK_KEY,
   type RecordDecisionInput,
   recordDecision,
+  restoreBody,
   type StoreItem,
   storeMessages,
   withMailbox,
@@ -329,5 +345,373 @@ describe('candidates validation', () => {
     } finally {
       querySpy.mockRestore();
     }
+  });
+});
+
+describe('ensurePromptVersion (D-29, RESEARCH Pitfall 8)', () => {
+  // prompt_version is global to the database, so this describe has its own:
+  // the version numbers it asserts start at 1.
+  let own: TestDatabase;
+
+  beforeAll(async () => {
+    own = await freshDatabase();
+  });
+
+  afterAll(async () => {
+    await own?.drop();
+  });
+
+  const material = (seed: string): PromptMaterial => ({
+    hash: Buffer.from(seed.padEnd(32, '.')).toString('hex').slice(0, 64),
+    template: `template ${seed}`,
+    schemaShape: { type: 'object', seed },
+  });
+
+  async function promptRows() {
+    const admin = await connect(own.adminUrl);
+    try {
+      return (
+        await admin.query<{ id: string; version: number; hash: string }>(
+          'select id, version, hash from prompt_version order by version',
+        )
+      ).rows;
+    } finally {
+      await admin.end();
+    }
+  }
+
+  it('five concurrent first calls on five handles store exactly one row', async () => {
+    const handles = Array.from({ length: 5 }, () => createAppDb(own.appUrl));
+    try {
+      const first = material('first');
+      const results = await Promise.all(handles.map((db) => ensurePromptVersion(db, first)));
+      const rows = await promptRows();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({ version: 1, hash: first.hash });
+      for (const result of results) {
+        expect(result).toMatchObject({ id: rows[0]?.id, version: 1 });
+      }
+      expect(results.filter((r) => r.created)).toHaveLength(1);
+    } finally {
+      await Promise.all(handles.map((db) => db.close()));
+    }
+  });
+
+  it('a new hash gets the next version; a known one returns its row', async () => {
+    const db = createAppDb(own.appUrl);
+    try {
+      const second = await ensurePromptVersion(db, material('second'));
+      const firstAgain = await ensurePromptVersion(db, material('first'));
+      expect(second).toMatchObject({ version: 2, created: true });
+      expect(firstAgain).toMatchObject({ version: 1, created: false });
+      expect((await promptRows()).map((r) => r.version)).toEqual([1, 2]);
+    } finally {
+      await db.close();
+    }
+  });
+
+  it(`waits for advisory lock ${PROMPT_VERSION_LOCK_KEY}`, async () => {
+    expect(PROMPT_VERSION_LOCK_KEY).toBe(815309003);
+    const locker = await connect(own.adminUrl);
+    const db = createAppDb(own.appUrl);
+    try {
+      await locker.query('select pg_advisory_lock($1)', [PROMPT_VERSION_LOCK_KEY]);
+      let settled = false;
+      const pending = ensurePromptVersion(db, material('third')).finally(() => {
+        settled = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(settled).toBe(false);
+      await locker.query('select pg_advisory_unlock($1)', [PROMPT_VERSION_LOCK_KEY]);
+      await expect(pending).resolves.toMatchObject({ version: 3, created: true });
+    } finally {
+      await db.close();
+      await locker.end();
+    }
+  });
+});
+
+/** A one-attempt llm context naming the stored prompt version. */
+function llmContext(version: { version: number }, hash: string): LlmSpanContext {
+  return {
+    model: 'qwen3:1.7b',
+    response_model: 'qwen3:1.7b',
+    model_digest: null,
+    ollama_version: null,
+    prompt_version: version.version,
+    prompt_hash: hash,
+    categories: [
+      { name: 'Important', description: 'act on it' },
+      { name: 'Noise', description: 'promotions' },
+    ],
+    judgment_rules: [],
+    examples: [],
+    options: { ...LLM_SPAN_OPTIONS },
+    body: { sent_chars: 10, original_chars: 10, truncated: false },
+  };
+}
+
+function attempt(validation: LlmAttemptSpan['validation']): LlmAttemptSpan {
+  return {
+    nonce: 'N0NCE00000000001',
+    raw: '{}',
+    thinking: null,
+    done_reason: 'stop',
+    metrics: null,
+    validation,
+  };
+}
+
+/** The LLM verdict that leads decide() to each review reason. */
+function reviewVerdict(reason: ReviewReason): LlmVerdict {
+  if (reason === 'low_confidence') {
+    const output = { reason: 'unsure', category: 'Noise', confidence: 0.2 };
+    return { kind: 'decided', output, attempts: [attempt({ ok: true })] };
+  }
+  const code = reason === 'invalid_output' ? 'not_json' : reason;
+  return { kind: 'review', reason, attempts: [attempt({ ok: false, code, detail: 'x' })] };
+}
+
+const noMatch: ExactRulesSpan = {
+  kind: 'exact_rules',
+  rules_checked: 0,
+  matches: [],
+  winner: null,
+  nearest_miss: null,
+};
+
+describe('re-runs, latest decision, body restore and the review reasons (D-17, D-32, TRC-04)', () => {
+  let mailboxId: string;
+  let ruleSetId: string;
+  let older: string;
+  let middle: string;
+  let newer: string;
+  const material = promptMaterial();
+  let prompt: { id: string; version: number; created: boolean };
+
+  beforeAll(async () => {
+    mailboxId = await newMailbox();
+    [older, middle, newer] = (await store(mailboxId, [
+      item('older', '2026-09-01T00:00:00Z'),
+      item('middle', '2026-09-15T00:00:00Z'),
+      item('newer', '2026-09-30T00:00:00Z'),
+    ])) as [string, string, string];
+    ruleSetId = await withMailbox(app, mailboxId, async (s) => {
+      const set = await ensureRuleSet(s, { hash: hashOf(), formatVersion: 1, snapshot });
+      return set.id;
+    });
+    prompt = await ensurePromptVersion(app, material);
+    await withMailbox(app, mailboxId, (s) =>
+      recordDecision(s, decisionInput(middle, ruleSetId, exactDraft())),
+    );
+  });
+
+  it('selects decided messages by id, marking them decided', async () => {
+    const found = await withMailbox(app, mailboxId, (s) =>
+      s.classification.candidates({ pendingOnly: false, messageIds: [middle], limit: 10 }),
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({ id: middle, decided: true });
+  });
+
+  it('selects eligible live messages since a date, decided or not', async () => {
+    const found = await withMailbox(app, mailboxId, (s) =>
+      s.classification.candidates({
+        pendingOnly: false,
+        since: new Date('2026-09-15T00:00:00Z'),
+        limit: 10,
+      }),
+    );
+    expect(found.map((c) => [c.id, c.decided])).toEqual([
+      [newer, false],
+      [middle, true],
+    ]);
+  });
+
+  it('returns body null when the body row is gone, and restoreBody puts it back once', async () => {
+    const result = await withMailbox(app, mailboxId, async (s) => {
+      await s.messageBody.delete({ messageId: older });
+      const [gone] = await s.classification.candidates({
+        pendingOnly: false,
+        messageIds: [older],
+        limit: 1,
+      });
+      const restored = await restoreBody(s, older, {
+        bodyText: 'refetched\u0000 body',
+        source: 'text_html',
+        truncated: true,
+      });
+      const [back] = await s.classification.candidates({
+        pendingOnly: false,
+        messageIds: [older],
+        limit: 1,
+      });
+      const again = await restoreBody(s, older, {
+        bodyText: 'other',
+        source: 'text_plain',
+        truncated: false,
+      });
+      const [unchanged] = await s.messageBody.find({ messageId: older });
+      return { gone, restored, back, again, unchanged };
+    });
+    expect(result.gone?.body).toBeNull();
+    expect(result.restored).toBe(true);
+    expect(result.back?.body).toEqual({
+      text: 'refetched body',
+      source: 'text_html',
+      truncated: true,
+      expiresAt: null,
+    });
+    expect(result.again).toBe(false);
+    expect(result.unchanged).toMatchObject({ bodyText: 'refetched body', source: 'text_html' });
+  });
+
+  it('a rerun leaves an existing body expiry unchanged', async () => {
+    const before = await withMailbox(app, mailboxId, (s) =>
+      s.messageBody.find({ messageId: middle }),
+    );
+    expect(before[0]?.expiresAt).toBeInstanceOf(Date);
+    const later = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const after = await withMailbox(app, mailboxId, async (s) => {
+      await recordDecision(
+        s,
+        decisionInput(middle, ruleSetId, exactDraft('Noise'), { decidedBy: 'rerun', at: later }),
+      );
+      return s.messageBody.find({ messageId: middle });
+    });
+    expect(after[0]?.expiresAt).toEqual(before[0]?.expiresAt);
+  });
+
+  it('latestDecision orders by created_at, then id, and is null for an undecided message', async () => {
+    const t1 = new Date('2027-01-01T00:00:00Z');
+    const t2 = new Date('2027-01-02T00:00:00Z');
+    const result = await withMailbox(app, mailboxId, async (s) => {
+      const none = await latestDecision(s, newer);
+      // Inserted first but decided later: created_at wins over insertion order.
+      const late = await recordDecision(
+        s,
+        decisionInput(newer, ruleSetId, exactDraft('Noise'), { decidedBy: 'rerun', at: t2 }),
+      );
+      await recordDecision(
+        s,
+        decisionInput(newer, ruleSetId, exactDraft(), { decidedBy: 'rerun', at: t1 }),
+      );
+      const byTime = await latestDecision(s, newer);
+      // Same created_at: the larger id (the later uuidv7) wins.
+      const tieA = await recordDecision(
+        s,
+        decisionInput(older, ruleSetId, exactDraft(), { decidedBy: 'rerun', at: t1 }),
+      );
+      const tieB = await recordDecision(
+        s,
+        decisionInput(older, ruleSetId, exactDraft('Noise'), { decidedBy: 'rerun', at: t1 }),
+      );
+      const byId = await latestDecision(s, older);
+      return { none, late, byTime, tieA, tieB, byId };
+    });
+    expect(result.none).toBeNull();
+    expect(result.byTime?.id).toBe(result.late.id);
+    const tieWinner = result.tieA.id > result.tieB.id ? result.tieA : result.tieB;
+    expect(result.byId?.id).toBe(tieWinner.id);
+  });
+
+  it('stores an exact-rule decision with prompt_version_id and model null', async () => {
+    const [row] = await adminQuery<{ prompt_version_id: string | null; model: string | null }>(
+      `select prompt_version_id, model from decision
+        where mailbox_id = $1 and message_id = $2 and decided_by = 'worker'`,
+      [mailboxId, middle],
+    );
+    expect(row).toEqual({ prompt_version_id: null, model: null });
+  });
+
+  it('accepts every REVIEW_REASONS value in an llm review decision (core and SQL lists agree)', async () => {
+    const stored = await withMailbox(app, mailboxId, async (s) => {
+      const rows = [];
+      for (const reason of REVIEW_REASONS) {
+        const draft = decide({
+          exact: noMatch,
+          llm: { verdict: reviewVerdict(reason), context: llmContext(prompt, material.hash) },
+          threshold: 0.75,
+        });
+        rows.push(
+          await recordDecision(
+            s,
+            decisionInput(newer, ruleSetId, draft, {
+              decidedBy: 'rerun',
+              promptVersionId: prompt.id,
+            }),
+          ),
+        );
+      }
+      return rows;
+    });
+    expect(stored.map((r) => r.reviewReason)).toEqual([...REVIEW_REASONS]);
+    for (const row of stored) {
+      expect(row).toMatchObject({
+        outcome: 'review',
+        tier: 'llm',
+        promptVersionId: prompt.id,
+        model: 'qwen3:1.7b',
+      });
+    }
+  });
+
+  it('refuses an unknown review reason with 23514', async () => {
+    await expect(
+      withMailbox(app, mailboxId, (s) =>
+        s.decision.insert([
+          {
+            messageId: newer,
+            outcome: 'review',
+            category: null,
+            confidence: null,
+            tier: 'llm',
+            reviewReason: 'something_else',
+            ruleSetId,
+            promptVersionId: prompt.id,
+            model: 'qwen3:1.7b',
+            decidedBy: 'rerun',
+            traceFormatVersion: 1,
+            spans: [],
+          },
+        ]),
+      ),
+    ).rejects.toMatchObject({
+      cause: { code: '23514', constraint: 'decision_review_reason_check' },
+    });
+  });
+
+  it('refuses an llm decision without a prompt version before any SQL', async () => {
+    const draft = decide({
+      exact: noMatch,
+      llm: { verdict: reviewVerdict('invalid_output'), context: llmContext(prompt, material.hash) },
+      threshold: 0.75,
+    });
+    const querySpy = vi.spyOn(pg.Client.prototype, 'query');
+    try {
+      const result = await withMailbox(app, mailboxId, async (s) => {
+        querySpy.mockClear();
+        const error = await recordDecision(
+          s,
+          decisionInput(newer, ruleSetId, draft, { decidedBy: 'rerun', promptVersionId: null }),
+        ).catch((e: unknown) => e);
+        return { error, sent: querySpy.mock.calls.length };
+      });
+      expect(result.error).toBeInstanceOf(TypeError);
+      expect((result.error as Error).message).toMatch(/promptVersionId/);
+      expect(result.sent).toBe(0);
+    } finally {
+      querySpy.mockRestore();
+    }
+  });
+
+  it('numbers rule sets 1, 2, 3 per mailbox in creation order', async () => {
+    const own = await newMailbox();
+    const versions = await withMailbox(app, own, async (s) => [
+      (await ensureRuleSet(s, { hash: hashOf(), formatVersion: 1, snapshot })).version,
+      (await ensureRuleSet(s, { hash: hashOf(), formatVersion: 1, snapshot })).version,
+      (await ensureRuleSet(s, { hash: hashOf(), formatVersion: 1, snapshot })).version,
+    ]);
+    expect(versions).toEqual([1, 2, 3]);
   });
 });
