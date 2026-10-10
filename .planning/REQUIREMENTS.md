@@ -49,8 +49,8 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 
 - [ ] **TRC-01**: Every classification writes a `decision` row with one span per tier that ran and a final action span, scoped by `mailbox_id`
 - [x] **TRC-02**: The exact-rules span records rules checked, matches, and the nearest miss
-- [ ] **TRC-03**: The LLM span records model, prompt version, rules included, examples retrieved (empty in M1), the raw model output, the validation result, and the confidence
-- [ ] **TRC-04**: The decision records the rule set, prompt and model versions so the decision can be replayed later (rule set and prompt versions are stored as versioned rows, not inferred)
+- [x] **TRC-03**: The LLM span records model, prompt version, rules included, examples retrieved (empty in M1), the raw model output, the validation result, and the confidence
+- [x] **TRC-04**: The decision records the rule set, prompt and model versions so the decision can be replayed later (rule set and prompt versions are stored as versioned rows, not inferred)
 - [ ] **TRC-05**: The owner can retrieve the full trace for any message from the command line or a documented SQL query; nothing from the trace is written into the mailbox
 - [x] **TRC-06**: Every trace includes a classifier span even before the classifier exists; in M1 it is recorded as skipped with the reason "not trained", so the trace layout does not change when the classifier arrives in M2
 
@@ -142,8 +142,8 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | CLS-06 | Phase 3 | Pending |
 | TRC-01 | Phase 3 | Pending |
 | TRC-02 | Phase 3 | Complete |
-| TRC-03 | Phase 3 | Pending |
-| TRC-04 | Phase 3 | Pending |
+| TRC-03 | Phase 3 | Complete |
+| TRC-04 | Phase 3 | Complete |
 | TRC-06 | Phase 3 | Complete |
 | SEC-01 | Phase 3 | Pending |
 | TRC-05 | Phase 4 | Pending |

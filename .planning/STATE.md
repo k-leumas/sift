@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-11-PLAN.md
-last_updated: "2026-10-10T21:15:51.661Z"
+stopped_at: Completed 03-08-PLAN.md
+last_updated: "2026-10-10T21:40:50.834Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: d910f1071f356c72b6bad7935689fa6693626d65
+state_head: 9d0fe5deab58b18ae32a55f0a3d42162573e6ba4
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 47
-  completed_plans: 42
+  completed_plans: 43
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
-Plan: 9 of 13
+Plan: 10 of 13
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -98,6 +98,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P06 | 16 min | 2 tasks | 7 files |
 | Phase 03 P07 | 13 min | 3 tasks | 8 files |
 | Phase 03 P11 | 25 min | 3 tasks | 10 files |
+| Phase 03 P08 | 18 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -232,6 +233,10 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-11: sift config check checks rules files only after the password-env check passes, and reads every mailbox's file before exiting 1
 - [Phase 03]: 03-11: setup gets the read-only /data mount too, because sift mailbox rename runs in the setup service and its D-07 guard must see the moved rules file; setup itself never reads rules files
 - [Phase 03]: 03-11: the rename guard skips invalid new slugs so renameMailbox keeps reporting them
+- [Phase 03]: 03-08: a deterministic per-message HTTP 500 stays infra: the pass stops LLM work, the message stays pending and is retried first next pass (head-of-line risk flagged for the owner)
+- [Phase 03]: 03-08: classification takes the ingest lock per 5-message chunk; state.ruleSetId is cached only after its transaction commits
+- [Phase 03]: 03-08: infraOwnerMessage never shows Ollama detail except a bare code; timeout seconds come from the client's own detail (10 s preflight, 120 s chat)
+- [Phase 03]: 03-08: worker test harness models.url is http://ollama.invalid; fake-ollama records its answer per request for the E8 replay check
 
 ### Pending Todos
 
@@ -259,6 +264,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T21:15:51.494Z
-Stopped at: Completed 03-11-PLAN.md
+Last session: 2026-10-10T21:40:50.681Z
+Stopped at: Completed 03-08-PLAN.md
 Resume file: None
