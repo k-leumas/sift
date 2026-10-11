@@ -84,6 +84,11 @@ export interface StoreOptions {
    * message's eligibility never changes here.
    */
   promoteEligible?: boolean;
+  /**
+   * The write time; defaults to now. A body inserted for a message that
+   * already has a decision expires DECISION_BODY_RETENTION_MS after it (CR-02).
+   */
+  at?: Date;
 }
 
 /**
@@ -165,6 +170,10 @@ function messageRow(group: readonly StoreItem[]) {
  *
  * Historical messages (not eligible) get no body even when one is supplied
  * (D-21). Supplying the body of an eligible message is the caller's job.
+ * A body inserted for a message that already has a decision (its body was
+ * swept and the message is seen again) expires 7 days after `options.at`,
+ * since no new decision would ever start its clock (CR-02); other bodies keep
+ * expires_at null until their first decision (D-32).
  *
  * Runs in the caller's transaction (the scope); it opens none of its own.
  */
@@ -181,6 +190,8 @@ export async function storeMessages(
     insertedBodies: 0,
   };
   if (items.length === 0) return result;
+  const at = options.at ?? new Date();
+  if (!Number.isFinite(at.getTime())) throw new TypeError('storeMessages: at must be a valid Date');
 
   // Group by identity key, keeping the order of first appearance.
   const groups = new Map<string, StoreItem[]>();
@@ -273,9 +284,15 @@ export async function storeMessages(
       truncated: body.truncated,
     });
   }
-  const insertedBodies = await scope.messageBody.insertOrIgnore(bodies, {
-    target: ['messageId'],
-  });
+  const decided = await decidedMessageIds(
+    scope,
+    bodies.map((body) => body.messageId),
+  );
+  const expiresAt = new Date(at.getTime() + DECISION_BODY_RETENTION_MS);
+  const insertedBodies = await scope.messageBody.insertOrIgnore(
+    bodies.map((body) => ({ ...body, expiresAt: decided.has(body.messageId) ? expiresAt : null })),
+    { target: ['messageId'] },
+  );
 
   result.insertedMessages = insertedKeys.size;
   result.existingMessages = keys.length - insertedKeys.size;
