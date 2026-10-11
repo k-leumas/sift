@@ -4254,6 +4254,139 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T04:39:11.000Z"
+    },
+    {
+      "id": "bug-255",
+      "timestamp": "2026-10-11T04:41:27.664Z",
+      "error_message": "Type error",
+      "file": "packages/core/src/classify/llm-output.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: *; * A reason holding a control character (REASON_CONTROL_CHARA",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-11T04:41:28.413Z"
+    },
+    {
+      "id": "bug-256",
+      "timestamp": "2026-10-11T04:41:29.053Z",
+      "error_message": "Wrong return value",
+      "file": "packages/core/src/classify/llm-output.ts",
+      "root_cause": "Was returning: { ok: true, value: result.data };",
+      "fix": "Now returns: {",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:41:29.053Z"
+    },
+    {
+      "id": "bug-257",
+      "timestamp": "2026-10-11T04:43:58.502Z",
+      "error_message": "Missing guard clause",
+      "file": "packages/core/test/llm-output.test.ts",
+      "root_cause": "No early return/throw for edge case: result.ok",
+      "fix": "Added guard clause: if (result.ok)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:43:58.502Z"
+    },
+    {
+      "id": "bug-258",
+      "timestamp": "2026-10-11T04:44:20.367Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/db/test/classify.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:44:20.367Z"
+    },
+    {
+      "id": "bug-259",
+      "timestamp": "2026-10-11T04:44:25.481Z",
+      "error_message": "Type error",
+      "file": "packages/db/test/classify.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:44:25.481Z"
+    },
+    {
+      "id": "bug-260",
+      "timestamp": "2026-10-11T04:45:16.455Z",
+      "error_message": "Type error",
+      "file": "packages/db/src/classify.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:45:16.455Z"
+    },
+    {
+      "id": "bug-261",
+      "timestamp": "2026-10-11T04:50:00.000Z",
+      "error_message": "PreToolUse injection warning (invisible-unicode-characters) on writing 03-16-SUMMARY.md: the Write tool decoded the regex escapes for U+2028/U+2029 in the summary text into the real separator characters",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-16-SUMMARY.md",
+      "root_cause": "The Write tool decodes backslash-u escapes in its content (same as bug-240); a markdown code span quoting the regex was saved with raw U+2028/U+2029",
+      "fix": "python replace of the raw characters back to the escape text before committing; verified with LC_ALL=C grep -c -P for non-ASCII = 0. Source files were written with Edit + placeholder + python replace",
+      "tags": [
+        "write-tool",
+        "unicode",
+        "escape",
+        "summary",
+        "recurrence"
+      ],
+      "related_bugs": [
+        "bug-240"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:50:00.000Z"
+    },
+    {
+      "id": "bug-262",
+      "timestamp": "2026-10-11T04:50:00.000Z",
+      "error_message": "Assertion expect(JSON.stringify(spans)).not.toContain(NUL) could never fail",
+      "file": "packages/db/test/classify.test.ts",
+      "root_cause": "JSON.stringify writes NUL as the six-character escape, so the serialized text never holds a raw NUL",
+      "fix": "Assert on the escape text built from String.fromCharCode(92) + 'u0000', plus field-level toMatchObject on raw/thinking/done_reason",
+      "tags": [
+        "test",
+        "vitest",
+        "nul",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:50:00.000Z"
     }
   ]
 }

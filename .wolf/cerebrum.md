@@ -258,6 +258,9 @@
 
 - [2026-10-11] 03-15 (CR-03): with classification on, runBatch writes recordIngestSynced inside withIngestLock (valve counts null, last_sync_at; needs_attention -> ok because mailbox_status_held_check forbids needs_attention with held null); state/last_error stay in the one post-pass write (D-14). To test a pass that throws, override testRuntime's `preflight` with a throwing fn: 5 consecutive per-message failures rethrow a plain Error (not ClassifyInfraError).
 
+- [2026-10-11] 03-16 (WR-01): validateLlmOutput rejects a reason holding Cc or U+2028/U+2029 (REASON_CONTROL_CHARACTERS, exported from @sift/core/classify) as schema_mismatch 'reason: control_character', checked on the TRIMMED reason (leading/trailing tab/LF/U+2028 are trimmed and pass). recordDecision runs stripNul(parseDecisionSpans(...)) as the NUL backstop. End-to-end fake answers with a JSON escape: build it from String.fromCharCode(92) + 'u' + hex inside JSON.stringify(...).replace(placeholder), mid-sentence.
+- [2026-10-11] JSON.stringify never emits a raw NUL (it writes the 6-char escape): a not.toContain(NUL) check on stringified JSON is vacuous; assert on fields or the escape text (bug-262).
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->

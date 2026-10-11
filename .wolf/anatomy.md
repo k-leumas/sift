@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:37:50.552Z
-> Files: 527 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:48:55.723Z
+> Files: 530 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
 
@@ -226,6 +226,7 @@
 - `03-15-PLAN.md` — Artifacts this plan produces (~4099 tok)
 - `03-15-SUMMARY.md` — Phase 3 Plan 15: Resume approval spent with the ingest (CR-03) Summary (~2453 tok)
 - `03-16-PLAN.md` — Artifacts this plan produces (~4010 tok)
+- `03-16-SUMMARY.md` — Phase 3 Plan 16: Control characters in the model reason (WR-01) Summary (~3146 tok)
 - `03-17-PLAN.md` — Artifacts this plan produces (~6894 tok)
 - `03-18-PLAN.md` — Artifacts this plan produces (~6574 tok)
 - `03-19-PLAN.md` — Artifacts this plan produces (~6776 tok)
@@ -341,6 +342,7 @@
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
 - `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~6409 tok)
 - `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~6883 tok)
+- `classify-control-chars.test.ts` — WR-01 end to end: a model reason that holds a control character after (~2241 tok)
 - `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~765 tok)
 - `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8686 tok)
 - `classify-leak.test.ts` — Mail stays on the machine and out of logs and status (E7, the Phase 3 part (~3136 tok)
@@ -608,8 +610,8 @@
 - `canonical.ts` — Canonical JSON for content hashes (the prompt_version hash here, the (~417 tok)
 - `decide.ts` — The single assembler of decisions (CLS-05, T-03-12): tier results go in, one (~1581 tok)
 - `exact-rules.ts` — The exact-rules tier (D-08 to D-12, TRC-02): the owner's rules decide, (~1592 tok)
-- `index.ts` — Declares DecideInput (~402 tok)
-- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~984 tok)
+- `index.ts` — Declares DecideInput (~410 tok)
+- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod schema + validateLlmOutput; REASON_CONTROL_CHARACTERS rejects control characters in the reason (WR-01). (~1293 tok)
 - `prompt-version.ts` — The material that keys the unscoped prompt_version table (D-29). It is (~1027 tok)
 - `prompt.ts` — The LLM tier's prompt (D-21, SEC-01, AI-SPEC section 4b). The system message (~2303 tok)
 - `spans.ts` — The `decision.spans` trace (D-27, D-28, D-30, TRC-01, TRC-03, TRC-06): a (~2006 tok)
@@ -639,7 +641,7 @@
 - `exact-rules.test.ts` — Build a rule through the real schema, so entries are normalised as after loading. (~4311 tok)
 - `example-config.test.ts` — Declares EXAMPLE (~1311 tok)
 - `example-rules.test.ts` — Same address shape as apps/worker/test/support/privacy-scan.ts. (~1488 tok)
-- `llm-output.test.ts` — AI-SPEC section 4b, [verified] generated format for these three categories. (~1775 tok)
+- `llm-output.test.ts` — AI-SPEC section 4b, [verified] generated format for these three categories. (~2376 tok)
 - `log.test.ts` — Declares capture (~1286 tok)
 - `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1309 tok)
 - `prompt.test.ts` — README-style rules snapshot (the example rules file's categories and judgment). (~3438 tok)
@@ -669,7 +671,11 @@
 
 ## packages/db/src/
 
-- `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32); re-exports DECISION_BODY_RETENTION_MS; restoreBody(scope,id,body,at?) expires a decided message's body at once (CR-02). (~2950 tok)
+- `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32); re-exports DECISION_BODY_RETENTION_MS; restoreBody(scope,id,body,at?) expires a decided message's body at once (CR-02); recordDecision strips NUL from parsed spans (WR-01 backstop). (~2815 tok)
 - `index.ts` — Database connection-string variables. Values are secrets and are never logged. (~743 tok)
 - `ingest.ts` — Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23); DECISION_BODY_RETENTION_MS, decidedMessageIds (internal), StoreOptions.at (CR-02 decided-body expiry). (~6200 tok)
 - `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer); recordIngestSynced spends the valve approval in the ingest lock (CR-03). (~1800 tok)
+
+## packages/db/test/
+
+- `classify.test.ts` — Classification use-cases (D-03, D-15, D-17, D-18, D-27, D-29, D-32, (~8399 tok)

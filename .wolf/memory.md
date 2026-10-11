@@ -1384,3 +1384,16 @@
 | 22:34 | Edited packages/core/test/rules.test.ts | added optional chaining | ~952 |
 | 22:37 | Created .planning/phases/03-tiered-classification-with-traces/03-21-SUMMARY.md | — | ~2603 |
 | 22:39 | 03-21 executed: WR-02 control characters rejected in rules oneLine fields and from/domain/phrase entries; config-check NUL test + schema cases; commits 259723b cc1d39e 9d6c2b6 + docs | packages/core/src/rules/schema.ts, config-check-rules.test.ts, rules.test.ts | 106 tests pass, typecheck/lint 0, hashes unchanged | ~30000 |
+| 22:40 | Session end: 64 writes across 23 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 38 reads | ~169632 tok |
+| 22:41 | Edited packages/core/src/classify/llm-output.ts | modified hold() | ~186 |
+| 22:41 | Edited packages/core/src/classify/llm-output.ts | 3→8 lines | ~107 |
+| 22:41 | Edited packages/core/src/classify/llm-output.ts | added 1 condition(s) | ~76 |
+| 22:42 | Created apps/worker/test/classify-control-chars.test.ts | — | ~2241 |
+| 22:43 | Edited packages/core/test/llm-output.test.ts | added 1 condition(s) | ~678 |
+| 22:43 | Edited packages/core/test/llm-output.test.ts | 3→4 lines | ~25 |
+| 22:44 | Edited packages/core/src/classify/index.ts | 3→4 lines | ~26 |
+| 22:44 | Edited packages/db/test/classify.test.ts | added optional chaining | ~473 |
+| 22:44 | Edited packages/db/test/classify.test.ts | 1→2 lines | ~48 |
+| 22:45 | Edited packages/db/src/classify.ts | modified recordDecision() | ~208 |
+| 22:48 | Created .planning/phases/03-tiered-classification-with-traces/03-16-SUMMARY.md | — | ~3356 |
+| 22:50 | 03-16 executed: WR-01 control characters in the model reason rejected (validateLlmOutput), NUL backstop in recordDecision; e2e classify-control-chars.test.ts; commits 9182182 7ffef70 cc029c2 + docs | llm-output.ts, index.ts, classify.ts (db), 3 test files | 919 tests pass, typecheck/lint 0, prompt hash unchanged | ~25000 |
