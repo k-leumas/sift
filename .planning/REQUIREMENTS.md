@@ -38,7 +38,7 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 
 ### Classification
 
-- [ ] **CLS-01**: Sift evaluates a hardcoded, versioned set of exact rules (sender, domain, phrase) for the mailbox deterministically in code; a match yields a category with no LLM call
+- [x] **CLS-01**: Sift evaluates a hardcoded, versioned set of exact rules (sender, domain, phrase) for the mailbox deterministically in code; a match yields a category with no LLM call
 - [ ] **CLS-02**: When no exact rule matches, Sift calls the local LLM through Ollama with a prompt in separated parts: the mailbox's categories and judgment rules (trusted), then the email, fenced off and marked untrusted
 - [ ] **CLS-03**: The LLM's output is constrained by JSON schema to a category from the mailbox's category list, a confidence, and a one-sentence reason; malformed or out-of-category output is retried once, then the message is sent to review
 - [ ] **CLS-04**: An LLM result below the confidence threshold (default 0.75) sends the message to review instead of labelling it
@@ -134,7 +134,7 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | ING-02 | Phase 2 | Complete |
 | ING-03 | Phase 2 | Complete |
 | ING-04 | Phase 2 | Complete |
-| CLS-01 | Phase 3 | Gaps Found |
+| CLS-01 | Phase 3 | Complete |
 | CLS-02 | Phase 3 | Gaps Found |
 | CLS-03 | Phase 3 | Gaps Found |
 | CLS-04 | Phase 3 | Gaps Found |
