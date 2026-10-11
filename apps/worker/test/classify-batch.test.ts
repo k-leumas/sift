@@ -9,7 +9,11 @@ import { type AppDb, createAppDb } from '@sift/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
 import { seedImapMailbox } from '../../../packages/db/test/support/seed.ts';
-import type { ClassifyRuntime } from '../src/classify/run.ts';
+import {
+  type ClassifyRuntime,
+  OLLAMA_MESSAGE_FAILURE_LOG,
+  OLLAMA_MESSAGE_FAILURES_PER_PASS,
+} from '../src/classify/run.ts';
 import {
   ClassifyInfraError,
   createMailboxCallbacks,
@@ -374,7 +378,7 @@ describe('Ollama outages (D-16, E5)', () => {
     }
   }, 30_000);
 
-  it("stores a fixed message for an Ollama 500, never Ollama's error text", async () => {
+  it("the third message Ollama fails on in a pass is the outage: a fixed message, never Ollama's error text", async () => {
     const sentinel = 'SENTINEL-ollama-error-q8w2';
     const fake = await startFakeOllama({
       chat: () => ({ status: 500, json: { error: `${sentinel}: Subject-500-z1` } }),
@@ -383,16 +387,92 @@ describe('Ollama outages (D-16, E5)', () => {
       const m = await newMailbox('server-error');
       const { callbacks, log } = callbacksFor([m], fake);
       expect(await cycle(callbacks, m)).toBeUndefined();
-      await appendMessage(m.user, 'INBOX', mailFrom(NEWS, 'Subject-500-z1', 'Body-500-z1'));
+      // One more failing message than the per-pass budget: the last one is the outage.
+      const mail = Array.from({ length: OLLAMA_MESSAGE_FAILURES_PER_PASS + 1 }, (_, i) => ({
+        subject: `Subject-500-z${i + 1}`,
+        body: `Body-500-z${i + 1}`,
+      }));
+      for (const { subject, body } of mail) {
+        await appendMessage(m.user, 'INBOX', mailFrom(NEWS, subject, body));
+      }
       const error = await cycle(callbacks, m);
       expect(error).toBeInstanceOf(ClassifyInfraError);
       expect((error as Error).message).not.toContain(sentinel);
+      expect(chatCount(fake)).toBe(OLLAMA_MESSAGE_FAILURES_PER_PASS + 1);
       const status = await mailboxStatus(db.adminUrl, m.id);
       expect(status.state).toBe('error');
       expect(status.last_error).toBe(
         `Ollama at ${new URL(fake.url).origin} failed (HTTP 500); see the Ollama log`,
       );
-      expectNoLeak([sentinel, 'Subject-500-z1', 'Body-500-z1'], log, [status]);
+      expect(await pendingIdsOf(db.adminUrl, m.id)).toHaveLength(mail.length);
+      expectNoLeak([sentinel, ...mail.flatMap((x) => [x.subject, x.body])], log, [status]);
+    } finally {
+      await fake.close();
+    }
+  }, 30_000);
+});
+
+describe('a message Ollama fails on alone (CLS-06, CR-01)', () => {
+  it('skips only that message: older mail is decided and runBatch resolves, on consecutive batches', async () => {
+    const sentinel = 'SENTINEL-poison-error-h4t6';
+    const poisonSubject = 'Subject-poison-h4t6';
+    const fake = await startFakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(poisonSubject)
+          ? { status: 500, json: { error: `${sentinel}: ${poisonSubject}` } }
+          : okAnswer('Noise', 0.9),
+    });
+    try {
+      const m = await newMailbox('poison');
+      const { callbacks, log } = callbacksFor([m], fake);
+      expect(await cycle(callbacks, m)).toBeUndefined();
+
+      await appendMessage(m.user, 'INBOX', mailFrom(NEWS, 'Subject-older-h4t6', 'Body-older-h4t6'));
+      // INTERNALDATE has one-second precision: the poison mail is newest, so it is reached first.
+      await new Promise((resolve) => setTimeout(resolve, 1_100));
+      await appendMessage(m.user, 'INBOX', mailFrom(NEWS, poisonSubject, 'Body-poison-h4t6'));
+      expect(await cycle(callbacks, m)).toBeUndefined();
+
+      const pending = await pendingIdsOf(db.adminUrl, m.id);
+      expect(pending).toHaveLength(1);
+      const [poisonId] = pending;
+      const decisions = await decisionsOf(db.adminUrl, m.id);
+      expect(decisions).toHaveLength(1);
+      expect(decisions[0]).toMatchObject({ outcome: 'labelled', tier: 'llm' });
+      expect(decisions[0]?.messageId).not.toBe(poisonId);
+      for (const decision of decisions) {
+        await expectReplayableDecision(db.adminUrl, decision, fake);
+      }
+      const bodies = fake.chatBodies().map((body) => JSON.stringify(body));
+      expect(bodies).toHaveLength(2);
+      expect(bodies[0]).toContain(poisonSubject);
+      expect(bodies[1]).toContain('Subject-older-h4t6');
+
+      const first = await mailboxStatus(db.adminUrl, m.id);
+      expect(first.state).toBe('ok');
+      expect(first.last_error).toBeNull();
+      expect(log.lines.filter((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG)).toEqual([
+        {
+          level: 'warn',
+          obj: { mailbox: m.slug, message: poisonId, code: 'server_error', status: 500 },
+          msg: OLLAMA_MESSAGE_FAILURE_LOG,
+        },
+      ]);
+
+      // Nothing new: the poison message is retried, fails alone again and blocks nothing.
+      const before = chatCount(fake);
+      expect(await cycle(callbacks, m)).toBeUndefined();
+      expect(chatCount(fake)).toBe(before + 1);
+      expect(await pendingIdsOf(db.adminUrl, m.id)).toEqual([poisonId]);
+      const second = await mailboxStatus(db.adminUrl, m.id);
+      expect(second.state).toBe('ok');
+      expect(second.last_error).toBeNull();
+
+      expectNoLeak(
+        [sentinel, poisonSubject, 'Body-poison-h4t6', 'Subject-older-h4t6', 'Body-older-h4t6'],
+        log,
+        [first, second],
+      );
     } finally {
       await fake.close();
     }

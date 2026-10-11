@@ -9,6 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
 import { seedMailboxes } from '../../../packages/db/test/support/seed.ts';
 import { createOllamaClient, type LlmClient } from '../src/classify/ollama-client.ts';
+import { createPreflight } from '../src/classify/preflight.ts';
 import {
   CLASSIFY_CHUNK_SIZE,
   type ClassifyOutcome,
@@ -16,6 +17,8 @@ import {
   classifyMailbox,
   LLM_CALLS_PER_TICK,
   MAX_CONSECUTIVE_MESSAGE_FAILURES,
+  OLLAMA_MESSAGE_FAILURE_LOG,
+  OLLAMA_MESSAGE_FAILURES_PER_PASS,
   rulesProblemMessage,
 } from '../src/classify/run.ts';
 import {
@@ -213,6 +216,7 @@ describe('tracer: one pass over two pending messages', () => {
       llmCalls: 1,
       examined: 2,
       failures: 0,
+      ollamaFailed: [],
     });
 
     const decisions = await decisionsOf(db.adminUrl, box.id);
@@ -256,6 +260,7 @@ describe('backlog: the 25-call cap, newest first, and the keyset (D-14, D-18, E6
       llmCalls: LLM_CALLS_PER_TICK,
       examined: 28,
       failures: 0,
+      ollamaFailed: [],
     });
     expect(chatRequests(fake)).toHaveLength(25);
     const newestFirst = llm.map((m) => m.from).reverse();
@@ -303,6 +308,7 @@ describe('backlog: the 25-call cap, newest first, and the keyset (D-14, D-18, E6
       llmCalls: 0,
       examined: 0,
       failures: 0,
+      ollamaFailed: [],
     });
     expect(fake.requests()).toEqual([]);
     expect(await ruleSetsOf(db.adminUrl, box.id)).toEqual([]);
@@ -388,7 +394,55 @@ describe('outages are never decisions (D-16, E5)', () => {
     expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
   });
 
-  it('a 500 on the third call stops LLM work for the pass; exact rules keep deciding', async () => {
+  it('a 500 confined to one message skips only it; older LLM-bound mail is decided in the same pass (CR-01)', async () => {
+    const box = await newMailbox('poison');
+    const errorText = `runner crashed on this prompt ${randomUUID()}`;
+    mailText.push(errorText);
+    const poison = llmMessage('poison', minute(25));
+    const fake = await fakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(`from_address: ${poison.from}`)
+          ? { status: 500, json: { error: errorText } }
+          : okAnswer('Noise', 0.9),
+    });
+    const [poisonId] = await seed(box, [poison]);
+    const older = await seed(box, [
+      llmMessage('poison-a', minute(24)),
+      llmMessage('poison-b', minute(23)),
+      llmMessage('poison-c', minute(22)),
+    ]);
+    const [bankId] = await seed(box, [bankMessage('poison-bank', minute(21))]);
+
+    const log = newLog();
+    const outcome = await pass(box, testRuntime(fake, dataDir), { log });
+    expect(outcome).toEqual({
+      kind: 'done',
+      labelled: 4,
+      review: 0,
+      llmCalls: 4,
+      examined: 5,
+      failures: 0,
+      ollamaFailed: [poisonId],
+    });
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([poisonId]);
+    const decided = (await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId).sort();
+    expect(decided).toEqual([...older, bankId].sort());
+    expect(chatRequests(fake)).toHaveLength(4);
+    expect(chatSenders(fake)[0]).toBe(poison.from);
+    // The pass's own preflight, then the re-probe after the 500.
+    expect(fake.requests().filter((r) => r.path === '/api/tags')).toHaveLength(2);
+    expect(log.lines.filter((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG)).toEqual([
+      {
+        level: 'warn',
+        obj: { mailbox: box.slug, message: poisonId, code: 'server_error', status: 500 },
+        msg: OLLAMA_MESSAGE_FAILURE_LOG,
+      },
+    ]);
+    expect(log.lines.some((l) => l.msg === 'classify: Ollama unavailable')).toBe(false);
+    await expectAllReplayable(box, fake);
+  });
+
+  it('a 500 the re-probe confirms as an outage stops LLM work for the pass; exact rules keep deciding', async () => {
     const box = await newMailbox('server-error');
     const errorText = `runner crashed while reading ${randomUUID()}`;
     mailText.push(errorText);
@@ -399,6 +453,14 @@ describe('outages are never decisions (D-16, E5)', () => {
         { status: 500, json: { error: errorText } },
       ],
     });
+    // Ollama answers the pass's first preflight, then goes away: the re-probe fails.
+    const real = createPreflight(fake.url);
+    let preflights = 0;
+    const flaky: typeof real = async (model, shutdown) => {
+      preflights += 1;
+      if (preflights === 1) return real(model, shutdown);
+      return { kind: 'infra', code: 'unreachable', status: null, detail: 'ECONNREFUSED' };
+    };
     const llmIds = await seed(box, [
       llmMessage('se-a', minute(20)),
       llmMessage('se-b', minute(19)),
@@ -407,16 +469,47 @@ describe('outages are never decisions (D-16, E5)', () => {
     ]);
     const [bankId] = await seed(box, [bankMessage('se-bank', minute(16))]);
 
-    const outcome = await pass(box, testRuntime(fake, dataDir));
+    const outcome = await pass(box, testRuntime(fake, dataDir, { preflight: flaky }));
     expect(outcome).toMatchObject({ kind: 'infra', code: 'server_error', labelled: 3, review: 0 });
     if (outcome.kind !== 'infra') throw new Error('expected infra');
     expect(outcome.message).toContain('failed (HTTP 500)');
     expect(outcome.message).not.toContain(errorText);
+    expect(preflights).toBe(2);
     expect(chatRequests(fake)).toHaveLength(3);
     const decided = (await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId).sort();
     expect(decided).toEqual([llmIds[0], llmIds[1], bankId].sort());
     expect((await pendingIdsOf(db.adminUrl, box.id)).sort()).toEqual([llmIds[2], llmIds[3]].sort());
     await expectAllReplayable(box, fake);
+  });
+
+  it(`past OLLAMA_MESSAGE_FAILURES_PER_PASS (${OLLAMA_MESSAGE_FAILURES_PER_PASS}) a further 500 in the same pass is an outage`, async () => {
+    const box = await newMailbox('all-500');
+    const errorText = `runner crashes on every prompt ${randomUUID()}`;
+    mailText.push(errorText);
+    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
+    const llmIds = await seed(box, [
+      llmMessage('all-a', minute(15)),
+      llmMessage('all-b', minute(14)),
+      llmMessage('all-c', minute(13)),
+      llmMessage('all-d', minute(12)),
+    ]);
+    const [bankId] = await seed(box, [bankMessage('all-bank', minute(11))]);
+
+    const log = newLog();
+    const outcome = await pass(box, testRuntime(fake, dataDir), { log });
+    expect(outcome).toMatchObject({ kind: 'infra', code: 'server_error', labelled: 1, review: 0 });
+    if (outcome.kind !== 'infra') throw new Error('expected infra');
+    expect(outcome.message).toContain('failed (HTTP 500)');
+    expect(chatRequests(fake)).toHaveLength(OLLAMA_MESSAGE_FAILURES_PER_PASS + 1);
+    // One re-probe per skipped message; none for the failure that exceeded the budget.
+    expect(fake.requests().filter((r) => r.path === '/api/tags')).toHaveLength(
+      1 + OLLAMA_MESSAGE_FAILURES_PER_PASS,
+    );
+    expect(log.lines.filter((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG)).toHaveLength(
+      OLLAMA_MESSAGE_FAILURES_PER_PASS,
+    );
+    expect((await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId)).toEqual([bankId]);
+    expect((await pendingIdsOf(db.adminUrl, box.id)).sort()).toEqual([...llmIds].sort());
   });
 });
 
@@ -656,6 +749,7 @@ describe('logs (SEC-01, T-03-26)', () => {
           'llmCalls',
           'examined',
           'failures',
+          'ollamaFailed',
         ]).toContain(key);
       }
     }

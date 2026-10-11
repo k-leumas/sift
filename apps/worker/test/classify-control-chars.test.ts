@@ -157,6 +157,7 @@ async function expectHeldForReview(hex: string): Promise<void> {
     llmCalls: 3,
     examined: 2,
     failures: 0,
+    ollamaFailed: [],
   });
 
   const decisions = await decisionsOf(db.adminUrl, box.id);
@@ -204,6 +205,7 @@ describe('a model reason with a control character (WR-01, CLS-03, CLS-06)', () =
       llmCalls: 2,
       examined: 1,
       failures: 0,
+      ollamaFailed: [],
     });
     const [decision, ...others] = await decisionsOf(db.adminUrl, box.id);
     expect(others).toEqual([]);

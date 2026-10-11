@@ -25,6 +25,7 @@ import {
   infraOwnerMessage,
   loadMailboxRules,
   newPassState,
+  OLLAMA_MESSAGE_FAILURE_LOG,
 } from '../classify/run.ts';
 import { createSingleFlight } from '../classify/single-flight.ts';
 import type { CommandIO } from '../command.ts';
@@ -230,6 +231,19 @@ export async function classifyCommand(deps: ClassifyCommandDeps): Promise<0 | 1>
     const log: ClassifyLog = {
       info: () => {},
       warn: (obj, msg) => {
+        if (msg === OLLAMA_MESSAGE_FAILURE_LOG) {
+          // A 5xx or timeout on this message alone (healthy re-probe, CR-01): id, code, status only.
+          const { message, code, status } = obj as {
+            message?: unknown;
+            code?: unknown;
+            status?: unknown;
+          };
+          const http = typeof status === 'number' ? `, HTTP ${status}` : '';
+          deps.stderr(
+            `message ${String(message)}: Ollama failed on this message (${String(code)}${http}); skipped`,
+          );
+          return;
+        }
         // classifyCandidates logs a failed message by id and code only.
         if (msg !== 'classify: message failed') return;
         const { message, code } = obj as { message?: unknown; code?: unknown };

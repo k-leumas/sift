@@ -52,6 +52,10 @@ import { matchableOf, untrustedEmailOf } from './untrusted-email.ts';
  * - An Ollama outage is never a decision (D-16): the LLM-bound messages stay
  *   pending, no further Ollama call is made in the pass, and exact-rule
  *   decisions keep being written.
+ * - A chat 5xx or timeout is first checked with the mail-free preflight: if
+ *   Ollama answers it, only that message is skipped for the pass (no
+ *   decision, it stays pending), up to OLLAMA_MESSAGE_FAILURES_PER_PASS;
+ *   otherwise it is an outage (D-16, CR-01).
  * - Logs carry the mailbox slug, message ids, counts and codes only, never
  *   email text, model output or Ollama's error text (SEC-01, T-03-26).
  */
@@ -66,6 +70,23 @@ export const MAX_EXAMINED_PER_TICK = 500;
 export const MAX_CONSECUTIVE_MESSAGE_FAILURES = 5;
 /** Rules-file problems listed in the owner message (mailbox_status.last_error is capped). */
 export const RULES_PROBLEMS_IN_STATUS = 5;
+
+/**
+ * Chat failures one input can cause on its own: a runner crash on that prompt
+ * (HTTP 5xx) or a prompt too slow to evaluate on CPU (timeout). Such a result
+ * is checked with a fresh preflight before it counts as an outage; every
+ * other code is an outage at once (D-16, CR-01).
+ */
+export const MESSAGE_FAILURE_CODES: readonly InfraCode[] = ['server_error', 'timeout'];
+/**
+ * Messages per pass Ollama may fail on alone (healthy re-probe). The next
+ * such failure in the pass is treated as an outage, so a runner that crashes
+ * on every prompt while /api/tags still answers is caught.
+ */
+export const OLLAMA_MESSAGE_FAILURES_PER_PASS = 2;
+/** The warn line for a message skipped because Ollama failed on it alone. */
+export const OLLAMA_MESSAGE_FAILURE_LOG =
+  'classify: Ollama failed on this message only; skipped this pass';
 
 /** The command that prints every rules-file problem. */
 const CONFIG_CHECK_COMMAND = 'docker compose run --rm --no-deps worker sift config check';
@@ -227,6 +248,8 @@ export type ClassifyOutcome =
       llmCalls: number;
       examined: number;
       failures: number;
+      /** Messages skipped this pass because Ollama failed on them alone (CR-01). */
+      ollamaFailed: string[];
     }
   | { kind: 'rules_invalid'; message: string }
   | { kind: 'infra'; code: InfraCode; message: string; labelled: number; review: number }
@@ -252,6 +275,8 @@ export interface PassState {
   review: number;
   failures: number;
   consecutiveFailures: number;
+  /** Messages Ollama failed on alone in this pass (healthy re-probe), in order (CR-01). */
+  ollamaFailed: { id: string; code: InfraCode; status: number | null }[];
 }
 
 /** A pass state with nothing done yet. */
@@ -265,6 +290,7 @@ export function newPassState(llmCallsLeft: number | null): PassState {
     review: 0,
     failures: 0,
     consecutiveFailures: 0,
+    ollamaFailed: [],
   };
 }
 
@@ -338,7 +364,26 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
   const result = await runLlmTier(ctx.runtime.llm, ctx.model, rules.trusted, email, ctx.signal);
   if (result.kind === 'aborted') return { kind: 'aborted' };
   if (result.kind === 'infra') {
-    // An outage is never a decision (D-16): the message stays pending.
+    // Never a decision (D-16): the message stays pending either way. A 5xx
+    // or timeout confined to this message (Ollama still answers the mail-free
+    // preflight) skips only it, within the per-pass budget (CR-01).
+    if (
+      MESSAGE_FAILURE_CODES.includes(result.code) &&
+      state.ollamaFailed.length < OLLAMA_MESSAGE_FAILURES_PER_PASS
+    ) {
+      const probe = await ctx.runtime.preflight(ctx.model, ctx.signal);
+      if (probe.kind === 'aborted') return { kind: 'aborted' };
+      if (probe.kind === 'ok') {
+        state.ollamaFailed.push({ id: candidate.id, code: result.code, status: result.status });
+        if (state.llmCallsLeft !== null) state.llmCallsLeft -= 1;
+        // Never result.detail: it can hold Ollama's text, which can quote the prompt (T-03-25).
+        ctx.log.warn(
+          { mailbox: ctx.slug, message: candidate.id, code: result.code, status: result.status },
+          OLLAMA_MESSAGE_FAILURE_LOG,
+        );
+        return { kind: 'skip' };
+      }
+    }
     state.llmBlocked = { code: result.code, status: result.status, detail: result.detail };
     return { kind: 'skip' };
   }
@@ -514,6 +559,7 @@ export async function classifyMailbox(input: {
       llmCalls,
       examined,
       failures: state.failures,
+      ollamaFailed: state.ollamaFailed.length,
     },
     'classify: pass finished',
   );
@@ -540,5 +586,6 @@ export async function classifyMailbox(input: {
     llmCalls,
     examined,
     failures: state.failures,
+    ollamaFailed: state.ollamaFailed.map((f) => f.id),
   };
 }

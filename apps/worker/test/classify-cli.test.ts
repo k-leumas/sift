@@ -313,6 +313,28 @@ describe('sift classify selection', () => {
     for (const d of decisions) await expectReplayableDecision(db.adminUrl, d, fake);
   });
 
+  it('a message Ollama fails on alone is skipped with its id on stderr, not an outage (CR-01)', async () => {
+    const box = await newMailbox('cli-poison');
+    const errorText = `runner crashed on this prompt ${randomUUID()}`;
+    mailText.push(errorText);
+    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
+    const [id] = await seed(box, [llmMessage('poison', '2026-09-02T08:00:00Z')]);
+
+    const result = await classify(
+      box,
+      { kind: 'message', id: id as string },
+      testRuntime(fake, dataDir),
+    );
+    expect(result.code).toBe(0);
+    expect(result.stderr).toEqual([
+      `message ${id}: Ollama failed on this message (server_error, HTTP 500); skipped`,
+    ]);
+    expect(result.stdout.at(-1)).toBe(
+      `Classified 0 messages of ${box.slug}: 0 labelled, 0 review; 1 skipped.`,
+    );
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+  });
+
   it('an unknown message id, an unknown slug and a disabled mailbox exit 1 with nothing changed', async () => {
     const box = await newMailbox('cli-refusals');
     const fake = await answeringFake();
