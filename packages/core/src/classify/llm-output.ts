@@ -42,6 +42,18 @@ export function ollamaFormat(schema: z.ZodType): Record<string, unknown> {
   return format;
 }
 
+/**
+ * Characters a reason must not hold (WR-01): every Unicode control character
+ * (Cc: NUL, tab, CR, LF, DEL and the C1 range) plus the two Unicode line
+ * separators. PostgreSQL jsonb rejects NUL (SQLSTATE 22P05), so a reason with
+ * one would fail the decision insert on every pass; and a reason is one
+ * sentence on one line. Matched per code point (`u` flag). Checked in code
+ * only: it is not part of llmOutputSchema, because that schema is prompt
+ * material (D-29) and llama.cpp's grammar converter has no Unicode property
+ * escapes.
+ */
+export const REASON_CONTROL_CHARACTERS = /[\p{Cc}\u2028\u2029]/u;
+
 export type ValidationFailure =
   | { code: 'not_json'; detail: string }
   | { code: 'out_of_category'; detail: string }
@@ -60,6 +72,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * on this mailbox's list; a missing or non-string category is a shape error,
  * `schema_mismatch`. Details hold issue paths and codes only, never model text,
  * which may echo the email.
+ *
+ * A reason holding a control character (REASON_CONTROL_CHARACTERS, after
+ * JSON.parse and the schema's trim) is `schema_mismatch` with the fixed detail
+ * `reason: control_character`: rejected and retried like any other invalid
+ * answer, never stripped.
  */
 export function validateLlmOutput(
   schema: LlmOutputSchema,
@@ -73,7 +90,15 @@ export function validateLlmOutput(
     return { ok: false, failure: { code: 'not_json', detail: 'content is not one JSON value' } };
   }
   const result = schema.safeParse(parsed);
-  if (result.success) return { ok: true, value: result.data };
+  if (result.success) {
+    if (REASON_CONTROL_CHARACTERS.test(result.data.reason)) {
+      return {
+        ok: false,
+        failure: { code: 'schema_mismatch', detail: 'reason: control_character' },
+      };
+    }
+    return { ok: true, value: result.data };
+  }
   const issues = result.error.issues;
   const offList =
     isRecord(parsed) &&
