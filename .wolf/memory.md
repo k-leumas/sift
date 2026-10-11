@@ -1370,3 +1370,9 @@
 | 22:10 | Edited apps/worker/src/classify/refetch.ts | expiry() → once() | ~44 |
 | 22:21 | Created .planning/phases/03-tiered-classification-with-traces/03-14-SUMMARY.md | — | ~2975 |
 | 22:22 | 03-14 executed: CR-02 decided-message body expiry at write time (restoreBody + storeMessages, decidedMessageIds), T-03-20 closed; commits ec4a49a 50e2a49 12c3327 1be8646 + docs | packages/db/src/ingest.ts, classify.ts, tests, 03-SECURITY.md | 109 tests pass, typecheck/lint 0 | ~60000 |
+| 22:23 | Session end: 54 writes across 15 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 34 reads | ~150093 tok |
+| 22:24 | Edited packages/db/src/status.ts | added optional chaining | ~300 |
+| 22:24 | Edited packages/db/src/index.ts | 2→3 lines | ~18 |
+| 22:24 | Edited apps/worker/test/classify-batch.test.ts | added optional chaining | ~925 |
+| 22:30 | Created .planning/phases/03-tiered-classification-with-traces/03-15-SUMMARY.md | — | ~2617 |
+| 22:31 | 03-15 executed: CR-03 recordIngestSynced in the ingest lock (valve spent with the ingest), resume-then-throw batch test, 5 unit cases; commits c98a604 9a503fc + docs | packages/db/src/status.ts, mailbox-batch.ts, tests | 116 tests pass, typecheck/lint 0 | ~40000 |

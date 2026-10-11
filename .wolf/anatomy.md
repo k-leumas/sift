@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:21:16.169Z
-> Files: 523 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:30:14.199Z
+> Files: 526 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
 
@@ -224,6 +224,7 @@
 - `03-14-PLAN.md` — Artifacts this plan produces (~5283 tok)
 - `03-14-SUMMARY.md` — Phase 3 Plan 14: Decided-message body expiry at write time (CR-02) Summary (~2789 tok)
 - `03-15-PLAN.md` — Artifacts this plan produces (~4099 tok)
+- `03-15-SUMMARY.md` — Phase 3 Plan 15: Resume approval spent with the ingest (CR-03) Summary (~2453 tok)
 - `03-16-PLAN.md` — Artifacts this plan produces (~4010 tok)
 - `03-17-PLAN.md` — Artifacts this plan produces (~6894 tok)
 - `03-18-PLAN.md` — Artifacts this plan produces (~6574 tok)
@@ -337,7 +338,7 @@
 - `bridge-probe.test.ts` — Strings planted in every subject, From, To, body, Message-ID local part and folder name. (~7360 tok)
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2626 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
-- `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~5544 tok)
+- `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~6409 tok)
 - `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~6883 tok)
 - `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~765 tok)
 - `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8686 tok)
@@ -668,4 +669,6 @@
 ## packages/db/src/
 
 - `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32); re-exports DECISION_BODY_RETENTION_MS; restoreBody(scope,id,body,at?) expires a decided message's body at once (CR-02). (~2950 tok)
+- `index.ts` — Database connection-string variables. Values are secrets and are never logged. (~743 tok)
 - `ingest.ts` — Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23); DECISION_BODY_RETENTION_MS, decidedMessageIds (internal), StoreOptions.at (CR-02 decided-body expiry). (~6200 tok)
+- `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer); recordIngestSynced spends the valve approval in the ingest lock (CR-03). (~1800 tok)
