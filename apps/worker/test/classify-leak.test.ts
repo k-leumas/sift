@@ -11,6 +11,7 @@ import { seedImapMailbox } from '../../../packages/db/test/support/seed.ts';
 import {
   OLLAMA_MESSAGE_FAILURE_LOG,
   OLLAMA_MESSAGE_FAILURES_PER_PASS,
+  unclassifiedNotice,
 } from '../src/classify/run.ts';
 import { ClassifyInfraError, createMailboxCallbacks } from '../src/runtime/mailbox-batch.ts';
 import {
@@ -265,10 +266,11 @@ describe('mail text never reaches logs or status (E7, T-03-39)', () => {
       expectSentinelSent(run);
       expect(run.error).toBeUndefined();
       expect(run.status.state).toBe('ok');
-      expect(run.status.last_error).toBeNull();
       expect(await decisionsOf(db.adminUrl, run.mailboxId)).toEqual([]);
       const [pending, ...more] = await pendingIdsOf(db.adminUrl, run.mailboxId);
       expect(more).toEqual([]);
+      // WR-03: the status names the message by id only (the scan below checks the rest).
+      expect(run.status.last_error).toBe(unclassifiedNotice([pending as string]));
       const skipped = run.log.lines.filter((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG);
       expect(skipped.map((l) => l.obj)).toEqual([
         { mailbox: expect.any(String), message: pending, code: 'server_error', status: 500 },
