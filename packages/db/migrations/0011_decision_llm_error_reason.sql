@@ -1,0 +1,2 @@
+ALTER TABLE "decision" DROP CONSTRAINT "decision_review_reason_check";--> statement-breakpoint
+ALTER TABLE "decision" ADD CONSTRAINT "decision_review_reason_check" CHECK ((("decision"."outcome" = 'review') = ("decision"."review_reason" is not null)) and ("decision"."review_reason" is null or "decision"."review_reason" in ('low_confidence', 'invalid_output', 'out_of_category', 'input_too_long', 'llm_error')));

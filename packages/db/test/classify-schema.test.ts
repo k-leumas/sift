@@ -317,7 +317,7 @@ describe('decision rows that fit the D-27 trace shape are stored as sift_app', (
   });
 
   it('accepts every review reason (D-31)', async () => {
-    for (const reason of ['out_of_category', 'input_too_long', 'invalid_output']) {
+    for (const reason of ['out_of_category', 'input_too_long', 'invalid_output', 'llm_error']) {
       const messageId = await newMessage(A);
       await expect(
         insertDecision(A, {
@@ -395,6 +395,11 @@ const INVALID_DECISIONS: [string, () => DecisionBase, string][] = [
   [
     'an unknown review reason',
     () => ({ ...llmReviewInvalidOutput(), review_reason: 'bored' }),
+    'decision_review_reason_check',
+  ],
+  [
+    'a labelled row with reason llm_error (gap closure 03-19)',
+    () => ({ ...llmLabelled(), review_reason: 'llm_error' }),
     'decision_review_reason_check',
   ],
   ['an unknown tier', () => ({ ...exactLabelled(), tier: 'magic' }), 'decision_tier_check'],

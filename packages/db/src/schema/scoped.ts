@@ -281,7 +281,8 @@ export const ruleSet = pgTable(
  *
  * - outcome: 'labelled' (category holds the label) or 'review' (held for the
  *   owner; review_reason says why, D-31: low_confidence, invalid_output,
- *   out_of_category or input_too_long).
+ *   out_of_category, input_too_long or llm_error, the last added by gap
+ *   closure 03-19 for a message Ollama failed on alone in several passes).
  * - tier: which tier decided, 'exact_rules' or 'llm'. An exact-rule decision
  *   is always labelled and carries no confidence, prompt version or model
  *   (D-13). An LLM decision always names its prompt_version and model.
@@ -347,7 +348,7 @@ export const decision = pgTable(
     check('decision_tier_check', sql`${t.tier} in ('exact_rules', 'llm')`),
     check(
       'decision_review_reason_check',
-      sql`((${t.outcome} = 'review') = (${t.reviewReason} is not null)) and (${t.reviewReason} is null or ${t.reviewReason} in ('low_confidence', 'invalid_output', 'out_of_category', 'input_too_long'))`,
+      sql`((${t.outcome} = 'review') = (${t.reviewReason} is not null)) and (${t.reviewReason} is null or ${t.reviewReason} in ('low_confidence', 'invalid_output', 'out_of_category', 'input_too_long', 'llm_error'))`,
     ),
     check(
       'decision_exact_rules_check',

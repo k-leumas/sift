@@ -15,22 +15,33 @@ import { MODEL_OPTIONS, REQUEST_FLAGS } from './prompt.ts';
 /** Trace layout version; a later layout gets a new number and both stay readable. */
 export const TRACE_FORMAT_VERSION = 1;
 
-/** Review reason codes (D-31, plus input_too_long from AI-SPEC Pitfall 3). */
+/**
+ * Review reason codes: D-31, plus input_too_long (AI-SPEC Pitfall 3), plus
+ * llm_error (gap closure 03-19, owner decision): Ollama failed on this message
+ * alone in MESSAGE_FAILURE_PASSES passes while Ollama itself stayed healthy.
+ * An outage is still never a decision (D-16).
+ */
 export const REVIEW_REASONS = [
   'low_confidence',
   'invalid_output',
   'out_of_category',
   'input_too_long',
+  'llm_error',
 ] as const;
 export type ReviewReason = (typeof REVIEW_REASONS)[number];
 
-/** Attempt validation codes: the output failures plus the two transport-level ones. */
+/**
+ * Attempt validation codes: the output failures plus the two transport-level
+ * ones, plus llm_error for the attempt whose call Ollama failed (raw null,
+ * fixed detail text; Ollama's own error text is never stored).
+ */
 export const ATTEMPT_FAILURE_CODES = [
   'not_json',
   'schema_mismatch',
   'out_of_category',
   'truncated',
   'input_too_long',
+  'llm_error',
 ] as const;
 
 const count = z.number().int().nonnegative();

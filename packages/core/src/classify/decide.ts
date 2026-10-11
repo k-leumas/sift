@@ -18,12 +18,17 @@ import {
  * does I/O around this pure function.
  */
 
-/** What the LLM tier concluded for one message (D-24, D-31). */
+/**
+ * What the LLM tier concluded for one message (D-24, D-31). A review verdict
+ * names why no answer was usable; llm_error (gap closure 03-19, owner
+ * decision) means Ollama failed on this message alone in
+ * MESSAGE_FAILURE_PASSES passes, so the message is held for the owner.
+ */
 export type LlmVerdict =
   | { kind: 'decided'; output: LlmOutput; attempts: LlmAttemptSpan[] }
   | {
       kind: 'review';
-      reason: 'invalid_output' | 'out_of_category' | 'input_too_long';
+      reason: 'invalid_output' | 'out_of_category' | 'input_too_long' | 'llm_error';
       attempts: LlmAttemptSpan[];
     };
 
