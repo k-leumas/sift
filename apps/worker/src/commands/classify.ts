@@ -232,15 +232,17 @@ export async function classifyCommand(deps: ClassifyCommandDeps): Promise<0 | 1>
       info: () => {},
       warn: (obj, msg) => {
         if (msg === OLLAMA_MESSAGE_FAILURE_LOG) {
-          // A 5xx or timeout on this message alone (healthy re-probe, CR-01): id, code, status only.
+          // A 5xx or timeout on this message alone (healthy re-probe, CR-01): the id and
+          // the HTTP status, or the failure code when there is none. Never the object's
+          // other fields, and never Ollama's error text (T-03-74).
           const { message, code, status } = obj as {
             message?: unknown;
             code?: unknown;
             status?: unknown;
           };
-          const http = typeof status === 'number' ? `, HTTP ${status}` : '';
+          const why = typeof status === 'number' ? `HTTP ${status}` : String(code);
           deps.stderr(
-            `message ${String(message)}: Ollama failed on this message (${String(code)}${http}); skipped`,
+            `message ${String(message)}: Ollama failed on this message (${why}); skipped`,
           );
           return;
         }

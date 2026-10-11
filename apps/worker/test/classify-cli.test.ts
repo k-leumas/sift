@@ -313,28 +313,6 @@ describe('sift classify selection', () => {
     for (const d of decisions) await expectReplayableDecision(db.adminUrl, d, fake);
   });
 
-  it('a message Ollama fails on alone is skipped with its id on stderr, not an outage (CR-01)', async () => {
-    const box = await newMailbox('cli-poison');
-    const errorText = `runner crashed on this prompt ${randomUUID()}`;
-    mailText.push(errorText);
-    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
-    const [id] = await seed(box, [llmMessage('poison', '2026-09-02T08:00:00Z')]);
-
-    const result = await classify(
-      box,
-      { kind: 'message', id: id as string },
-      testRuntime(fake, dataDir),
-    );
-    expect(result.code).toBe(0);
-    expect(result.stderr).toEqual([
-      `message ${id}: Ollama failed on this message (server_error, HTTP 500); skipped`,
-    ]);
-    expect(result.stdout.at(-1)).toBe(
-      `Classified 0 messages of ${box.slug}: 0 labelled, 0 review; 1 skipped.`,
-    );
-    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
-  });
-
   it('an unknown message id, an unknown slug and a disabled mailbox exit 1 with nothing changed', async () => {
     const box = await newMailbox('cli-refusals');
     const fake = await answeringFake();
@@ -401,6 +379,97 @@ describe('sift classify selection', () => {
     expect(of(later)).toEqual(['worker', 'rerun']);
     expect(of(fresh)).toEqual(['rerun']);
     for (const d of decisions) await expectReplayableDecision(db.adminUrl, d, fake);
+  });
+});
+
+describe('sift classify names a message Ollama failed on alone (CR-01, T-03-74)', () => {
+  /** A fake that answers HTTP 500 with `errorText` for `sender` and okAnswer otherwise. */
+  async function failingFor(sender: string, errorText: string): Promise<FakeOllama> {
+    const reason = `Fake reason ${randomUUID().slice(0, 8)}.`;
+    mailText.push(reason, errorText);
+    return fakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(`from_address: ${sender}`)
+          ? { status: 500, json: { error: errorText } }
+          : okAnswer('Noise', 0.9, reason),
+    });
+  }
+
+  it('a 500 on one message: its id on stderr, the others classified, exit 0', async () => {
+    const box = await newMailbox('cli-poison-many');
+    const poison = llmMessage('poison', '2026-09-02T08:01:00Z');
+    const errorText = `runner crashed on this prompt ${randomUUID()}`;
+    const fake = await failingFor(poison.from, errorText);
+    const [newer] = await seed(box, [llmMessage('poison-newer', '2026-09-02T08:02:00Z')]);
+    const [poisonId] = await seed(box, [poison]);
+    const [older] = await seed(box, [llmMessage('poison-older', '2026-09-02T08:00:00Z')]);
+
+    const result = await classify(box, { kind: 'pending' }, testRuntime(fake, dataDir));
+    expect(result.code).toBe(0);
+    expect(result.stderr).toEqual([
+      `message ${poisonId}: Ollama failed on this message (HTTP 500); skipped`,
+    ]);
+    expect(result.stdout.at(-1)).toBe(
+      `Classified 2 messages of ${box.slug}: 2 labelled, 0 review; 1 skipped.`,
+    );
+    const decided = (await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId).sort();
+    expect(decided).toEqual([newer, older].sort());
+    for (const line of [...result.stdout, ...result.stderr]) {
+      expect(line).not.toContain(errorText);
+    }
+  });
+
+  it('a 500 on the one message --message selects: its id on stderr, exit 0, no decision', async () => {
+    const box = await newMailbox('cli-poison');
+    const poison = llmMessage('poison', '2026-09-02T08:00:00Z');
+    const errorText = `runner crashed on this prompt ${randomUUID()}`;
+    const fake = await failingFor(poison.from, errorText);
+    const [id] = await seed(box, [poison]);
+
+    const result = await classify(
+      box,
+      { kind: 'message', id: id as string },
+      testRuntime(fake, dataDir),
+    );
+    expect(result.code).toBe(0);
+    expect(result.stderr).toEqual([
+      `message ${id}: Ollama failed on this message (HTTP 500); skipped`,
+    ]);
+    expect(result.stdout.at(-1)).toBe(
+      `Classified 0 messages of ${box.slug}: 0 labelled, 0 review; 1 skipped.`,
+    );
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+  });
+
+  it('a timeout on one message: its id and (timeout) on stderr, the others classified', async () => {
+    const box = await newMailbox('cli-slow');
+    const slow = llmMessage('slow', '2026-09-02T09:01:00Z');
+    const reason = `Fake reason ${randomUUID().slice(0, 8)}.`;
+    mailText.push(reason);
+    const fake = await fakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(`from_address: ${slow.from}`)
+          ? { hang: true }
+          : okAnswer('Noise', 0.9, reason),
+    });
+    const [slowId] = await seed(box, [slow]);
+    await seed(box, [
+      llmMessage('slow-a', '2026-09-02T09:00:00Z'),
+      llmMessage('slow-b', '2026-09-02T08:59:00Z'),
+    ]);
+
+    const result = await classify(
+      box,
+      { kind: 'pending' },
+      testRuntime(fake, dataDir, { timeoutMs: 2000 }),
+    );
+    expect(result.code).toBe(0);
+    expect(result.stderr).toEqual([
+      `message ${slowId}: Ollama failed on this message (timeout); skipped`,
+    ]);
+    expect(result.stdout.at(-1)).toBe(
+      `Classified 2 messages of ${box.slug}: 2 labelled, 0 review; 1 skipped.`,
+    );
   });
 });
 
