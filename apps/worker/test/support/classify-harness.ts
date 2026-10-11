@@ -270,10 +270,15 @@ function userContent(request: RecordedRequest): string {
   return messages?.find((m) => m.role === 'user')?.content ?? '';
 }
 
-/** The message.content the fake answered with, or null when it sent no chat answer. */
+/**
+ * The message.content the fake answered with, or null when it sent no chat
+ * answer: no response, a non-200 status, or a hang (no body was ever sent,
+ * so the client timed out; a timeout-derived llm_error attempt has raw null).
+ */
 function answeredContent(request: RecordedRequest): string | null {
   const response = request.response;
-  if (response === undefined || (response.status ?? 200) !== 200) return null;
+  if (response === undefined || response.hang === true) return null;
+  if ((response.status ?? 200) !== 200) return null;
   const text = response.body ?? JSON.stringify(response.json);
   const parsed = JSON.parse(text) as { message?: { content?: unknown } };
   return typeof parsed.message?.content === 'string' ? parsed.message.content : null;
