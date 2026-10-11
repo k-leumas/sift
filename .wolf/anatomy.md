@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:30:14.199Z
-> Files: 526 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:37:50.552Z
+> Files: 527 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
 
@@ -231,6 +231,7 @@
 - `03-19-PLAN.md` — Artifacts this plan produces (~6776 tok)
 - `03-20-PLAN.md` — Artifacts this plan produces (~4621 tok)
 - `03-21-PLAN.md` — Artifacts this phase produces (~4078 tok)
+- `03-21-SUMMARY.md` — Phase 03 Plan 21: Control characters in rules.yaml Summary (~2441 tok)
 - `03-22-PLAN.md` — Artifacts this phase produces (~3528 tok)
 - `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~28765 tok)
 - `03-CONTEXT.md` — Phase 3: Tiered Classification with Traces - Context (~4038 tok)
@@ -352,7 +353,7 @@
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~827 tok)
 - `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~6804 tok)
 - `compose.test.ts` — A long-syntax volume entry (`type: bind`, `source`, `target`, ...). (~4888 tok)
-- `config-check-rules.test.ts` — Two problems: a label that is not a category, and `in` without a phrase. (~1772 tok)
+- `config-check-rules.test.ts` — Two problems: a label that is not a category, and `in` without a phrase. (~2082 tok)
 - `dependencies.test.ts` — Supply-chain checks for the worker's npm dependencies (D-77): owner-approved (~1733 tok)
 - `drift.test.ts` — Brings in the vitest ProvidedContext augmentation that types inject('testDb'). (~1218 tok)
 - `imap-capture.test.ts` — FakeImapServer: fake, sourceFiles, source (~2204 tok)
@@ -628,7 +629,7 @@
 - `index.ts` — Declares RuleSetVersion (~207 tok)
 - `load.ts` — Size cap checked before parsing (T-03-01). A real rules file is a few KiB. (~770 tok)
 - `path.ts` — Data directory, relative to the working directory, when SIFT_DATA is unset. (~363 tok)
-- `schema.ts` — Schema of a mailbox's rules file, data/mailboxes/<slug>/rules.yaml (D-01, (~3217 tok)
+- `schema.ts` — Schema of a mailbox's rules file, data/mailboxes/<slug>/rules.yaml (D-01, (~3520 tok)
 
 ## packages/core/test/
 
@@ -643,7 +644,7 @@
 - `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1309 tok)
 - `prompt.test.ts` — README-style rules snapshot (the example rules file's categories and judgment). (~3438 tok)
 - `rules-hash.test.ts` — The same rules, written differently: none of these may create a new version (D-03, TRC-04). (~2074 tok)
-- `rules.test.ts` — A categories block with `count` valid, distinct names. (~6208 tok)
+- `rules.test.ts` — A categories block with `count` valid, distinct names. (~7121 tok)
 - `spans.test.ts` — exact: ok (~1709 tok)
 
 ## packages/db/

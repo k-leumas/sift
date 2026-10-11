@@ -1376,3 +1376,11 @@
 | 22:24 | Edited apps/worker/test/classify-batch.test.ts | added optional chaining | ~925 |
 | 22:30 | Created .planning/phases/03-tiered-classification-with-traces/03-15-SUMMARY.md | — | ~2617 |
 | 22:31 | 03-15 executed: CR-03 recordIngestSynced in the ingest lock (valve spent with the ingest), resume-then-throw batch test, 5 unit cases; commits c98a604 9a503fc + docs | packages/db/src/status.ts, mailbox-batch.ts, tests | 116 tests pass, typecheck/lint 0 | ~40000 |
+| 22:32 | Session end: 58 writes across 19 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 36 reads | ~161028 tok |
+| 22:33 | Edited packages/core/src/rules/schema.ts | expanded (+12 lines) | ~202 |
+| 22:33 | Edited packages/core/src/rules/schema.ts | added 2 condition(s) | ~220 |
+| 22:33 | Edited apps/worker/test/config-check-rules.test.ts | expanded (+8 lines) | ~136 |
+| 22:33 | Edited apps/worker/test/config-check-rules.test.ts | expanded (+15 lines) | ~227 |
+| 22:34 | Edited packages/core/test/rules.test.ts | added optional chaining | ~952 |
+| 22:37 | Created .planning/phases/03-tiered-classification-with-traces/03-21-SUMMARY.md | — | ~2603 |
+| 22:39 | 03-21 executed: WR-02 control characters rejected in rules oneLine fields and from/domain/phrase entries; config-check NUL test + schema cases; commits 259723b cc1d39e 9d6c2b6 + docs | packages/core/src/rules/schema.ts, config-check-rules.test.ts, rules.test.ts | 106 tests pass, typecheck/lint 0, hashes unchanged | ~30000 |

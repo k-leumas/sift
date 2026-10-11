@@ -254,6 +254,8 @@
 - [2026-10-11] GSD verifier reads owner overrides only from the VERIFICATION.md frontmatter `overrides:` list (must_have, reason, accepted_by, accepted_at; 80% fuzzy token match). A plan that leaves a gap open on purpose must write that entry, not just a SUMMARY note (03-19 option-keep).
 - [2026-10-11] The Write/Edit tools decode only backslash-u hex escapes; \0, \x07, \t and \n stay literal. In plan text, use the YAML 1.2 escapes \N (U+0085), \L (U+2028), \P (U+2029) instead of backslash-u forms.
 
+- [2026-10-11] 03-21 (WR-02): rules schema rejects control characters via module-private CONTROL_CHARACTERS (u flag, Cc plus U+2028/U+2029); oneLine uses one superRefine (line break -> 'must be one line', else 'must not contain control characters'); entry refines run after trim/toLowerCase/overwrite. To add U+2028-style escapes to TS, Edit with a placeholder then python-replace with '\\u2028' (file stays ASCII). Biome rejects a variable named `escape` (noShadowRestrictedNames).
+
 - [2026-10-11] 03-15 (CR-03): with classification on, runBatch writes recordIngestSynced inside withIngestLock (valve counts null, last_sync_at; needs_attention -> ok because mailbox_status_held_check forbids needs_attention with held null); state/last_error stay in the one post-pass write (D-14). To test a pass that throws, override testRuntime's `preflight` with a throwing fn: 5 consecutive per-message failures rethrow a plain Error (not ClassifyInfraError).
 
 ## Do-Not-Repeat

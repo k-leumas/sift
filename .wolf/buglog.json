@@ -4188,6 +4188,72 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T04:24:51.006Z"
+    },
+    {
+      "id": "bug-251",
+      "timestamp": "2026-10-11T04:33:00.196Z",
+      "error_message": "Type error",
+      "file": "packages/core/src/rules/schema.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: /**; * A trimmed, non-empty, single-line string of at most `max` ",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-11T04:33:00.965Z"
+    },
+    {
+      "id": "bug-252",
+      "timestamp": "2026-10-11T04:33:18.897Z",
+      "error_message": "Missing await",
+      "file": "apps/worker/test/config-check-rules.test.ts",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:33:18.897Z"
+    },
+    {
+      "id": "bug-253",
+      "timestamp": "2026-10-11T04:34:42.183Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/core/test/rules.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:34:42.183Z"
+    },
+    {
+      "id": "bug-254",
+      "timestamp": "2026-10-11T04:39:11.000Z",
+      "error_message": "biome lint/suspicious/noShadowRestrictedNames: Do not shadow the global \"escape\" property (plus a format diff) blocked the RED test commit",
+      "file": "packages/core/test/rules.test.ts",
+      "root_cause": "A loop variable was named `escape`, a restricted global name; a long tuple line also exceeded the formatter width",
+      "fix": "Renamed it to yamlEscape and ran `pnpm exec biome format --write` on the test file before re-committing",
+      "tags": [
+        "biome",
+        "lint",
+        "lefthook",
+        "test",
+        "03-21"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:39:11.000Z"
     }
   ]
 }
