@@ -1212,3 +1212,11 @@
 | 02:21 | Edited .planning/phases/03-tiered-classification-with-traces/03-CONTEXT.md | 2→3 lines | ~31 |
 | 02:24 | Created .planning/phases/03-tiered-classification-with-traces/03-19-SUMMARY.md | — | ~4068 |
 | 02:25 | 03-19 (option-review): llm_error in REVIEW_REASONS/ATTEMPT_FAILURE_CODES/LlmVerdict, CHECK migration 0011, classify-schema + core tests, D-16/D-31 amendments, SUMMARY | spans.ts, decide.ts, scoped.ts, 0011, tests, 03-CONTEXT.md | 193/193, no drift, typecheck+lint 0; commits 9056482 ab11bc6 12850be 02da743 82b333f | ~15000 |
+| 02:27 | Session end: 106 writes across 40 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 42 reads | ~218814 tok |
+| 02:28 | Edited apps/worker/src/commands/classify.ts | modified alone() | ~168 |
+| 02:31 | Session end: 107 writes across 40 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 42 reads | ~218982 tok |
+| 02:31 | Edited apps/worker/test/user-facing-text.test.ts | 14→18 lines | ~300 |
+| 02:32 | Edited README.md | inline fix | ~181 |
+| 02:33 | Edited README.md | inline fix | ~98 |
+| 02:36 | Created .planning/phases/03-tiered-classification-with-traces/03-22-SUMMARY.md | — | ~2891 |
+| 08:40 | 03-22: sift classify skip line reworded to (HTTP <status>)/(<code>), CR-01 CLI cases, README notice + skip line, doc pins | apps/worker/src/commands/classify.ts, apps/worker/test/classify-cli.test.ts, README.md, apps/worker/test/user-facing-text.test.ts | 152/152 tests, typecheck, lint ok | ~3200 |

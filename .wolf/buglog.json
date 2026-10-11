@@ -4615,6 +4615,40 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T08:22:30Z"
+    },
+    {
+      "id": "bug-277",
+      "timestamp": "2026-10-11T08:40:00Z",
+      "error_message": "classify-cli.test.ts CR-01 case expected (server_error, HTTP 500); 03-22 target wording is (HTTP 500) / (timeout)",
+      "file": "apps/worker/test/classify-cli.test.ts",
+      "root_cause": "03-17 shipped the skip line as (<code>, HTTP <status>); 03-22 set the final owner wording",
+      "fix": "Reworded the one stderr line in commands/classify.ts (status, else code) and moved the 03-17 test into the new CR-01 describe with the new text",
+      "tags": [
+        "cli",
+        "stderr",
+        "cr-01",
+        "test-wording",
+        "classify"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:40:00Z"
+    },
+    {
+      "id": "bug-278",
+      "timestamp": "2026-10-11T08:40:00Z",
+      "error_message": "pnpm lint: apps/worker/src/commands/classify.ts format - File content differs from formatting output",
+      "file": "apps/worker/src/commands/classify.ts",
+      "root_cause": "A one-line deps.stderr(template) call exceeded the Biome line width",
+      "fix": "pnpm exec biome format --write on the changed files before committing",
+      "tags": [
+        "lint",
+        "biome",
+        "format"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:40:00Z"
     }
   ]
 }

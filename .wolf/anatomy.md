@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T08:24:11.038Z
-> Files: 510 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T08:36:34.215Z
+> Files: 512 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -19,7 +19,7 @@
 - `package.json` — Node.js package manifest (~286 tok)
 - `pnpm-lock.yaml` — pnpm lock file (~29253 tok)
 - `pnpm-workspace.yaml` (~79 tok)
-- `README.md` — Project documentation (~13595 tok)
+- `README.md` — Project documentation (~13780 tok)
 - `renovate.json` (~235 tok)
 - `tsconfig.base.json` (~107 tok)
 - `tsconfig.json` — TypeScript configuration (~50 tok)
@@ -233,6 +233,7 @@
 - `03-21-PLAN.md` — Artifacts this phase produces (~4078 tok)
 - `03-21-SUMMARY.md` — Phase 03 Plan 21: Control characters in rules.yaml Summary (~2441 tok)
 - `03-22-PLAN.md` — Artifacts this phase produces (~3528 tok)
+- `03-22-SUMMARY.md` — Dependency graph (~2710 tok)
 - `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~29093 tok)
 - `03-CONTEXT.md` — Phase 3: Tiered Classification with Traces - Context (~4282 tok)
 - `03-DISCUSSION-LOG.md` — Phase 3: Tiered Classification with Traces - Discussion Log (~1792 tok)
@@ -292,7 +293,7 @@
 
 - `bridge-probe.ts` — Largest earlier report --compare reads (a 200-entry sample is far smaller). (~2890 tok)
 - `bridge-trust.ts` — The owner's other, independent reading of the fingerprint (D-73, D-79). The (~1742 tok)
-- `classify.ts` — Above this many selected messages the owner must confirm (D-17, like P2 D-75). (~5752 tok)
+- `classify.ts` — Above this many selected messages the owner must confirm (D-17, like P2 D-75). (~5783 tok)
 - `config-apply.ts` — Show a path relative to the working directory when it lives under it. (~1341 tok)
 - `config-check.ts` — Show a path relative to the working directory when it lives under it. (~935 tok)
 - `mailbox-backfill.ts` — How long the backfill waits for the mailbox's ingest lock (D-03): one (~3855 tok)
@@ -380,7 +381,7 @@
 - `setup.test.ts` — Committed migrations, from the journal, so new migrations do not break this test. (~2468 tok)
 - `spike-findings.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1660 tok)
 - `supervisor.test.ts` — A promise that never settles: a hung batch. (~7687 tok)
-- `user-facing-text.test.ts` — D-69: until the mailbox hard-delete command exists, no owner-facing text and (~4436 tok)
+- `user-facing-text.test.ts` — D-69: until the mailbox hard-delete command exists, no owner-facing text and (~4522 tok)
 - `worker-classify.test.ts` — The shipped `sift worker` command classifies mail on its own (03-09 Task (~2356 tok)
 - `worker-errors.test.ts` — Brings in the vitest ProvidedContext augmentation that types inject('testDb'). (~827 tok)
 - `worker.test.ts` — Status rows read as the superuser, which bypasses RLS (test inspection only). (~1846 tok)

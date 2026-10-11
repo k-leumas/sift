@@ -26,6 +26,7 @@
 - In Phase 3 discuss, owner picked every recommended option; prefers fail-closed, append-only, no automatic reclassification. (2026-10-08)
 
 ## Key Learnings
+- [2026-10-11] Owner-facing README lines that quote code output are pinned in apps/worker/test/user-facing-text.test.ts 'quotes the owner lines exactly as the code prints them': compare README text with the function that builds it (e.g. `ok; ${unclassifiedNotice(['<id>'])}`) and list CLI fragments in the sources record (file -> texts). For a README-only TDD GREEN, the commit type is docs(...), not feat(...).
 - [2026-10-11] Adding a review reason (03-19): append to REVIEW_REASONS (and ATTEMPT_FAILURE_CODES if an attempt can carry it), LlmVerdict's union, scoped.ts decision_review_reason_check, then `pnpm db:generate --name=<x>`: drizzle-kit emits DROP + ADD CONSTRAINT only (no preflight needed when the set only grows). classify.test.ts loops REVIEW_REASONS through recordDecision, so core and SQL lists cannot drift.
 - [2026-10-11] RED evidence files left in the gitignored .vitest/ still fail `pnpm lint` (Biome formats .vitest/*.json). Move the record to the scratchpad after `check tdd-red-evidence`.
 
