@@ -1,7 +1,11 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T00:07:00.393Z
-> Files: 510 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T03:18:27.124Z
+> Files: 520 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
+
+- `esc-test.txt` (~15 tok)
 
 ## ./
 
@@ -54,7 +58,7 @@
 - `INGEST-CONFLICTS.md` — Conflict Detection Report (~252 tok)
 - `PROJECT.md` — Sift (~3612 tok)
 - `REQUIREMENTS.md` — Requirements: Sift (~2766 tok)
-- `ROADMAP.md` — Roadmap: Sift (~4058 tok)
+- `ROADMAP.md` — Roadmap: Sift (~4400 tok)
 - `state.json` (~218 tok)
 - `STATE.md` — Project State (~7046 tok)
 - `WINDOWS.md` — Broken Windows Ledger (~324 tok)
@@ -217,6 +221,15 @@
 - `03-12-SUMMARY.md` — Phase 3 Plan 12: sift classify Re-run Summary (~3798 tok)
 - `03-13-PLAN.md` — Exports BaselineRow (~4703 tok)
 - `03-13-SUMMARY.md` — Phase 3 Plan 13: Owner Docs and the Live-Baseline Runner Summary (~4140 tok)
+- `03-14-PLAN.md` — Artifacts this plan produces (~5283 tok)
+- `03-15-PLAN.md` — Artifacts this plan produces (~4099 tok)
+- `03-16-PLAN.md` — Artifacts this plan produces (~4010 tok)
+- `03-17-PLAN.md` — Artifacts this plan produces (~6894 tok)
+- `03-18-PLAN.md` — Artifacts this plan produces (~6574 tok)
+- `03-19-PLAN.md` — Artifacts this plan produces (~6776 tok)
+- `03-20-PLAN.md` — Artifacts this plan produces (~4621 tok)
+- `03-21-PLAN.md` — Artifacts this phase produces (~4078 tok)
+- `03-22-PLAN.md` — Artifacts this phase produces (~3528 tok)
 - `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~28765 tok)
 - `03-CONTEXT.md` — Phase 3: Tiered Classification with Traces - Context (~4038 tok)
 - `03-DISCUSSION-LOG.md` — Phase 3: Tiered Classification with Traces - Discussion Log (~1792 tok)

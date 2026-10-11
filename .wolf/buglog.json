@@ -3945,6 +3945,151 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-10T23:12:00Z"
+    },
+    {
+      "id": "bug-236",
+      "timestamp": "2026-10-11T02:46:53.327Z",
+      "error_message": "Wrong reference: precondition should be and",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-14-PLAN.md",
+      "root_cause": "Used \"precondition\" instead of \"and\"",
+      "fix": "Changed precondition → and",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T02:46:53.327Z"
+    },
+    {
+      "id": "bug-237",
+      "timestamp": "2026-10-11T02:52:10.481Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md",
+      "root_cause": "Had '/api/tags'",
+      "fix": "Changed to `llm`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T02:52:10.481Z"
+    },
+    {
+      "id": "bug-238",
+      "timestamp": "2026-10-11T02:56:26.059Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+      "root_cause": "Had \"NOTICE_MAX_IDS, MESSAGE_FAILURE_PASSES, unclassif",
+      "fix": "Changed to \"NOTICE_MAX_IDS, MESSAGE_FAILURE_PASSES, unclassif",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-11T02:56:42.829Z"
+    },
+    {
+      "id": "bug-239",
+      "timestamp": "2026-10-11T02:56:30.396Z",
+      "error_message": "Function not marked async",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+      "root_cause": "Function uses await but wasn't declared async",
+      "fix": "Added async modifier",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-11T02:56:53.183Z"
+    },
+    {
+      "id": "bug-240",
+      "timestamp": "2026-10-11T03:05:00Z",
+      "error_message": "PreToolUse injection warning (invisible-unicode-characters) on 03-16-PLAN.md: plan text held real U+2028/U+2029 characters",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+      "root_cause": "The Write tool decodes JSON-style \\uXXXX escapes in the content, so a regex written as /[\\p{Cc}\\u2028\\u2029]/u in plan prose was saved with the actual separator characters",
+      "fix": "Replaced the characters with literal backslash-u text via a python script; checked every new plan with LC_ALL=C grep -c -P '[^\\x09\\x0A\\x20-\\x7E]' (0 expected)",
+      "tags": [
+        "write-tool",
+        "unicode",
+        "escape",
+        "planning"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T03:05:00Z"
+    },
+    {
+      "id": "bug-241",
+      "timestamp": "2026-10-11T03:10:01.957Z",
+      "error_message": "Wrong reference: constant should be backstop",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+      "root_cause": "Used \"constant\" instead of \"backstop\"",
+      "fix": "Changed constant → backstop",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T03:10:01.957Z"
+    },
+    {
+      "id": "bug-242",
+      "timestamp": "2026-10-11T03:10:29.499Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 15→15 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T03:10:29.499Z"
+    },
+    {
+      "id": "bug-243",
+      "timestamp": "2026-10-11T03:12:25.801Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+      "root_cause": "7 lines replaced/restructured",
+      "fix": "Rewrote 14→10 lines (7 removed) | Also: - from: \"apps/worker/src/commands/classify.ts\"; to: \"apps/worker/src/classify/run.ts\" | Also: Existing (apps/worker/src/commands/classify.ts): l; classify-cli.test.ts classify(box, selector, runti | Also: | CLI line | `message <id>: Ollama failed on this ; | docs | README mailbox-list bullet and sift class",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-10-11T03:12:48.416Z"
+    },
+    {
+      "id": "bug-244",
+      "timestamp": "2026-10-11T03:18:13.360Z",
+      "error_message": "Wrong reference: fails_when should be with",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-19-PLAN.md",
+      "root_cause": "Used \"fails_when\" instead of \"with\"",
+      "fix": "Changed fails_when → with",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T03:18:13.360Z"
     }
   ]
 }

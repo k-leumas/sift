@@ -251,6 +251,9 @@
 - [2026-10-10] Full `pnpm test` needs Docker up AND `scripts/test-imap.sh up`; even then bridge-probe, compose-smoke, imap-folder-source and imap-pin time out at 30 s under parallel load (bug-214). Re-run those files with --no-file-parallelism before calling it a failure.
 - [2026-10-10] `gsd check evaluation-scope --phase NN` under-scopes code review in this repo (only task-commit rows; missed packages/db and worker commands). Use `git diff --name-only <phase-start>..HEAD` minus .planning/.wolf/.gsd/.claude and .eml fixtures.
 
+- [2026-10-11] GSD verifier reads owner overrides only from the VERIFICATION.md frontmatter `overrides:` list (must_have, reason, accepted_by, accepted_at; 80% fuzzy token match). A plan that leaves a gap open on purpose must write that entry, not just a SUMMARY note (03-19 option-keep).
+- [2026-10-11] The Write/Edit tools decode only backslash-u hex escapes; \0, \x07, \t and \n stay literal. In plan text, use the YAML 1.2 escapes \N (U+0085), \L (U+2028), \P (U+2029) instead of backslash-u forms.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -288,6 +291,7 @@
 
 - [2026-10-10] pnpm here rejects `-s` (`pnpm -s typecheck` errors "unexpected argument"); use `pnpm typecheck` / `pnpm lint` without -s.
 - [2026-10-10] Executors share the orchestrator scratchpad: one overwrote the orchestrator helper gsd.sh. Tell every executor to keep its temp files in a per-plan subdirectory and never touch shared helper scripts.
+- [2026-10-11] The Write tool decodes backslash-u escapes in its content: writing a regex such as [\p{Cc} plus the U+2028/U+2029 escapes into a plan saved the real separator characters (injection warning, bug-240). Describe such characters as U+2028 in prose, or fix with a python replace, and check new files with `LC_ALL=C grep -c -P '[^\x09\x0A\x20-\x7E]'`.
 
 ## Decision Log
 
@@ -315,4 +319,5 @@
 - [2026-10-05] zsh: `$VAR:apps/...` applies the `:a` modifier (also :h :t :r :e ...). Always write `"${VAR}:path"` for git rev:path specs, and never redirect `git show` straight onto a tracked file (a failure empties it); write to scratch and copy on success.
 
 - 2026-10-08 (Phase 3 AI-SPEC §5-7): Evals = Vitest + node:http fake Ollama + synthetic fixtures (E1-E11 are the P3 CI gates); live-model quality (E12-E15, live paired injection) is a manual baseline in P3, gated in M4/M6. Arize Phoenix/Promptfoo/Langfuse not used: SEC-02 forbids any trace destination besides the model URL, and decision.spans already is the trace store. Accepted residual: in-list injection steering is not caught online; Phase 4 must decide before applying labels.
+- 2026-10-11 (plan-phase 3 --gaps): 7 gap plans 03-14..03-20 in 5 waves. CR-02 = a body written for an already-decided message gets expires_at = write + 7 d (restoreBody and storeMessages, decidedMessageIds). CR-03 = recordIngestSynced in the ingest lock (needs_attention -> ok, because mailbox_status_held_check forbids needs_attention without held). CR-01 = after a chat server_error/timeout re-run the preflight; healthy -> skip only that message (max 2 per pass, then outage); 03-18 notice (state ok, last_error lists ids) + 3-pass in-memory hold-back confirmed by a mail-free canary chat (catches a runner that fails every prompt while /api/tags answers); 03-19 owner checkpoint (blocking-human, one-way): review reason llm_error + CHECK migration 0011, else keep 03-18's state; 03-20 runs only on option-review. WR-01 check is in validateLlmOutput code, NOT in llmOutputSchema (the schema is prompt material and llama.cpp grammar lacks \p{...}).
 - 2026-10-10 (plan-phase 3): 13 plans / 6 waves. Planner choices: decision.decided_by ('worker'|'rerun') + partial unique index decision_one_worker_per_message; rule_set made append-only (A4, costly not one-way); prompt_version unscoped + advisory lock 815309003; MODEL_OPTIONS/REQUEST_FLAGS/RETRY_NOTE moved to @sift/core/classify (prompt hash material); classification takes the ingest lock per 5-message chunk; mailboxes held in needs_attention are NOT classified (resume needs that state); rules errors do not reject runBatch; per-message poison 500 left as infra (flagged); ASCII-vs-Unicode category names is a checkpoint:decision in 03-01 (auto_select ascii).

@@ -1300,3 +1300,63 @@
 | 17:57 | Session end: 115 writes across 94 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 42 reads | ~336133 tok |
 | 18:07 | Created .planning/phases/03-tiered-classification-with-traces/03-VERIFICATION.md | — | ~7613 |
 | 18:15 | Session summary: /gsd-execute-phase 3 ran all 13 plans (6 waves, sequential on main); Nyquist validated (1065/1065), SECURITY 63/64 closed (T-03-20 reopened), deep review 3 CR/3 WR/7 IN, verifier gaps_found (CR-01 poison-message stall, CR-02 refetched-body expiry, CR-03 valve approval leak); requirements reverted to pending | .planning/phases/03-*, .wolf/* | gaps_found → /gsd-plan-phase 03 --gaps | — |
+| 18:08 | Session end: 116 writes across 95 files (yaml-issues.ts, schema.ts, load.ts, rules.test.ts, example-rules.test.ts) | 47 reads | ~366758 tok |
+
+## Session: 2026-10-11 20:21
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 20:46 | Created .planning/phases/03-tiered-classification-with-traces/03-14-PLAN.md | — | ~5613 |
+| 20:46 | Edited .planning/phases/03-tiered-classification-with-traces/03-14-PLAN.md | 2→2 lines | ~70 |
+| 20:48 | Created .planning/phases/03-tiered-classification-with-traces/03-15-PLAN.md | — | ~4372 |
+| 20:49 | Created .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | — | ~5659 |
+| 20:51 | Created .planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md | — | ~6917 |
+| 20:52 | Edited .planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md | "/api/tags" → "llm" | ~59 |
+| 20:54 | Created .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | — | ~6553 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 1→2 lines | ~195 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | "NOTICE_MAX_IDS, MESSAGE_F" → "NOTICE_MAX_IDS, MESSAGE_F" | ~66 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | modified canaryChat() | ~162 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 1→2 lines | ~56 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 1→3 lines | ~204 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | modified canaryChat() | ~409 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | modified canaryChat() | ~127 |
+| 20:56 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 2→3 lines | ~213 |
+| 20:58 | Created .planning/phases/03-tiered-classification-with-traces/03-19-PLAN.md | — | ~5652 |
+| 20:59 | Created .planning/phases/03-tiered-classification-with-traces/03-20-PLAN.md | — | ~4930 |
+| 21:01 | Edited .planning/ROADMAP.md | modified checkpoint() | ~335 |
+| 21:01 | Edited .planning/ROADMAP.md | 5→5 lines | ~25 |
+| 21:02 | Edited .planning/ROADMAP.md | inline fix | ~20 |
+| 21:06 | Planned phase 3 gap closure: 03-14..03-20 (CR-01..03, WR-01..03), roadmap updated, committed 28bbb7e; cerebrum decision + bug-240 logged | .planning/phases/03-*/03-1[4-9]-PLAN.md, 03-20-PLAN.md, ROADMAP.md | done | ~60000 |
+| 21:04 | Session end: 20 writes across 8 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 20 reads | ~102435 tok |
+| 21:05 | Session end: 20 writes across 8 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 20 reads | ~102435 tok |
+| 21:08 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/esc-test.txt | — | ~16 |
+| 21:09 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 12→10 lines | ~50 |
+| 21:09 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 4→2 lines | ~64 |
+| 21:09 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 5→2 lines | ~16 |
+| 21:09 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 6→8 lines | ~265 |
+| 21:09 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 3→2 lines | ~19 |
+| 21:09 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | modified stripNul() | ~28 |
+| 21:09 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | inline fix | ~33 |
+| 21:10 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 3→2 lines | ~53 |
+| 21:10 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 3→2 lines | ~28 |
+| 21:10 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 3→2 lines | ~34 |
+| 21:10 | Edited .planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md | 15→15 lines | ~201 |
+| 21:12 | Created .planning/phases/03-tiered-classification-with-traces/03-21-PLAN.md | — | ~4350 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 14→10 lines | ~47 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 4→2 lines | ~56 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | removed 5 lines | ~12 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 7→3 lines | ~36 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 4→4 lines | ~193 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 3→2 lines | ~12 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | modified Existing() | ~106 |
+| 21:12 | Edited .planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md | 5→3 lines | ~48 |
+| 21:14 | Created .planning/phases/03-tiered-classification-with-traces/03-22-PLAN.md | — | ~3763 |
+| 21:14 | Edited .planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md | expanded (+10 lines) | ~515 |
+| 21:18 | Edited .planning/phases/03-tiered-classification-with-traces/03-19-PLAN.md | inline fix | ~78 |
+| 21:18 | Edited .planning/ROADMAP.md | inline fix | ~15 |
+| 21:18 | Edited .planning/ROADMAP.md | inline fix | ~41 |
+| 21:18 | Edited .planning/ROADMAP.md | inline fix | ~36 |
+| 21:18 | Edited .planning/ROADMAP.md | 2→4 lines | ~110 |
+| 21:20 | Revised phase 3 gap plans per checker: split 03-16 -> 03-21 (WR-02), 03-18 -> 03-22 (CLI/README), 03-19 option-keep override, 03-17 D-16 visibility; commit 5c146f6 | .planning/phases/03-*/03-16..22-PLAN.md, ROADMAP.md | done | ~9000 |
+| 21:21 | Session end: 48 writes across 11 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 26 reads | ~146065 tok |
+| 21:23 | plan-phase 03 --gaps: 9 gap-closure plans (03-14..03-22) for CR-01/02/03, WR-01..03; checker passed on iteration 2 | .planning/phases/03-*/03-14..22-PLAN.md | ready to execute | ~60k |
