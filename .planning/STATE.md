@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: tiered-classification-with-traces
 status: executing
-stopped_at: Completed 03-14-PLAN.md
-last_updated: "2026-10-11T04:21:39.907Z"
+stopped_at: Completed 03-15-PLAN.md
+last_updated: "2026-10-11T04:30:39.602Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 8edb88cba97456d8fcfd58ab216c238e2ccea219
+state_head: c3ec6dacc1c84a063d53923b23f3647bbc06def1
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 56
-  completed_plans: 48
+  completed_plans: 49
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (tiered-classification-with-traces) — EXECUTING
-Plan: 2 of 22
+Plan: 3 of 22
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -104,6 +104,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P10 | 22 min | 3 tasks | 27 files |
 | Phase 03 P13 | 20 min | 2 tasks | 7 files |
 | Phase 03 P14 | 12 min | 2 tasks | 7 files |
+| Phase 03 P15 | 6 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -255,6 +256,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-13: llm-baseline.ts takes --url and --model only from the command line (no default); classify-hermetic.test.ts now scans it and its test
 - [Phase 03]: 03-13: README quick start is 12 steps (rules file, ollama pull, then up -d and sift config check); Linux ollama Compose profile documented as a later milestone
 - [Phase 03]: 03-14 CR-02: a body written for an already-decided message (restoreBody refetch, storeMessages re-insert) gets expires_at = write time + 7 d via decidedMessageIds; undecided bodies stay null until the first decision; DECISION_BODY_RETENTION_MS now lives in ingest.ts, re-exported from classify.ts
+- [Phase 03]: CR-03: recordIngestSynced spends the resume approval and records last_sync_at inside the ingest lock when classification is on; needs_attention -> ok, other states and last_error left for the post-pass write (D-14)
 
 ### Pending Todos
 
@@ -282,6 +284,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T04:21:39.732Z
-Stopped at: Completed 03-14-PLAN.md
+Last session: 2026-10-11T04:30:39.432Z
+Stopped at: Completed 03-15-PLAN.md
 Resume file: None
