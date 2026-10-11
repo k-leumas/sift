@@ -142,7 +142,7 @@ describe('README quick start (D-28, D-56, D-58)', () => {
   });
 
   it('quotes the owner lines exactly as the code prints them', async () => {
-    const { infraOwnerMessage } = await import('../src/classify/run.ts');
+    const { infraOwnerMessage, unclassifiedNotice } = await import('../src/classify/run.ts');
     const ctx = { modelsUrl: 'http://host.docker.internal:11434', model: 'qwen3:1.7b' };
     for (const line of [
       infraOwnerMessage('unreachable', { ...ctx, status: null, detail: 'ECONNREFUSED' }),
@@ -150,11 +150,15 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     ]) {
       expect(readme).toContain(`error: ${line}`);
     }
+    // The ok-state notice sift mailbox list shows for a message Ollama failed on alone (WR-03).
+    expect(readme).toContain(`ok; ${unclassifiedNotice(['<id>'])}`);
     const sources: Record<string, string[]> = {
       'apps/worker/src/commands/config-check.ts': ['password env vars present; rules files valid'],
       'apps/worker/src/commands/classify.ts': [
         'Classify them? Type yes to continue:',
         '--message <id> | --since <YYYY-MM-DD> | --all-pending) [--yes]',
+        // The skip line for a message Ollama failed on alone (CR-01).
+        'Ollama failed on this message (',
       ],
       'packages/core/src/rules/load.ts': ['rules file not found: '],
       'apps/worker/src/classify/run.ts': ['. See them all with: '],
