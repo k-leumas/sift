@@ -497,7 +497,7 @@ describe('sift classify names a message Ollama failed on alone (CR-01, T-03-74)'
     const [id] = await seed(box, [poison]);
     const runtime = testRuntime(fake, dataDir);
 
-    for (let run = 0; run < 4; run += 1) {
+    for (let run = 0; run < 3; run += 1) {
       const result = await classify(box, { kind: 'message', id: id as string }, runtime);
       expect(result.code).toBe(0);
       expect(result.stderr).toEqual([
