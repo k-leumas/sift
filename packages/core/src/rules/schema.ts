@@ -73,6 +73,11 @@ function length(value: string): number {
   return [...value].length;
 }
 
+/** True when `value` holds no control character (WR-02). */
+function noControl(value: string): boolean {
+  return !CONTROL_CHARACTERS.test(value);
+}
+
 /**
  * A trimmed, non-empty, single-line string of at most `max` characters with no
  * control characters. One issue per value: a line break is reported as such,
@@ -183,6 +188,7 @@ const FromEntry = z
   .string({ error: unlessMissing(fromMessage) })
   .trim()
   .toLowerCase()
+  .refine(noControl, 'from entries must not contain control characters')
   .max(FROM_MAX_CHARS, `from entries must be at most ${FROM_MAX_CHARS} characters`)
   .regex(FROM_PATTERN, fromMessage);
 
@@ -192,6 +198,7 @@ const DomainEntry = z
   .trim()
   .toLowerCase()
   .overwrite((value) => (value.endsWith('.') ? value.slice(0, -1) : value))
+  .refine(noControl, 'domain entries must not contain control characters')
   .max(DOMAIN_MAX_CHARS, `domain entries must be at most ${DOMAIN_MAX_CHARS} characters`)
   .regex(DOMAIN_PATTERN, domainMessage);
 
@@ -200,6 +207,8 @@ const PhraseEntry = z
   .string({ error: unlessMissing('phrase entries must be text') })
   .trim()
   .overwrite((value) => value.replace(/\s+/g, ' '))
+  // After the collapse, so a tab inside a phrase is already one space and still loads.
+  .refine(noControl, 'phrase entries must not contain control characters')
   .min(1, 'phrase entries must not be empty')
   .max(PHRASE_MAX_CHARS, `phrase entries must be at most ${PHRASE_MAX_CHARS} characters`);
 
