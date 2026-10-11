@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: tiered-classification-with-traces
 status: executing
-stopped_at: Completed 03-21-PLAN.md
-last_updated: "2026-10-11T04:38:21.241Z"
+stopped_at: Completed 03-16-PLAN.md
+last_updated: "2026-10-11T04:49:40.794Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 24080118ecfc3671635478f6aa40e91f42cfb4c4
+state_head: ada23d1d8bbf4f754d2500934477918b24477235
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 56
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (tiered-classification-with-traces) — EXECUTING
-Plan: 4 of 22
+Plan: 5 of 22
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -106,6 +106,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P14 | 12 min | 2 tasks | 7 files |
 | Phase 03 P15 | 6 min | 2 tasks | 6 files |
 | Phase 03 P21 | 5 min | 2 tasks | 3 files |
+| Phase 03 P16 | 7 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -260,6 +261,7 @@ Recent decisions affecting current work:
 - [Phase 03]: CR-03: recordIngestSynced spends the resume approval and records last_sync_at inside the ingest lock when classification is on; needs_attention -> ok, other states and last_error left for the post-pass write (D-14)
 - [Phase 03]: 03-21: LINE_BREAK covers CR, LF, U+2028, U+2029 ('must be one line'); every other Cc character in rules text gets 'must not contain control characters', one issue per one-line value (WR-02)
 - [Phase 03]: 03-21: from/domain/phrase entries refine on CONTROL_CHARACTERS after their normalising steps; a phrase's inner tab is collapsed first and still loads
+- [Phase 03]: 03-16 WR-01: a model reason with a Unicode control character (Cc) or U+2028/U+2029 after trim is schema_mismatch reason: control_character, checked in validateLlmOutput (not llmOutputSchema, prompt hash unchanged); recordDecision strips NUL from parsed spans as a backstop for Ollama-supplied strings
 
 ### Pending Todos
 
@@ -287,6 +289,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T04:38:11.609Z
-Stopped at: Completed 03-21-PLAN.md
+Last session: 2026-10-11T04:49:32.282Z
+Stopped at: Completed 03-16-PLAN.md
 Resume file: None

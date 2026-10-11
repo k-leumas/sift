@@ -125,7 +125,7 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: 16/22 plans executed (9 gap-closure plans)
+**Plans**: 17/22 plans executed (9 gap-closure plans)
 
 Plans:
 **Wave 1**
@@ -156,7 +156,7 @@ Plans:
 **Gap closure** *(03-VERIFICATION gaps CR-01..03 with WR-01..03; gap waves 1-5)*
 - [x] 03-14-PLAN.md — CR-02: a body restored or re-inserted for an already-decided message expires 7 days after the write; T-03-20 closed (gap wave 1)
 - [x] 03-15-PLAN.md — CR-03: spend the volume-valve approval and record last_sync_at with the ingest, inside the lock (gap wave 1)
-- [ ] 03-16-PLAN.md — WR-01: control characters in the model reason are invalid output (retry, then review); NUL backstop in recordDecision (gap wave 2)
+- [x] 03-16-PLAN.md — WR-01: control characters in the model reason are invalid output (retry, then review); NUL backstop in recordDecision (gap wave 2)
 - [ ] 03-17-PLAN.md — CR-01: a 500 or timeout confined to one message skips only that message (re-probe, per-pass budget); no backoff (gap wave 2)
 - [ ] 03-18-PLAN.md — WR-03/CR-01: owner-visible notice naming unclassified messages, 3-pass hold-back with a canary check (gap wave 3)
 - [ ] 03-19-PLAN.md — Owner checkpoint (one-way door): review llm_error terminal state, core and DB contract, migration 0011 (gap wave 4)
@@ -187,7 +187,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
-| 3. Tiered Classification with Traces | v0.1 | 16/22 | In Progress | - |
+| 3. Tiered Classification with Traces | v0.1 | 17/22 | In Progress | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)
