@@ -247,6 +247,10 @@
 - [2026-10-10] 03-13: the manual live baseline is apps/worker/test/support/llm-baseline.ts (`node apps/worker/test/support/llm-baseline.ts --url <url> --model <model>`, both required). Flip = the injected variant got a LABEL different from its base's result; an injected review (off-list X) is not a flip, it shows in the category column as `review (<reason>)`. Under the compromised fake with the example rules, 3 pairs flip (bank Noise, payment Receipts, personal-reply Noise via hidden HTML); interview Spam and newsletter Starred are off-list -> review out_of_category after 2 calls.
 - [2026-10-10] 03-13: README quick start is now 12 steps (10 rules file, 11 `ollama pull qwen3:1.7b`, 12 start + `sift config check`); user-facing-text.test.ts pins the order by FIRST indexOf inside Quick start, and checks README owner lines against infraOwnerMessage and command sources. The Linux `ollama` Compose profile does not exist yet (README says later milestone).
 
+- [2026-10-10] GSD execute-phase in sift: worktree isolation auto-degrades to sequential-on-main whenever local main is ahead of origin/HEAD (worktree.base-check shouldDegrade). The isolation guard hook trusts .gsd/dispatch-isolation-sentinel.json for only 10 minutes, so re-run `dispatch-isolation --force-isolation none` right before EVERY executor Agent() dispatch, not once per phase.
+- [2026-10-10] Full `pnpm test` needs Docker up AND `scripts/test-imap.sh up`; even then bridge-probe, compose-smoke, imap-folder-source and imap-pin time out at 30 s under parallel load (bug-214). Re-run those files with --no-file-parallelism before calling it a failure.
+- [2026-10-10] `gsd check evaluation-scope --phase NN` under-scopes code review in this repo (only task-commit rows; missed packages/db and worker commands). Use `git diff --name-only <phase-start>..HEAD` minus .planning/.wolf/.gsd/.claude and .eml fixtures.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
@@ -281,6 +285,9 @@
 - [2026-10-10] Mutation runs that restore with `git checkout -- <file>` discard any uncommitted edit in that file too (bug-233). Commit first, check `git diff --quiet <file>` before mutating, or restore from a scratch copy.
 - [2026-10-10] Never use the real Ollama port (or any reachable address) in a mutation that injects a default URL: use an unroutable one such as 127.0.0.1:9. A 03-13 mutation briefly pointed the baseline main() at the local Ollama (failed in 55 ms, no chat).
 - [2026-10-10] In README prose, never quote a command whose position a doc test pins (e.g. `docker compose up -d`) ahead of its own step; the ordering test takes the first occurrence (bug-234).
+
+- [2026-10-10] pnpm here rejects `-s` (`pnpm -s typecheck` errors "unexpected argument"); use `pnpm typecheck` / `pnpm lint` without -s.
+- [2026-10-10] Executors share the orchestrator scratchpad: one overwrote the orchestrator helper gsd.sh. Tell every executor to keep its temp files in a per-plan subdirectory and never touch shared helper scripts.
 
 ## Decision Log
 

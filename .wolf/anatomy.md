@@ -1,25 +1,25 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-10T23:21:17.187Z
-> Files: 565 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T00:07:00.393Z
+> Files: 510 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.dockerignore` — Docker ignore rules (~35 tok)
-- `.gitignore` — Git ignore rules (~660 tok)
+- `.gitignore` — Git ignore rules (~728 tok)
 - `.nvmrc` (~3 tok)
 - `biome.json` — Biome linter/formatter configuration (~472 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `commitlint.config.js` — Conventional commits (D-16). config-conventional caps header and body lines at 100 chars. (~47 tok)
-- `compose.yaml` — Sift stack: db -> setup (one-shot) -> worker, plus bridge (and the one-shot bridge-init). (~2346 tok)
-- `CONTRIBUTING.md` — Contributing to Sift (~3680 tok)
+- `compose.yaml` — Sift stack: db -> setup (one-shot) -> worker, plus bridge (and the one-shot bridge-init). (~2559 tok)
+- `CONTRIBUTING.md` — Contributing to Sift (~4092 tok)
 - `Dockerfile` — Docker container definition (~475 tok)
 - `lefthook.yml` — Git hooks (D-16). Installed by lefthook's postinstall and by `pnpm lefthook install`. (~96 tok)
 - `LICENSE` — Project license (~9207 tok)
 - `package.json` — Node.js package manifest (~286 tok)
 - `pnpm-lock.yaml` — pnpm lock file (~29253 tok)
 - `pnpm-workspace.yaml` (~79 tok)
-- `README.md` — Project documentation (~12786 tok)
+- `README.md` — Project documentation (~13595 tok)
 - `renovate.json` (~235 tok)
 - `tsconfig.base.json` (~107 tok)
 - `tsconfig.json` — TypeScript configuration (~50 tok)
@@ -45,6 +45,7 @@
 
 ## .gsd/
 
+- `.gitignore` — Git ignore rules (~1 tok)
 - `dispatch-isolation-sentinel.json` (~27 tok)
 
 ## .planning/
@@ -52,10 +53,11 @@
 - `config.json` (~558 tok)
 - `INGEST-CONFLICTS.md` — Conflict Detection Report (~252 tok)
 - `PROJECT.md` — Sift (~3612 tok)
-- `REQUIREMENTS.md` — Requirements: Sift (~2763 tok)
-- `ROADMAP.md` — Roadmap: Sift (~4055 tok)
-- `state.json` (~212 tok)
-- `STATE.md` — Project State (~5266 tok)
+- `REQUIREMENTS.md` — Requirements: Sift (~2766 tok)
+- `ROADMAP.md` — Roadmap: Sift (~4058 tok)
+- `state.json` (~218 tok)
+- `STATE.md` — Project State (~7046 tok)
+- `WINDOWS.md` — Broken Windows Ledger (~324 tok)
 
 ## .planning/intel/
 
@@ -194,7 +196,7 @@
 - `03-02-PLAN.md` — Exports DEFAULT_INITIAL_BACKFILL_DAYS (~3938 tok)
 - `03-02-SUMMARY.md` — Phase 3 Plan 02: LLM Confidence Threshold Config and 3-Day Backfill Summary (~2139 tok)
 - `03-03-PLAN.md` — Declares Existing (~6490 tok)
-- `03-03-SUMMARY.md` — Phase 3 Plan 03: Classification Schema (decision trace, rule_set snapshots, prompt_version) Summary (~3129 tok)
+- `03-03-SUMMARY.md` — Phase 3 Plan 03: Classification Schema (decision trace, rule_set snapshots, prompt_version) Summary (~3169 tok)
 - `03-04-PLAN.md` — Exports MatchableMessage (~5276 tok)
 - `03-04-SUMMARY.md` — Phase 3 Plan 04: Exact Rules, decide() and Rule-Set Hash Summary (~3438 tok)
 - `03-05-PLAN.md` — Exports MODEL_OPTIONS (~6967 tok)
@@ -220,8 +222,12 @@
 - `03-DISCUSSION-LOG.md` — Phase 3: Tiered Classification with Traces - Discussion Log (~1792 tok)
 - `03-PATTERNS.md` — Phase 3: Tiered Classification with Traces - Pattern Map (~3773 tok)
 - `03-RESEARCH.md` — Phase 3: Tiered Classification with Traces - Research (~17483 tok)
+- `03-REVIEW-DISPOSITION.md` — Phase 03: Code Review Disposition (~906 tok)
+- `03-REVIEW.md` — Phase 3: Code Review Report (~5796 tok)
+- `03-SECURITY.md` — threats_open = count of OPEN threats at or above workflow.security_block_on severity (the blocking gate) (~4674 tok)
 - `03-USER-SETUP.md` — Phase 3: User Setup Required (~579 tok)
-- `03-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~2575 tok)
+- `03-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~2623 tok)
+- `03-VERIFICATION.md` (~7137 tok)
 - `COVERAGE.md` — API Coverage — Ollama REST API (local server at models.url) (~725 tok)
 
 ## .planning/quick/261007-2ke-add-commit-driven-versioning-local-pnpm-/
@@ -254,14 +260,14 @@
 ## apps/worker/src/
 
 - `cli.ts` — Exit code for usage errors (no command, unknown command). (~986 tok)
-- `command.ts` — Process boundary handed to every command, so commands stay testable. (~1039 tok)
+- `command.ts` — Process boundary handed to every command, so commands stay testable. (~1108 tok)
 
 ## apps/worker/src/classify/
 
 - `llm-tier.ts` — The LLM tier for one message (D-22..D-24, AI-SPEC section 4): call, (~1551 tok)
-- `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2514 tok)
+- `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2539 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
-- `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1530 tok)
+- `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1527 tok)
 - `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~5572 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 - `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
@@ -270,16 +276,16 @@
 
 - `bridge-probe.ts` — Largest earlier report --compare reads (a 200-entry sample is far smaller). (~2890 tok)
 - `bridge-trust.ts` — The owner's other, independent reading of the fingerprint (D-73, D-79). The (~1742 tok)
-- `classify.ts` — `sift classify <slug> (--message|--since|--all-pending) [--yes]` (03-12, D-17): select under the ingest lock, count, confirm >20, rerun decisions via classifyCandidates, refetch expired bodies (refetch.ts). (~5100 tok)
+- `classify.ts` — Above this many selected messages the owner must confirm (D-17, like P2 D-75). (~5584 tok)
 - `config-apply.ts` — Show a path relative to the working directory when it lives under it. (~1341 tok)
-- `config-check.ts` — sift config check: schema, env overrides, then (unless --schema-only) password env + every mailbox's rules.yaml via @sift/core/rules (D-05). (~935 tok)
+- `config-check.ts` — Show a path relative to the working directory when it lives under it. (~935 tok)
 - `mailbox-backfill.ts` — How long the backfill waits for the mailbox's ingest lock (D-03): one (~3855 tok)
 - `mailbox-list.ts` — Left-align every column but the last to its widest cell. (~984 tok)
-- `mailbox-rename.ts` — `sift mailbox rename <old> <new>` (D-32, D-63); refuses before any DB call until <SIFT_DATA>/mailboxes/<new>/rules.yaml exists (D-07). (~700 tok)
+- `mailbox-rename.ts` — `sift mailbox rename <old-slug> <new-slug>` (D-32, D-63). Changes the slug (~814 tok)
 - `mailbox-resume.ts` — `sift mailbox resume <slug>` (D-26). The volume valve holds new mail when a (~591 tok)
 - `migrate.ts` — Show a path relative to the working directory when it lives under it. (~848 tok)
 - `setup.ts` — Show a path relative to the working directory when it lives under it. (~591 tok)
-- `worker.ts` — D-53: after the drain, wait this long for the pool to close, then end the (~1958 tok)
+- `worker.ts` — D-53: after the drain, wait this long for the pool to close, then end the (~2221 tok)
 
 ## apps/worker/src/imap/
 
@@ -301,7 +307,7 @@
 
 - `backoff.ts` — Longest wait between attempts for a failing mailbox: 15 minutes (D-51). (~179 tok)
 - `heartbeat.ts` — Heartbeat file location (D-54). A non-blank SIFT_HEARTBEAT_FILE wins; (~310 tok)
-- `mailbox-batch.ts` — After the worker starts, connection failures (unreachable, timeout) show as (~4973 tok)
+- `mailbox-batch.ts` — After the worker starts, connection failures (unreachable, timeout) show as (~6202 tok)
 - `run-until-stopped.ts` — Exit code after too many missed heartbeats (IN-05): 75, EX_TEMPFAIL in (~613 tok)
 - `shutdown.ts` — Resolve with the first SIGTERM or SIGINT (D-53). Both listeners are removed (~274 tok)
 - `startup.ts` — Differences between config.yaml and the mailbox registry, one line per (~180 tok)
@@ -317,21 +323,21 @@
 - `bridge-probe.test.ts` — Strings planted in every subject, From, To, body, Message-ID local part and folder name. (~7360 tok)
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2626 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
-- `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~1981 tok)
-- `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~2059 tok)
-- `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~701 tok)
-- `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8685 tok)
-- `classify-leak.test.ts` — Mail stays on the machine and out of logs and status (E7, the Phase 3 part (~3127 tok)
-- `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~1078 tok)
+- `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~5544 tok)
+- `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~6883 tok)
+- `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~765 tok)
+- `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8686 tok)
+- `classify-leak.test.ts` — Mail stays on the machine and out of logs and status (E7, the Phase 3 part (~3136 tok)
+- `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~5615 tok)
 - `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2386 tok)
-- `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3210 tok)
+- `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3206 tok)
 - `classify-refetch.test.ts` — D-32's refetch half (03-12, P2 D-08): a re-run of a message whose cached (~3654 tok)
-- `classify-run.test.ts` — The classification pass (03-08) against a real database as sift_app and (~7591 tok)
-- `classify-trace.test.ts` — Every way a decision can be made leaves a complete, closed and replayable (~3803 tok)
-- `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~800 tok)
-- `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~6721 tok)
-- `compose.test.ts` — A long-syntax volume entry (`type: bind`, `source`, `target`, ...). (~4554 tok)
-- `config-check-rules.test.ts` — In-process config check with temp config + SIFT_DATA: valid, missing, positioned problems, --schema-only reads no rules (03-11). (~1767 tok)
+- `classify-run.test.ts` — The classification pass (03-08) against a real database as sift_app and (~7610 tok)
+- `classify-trace.test.ts` — Every way a decision can be made leaves a complete, closed and replayable (~4413 tok)
+- `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~827 tok)
+- `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~6804 tok)
+- `compose.test.ts` — A long-syntax volume entry (`type: bind`, `source`, `target`, ...). (~4888 tok)
+- `config-check-rules.test.ts` — Two problems: a label that is not a category, and `in` without a phrase. (~1772 tok)
 - `dependencies.test.ts` — Supply-chain checks for the worker's npm dependencies (D-77): owner-approved (~1733 tok)
 - `drift.test.ts` — Brings in the vitest ProvidedContext augmentation that types inject('testDb'). (~1218 tok)
 - `imap-capture.test.ts` — FakeImapServer: fake, sourceFiles, source (~2204 tok)
@@ -345,10 +351,10 @@
 - `ingest-resync.test.ts` — Five eligible messages stored in generation 1; the watermark is the newest (1 minute ago). (~5543 tok)
 - `lint-guard.test.ts` — Lint one file at apps/worker/src/<name> with the repository's biome.json. (~724 tok)
 - `live-ingest-record.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1152 tok)
-- `llm-baseline.test.ts` — The live-baseline runner against the compromised fake: 10 rows in fixed order, flips only for allowed classify-as targets, single origin, table format, refusals, usage (03-13). (~3286 tok)
+- `llm-baseline.test.ts` — The manual live-baseline runner (AI-SPEC section 5, Set B: E4 live, E11 (~3347 tok)
 - `mailbox-batch.test.ts` — Owner-visible mailbox states (02-13 Task 2; D-26, D-33, D-34, D-40, D-72, (~5144 tok)
 - `mailbox-ops.test.ts` — Owner mailbox operations (02-16): `sift mailbox resume` releases a volume (~6167 tok)
-- `mailbox-rename-guard.test.ts` — D-07 rename guard: refusal with closed-port DB URL (no DB call), invalid slug message, rename once rules file exists. (~1296 tok)
+- `mailbox-rename-guard.test.ts` — Nothing listens on port 1: any database call shows up as a connection error. (~1296 tok)
 - `no-secret-leak.test.ts` — FND-02 / success criterion 2 (automated half, T-01-46): a mailbox password (~2748 tok)
 - `node-version.test.ts` — .nvmrc without the leading "v" and surrounding whitespace, e.g. 26.10.0. (~323 tok)
 - `read-only-ingest.test.ts` — T-02-31 / D-11: ingest never changes the owner's mail. folder-source.ts (~750 tok)
@@ -357,8 +363,8 @@
 - `setup.test.ts` — Committed migrations, from the journal, so new migrations do not break this test. (~2468 tok)
 - `spike-findings.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1660 tok)
 - `supervisor.test.ts` — A promise that never settles: a hung batch. (~7687 tok)
-- `user-facing-text.test.ts` — D-69: until the mailbox hard-delete command exists, no owner-facing text and (~4371 tok)
-- `worker-classify.test.ts` — The shipped `sift worker` command classifies mail on its own (03-09 Task (~2343 tok)
+- `user-facing-text.test.ts` — D-69: until the mailbox hard-delete command exists, no owner-facing text and (~4436 tok)
+- `worker-classify.test.ts` — The shipped `sift worker` command classifies mail on its own (03-09 Task (~2356 tok)
 - `worker-errors.test.ts` — Brings in the vitest ProvidedContext augmentation that types inject('testDb'). (~827 tok)
 - `worker.test.ts` — Status rows read as the superuser, which bypasses RLS (test inspection only). (~1846 tok)
 
@@ -374,11 +380,11 @@
 - `hostile-confidence-7.eml` (~115 tok)
 - `hostile-crlf-subject.eml` (~123 tok)
 - `hostile-display-name-category.eml` (~103 tok)
-- `hostile-emoji-flood.eml` — 38 lines of emoji+CJK pairs (>4,000 UTF-16 units) for the fake's charBudget input_too_long case (~2750 tok)
+- `hostile-emoji-flood.eml` (~1314 tok)
 - `hostile-fence-close.eml` (~126 tok)
 - `hostile-guessed-nonce.eml` (~144 tok)
 - `hostile-hidden-html.eml` (~147 tok)
-- `hostile-late-line.eml` — 60 filler lines (4,380 chars) then a DECISIVE LINE past the 4,000-char body cut (~1190 tok)
+- `hostile-late-line.eml` (~1267 tok)
 - `hostile-phishing-receipt.eml` (~129 tok)
 - `hostile-think.eml` (~102 tok)
 - `html-only.eml` (~164 tok)
@@ -397,13 +403,13 @@
 
 ## apps/worker/test/support/
 
-- `classify-harness.ts` — Shared pieces of the classification-pass tests (03-08): stored pending (~4614 tok)
+- `classify-harness.ts` — Shared pieces of the classification-pass tests (03-08): stored pending (~4642 tok)
 - `fake-folder-source.ts` — In-memory FolderSource for the sync engine tests (02-10). Synthetic mail (~2284 tok)
 - `fake-imap-server.ts` — A recording fake IMAP server for wire-level tests (D-80): it records every (~2409 tok)
 - `fake-ingest-store.ts` — In-memory IngestStore with the semantics of the @sift/db ingest use-cases (~4470 tok)
-- `fake-ollama.ts` — A scripted, recording fake Ollama for the classification tests (D-33, (~2906 tok)
-- `llm-baseline.ts` — Manual live baseline (03-13, AI-SPEC Set B): runBaseline({url, model, threshold?, fetch?}) sends the 5 synthetic pair .eml fixtures through createPreflight/runLlmTier/decide; formatBaselineTable; main(argv, io) CLI `--url --model` (required, exit 2 usage / 1 refusal). Never CI against a real model. (~3468 tok)
-- `mailbox-harness.ts` — Shared pieces of the worker-callback tests (02-13): a config entry for a (~2027 tok)
+- `fake-ollama.ts` — A scripted, recording fake Ollama for the classification tests (D-33, (~3005 tok)
+- `llm-baseline.ts` — The manual live baseline of AI-SPEC section 5 (Set B: E4 live, E11 live, (~3468 tok)
+- `mailbox-harness.ts` — Shared pieces of the worker-callback tests (02-13): a config entry for a (~2069 tok)
 - `privacy-scan.ts` — Address domains a committed spike or live-run document may name. (~806 tok)
 - `test-imap.ts` — Helpers for the Dovecot test server started by `scripts/test-imap.sh up`. (~2244 tok)
 
@@ -427,7 +433,7 @@
 
 ## config/
 
-- `config.example.yaml` — Sift configuration (version 1) (~876 tok)
+- `config.example.yaml` — Sift configuration (version 1) (~976 tok)
 - `config.yaml` — Sift configuration (version 1) (~416 tok)
 
 ## data/live/
@@ -572,58 +578,58 @@
 
 ## packages/core/
 
-- `package.json` — Node.js package manifest (~84 tok)
+- `package.json` — Node.js package manifest (~108 tok)
 - `tsconfig.json` — TypeScript configuration (~22 tok)
 
 ## packages/core/src/
 
 - `index.ts` — Highest `version:` value in config.yaml that this build understands. (~211 tok)
 - `log.ts` — Fields censored in every log line (D-23, T-01-16), at the depths Sift logs (~981 tok)
-- `yaml-issues.ts` — YAML position and Zod-issue mapping shared by the config.yaml and rules.yaml (~1202 tok)
+- `yaml-issues.ts` — YAML position and Zod-issue mapping shared by the config.yaml and rules.yaml (~1204 tok)
 
 ## packages/core/src/classify/
 
-- `canonical.ts` — canonicalJson (sorted keys, TypeError on lossy values) + sha256Hex; shared by prompt and rule-set hashes (~417 tok)
-- `decide.ts` — decide({exact, llm?, threshold}) -> DecisionDraft: exact winner labelled; LLM verdict labelled at >= threshold else review low_confidence/invalid_output/out_of_category/input_too_long; spans parsed by decisionSpansSchema (~1500 tok)
-- `exact-rules.ts` — matchExactRules(rules, MatchableMessage) -> exact_rules span: From address/domain only, label-boundary subdomains, NFKC literal phrases, every match, first wins, nearest miss (~1596 tok)
-- `index.ts` — @sift/core/classify barrel: decide, matchExactRules, llm-output, prompt, spans, canonical, promptMaterial (~380 tok)
-- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~960 tok)
-- `prompt-version.ts` — promptMaterial(): category-independent placeholder template + schema/options/flags/limits hash (D-29); promptMaterialFrom(parts) for tests (~1022 tok)
-- `prompt.ts` — renderSystem/renderUser (nonce fence, 300-char one-line headers, 4000-char body cut), MODEL_OPTIONS, REQUEST_FLAGS, RETRY_NOTE (~2303 tok)
-- `spans.ts` — decisionSpansSchema (exact_rules, classifier skipped, [llm], action pending), TRACE_FORMAT_VERSION, LLM_SPAN_OPTIONS (~2006 tok)
+- `canonical.ts` — Canonical JSON for content hashes (the prompt_version hash here, the (~417 tok)
+- `decide.ts` — The single assembler of decisions (CLS-05, T-03-12): tier results go in, one (~1581 tok)
+- `exact-rules.ts` — The exact-rules tier (D-08 to D-12, TRC-02): the owner's rules decide, (~1592 tok)
+- `index.ts` — Declares DecideInput (~402 tok)
+- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~984 tok)
+- `prompt-version.ts` — The material that keys the unscoped prompt_version table (D-29). It is (~1027 tok)
+- `prompt.ts` — The LLM tier's prompt (D-21, SEC-01, AI-SPEC section 4b). The system message (~2303 tok)
+- `spans.ts` — The `decision.spans` trace (D-27, D-28, D-30, TRC-01, TRC-03, TRC-06): a (~2006 tok)
 
 ## packages/core/src/config/
 
 - `env.ts` — Source label for issues that come from the process environment. (~810 tok)
 - `errors.ts` — One config problem. Line and column are 1-based and present when the YAML node is known. (~328 tok)
-- `index.ts` — Declares EnvCheck (~248 tok)
-- `load.ts` — Alias expansion cap (T-01-14). A real config never needs anchors at all. (~2081 tok)
-- `schema.ts` — Default Ollama endpoint as seen from inside the Compose network (D-60). (~3121 tok)
+- `index.ts` — Declares EnvCheck (~291 tok)
+- `load.ts` — Alias expansion cap (T-01-14). A real config never needs anchors at all. (~1164 tok)
+- `schema.ts` — Default Ollama endpoint as seen from inside the Compose network (D-60). (~3510 tok)
 - `slug.ts` — Mailbox slug shape (D-63): lowercase ASCII words joined by single hyphens. (~394 tok)
 
 ## packages/core/src/rules/
 
-- `hash.ts` — ruleSetVersionOf(rules) -> { hash: sha256(canonicalJson({format_version, rules})), formatVersion, snapshot (plain-JSON copy) } (D-03) (~437 tok)
-- `index.ts` — @sift/core/rules barrel: schema, loader, data paths, ruleSetVersionOf (ExactRuleSchema is NOT exported; tests import rules/schema.ts) (~200 tok)
-- `load.ts` — parseRulesText/loadRules: 256 KiB + 50-alias caps, positioned issues via yaml-issues.ts, never writes (~796 tok)
-- `path.ts` — resolveDataPath (SIFT_DATA, default ./data), rulesPathFor (validateSlug first), RULES_EXAMPLE_PATH (~363 tok)
-- `schema.ts` — Strict Zod RulesFile: version 1, 2-20 ascii categories, judgment, exact rules (from/domain/phrase/in), label-in-categories check (~3193 tok)
+- `hash.ts` — Rule-set identity (D-03, TRC-04): the worker hashes the validated rules and (~437 tok)
+- `index.ts` — Declares RuleSetVersion (~207 tok)
+- `load.ts` — Size cap checked before parsing (T-03-01). A real rules file is a few KiB. (~770 tok)
+- `path.ts` — Data directory, relative to the working directory, when SIFT_DATA is unset. (~363 tok)
+- `schema.ts` — Schema of a mailbox's rules file, data/mailboxes/<slug>/rules.yaml (D-01, (~3217 tok)
 
 ## packages/core/test/
 
-- `config.test.ts` — Extra raw lines appended inside the imap mapping (6-space indent). (~5454 tok)
-- `decide.test.ts` — decide() LLM verdicts: threshold boundaries (0.7499/0.75, 0.89/0.9, 0 at 0), review reasons, llm span contents, input checks (~2753 tok)
-- `env.test.ts` — A value that must never appear in any message. (~1734 tok)
-- `exact-rules.test.ts` — E9 Set A table (23 cases: spoofs, look-alikes, metacharacters, NFKC, AND/OR), nearest miss, determinism, source has no pattern builder, exact decide() (~4311 tok)
-- `example-config.test.ts` — Declares EXAMPLE (~1178 tok)
-- `example-rules.test.ts` — data paths, example rules file (README categories, example.test only), .gitignore check-ignore cases (~1482 tok)
-- `llm-output.test.ts` — AI-SPEC section 4b, [verified] generated format for these three categories. (~1693 tok)
+- `config.test.ts` — Extra raw lines appended inside the imap mapping (6-space indent). (~6362 tok)
+- `decide.test.ts` — No rule matched; the nearest miss met none of its one condition. (~2833 tok)
+- `env.test.ts` — A value that must never appear in any message. (~1982 tok)
+- `exact-rules.test.ts` — Build a rule through the real schema, so entries are normalised as after loading. (~4311 tok)
+- `example-config.test.ts` — Declares EXAMPLE (~1311 tok)
+- `example-rules.test.ts` — Same address shape as apps/worker/test/support/privacy-scan.ts. (~1488 tok)
+- `llm-output.test.ts` — AI-SPEC section 4b, [verified] generated format for these three categories. (~1775 tok)
 - `log.test.ts` — Declares capture (~1286 tok)
-- `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1288 tok)
-- `prompt.test.ts` — README-style rules snapshot (the example rules file's categories and judgment). (~3425 tok)
-- `rules-hash.test.ts` — ruleSetVersionOf: formatting-only YAML variants keep the hash, meaning changes alter it, snapshot plain JSON (~2054 tok)
-- `rules.test.ts` — rules.yaml schema/loader: normalisation, every rejection with path+line, five-problem file order, file caps (~6024 tok)
-- `spans.test.ts` — decision.spans valid layouts (3/4 spans) and 23 rejection cases (order, strictness, attempts) (~1682 tok)
+- `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1309 tok)
+- `prompt.test.ts` — README-style rules snapshot (the example rules file's categories and judgment). (~3438 tok)
+- `rules-hash.test.ts` — The same rules, written differently: none of these may create a new version (D-03, TRC-04). (~2074 tok)
+- `rules.test.ts` — A categories block with `count` valid, distinct names. (~6208 tok)
+- `spans.test.ts` — exact: ok (~1709 tok)
 
 ## packages/db/
 
@@ -641,94 +647,6 @@
 - `0005_ingest_preflight.sql` — Preflight for 0006 (T-02-63): message and folder_sync gain NOT NULL and (~311 tok)
 - `0006_ingest_tables.sql` — SQL: tables: message_body, message_location, 45 alter(s) (~2323 tok)
 - `0007_ingest_tables_force_grants.sql` — SQL: 2 alter(s) (~157 tok)
-- `0008_classification_preflight.sql` — Preflight for 0009 (Phase 3): decision and rule_set gain NOT NULL columns (~302 tok)
-- `0009_classification_tables.sql` — SQL: tables: prompt_version; decision D-27 trace columns + 10 checks, rule_set version/hash/snapshot, decision_one_worker_per_message, message_pending_idx (~2600 tok)
-- `0010_classification_grants.sql` — GRANT SELECT, INSERT on prompt_version; REVOKE UPDATE, DELETE on rule_set from sift_app (~40 tok)
-
-## packages/db/migrations/meta/
-
-- `_journal.json` (~353 tok)
-- `0000_snapshot.json` (~96 tok)
-- `0001_snapshot.json` (~1468 tok)
-- `0002_snapshot.json` (~1468 tok)
-- `0003_snapshot.json` (~5380 tok)
-- `0004_snapshot.json` (~5380 tok)
-- `0005_snapshot.json` (~5380 tok)
-- `0006_snapshot.json` (~10030 tok)
-- `0007_snapshot.json` (~10030 tok)
-- `0008_snapshot.json` (~10030 tok)
-- `0009_snapshot.json` (~13500 tok)
-- `0010_snapshot.json` (~13500 tok)
-
-## packages/db/src/
-
-- `app-db.ts` — Pool size. Defaults to 4. (~1433 tok)
-- `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32): recordDecision (single validated write path + first-decision body expiry), ensureRuleSet, latestDecision, restoreBody. (~2700 tok)
-- `connect.ts` — Worker startup against the database (D-55, Pitfall 11). Docker can restart (~2320 tok)
-- `index.ts` — Database connection-string variables. Values are secrets and are never logged. (~634 tok)
-- `ingest.ts` — Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23). (~5548 tok)
-- `lock.ts` — Seed of `hashtextextended(mailbox_id, seed)`: every mailbox gets its own (~1758 tok)
-- `prompt-version.ts` — ensurePromptVersion(db, material): unscoped prompt_version upsert by hash under pg_advisory_xact_lock(PROMPT_VERSION_LOCK_KEY 815309003), next global version (D-29) (~520 tok)
-- `registry-plan.ts` — Pure diff between config.yaml and the mailbox registry (D-32, D-34). (~2384 tok)
-- `registry-read.ts` — Every mailbox row, ordered by slug, disabled ones included. The registry (~161 tok)
-- `rls.ts` — Roles are created outside drizzle-kit: sift_owner by db/bootstrap.sql and (~283 tok)
-- `scope.ts` — A registered mailbox-scoped table: it has a mailbox_id column. Scope.classification.candidates (pending/re-run query, keyset paged) since 03-06. (~6600 tok)
-- `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer). (~1258 tok)
-
-## packages/db/src/owner/
-
-- `backup.ts` — How many sift-*.dump files `sift migrate` keeps after a successful dump (D-29). (~1535 tok)
-- `migrate.ts` — Session-level advisory lock held for the whole migrate run (D-30). (~3555 tok)
-- `registry.ts` — Owner-side mailbox registry operations (FND-02, D-32, D-33). Every function (~3176 tok)
-- `scram.ts` — PostgreSQL's default scram_iterations. (~476 tok)
-
-## packages/db/src/schema/
-
-- `index.ts` — Every mailbox-scoped table: NOT NULL mailbox_id, forced RLS, one policy. (~310 tok)
-- `mailbox.ts` — Mailbox registry (D-06). Configuration, not mail-derived data, so it has no (~356 tok)
-- `prompt-version.ts` — Versioned LLM prompt templates (D-29). A decision made by the LLM tier (~447 tok)
-- `scoped.ts` — Mailbox-scoped tables (ISO-01). Each one has a NOT NULL mailbox_id that (~3368 tok)
-
-## packages/db/test/
-
-- `catalog.test.ts` — Run SQL statements on `url` in order. (~2508 tok)
-- `classify-schema.test.ts` — The Phase 3 trace shape at the database level (D-27, D-29, D-03, D-15, (~6605 tok)
-- `classify.test.ts` — Classification use-cases (D-03, D-15, D-17, D-18, D-27, D-29, D-32, (~3521 tok)
-- `connect.test.ts` — Worker startup against the database (D-55, Pitfall 11): only self-resolving (~2944 tok)
-- `global-setup.ts` — Migrate one throwaway template database per run with the real migrate() (~1009 tok)
-- `ingest.test.ts` — Ingest use-cases (ING-02, ING-04, D-14, D-15, D-07, D-17, D-21..D-25) on a (~8514 tok)
-- `isolation.test.ts` — Mailbox isolation at the database level (ISO-03, success criterion 4). (~3908 tok)
-- `lock.test.ts` — The cross-process ingest lock (D-03, RESEARCH Pattern 6, Pitfall 9). Two (~3464 tok)
-- `migrate.test.ts` — The trivial migration withExtraMigration appends after the committed ones. (~9565 tok)
-- `owner-rls.test.ts` — sift_owner owns the tables but FORCE RLS still applies to it (D-41), so (~1232 tok)
-- `registry-plan.test.ts` — RegistryRowLike: mailbox, config, row (~2155 tok)
-- `registry.test.ts` — The deferred mailbox hard-delete command (D-69): no output may name it. (~5015 tok)
-- `scope.test.ts` — The scoped API (ISO-04, D-42..D-45): the only data-access surface app code (~10372 tok)
-- `scram.test.ts` — The verifier PostgreSQL itself stores for `password`, read back from a (~990 tok)
-- `status.test.ts` — Owner-visible mailbox states (D-26, D-33, D-34, D-75): connecting during (~1756 tok)
-
-## packages/db/test/support/
-
-- `catalog.ts` — Relations exempt from the scoped-table invariants (D-38). "Exempt" means (~5405 tok)
-- `db.ts` — Provided by packages/db/test/global-setup.ts as inject('testDb'). (~1198 tok)
-- `seed.ts` — Insert one mailbox row per slug as sift_owner and return slug -> id. (~1533 tok)
-
-## scripts/
-
-- `bridge-smoke.sh` — Bridge image smoke test: build bridge/Dockerfile, then on throwaway volumes (~3351 tok)
-- `compose-smoke.sh` — Full-stack smoke test: build the image, bring up db -> setup -> worker, and (~3505 tok)
-- `pg-dump-via-compose.sh` — Run pg_dump 18 inside the Compose db container (D-29 host-dev note). (~263 tok)
-- `release-check.ts` — CI tag check: `node scripts/release-check.ts <vX.Y.Z>`, run at the checkout root (~930 tok)
-- `release-plan.ts` — Pure release logic for `pnpm release`: version computation from Conventional (~1803 tok)
-- `release.ts` — `pnpm release [--dry-run]`: cut a release locally from the Conventional Commits (~2225 tok)
-- `test-imap.sh` — Dovecot IMAP server for tests: a real STARTTLS server with a self-signed (~1196 tok)
-
-## test/
-
-- `release-check.test.ts` — Each case spawns git and node a dozen times; slow under full-suite load (bug-189). (~2061 tok)
-- `release-plan.test.ts` — A raw commit with a unique 40-hex sha. (~2248 tok)
-- `release.test.ts` — Each case spawns git and node a dozen times; slow under full-suite load (bug-189). (~2486 tok)
-
-## test/support/
-
-- `release-repo.ts` — Throwaway git repositories for the `pnpm release` and release-check tests. (~1988 tok)
+- `0008_classification_preflight.sql` — Preflight for 0009 (Phase 3): decision and rule_set gain NOT NULL columns (~323 tok)
+- `0009_classification_tables.sql` — SQL: tables: prompt_version, 32 alter(s) (~1592 tok)
+- `0010_classification_grants.sql` (~37 tok)
