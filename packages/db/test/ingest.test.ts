@@ -8,6 +8,7 @@ import {
   beginResync,
   createAppDb,
   createFolderSync,
+  DECISION_BODY_RETENTION_MS,
   deleteExpiredBodies,
   deleteOrphanBodies,
   finishResync,
@@ -625,6 +626,66 @@ describe('removals and the body cache (D-07, D-17)', () => {
     expect(deleted).toBe(2);
     expect(await bodyKeys(mine)).toEqual([later, never].sort());
     expect(await bodyKeys(other)).toEqual([otherKey]);
+  });
+});
+
+describe('bodies of decided messages (CR-02, D-32)', () => {
+  /** The cached body's expiry per identity key, read as the superuser. */
+  async function expiries(mailboxId: string): Promise<Map<string, Date | null>> {
+    const rows = await adminQuery<{ identity_key: string; expires_at: Date | null }>(
+      `select m.identity_key, b.expires_at from message_body b
+         join message m on m.mailbox_id = b.mailbox_id and m.id = b.message_id
+        where b.mailbox_id = $1`,
+      [mailboxId],
+    );
+    return new Map(rows.map((r) => [r.identity_key, r.expires_at]));
+  }
+
+  /**
+   * A decided message whose body the sweep removed, seen again as an eligible
+   * record next to a new undecided one, stored with the write time `at`.
+   */
+  async function reinsertFixture() {
+    const mailboxId = await newMailbox();
+    const [decided, fresh2] = [key('decided'), key('fresh')];
+    const seen = item(decided, { uid: 41 });
+    await withMailbox(app, mailboxId, async (s) => {
+      await storeMessages(s, [seen]);
+      const ids = await idsByKey(s, [decided]);
+      const id = ids.get(decided) as string;
+      const [ruleSet] = await s.ruleSet.insert([newRuleSetRow()]);
+      await s.decision.insert([newDecisionRow(id, ruleSet?.id as string, 'worker')]);
+      // As the expiry sweep does after the decision's 7 days.
+      await s.messageBody.delete({ messageId: id });
+    });
+    const at = new Date('2026-10-20T08:00:00Z');
+    const items = [seen, item(fresh2, { uid: 42 })];
+    const result = await withMailbox(app, mailboxId, (s) => storeMessages(s, items, { at }));
+    return { mailboxId, decided, fresh2, at, items, result };
+  }
+
+  it('gives a body re-inserted for a decided message expires_at = at + 7 days', async () => {
+    const { mailboxId, decided, at, result } = await reinsertFixture();
+    expect(result.insertedBodies).toBe(2);
+    expect((await expiries(mailboxId)).get(decided)).toEqual(
+      new Date(at.getTime() + DECISION_BODY_RETENTION_MS),
+    );
+  });
+
+  it('keeps expires_at null for the body of an undecided message', async () => {
+    const { mailboxId, fresh2 } = await reinsertFixture();
+    const all = await expiries(mailboxId);
+    expect(all.has(fresh2)).toBe(true);
+    expect(all.get(fresh2)).toBeNull();
+  });
+
+  it('a second identical call inserts nothing and changes neither expiry', async () => {
+    const { mailboxId, at, items } = await reinsertFixture();
+    const before = await expiries(mailboxId);
+    const later = new Date(at.getTime() + 24 * 60 * 60 * 1000);
+    const again = await withMailbox(app, mailboxId, (s) => storeMessages(s, items, { at: later }));
+    expect(again.insertedBodies).toBe(0);
+    expect(await expiries(mailboxId)).toEqual(before);
   });
 });
 

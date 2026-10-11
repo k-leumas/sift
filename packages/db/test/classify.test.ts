@@ -566,6 +566,55 @@ describe('re-runs, latest decision, body restore and the review reasons (D-17, D
     expect(result.unchanged).toMatchObject({ bodyText: 'refetched body', source: 'text_html' });
   });
 
+  it('restoreBody gives the body of a decided message expires_at = at + 7 days, kept by a rerun (CR-02)', async () => {
+    // Its own message: later tests depend on the bodies of older, middle and newer.
+    const [own] = await store(mailboxId, [item('restored', '2026-09-20T00:00:00Z')]);
+    if (own === undefined) throw new Error('no message stored');
+    const at = new Date('2026-10-20T08:00:00Z');
+    const later = new Date('2026-10-25T08:00:00Z');
+    const result = await withMailbox(app, mailboxId, async (s) => {
+      await recordDecision(s, decisionInput(own, ruleSetId, exactDraft()));
+      await s.messageBody.delete({ messageId: own });
+      const restored = await restoreBody(
+        s,
+        own,
+        { bodyText: 'refetched', source: 'text_plain', truncated: false },
+        at,
+      );
+      const [afterRestore] = await s.messageBody.find({ messageId: own });
+      await recordDecision(
+        s,
+        decisionInput(own, ruleSetId, exactDraft('Noise'), { decidedBy: 'rerun', at: later }),
+      );
+      const [afterRerun] = await s.messageBody.find({ messageId: own });
+      return { restored, afterRestore, afterRerun };
+    });
+    expect(result.restored).toBe(true);
+    expect(result.afterRestore?.expiresAt).toEqual(
+      new Date(at.getTime() + DECISION_BODY_RETENTION_MS),
+    );
+    expect(result.afterRerun?.expiresAt).toEqual(result.afterRestore?.expiresAt);
+  });
+
+  it('restoreBody refuses an invalid Date before any SQL (CR-02)', async () => {
+    const run = vi.fn();
+    const scope = new Proxy({} as Parameters<typeof restoreBody>[0], {
+      get: () => {
+        run();
+        throw new Error('no SQL expected');
+      },
+    });
+    await expect(
+      restoreBody(
+        scope,
+        older,
+        { bodyText: 'x', source: 'text_plain', truncated: false },
+        new Date(Number.NaN),
+      ),
+    ).rejects.toThrow(new TypeError('restoreBody: at must be a valid Date'));
+    expect(run).not.toHaveBeenCalled();
+  });
+
   it('a rerun leaves an existing body expiry unchanged', async () => {
     const before = await withMailbox(app, mailboxId, (s) =>
       s.messageBody.find({ messageId: middle }),
