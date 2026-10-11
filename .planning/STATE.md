@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: tiered-classification-with-traces
 status: executing
-stopped_at: Completed 03-22-PLAN.md
-last_updated: "2026-10-11T08:37:06.719Z"
+stopped_at: Completed 03-20-PLAN.md
+last_updated: "2026-10-11T08:57:33.456Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 1148d5bef74fc0dc7a3b0cee6fa2bc6ab43ec1a8
+state_head: 48df004073056304a033090e56cc02b9d2792adf
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 56
-  completed_plans: 55
+  completed_plans: 56
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (tiered-classification-with-traces) — EXECUTING
-Plan: 9 of 22
+Plan: 10 of 22
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -111,6 +111,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P18 | 21 min | 2 tasks | 10 files |
 | Phase 03 P19 | 8 min | 3 tasks | 10 files |
 | Phase 03 P22 | 8min | 2 tasks | 4 files |
+| Phase 03 P20 | 16 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -273,6 +274,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-19 owner decision (Samuel Kimama, 2026-10-11): option-review. A message Ollama fails on alone in MESSAGE_FAILURE_PASSES (3) passes, confirmed by a healthy re-probe and a mail-free canary chat, ends as a review decision with reason llm_error (tier llm, confidence null). Amends D-16 and D-31; llm_error added to REVIEW_REASONS, ATTEMPT_FAILURE_CODES and decision_review_reason_check (migration 0011). One-way. 03-20 runs.
 - [Phase 03]: 03-19: the owner reviewed and accepted the 03-17 D-16 clarification (a 5xx or timeout confined to one message skips only that message); no revert of 03-17.
 - [Phase 03]: 03-22: sift classify's skip line for a message Ollama failed on alone is 'message <id>: Ollama failed on this message (HTTP <status>); skipped', or the failure code (e.g. timeout) when there is no status; 03-17's line was reworded in place, not duplicated
+- [Phase 03]: 03-20: llm_error is written only when decidedBy is worker; sift classify keeps skipping such a message even with a shared runtime
+- [Phase 03]: 03-20: messageFailures is set before the llm_error draft and removed only after the decision commits, so a failed write counts again
+- [Phase 03]: 03-20: the llm_error message stays in ollamaFailed (per-pass budget) but not in unclassified; MESSAGE_HELD_BACK_LOG replaced by MESSAGE_LLM_ERROR_LOG
 
 ### Pending Todos
 
@@ -300,6 +304,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T08:37:06.448Z
-Stopped at: Completed 03-22-PLAN.md
+Last session: 2026-10-11T08:57:32.998Z
+Stopped at: Completed 03-20-PLAN.md
 Resume file: None

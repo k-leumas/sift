@@ -43,11 +43,11 @@ Current milestone: M1 Classify ("M1 on real inbox"). Each maps to one roadmap ph
 - [x] **CLS-03**: The LLM's output is constrained by JSON schema to a category from the mailbox's category list, a confidence, and a one-sentence reason; malformed or out-of-category output is retried once, then the message is sent to review
 - [ ] **CLS-04**: An LLM result below the confidence threshold (default 0.75) sends the message to review instead of labelling it
 - [ ] **CLS-05**: No tier can return a label outside the mailbox's category list, and no tier output can trigger any action other than the single label decision (no tool calls, no invented labels)
-- [ ] **CLS-06**: The pipeline processes each ingested message exactly once per rule-set/prompt/model version combination unless explicitly re-run, and a failure in one message (Ollama down, malformed mail) does not stop the others
+- [x] **CLS-06**: The pipeline processes each ingested message exactly once per rule-set/prompt/model version combination unless explicitly re-run, and a failure in one message (Ollama down, malformed mail) does not stop the others
 
 ### Decision Traces
 
-- [ ] **TRC-01**: Every classification writes a `decision` row with one span per tier that ran and a final action span, scoped by `mailbox_id`
+- [x] **TRC-01**: Every classification writes a `decision` row with one span per tier that ran and a final action span, scoped by `mailbox_id`
 - [ ] **TRC-02**: The exact-rules span records rules checked, matches, and the nearest miss
 - [ ] **TRC-03**: The LLM span records model, prompt version, rules included, examples retrieved (empty in M1), the raw model output, the validation result, and the confidence
 - [ ] **TRC-04**: The decision records the rule set, prompt and model versions so the decision can be replayed later (rule set and prompt versions are stored as versioned rows, not inferred)
@@ -139,8 +139,8 @@ Later README milestones. Tracked, not in the current roadmap, not yet decomposed
 | CLS-03 | Phase 3 | Complete |
 | CLS-04 | Phase 3 | Gaps Found |
 | CLS-05 | Phase 3 | Gaps Found |
-| CLS-06 | Phase 3 | Gaps Found |
-| TRC-01 | Phase 3 | Gaps Found |
+| CLS-06 | Phase 3 | Complete |
+| TRC-01 | Phase 3 | Complete |
 | TRC-02 | Phase 3 | Gaps Found |
 | TRC-03 | Phase 3 | Gaps Found |
 | TRC-04 | Phase 3 | Gaps Found |
