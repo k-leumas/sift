@@ -125,7 +125,7 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: 13/20 plans executed (7 gap-closure plans)
+**Plans**: 13/22 plans executed (9 gap-closure plans)
 
 Plans:
 **Wave 1**
@@ -156,11 +156,13 @@ Plans:
 **Gap closure** *(03-VERIFICATION gaps CR-01..03 with WR-01..03; gap waves 1-5)*
 - [ ] 03-14-PLAN.md — CR-02: a body restored or re-inserted for an already-decided message expires 7 days after the write; T-03-20 closed (gap wave 1)
 - [ ] 03-15-PLAN.md — CR-03: spend the volume-valve approval and record last_sync_at with the ingest, inside the lock (gap wave 1)
-- [ ] 03-16-PLAN.md — WR-01/WR-02: control characters rejected in the model reason and in rules.yaml; NUL backstop in recordDecision (gap wave 2)
+- [ ] 03-16-PLAN.md — WR-01: control characters in the model reason are invalid output (retry, then review); NUL backstop in recordDecision (gap wave 2)
 - [ ] 03-17-PLAN.md — CR-01: a 500 or timeout confined to one message skips only that message (re-probe, per-pass budget); no backoff (gap wave 2)
-- [ ] 03-18-PLAN.md — WR-03/CR-01: owner-visible notice naming unclassified messages, 3-pass hold-back with a canary check, sift classify skip line (gap wave 3)
+- [ ] 03-18-PLAN.md — WR-03/CR-01: owner-visible notice naming unclassified messages, 3-pass hold-back with a canary check (gap wave 3)
 - [ ] 03-19-PLAN.md — Owner checkpoint (one-way door): review llm_error terminal state, core and DB contract, migration 0011 (gap wave 4)
 - [ ] 03-20-PLAN.md — Worker writes review llm_error after 3 passes; runs only if 03-19 chose option-review (gap wave 5)
+- [ ] 03-21-PLAN.md — WR-02: rules.yaml rejects control characters, so sift config check and the worker agree (gap wave 1; split from 03-16)
+- [ ] 03-22-PLAN.md — CR-01/WR-03: sift classify names a message Ollama failed on alone; README explains the notice (gap wave 4; split from 03-18)
 
 ### Phase 4: Labels and Real-Inbox Run
 
