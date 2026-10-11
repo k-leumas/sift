@@ -19,7 +19,7 @@ import {
   withMailbox,
 } from '@sift/db';
 import type { InfraCode } from '../classify/ollama-client.ts';
-import { type ClassifyRuntime, classifyMailbox } from '../classify/run.ts';
+import { type ClassifyRuntime, classifyMailbox, unclassifiedNotice } from '../classify/run.ts';
 import {
   classifyImapError,
   closeImap,
@@ -475,7 +475,15 @@ export function createMailboxCallbacks(
         now: nowDate,
       });
       switch (outcome.kind) {
-        case 'done':
+        case 'done': {
+          // WR-03: messages the pass could not classify stay named in the
+          // status, as a notice; the state is ok. A clean pass clears it.
+          const notice = unclassifiedNotice(outcome.unclassified);
+          await withMailbox(db, mailbox.id, (scope) =>
+            recordSyncSuccess(scope, syncedAt, { notice }),
+          );
+          return;
+        }
         case 'busy':
         case 'aborted':
           await withMailbox(db, mailbox.id, (scope) => recordSyncSuccess(scope, syncedAt));

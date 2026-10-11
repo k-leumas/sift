@@ -15,13 +15,23 @@ export async function recordMailboxSeen(scope: Scope, at: Date = new Date()): Pr
 }
 
 /**
- * A sync run finished: state ok, last_error cleared, and the volume valve's
- * held and approved counts cleared (D-26). Backfill progress is left as is.
+ * A sync run finished: state ok, and the volume valve's held and approved
+ * counts cleared (D-26). Backfill progress is left as is.
+ *
+ * last_error becomes `notice` (capped at LAST_ERROR_MAX), or null when there
+ * is none. A notice is a non-error note for the owner, such as the messages a
+ * pass could not classify (WR-03); the state stays ok. Callers pass fixed
+ * templates only, never mail text (T-03-31).
  */
-export async function recordSyncSuccess(scope: Scope, at: Date = new Date()): Promise<void> {
+export async function recordSyncSuccess(
+  scope: Scope,
+  at: Date = new Date(),
+  options: { notice?: string | null } = {},
+): Promise<void> {
+  const notice = options.notice ?? null;
   await scope.mailboxStatus.upsert({
     state: 'ok',
-    lastError: null,
+    lastError: notice === null ? null : notice.slice(0, LAST_ERROR_MAX),
     lastSyncAt: at,
     lastSeenAt: at,
     heldNewCount: null,

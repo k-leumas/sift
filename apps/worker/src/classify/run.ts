@@ -56,6 +56,8 @@ import { matchableOf, untrustedEmailOf } from './untrusted-email.ts';
  *   Ollama answers it, only that message is skipped for the pass (no
  *   decision, it stays pending), up to OLLAMA_MESSAGE_FAILURES_PER_PASS;
  *   otherwise it is an outage (D-16, CR-01).
+ * - A done pass reports the ids it could not classify; the batch stores them
+ *   as a non-error owner notice (unclassifiedNotice, WR-03).
  * - Logs carry the mailbox slug, message ids, counts and codes only, never
  *   email text, model output or Ollama's error text (SEC-01, T-03-26).
  */
@@ -87,6 +89,26 @@ export const OLLAMA_MESSAGE_FAILURES_PER_PASS = 2;
 /** The warn line for a message skipped because Ollama failed on it alone. */
 export const OLLAMA_MESSAGE_FAILURE_LOG =
   'classify: Ollama failed on this message only; skipped this pass';
+/** Message ids named in the owner notice for unclassified messages; the rest are counted. */
+export const NOTICE_MAX_IDS = 3;
+
+/**
+ * The owner notice for messages a pass could not classify (WR-03): Ollama
+ * failed on them alone, they threw, or they had no body. It is stored in
+ * mailbox_status.last_error while the state stays ok, and null clears it.
+ *
+ * It holds message ids, counts and fixed text only, never mail text or
+ * Ollama's error text (T-03-31). The ids let the owner find the message: in
+ * the worker log, with SQL, or with sift classify --message. At most
+ * NOTICE_MAX_IDS ids are listed, in the order the pass met them.
+ */
+export function unclassifiedNotice(ids: readonly string[]): string | null {
+  const n = ids.length;
+  if (n === 0) return null;
+  const shown = ids.slice(0, NOTICE_MAX_IDS).join(', ');
+  const more = n > NOTICE_MAX_IDS ? `; and ${n - NOTICE_MAX_IDS} more` : '';
+  return `${plural(n, 'message')} could not be classified (ids: ${shown}${more}); see docker compose logs worker`;
+}
 
 /** The command that prints every rules-file problem. */
 const CONFIG_CHECK_COMMAND = 'docker compose run --rm --no-deps worker sift config check';
@@ -250,6 +272,8 @@ export type ClassifyOutcome =
       failures: number;
       /** Messages skipped this pass because Ollama failed on them alone (CR-01). */
       ollamaFailed: string[];
+      /** Every message this pass could not classify, in the order it met them (WR-03). */
+      unclassified: string[];
     }
   | { kind: 'rules_invalid'; message: string }
   | { kind: 'infra'; code: InfraCode; message: string; labelled: number; review: number }
@@ -277,6 +301,16 @@ export interface PassState {
   consecutiveFailures: number;
   /** Messages Ollama failed on alone in this pass (healthy re-probe), in order (CR-01). */
   ollamaFailed: { id: string; code: InfraCode; status: number | null }[];
+  /**
+   * Messages this pass could not classify (Ollama failed on them alone, they
+   * threw or had no body), each once, in the order the pass met them (WR-03).
+   */
+  unclassified: string[];
+}
+
+/** Note a message the pass could not classify, once. */
+function markUnclassified(state: PassState, id: string): void {
+  if (!state.unclassified.includes(id)) state.unclassified.push(id);
 }
 
 /** A pass state with nothing done yet. */
@@ -291,6 +325,7 @@ export function newPassState(llmCallsLeft: number | null): PassState {
     failures: 0,
     consecutiveFailures: 0,
     ollamaFailed: [],
+    unclassified: [],
   };
 }
 
@@ -375,6 +410,7 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
       if (probe.kind === 'aborted') return { kind: 'aborted' };
       if (probe.kind === 'ok') {
         state.ollamaFailed.push({ id: candidate.id, code: result.code, status: result.status });
+        markUnclassified(state, candidate.id);
         if (state.llmCallsLeft !== null) state.llmCallsLeft -= 1;
         // Never result.detail: it can hold Ollama's text, which can quote the prompt (T-03-25).
         ctx.log.warn(
@@ -435,6 +471,7 @@ export async function classifyCandidates(
       if (candidate.body === null) {
         // Should not happen: eligible messages get a body and lose it only after a decision.
         ctx.log.warn({ mailbox: ctx.slug, message: candidate.id, code: 'body_missing' });
+        markUnclassified(state, candidate.id);
         continue;
       }
       const drafted = await draftFor(candidate, ctx);
@@ -466,6 +503,7 @@ export async function classifyCandidates(
       );
       state.failures += 1;
       state.consecutiveFailures += 1;
+      markUnclassified(state, candidate.id);
       if (state.consecutiveFailures >= MAX_CONSECUTIVE_MESSAGE_FAILURES) throw error;
     }
   }
@@ -587,5 +625,6 @@ export async function classifyMailbox(input: {
     examined,
     failures: state.failures,
     ollamaFailed: state.ollamaFailed.map((f) => f.id),
+    unclassified: [...state.unclassified],
   };
 }

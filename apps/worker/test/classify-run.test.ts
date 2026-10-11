@@ -217,6 +217,7 @@ describe('tracer: one pass over two pending messages', () => {
       examined: 2,
       failures: 0,
       ollamaFailed: [],
+      unclassified: [],
     });
 
     const decisions = await decisionsOf(db.adminUrl, box.id);
@@ -261,6 +262,7 @@ describe('backlog: the 25-call cap, newest first, and the keyset (D-14, D-18, E6
       examined: 28,
       failures: 0,
       ollamaFailed: [],
+      unclassified: [],
     });
     expect(chatRequests(fake)).toHaveLength(25);
     const newestFirst = llm.map((m) => m.from).reverse();
@@ -309,6 +311,7 @@ describe('backlog: the 25-call cap, newest first, and the keyset (D-14, D-18, E6
       examined: 0,
       failures: 0,
       ollamaFailed: [],
+      unclassified: [],
     });
     expect(fake.requests()).toEqual([]);
     expect(await ruleSetsOf(db.adminUrl, box.id)).toEqual([]);
@@ -423,6 +426,7 @@ describe('outages are never decisions (D-16, E5)', () => {
       examined: 5,
       failures: 0,
       ollamaFailed: [poisonId],
+      unclassified: [poisonId],
     });
     expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([poisonId]);
     const decided = (await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId).sort();
@@ -638,6 +642,7 @@ describe('a message Ollama fails on alone: edges (CR-01)', () => {
       examined: 3,
       failures: 0,
       ollamaFailed: [slowId],
+      unclassified: [slowId],
     });
     expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([slowId]);
     const decided = (await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId).sort();
@@ -664,6 +669,7 @@ describe('a message Ollama fails on alone: edges (CR-01)', () => {
       examined: 1,
       failures: 0,
       ollamaFailed: [id],
+      unclassified: [id],
     });
     expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
     expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([id]);

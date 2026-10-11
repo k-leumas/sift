@@ -13,6 +13,7 @@ import {
   type ClassifyRuntime,
   OLLAMA_MESSAGE_FAILURE_LOG,
   OLLAMA_MESSAGE_FAILURES_PER_PASS,
+  unclassifiedNotice,
 } from '../src/classify/run.ts';
 import {
   ClassifyInfraError,
@@ -448,9 +449,12 @@ describe('a message Ollama fails on alone (CLS-06, CR-01)', () => {
       expect(bodies[0]).toContain(poisonSubject);
       expect(bodies[1]).toContain('Subject-older-h4t6');
 
+      // WR-03: the mailbox stays ok, and its status names the message it could not classify.
+      const notice = `1 message could not be classified (ids: ${poisonId}); see docker compose logs worker`;
+      expect(unclassifiedNotice([poisonId as string])).toBe(notice);
       const first = await mailboxStatus(db.adminUrl, m.id);
       expect(first.state).toBe('ok');
-      expect(first.last_error).toBeNull();
+      expect(first.last_error).toBe(notice);
       expect(log.lines.filter((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG)).toEqual([
         {
           level: 'warn',
@@ -466,12 +470,21 @@ describe('a message Ollama fails on alone (CLS-06, CR-01)', () => {
       expect(await pendingIdsOf(db.adminUrl, m.id)).toEqual([poisonId]);
       const second = await mailboxStatus(db.adminUrl, m.id);
       expect(second.state).toBe('ok');
-      expect(second.last_error).toBeNull();
+      expect(second.last_error).toBe(notice);
+
+      // Ollama answers it now: the message is decided and a clean pass clears the notice.
+      fake.setChat(() => okAnswer('Noise', 0.9));
+      expect(await cycle(callbacks, m)).toBeUndefined();
+      expect(await pendingIdsOf(db.adminUrl, m.id)).toEqual([]);
+      expect((await decisionsOf(db.adminUrl, m.id)).map((d) => d.messageId)).toContain(poisonId);
+      const third = await mailboxStatus(db.adminUrl, m.id);
+      expect(third.state).toBe('ok');
+      expect(third.last_error).toBeNull();
 
       expectNoLeak(
         [sentinel, poisonSubject, 'Body-poison-h4t6', 'Subject-older-h4t6', 'Body-older-h4t6'],
         log,
-        [first, second],
+        [first, second, third],
       );
     } finally {
       await fake.close();

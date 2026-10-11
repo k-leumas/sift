@@ -5,6 +5,8 @@ import { listMailboxes, type MailboxListing } from '@sift/db/registry';
 import type { CommandIO } from '../command.ts';
 
 const ERROR_PREVIEW = 80;
+/** Longest owner notice shown after 'ok' (WR-03: it names up to three message ids). */
+const NOTICE_PREVIEW = 240;
 
 function count(n: number): string {
   return n.toLocaleString('en-US');
@@ -13,11 +15,16 @@ function count(n: number): string {
 function status(m: MailboxListing): string {
   if (m.disabledAt !== null) return `disabled since ${m.disabledAt.toISOString().slice(0, 10)}`;
   switch (m.state) {
-    case 'ok':
+    case 'ok': {
       // D-75: the first backfill's progress, while it runs.
-      return m.backfillDone !== null && m.backfillTotal !== null
-        ? `ok, backfilling ${count(m.backfillDone)} of ${count(m.backfillTotal)}`
-        : 'ok';
+      const ok =
+        m.backfillDone !== null && m.backfillTotal !== null
+          ? `ok, backfilling ${count(m.backfillDone)} of ${count(m.backfillTotal)}`
+          : 'ok';
+      // WR-03: an ok mailbox can carry a notice, such as messages the last pass could not classify.
+      const notice = (m.lastError ?? '').replace(/\s+/g, ' ').trim().slice(0, NOTICE_PREVIEW);
+      return notice === '' ? ok : `${ok}; ${notice}`;
+    }
     case 'connecting':
       return 'connecting';
     case 'needs_attention': {
@@ -61,8 +68,9 @@ function table(rows: readonly (readonly string[])[]): string[] {
 
 /**
  * `sift mailbox list` (D-69, D-75). Every registered mailbox with its status
- * (connecting, a volume hold, first-backfill progress, errors) and its stored
- * message count, disabled ones included. Disabled mailboxes keep their data; this command
+ * (connecting, a volume hold, first-backfill progress, errors, and on an ok
+ * mailbox a notice such as the messages the last pass could not classify,
+ * WR-03) and its stored message count, disabled ones included. Disabled mailboxes keep their data; this command
  * only reports.
  *
  * Env: SIFT_OWNER_DATABASE_URL (required). The URL is never printed.
