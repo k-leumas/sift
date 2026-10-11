@@ -449,6 +449,92 @@ describe('exact rules (D-08, D-09, D-10, D-13)', () => {
   });
 });
 
+// Fixtures write control characters as YAML double-quoted escapes (\0, \x07, \t, \N for
+// U+0085, \L for U+2028), so this file holds none of them raw.
+describe('control characters in rules text (WR-02, D-05)', () => {
+  /** A file whose first category description is `description`, written as YAML. */
+  function withDescription(description: string): string {
+    const categories = [
+      'categories:',
+      '  - name: Important',
+      `    description: ${description}`,
+      '  - name: Noise',
+      '    description: everything else',
+    ].join('\n');
+    return rulesYaml({ categories, rules: 'rules: []' });
+  }
+
+  /** The three one-line fields: YAML path, message name and a file holding `value` there. */
+  const oneLineFields: [string, string, (value: string) => string][] = [
+    ['categories[0].description', 'description', withDescription],
+    [
+      'judgment[0]',
+      'judgment lines',
+      (value) => rulesYaml({ judgment: `judgment:\n  - ${value}` }),
+    ],
+    [
+      'rules[0].name',
+      'name',
+      (value) =>
+        rulesYaml({
+          rules: ruleWith(['      domain: [bank.example.test]']).replace(
+            '  - kind: exact',
+            `  - kind: exact\n    name: ${value}`,
+          ),
+        }),
+    ],
+  ];
+
+  it('rejects NUL, BEL, an inner tab and U+0085 in a description, judgment line or rule name', () => {
+    for (const [path, name, file] of oneLineFields) {
+      for (const value of ['"to\\0do"', '"to\\x07do"', '"to\\tdo"', '"to\\Ndo"']) {
+        expectIssue(file(value), path, `${name} must not contain control characters`, value);
+      }
+    }
+  });
+
+  it('reports an inner line break or U+2028 as one issue, "must be one line"', () => {
+    for (const [path, name, file] of oneLineFields) {
+      for (const value of ['"to\\ndo"', '"to\\Ldo"', '"to\\ndo\\0"']) {
+        const text = file(value);
+        expectIssue(text, path, `${name} must be one line`, value);
+        expect(issuesOf(text)).toHaveLength(1);
+      }
+    }
+  });
+
+  it('rejects from, domain and phrase entries holding NUL or BEL', () => {
+    const entries: [string, string][] = [
+      ['from', 'receipts@shop.example.test'],
+      ['domain', 'bank.example.test'],
+      ['phrase', 'order confirmation'],
+    ];
+    for (const [key, entry] of entries) {
+      for (const yamlEscape of ['\\0', '\\x07']) {
+        const value = `"${entry.slice(0, 4)}${yamlEscape}${entry.slice(4)}"`;
+        const text = rulesYaml({ rules: ruleWith([`      ${key}: [${value}]`]) });
+        expectIssue(
+          text,
+          `rules[0].match.${key}[0]`,
+          `${key} entries must not contain control characters`,
+          `${key}: [`,
+        );
+      }
+    }
+  });
+
+  it('still loads a phrase with an inner tab, stored with one space', () => {
+    const text = rulesYaml({ rules: ruleWith(['      phrase: ["order\\tconfirmation"]']) });
+    expect(parsed(text).rules[0]?.match.phrase).toEqual(['order confirmation']);
+  });
+
+  it('still loads a description with accents and CJK text', () => {
+    const description = 'factures du café, Rechnungen für Übersee, 領収書';
+    const rules = parsed(withDescription(description));
+    expect(rules.categories[0]?.description).toBe(description);
+  });
+});
+
 describe('unknown keys and versions (P1 D-57)', () => {
   it.each([
     ['the root', 'version: 1\nlabels: []', 'labels', 'labels:'],
