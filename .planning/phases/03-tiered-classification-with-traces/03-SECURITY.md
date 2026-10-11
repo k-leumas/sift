@@ -58,7 +58,7 @@ created: "2026-10-10"
 | T-03-17 (03-06) | Information Disclosure | candidates query reading another mailbox's mail | high | mitigate | mailbox_id filter on message, location, body and decision subqueries in SQL plus forced RLS; ISO-04 test on an RLS-bypassing handle | closed |
 | T-03-18 (03-06) | Tampering | malformed or inconsistent decision rows | high | mitigate | recordDecision parses spans with the shared schema and checks typed-column consistency before SQL; database checks (03-03) as backstop | closed |
 | T-03-19 (03-06) | Denial of Service | concurrent first use of prompt_version (unique violation or two versions) | medium | mitigate | pg_advisory_xact_lock(815309003) + select-then-insert in one transaction; five-way concurrency test | closed |
-| T-03-20 (03-06) | Information Disclosure | bodies kept longer than policy through re-runs | medium | mitigate | expires_at set only where null (first decision); test that a re-run leaves it unchanged | closed |
+| T-03-20 (03-06) | Information Disclosure | bodies kept longer than policy through re-runs | medium | mitigate | expires_at set only where null (first decision); test that a re-run leaves it unchanged | open — below high threshold (non-blocking); reopened by 03-VERIFICATION gap 2 (refetched bodies via restoreBody get no expiry) |
 | T-03-SC (03-07) | Tampering | npm/pip/cargo installs | low | accept | No new dependency: Node fetch, no Ollama SDK (AI-SPEC §2); dependencies.test.ts unchanged | closed |
 | T-03-21 (03-07) | Information Disclosure | email text sent to a cloud model through Ollama | critical | mitigate | Preflight refuses tags entries with remote_host/remote_model before any chat call; tested | closed |
 | T-03-22 (03-07) | Elevation of Privilege | model output causing actions (tool calls, extra keys) | critical | mitigate | No tools key in any request; only validated message.content is read; tool_calls and extra-key cases tested | closed |
@@ -144,3 +144,11 @@ Evidence (file:line and tests) for every row is in the gsd-security-auditor verd
 - [x] `status: verified` set in frontmatter
 
 **Approval:** verified 2026-10-10
+
+## Security Audit 2026-10-11
+
+| Metric | Count |
+|---|---|
+| Threats found | 64 |
+| Closed | 63 |
+| Open | 1 |
