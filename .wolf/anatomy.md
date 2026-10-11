@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T05:08:24.481Z
-> Files: 533 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T05:33:59.522Z
+> Files: 534 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
 
@@ -235,6 +235,7 @@
 - `03-17-PLAN.md` — Artifacts this plan produces (~6894 tok)
 - `03-17-SUMMARY.md` — Dependency graph (~4531 tok)
 - `03-18-PLAN.md` — Artifacts this plan produces (~6574 tok)
+- `03-18-SUMMARY.md` — Dependency graph (~4067 tok)
 - `03-19-PLAN.md` — Artifacts this plan produces (~6776 tok)
 - `03-20-PLAN.md` — Artifacts this plan produces (~4621 tok)
 - `03-21-PLAN.md` — Artifacts this phase produces (~4078 tok)
@@ -291,7 +292,7 @@
 - `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2539 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
 - `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1547 tok)
-- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~6271 tok)
+- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06); unclassifiedNotice and done.unclassified (WR-03), per-process messageFailures hold-back with canaryChat (03-18). (~7700 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 - `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
 
@@ -303,7 +304,7 @@
 - `config-apply.ts` — Show a path relative to the working directory when it lives under it. (~1341 tok)
 - `config-check.ts` — Show a path relative to the working directory when it lives under it. (~935 tok)
 - `mailbox-backfill.ts` — How long the backfill waits for the mailbox's ingest lock (D-03): one (~3855 tok)
-- `mailbox-list.ts` — Left-align every column but the last to its widest cell. (~984 tok)
+- `mailbox-list.ts` — `sift mailbox list`: status per mailbox, incl. 'ok; <notice>' for an ok mailbox with last_error (WR-03, NOTICE_PREVIEW 240). (~1122 tok)
 - `mailbox-rename.ts` — `sift mailbox rename <old-slug> <new-slug>` (D-32, D-63). Changes the slug (~814 tok)
 - `mailbox-resume.ts` — `sift mailbox resume <slug>` (D-26). The volume valve holds new mail when a (~591 tok)
 - `migrate.ts` — Show a path relative to the working directory when it lives under it. (~848 tok)
@@ -330,7 +331,7 @@
 
 - `backoff.ts` — Longest wait between attempts for a failing mailbox: 15 minutes (D-51). (~179 tok)
 - `heartbeat.ts` — Heartbeat file location (D-54). A non-blank SIFT_HEARTBEAT_FILE wins; (~310 tok)
-- `mailbox-batch.ts` — After the worker starts, connection failures (unreachable, timeout) show as (~6202 tok)
+- `mailbox-batch.ts` — After the worker starts, connection failures (unreachable, timeout) show as (~6459 tok)
 - `run-until-stopped.ts` — Exit code after too many missed heartbeats (IN-05): 75, EX_TEMPFAIL in (~613 tok)
 - `shutdown.ts` — Resolve with the first SIGTERM or SIGINT (D-53). Both listeners are removed (~274 tok)
 - `startup.ts` — Differences between config.yaml and the mailbox registry, one line per (~180 tok)
@@ -680,7 +681,7 @@
 - `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32); re-exports DECISION_BODY_RETENTION_MS; restoreBody(scope,id,body,at?) expires a decided message's body at once (CR-02); recordDecision strips NUL from parsed spans (WR-01 backstop). (~2815 tok)
 - `index.ts` — Database connection-string variables. Values are secrets and are never logged. (~743 tok)
 - `ingest.ts` — Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23); DECISION_BODY_RETENTION_MS, decidedMessageIds (internal), StoreOptions.at (CR-02 decided-body expiry). (~6200 tok)
-- `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer); recordIngestSynced spends the valve approval in the ingest lock (CR-03). (~1800 tok)
+- `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer); recordIngestSynced (CR-03); recordSyncSuccess(scope, at, { notice }) keeps state ok with an owner notice (WR-03). (~1800 tok)
 
 ## packages/db/test/
 

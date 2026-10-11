@@ -1409,3 +1409,19 @@
 | 22:59 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/03-17/run-edges.ts | — | ~1293 |
 | 23:08 | Created .planning/phases/03-tiered-classification-with-traces/03-17-SUMMARY.md | — | ~4833 |
 | 23:10 | 03-17 executed: CR-01 per-message re-probe (skip a message Ollama fails on alone, max 2 per pass), CLI stderr line, edge+leak tests, AI-SPEC + D-16 note; commits 6050d27 ffc9530 2aab59f + docs 2c67277 3bfc8c5 | run.ts, commands/classify.ts, 5 test files, AI-SPEC, CONTEXT | 726 tests pass, typecheck/lint 0 | ~40000 |
+| 23:10 | Session end: 85 writes across 32 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 39 reads | ~194890 tok |
+| 23:12 | Edited apps/worker/src/classify/run.ts | added 1 condition(s) | ~348 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | 3→5 lines | ~69 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | added 1 condition(s) | ~145 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | 3→4 lines | ~22 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | 2→3 lines | ~44 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | 2→3 lines | ~44 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | 2→3 lines | ~32 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | 2→3 lines | ~30 |
+| 23:12 | Edited apps/worker/src/classify/run.ts | 2→4 lines | ~58 |
+| 23:12 | Edited packages/db/src/status.ts | added nullish coalescing | ~210 |
+| 23:12 | Edited apps/worker/src/runtime/mailbox-batch.ts | modified switch() | ~166 |
+| 23:12 | Edited apps/worker/src/commands/mailbox-list.ts | added nullish coalescing | ~256 |
+| 23:13 | Edited apps/worker/src/commands/mailbox-list.ts | 2→3 lines | ~62 |
+| 23:33 | Created .planning/phases/03-tiered-classification-with-traces/03-18-SUMMARY.md | — | ~4338 |
+| 23:36 | 03-18 done: WR-03 unclassified notice (state ok, last_error = unclassifiedNotice(ids)), sift mailbox list 'ok; <notice>', per-process hold-back after 3 passes with mail-free canaryChat | run.ts, status.ts, mailbox-batch.ts, mailbox-list.ts, 6 test files | commits 30148dd 8b97cb2 f8a81bf 5b08ac7, summary, state 9418642; 718/720 sweep (2 load timeouts pass alone) | ~60000 |

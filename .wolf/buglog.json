@@ -4419,6 +4419,152 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T04:53:22.820Z"
+    },
+    {
+      "id": "bug-265",
+      "timestamp": "2026-10-11T05:12:15.035Z",
+      "error_message": "Missing guard clause",
+      "file": "apps/worker/src/classify/run.ts",
+      "root_cause": "No early return/throw for edge case: n === 0",
+      "fix": "Added guard clause: if (n === 0)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:12:15.035Z"
+    },
+    {
+      "id": "bug-266",
+      "timestamp": "2026-10-11T05:12:24.394Z",
+      "error_message": "Wrong reference: continue should be markUnclassified",
+      "file": "apps/worker/src/classify/run.ts",
+      "root_cause": "Used \"continue\" instead of \"markUnclassified\"",
+      "fix": "Changed continue → markUnclassified",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:12:24.394Z"
+    },
+    {
+      "id": "bug-267",
+      "timestamp": "2026-10-11T05:12:38.986Z",
+      "error_message": "Type error",
+      "file": "apps/worker/src/classify/run.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:12:38.986Z"
+    },
+    {
+      "id": "bug-268",
+      "timestamp": "2026-10-11T05:12:41.010Z",
+      "error_message": "Null/undefined access in ",
+      "file": "packages/db/src/status.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:12:41.010Z"
+    },
+    {
+      "id": "bug-269",
+      "timestamp": "2026-10-11T05:12:43.245Z",
+      "error_message": "Type error",
+      "file": "apps/worker/src/runtime/mailbox-batch.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:12:43.245Z"
+    },
+    {
+      "id": "bug-270",
+      "timestamp": "2026-10-11T05:12:59.221Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/src/commands/mailbox-list.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:12:59.222Z"
+    },
+    {
+      "id": "bug-271",
+      "timestamp": "2026-10-11T05:13:00.849Z",
+      "error_message": "Type error",
+      "file": "apps/worker/src/commands/mailbox-list.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:13:00.849Z"
+    },
+    {
+      "id": "bug-272",
+      "timestamp": "2026-10-11T05:36:00Z",
+      "error_message": "classify-leak.test.ts CR-01 single-message case: expected '1 message could not be classified (id...' to be null",
+      "file": "apps/worker/test/classify-leak.test.ts",
+      "root_cause": "03-18 (WR-03) intentionally stores an unclassified notice in last_error on a done pass; the 03-17 leak test still asserted null",
+      "fix": "expect last_error to equal unclassifiedNotice([pending]); the no-leak scan over status and logs stays",
+      "tags": [
+        "wr-03",
+        "mailbox-status",
+        "last_error",
+        "test-update",
+        "03-18"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:36:00Z"
+    },
+    {
+      "id": "bug-273",
+      "timestamp": "2026-10-11T05:36:00Z",
+      "error_message": "gsd query state.add-decision --summary-file <scratchpad path>: summary path validation failed: Path escapes allowed directory",
+      "file": ".planning/STATE.md",
+      "root_cause": "gsd-tools only accepts --summary-file/--rationale-file paths inside the project root; the session scratchpad is outside it",
+      "fix": "pass the decision inline with --summary \"...\" (no $ or backticks), or write the file inside the repo and delete it",
+      "tags": [
+        "gsd-tools",
+        "state.add-decision",
+        "scratchpad"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T05:36:00Z"
     }
   ]
 }

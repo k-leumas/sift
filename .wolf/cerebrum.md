@@ -306,6 +306,8 @@
 
 - [2026-10-11] Test titles are single-quoted strings: an apostrophe in an it() title ("a message's body") breaks the vitest transform with 'Transform failed' and 'no tests'. Reword or use double quotes (bug-247).
 
+- [2026-10-11] `gsd query state.add-decision --summary-file` rejects paths outside the repo (the scratchpad too): pass `--summary "..."` inline (bug-273).
+
 ## Decision Log
 
 - 2026-10-07 (phase 02 UAT): Owner scoped Sift to Proton Mail through Proton Bridge only, for now: simpler logic, smaller test surface, more security-minded. README must say so (README lines ~105/107/391 still imply any IMAP server). Code still has non-Bridge paths (implicit TLS, mid:/hdr: fallbacks); removing them is a separate decision.
