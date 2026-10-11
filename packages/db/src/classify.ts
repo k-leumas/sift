@@ -122,13 +122,19 @@ function assertConsistent(input: RecordDecisionInput, spans: DecisionSpans): voi
  * A second 'worker' decision for a message fails with SQLSTATE 23505
  * (decision_one_worker_per_message); 'rerun' decisions append (D-17).
  *
+ * NUL is removed from every string of the parsed spans before the checks and
+ * the insert (WR-01 backstop): PostgreSQL jsonb cannot hold NUL (SQLSTATE
+ * 22P05), and strings Ollama supplies (raw, thinking, done_reason,
+ * response_model) reach the trace as they came. The model's reason itself is
+ * rejected earlier, by validateLlmOutput, never stripped.
+ *
  * Runs in the caller's transaction (the scope).
  */
 export async function recordDecision(
   scope: Scope,
   input: RecordDecisionInput,
 ): Promise<DecisionRow> {
-  const spans = parseDecisionSpans(input.spans);
+  const spans = stripNul(parseDecisionSpans(input.spans));
   assertConsistent(input, spans);
   const at = input.at ?? new Date();
   if (!Number.isFinite(at.getTime())) throw mismatch('at', 'must be a valid Date');
