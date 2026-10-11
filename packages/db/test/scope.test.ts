@@ -973,6 +973,7 @@ describe('@sift/db export surface', () => {
         'recordBackfillProgress',
         'recordConnecting',
         'recordDisabled',
+        'recordIngestSynced',
         'recordMailboxSeen',
         'recordNeedsAttention',
         'recordSyncError',

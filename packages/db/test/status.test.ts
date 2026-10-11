@@ -6,6 +6,7 @@ import {
   recordBackfillProgress,
   recordConnecting,
   recordDisabled,
+  recordIngestSynced,
   recordNeedsAttention,
   recordSyncError,
   recordSyncSuccess,
@@ -52,6 +53,11 @@ beforeAll(async () => {
     'no-status',
     'err-plain',
     'err-synced',
+    'ingest-held',
+    'ingest-error',
+    'ingest-connecting',
+    'ingest-no-status',
+    'ingest-backfill',
     ...PAIRS.map(([from, to]) => pairSlug(from, to)),
   ]);
   app = createAppDb(fresh.appUrl);
@@ -161,6 +167,70 @@ describe('recordSyncError with and without syncedAt (D-05, D-16)', () => {
     expect(status?.lastSyncAt?.toISOString()).toBe(synced.toISOString());
     expect(status?.heldNewCount).toBeNull();
     expect(status?.approvedNewCount).toBeNull();
+  });
+});
+
+describe('recordIngestSynced (CR-03, D-26)', () => {
+  const at = new Date('2026-10-11T06:00:00.000Z');
+
+  it('releases a resumed hold: needs_attention -> ok, last_error and both counts cleared', async () => {
+    const id = ids['ingest-held'] as string;
+    await withMailbox(app, id, (s) => recordNeedsAttention(s, 5, 'ingest-held'));
+    await withMailbox(app, id, (s) => s.mailboxStatus.upsert({ approvedNewCount: 5 }));
+    await withMailbox(app, id, (s) => recordIngestSynced(s, at));
+    const status = await statusOf(id);
+    expect(status?.state).toBe('ok');
+    expect(status?.lastError).toBeNull();
+    expect(status?.heldNewCount).toBeNull();
+    expect(status?.approvedNewCount).toBeNull();
+    expect(status?.lastSyncAt?.toISOString()).toBe(at.toISOString());
+    expect(status?.lastSeenAt?.toISOString()).toBe(at.toISOString());
+  });
+
+  it('keeps an error state and its last_error for the post-pass write (D-14)', async () => {
+    const id = ids['ingest-error'] as string;
+    await withMailbox(app, id, (s) => recordSyncError(s, new Error('rules problem'), []));
+    await withMailbox(app, id, (s) => s.mailboxStatus.upsert({ approvedNewCount: 3 }));
+    await withMailbox(app, id, (s) => recordIngestSynced(s, at));
+    const status = await statusOf(id);
+    expect(status?.state).toBe('error');
+    expect(status?.lastError).toBe('rules problem');
+    expect(status?.heldNewCount).toBeNull();
+    expect(status?.approvedNewCount).toBeNull();
+    expect(status?.lastSyncAt?.toISOString()).toBe(at.toISOString());
+  });
+
+  it('keeps a connecting state', async () => {
+    const id = ids['ingest-connecting'] as string;
+    await withMailbox(app, id, (s) => recordConnecting(s));
+    await withMailbox(app, id, (s) => recordIngestSynced(s, at));
+    const status = await statusOf(id);
+    expect(status?.state).toBe('connecting');
+    expect(status?.lastSyncAt?.toISOString()).toBe(at.toISOString());
+  });
+
+  it('creates the status row when there is none yet', async () => {
+    const id = ids['ingest-no-status'] as string;
+    expect(await statusOf(id)).toBeNull();
+    await withMailbox(app, id, (s) => recordIngestSynced(s, at));
+    const status = await statusOf(id);
+    expect(status).not.toBeNull();
+    expect(status?.lastSyncAt?.toISOString()).toBe(at.toISOString());
+    expect(status?.heldNewCount).toBeNull();
+    expect(status?.approvedNewCount).toBeNull();
+  });
+
+  it('never touches backfill progress', async () => {
+    const id = ids['ingest-backfill'] as string;
+    await withMailbox(app, id, async (s) => {
+      await recordBackfillProgress(s, { done: 5, total: 10, finished: false });
+      await recordNeedsAttention(s, 7, 'ingest-backfill');
+      await s.mailboxStatus.upsert({ approvedNewCount: 7 });
+    });
+    await withMailbox(app, id, (s) => recordIngestSynced(s, at));
+    const status = await statusOf(id);
+    expect(status?.state).toBe('ok');
+    expect([status?.backfillDone, status?.backfillTotal]).toEqual([5, 10]);
   });
 });
 
