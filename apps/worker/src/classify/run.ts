@@ -5,7 +5,10 @@ import {
   LLM_SPAN_OPTIONS,
   type LlmSpanContext,
   type LlmVerdict,
+  llmOutputSchema,
+  MODEL_OPTIONS,
   matchExactRules,
+  ollamaFormat,
   promptMaterial,
   type TrustedPromptInput,
   trustedInputFrom,
@@ -390,9 +393,32 @@ async function promptVersionFor(
   return { ...known, hash: material.hash };
 }
 
-/** RED scaffold (03-18 Task 2): replaced by the real canary in the GREEN commit. */
-export async function canaryChat(_ctx: ClassifyContext): Promise<LlmCallResult> {
-  throw new Error('canaryChat is not implemented yet');
+/**
+ * One mail-free chat through the gated client (D-19): fixed CANARY_SYSTEM and
+ * CANARY_USER text and a format whose only category is Probe. Success is
+ * result.kind 'ok'; the content is not validated or stored.
+ *
+ * The cheap preflight re-probe (CR-01) cannot see a runner that crashes on
+ * every prompt while /api/tags still answers; this chat can. It runs only
+ * when a message is about to be held back, so at most once per message per
+ * process, and takes one call off llmCallsLeft. The canary text is not
+ * prompt material (no decision is rendered from it), so the prompt hash does
+ * not change.
+ */
+export async function canaryChat(ctx: ClassifyContext): Promise<LlmCallResult> {
+  if (ctx.state.llmCallsLeft !== null) ctx.state.llmCallsLeft -= 1;
+  return ctx.runtime.llm.chat(
+    {
+      model: ctx.model,
+      messages: [
+        { role: 'system', content: CANARY_SYSTEM },
+        { role: 'user', content: CANARY_USER },
+      ],
+      format: ollamaFormat(llmOutputSchema(['Probe'])),
+      options: { ...MODEL_OPTIONS },
+    },
+    ctx.signal,
+  );
 }
 
 async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Promise<Drafted> {
@@ -401,6 +427,13 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
   // An exact rule decides with no Ollama request at all (CLS-01, E9).
   if (exact.winner !== null) {
     return { kind: 'draft', draft: decide({ exact, threshold }), promptVersionId: null };
+  }
+  // Held back (WR-03): Ollama failed on it alone in MESSAGE_FAILURE_PASSES
+  // passes of this process. No preflight, chat or budget is spent on it; it
+  // stays pending and named in the notice until a restart or an exact rule.
+  if ((ctx.runtime.messageFailures.get(candidate.id) ?? 0) >= MESSAGE_FAILURE_PASSES) {
+    markUnclassified(state, candidate.id);
+    return { kind: 'skip' };
   }
   if (state.llmBlocked !== null) return { kind: 'skip' };
   if (state.llmCallsLeft !== null && state.llmCallsLeft <= 0) return { kind: 'skip' };
@@ -432,6 +465,25 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
       const probe = await ctx.runtime.preflight(ctx.model, ctx.signal);
       if (probe.kind === 'aborted') return { kind: 'aborted' };
       if (probe.kind === 'ok') {
+        const passes = (ctx.runtime.messageFailures.get(candidate.id) ?? 0) + 1;
+        if (passes >= MESSAGE_FAILURE_PASSES) {
+          // Hold it back only if Ollama answers a mail-free chat: a runner that
+          // fails every prompt is an outage, not this message (T-03-67).
+          const canary = await canaryChat(ctx);
+          if (canary.kind === 'aborted') return { kind: 'aborted' };
+          if (canary.kind !== 'ok') {
+            state.llmBlocked =
+              canary.kind === 'infra'
+                ? { code: canary.code, status: canary.status, detail: canary.detail }
+                : { code: 'rejected', status: canary.status, detail: '' };
+            return { kind: 'skip' };
+          }
+          ctx.log.warn(
+            { mailbox: ctx.slug, message: candidate.id, passes: MESSAGE_FAILURE_PASSES },
+            MESSAGE_HELD_BACK_LOG,
+          );
+        }
+        ctx.runtime.messageFailures.set(candidate.id, passes);
         state.ollamaFailed.push({ id: candidate.id, code: result.code, status: result.status });
         markUnclassified(state, candidate.id);
         if (state.llmCallsLeft !== null) state.llmCallsLeft -= 1;
@@ -516,6 +568,8 @@ export async function classifyCandidates(
       });
       // Only after the commit: a rolled-back rule_set row must not be reused.
       state.ruleSetId = ruleSetId;
+      // Decided: forget any Ollama failures it had (WR-03).
+      ctx.runtime.messageFailures.delete(candidate.id);
       if (drafted.draft.outcome === 'labelled') state.labelled += 1;
       else state.review += 1;
       state.consecutiveFailures = 0;
