@@ -10,6 +10,7 @@ import {
   recordBackfillProgress,
   recordConnecting,
   recordDisabled,
+  recordIngestSynced,
   recordMailboxSeen,
   recordNeedsAttention,
   recordSyncError,
@@ -257,7 +258,10 @@ export function storedError(error: unknown): unknown {
  *
  * With `ingest.classify`, a synced or resynced ingest is followed by the
  * classification pass in the same batch, after the ingest lock is released
- * (the pass takes it per chunk), and status is written once at the end
+ * (the pass takes it per chunk). The volume valve's counts and last_sync_at
+ * are recorded with the ingest, inside the lock, so a one-time resume
+ * approval is spent even when the pass throws or the worker dies mid-pass
+ * (CR-03, P2 D-26); state and last_error are written once after the pass
  * (D-14): ok when the pass finished, was busy or was stopped by shutdown; an
  * error naming the rules file when rules.yaml is missing or invalid, without
  * rejecting, so ingest keeps its cadence (D-05); a ClassifyInfraError
@@ -407,10 +411,15 @@ export function createMailboxCallbacks(
                 lastRemovalDiffAt.set(mailbox.id, nowMs());
               }
               const syncedAt = nowDate();
-              // With classification, status is written once after the pass (D-14).
-              if (classify === undefined) {
-                await session.run((scope) => recordSyncSuccess(scope, syncedAt));
-              }
+              // With classification, the valve and last_sync_at are recorded
+              // here with the ingest, so a pass that throws or dies can never
+              // reuse a resume approval (CR-03, P2 D-26); state and last_error
+              // are written once after the pass (D-14).
+              await session.run((scope) =>
+                classify === undefined
+                  ? recordSyncSuccess(scope, syncedAt)
+                  : recordIngestSynced(scope, syncedAt),
+              );
               if (outcome.kind === 'synced') {
                 ingest.log.info(
                   {

@@ -430,6 +430,73 @@ describe('volume hold (D-26)', () => {
       await fake.close();
     }
   }, 30_000);
+
+  it('spends the resume approval with the ingest when the pass throws, so the next batch uses the cap (CR-03)', async () => {
+    const fake = await startFakeOllama();
+    try {
+      const m = await newMailbox('valve-throw', { newMailCap: 1 });
+      const healthy = callbacksFor([m], fake);
+      expect(await cycle(healthy.callbacks, m)).toBeUndefined();
+      for (const n of [1, 2, 3, 4, 5]) {
+        await appendMessage(m.user, 'INBOX', mailFrom(NEWS, `valve ${n}`, `valve body ${n}`));
+      }
+      expect(await cycle(healthy.callbacks, m)).toBeUndefined();
+      const held = await mailboxStatus(db.adminUrl, m.id);
+      expect(held.state).toBe('needs_attention');
+      expect(held.held_new_count).toBe(5);
+
+      // What sift mailbox resume does.
+      await ownerSql(
+        db.ownerUrl,
+        m.id,
+        'update mailbox_status set approved_new_count = held_new_count where mailbox_id = $1',
+        [m.id],
+      );
+
+      // A pass that throws a non-infra error: every LLM-bound message fails at
+      // the preflight, and the fifth consecutive failure rethrows. The status
+      // read inside the pass is what a worker killed mid-pass leaves behind.
+      let snapshot: StatusRow | undefined;
+      const exploding = testRuntime(fake, dataDir, {
+        preflight: async () => {
+          snapshot ??= await mailboxStatus(db.adminUrl, m.id);
+          throw new Error('preflight exploded');
+        },
+      });
+      const failing = callbacksFor([m], fake, { classify: exploding });
+      const error = await cycle(failing.callbacks, m);
+      expect(error).toBeInstanceOf(Error);
+      expect(error).not.toBeInstanceOf(ClassifyInfraError);
+      expect((error as Error).message).toBe('preflight exploded');
+
+      expect(snapshot).toBeDefined();
+      expect(snapshot?.approved_new_count).toBeNull();
+      expect(snapshot?.held_new_count).toBeNull();
+      expect(snapshot?.state).toBe('ok');
+      expect(snapshot?.last_sync_at).not.toBeNull();
+
+      const failed = await mailboxStatus(db.adminUrl, m.id);
+      expect(failed.state).toBe('error');
+      expect(failed.approved_new_count).toBeNull();
+      expect(failed.held_new_count).toBeNull();
+      expect(failed.last_sync_at?.getTime()).toBe(snapshot?.last_sync_at?.getTime());
+      expect((await mailboxCounts(db.adminUrl, m.id)).messages).toBe(5);
+      expect(await decisionsOf(db.adminUrl, m.id)).toEqual([]);
+
+      // The next batch ingests with the cap (1), not approved + cap (6): held again.
+      for (const n of [6, 7]) {
+        await appendMessage(m.user, 'INBOX', mailFrom(NEWS, `valve ${n}`, `valve body ${n}`));
+      }
+      expect(await cycle(healthy.callbacks, m)).toBeUndefined();
+      const after = await mailboxStatus(db.adminUrl, m.id);
+      expect(after.state).toBe('needs_attention');
+      expect(after.held_new_count).toBe(2);
+      expect(after.approved_new_count).toBeNull();
+      expect((await mailboxCounts(db.adminUrl, m.id)).messages).toBe(5);
+    } finally {
+      await fake.close();
+    }
+  }, 30_000);
 });
 
 describe('one Ollama request at a time across mailboxes (D-19, E6)', () => {

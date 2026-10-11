@@ -100,6 +100,7 @@ export {
   recordBackfillProgress,
   recordConnecting,
   recordDisabled,
+  recordIngestSynced,
   recordMailboxSeen,
   recordNeedsAttention,
   recordSyncError,

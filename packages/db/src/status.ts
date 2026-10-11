@@ -30,6 +30,29 @@ export async function recordSyncSuccess(scope: Scope, at: Date = new Date()): Pr
 }
 
 /**
+ * The ingest of a classified batch committed (CR-03, P2 D-26). The volume
+ * valve's one-time approval is spent here, in the ingest lock and the
+ * caller's transaction, so a classification pass that throws or a worker
+ * that dies mid-pass can never reuse it: held and approved counts are
+ * cleared and last_sync_at moves to the ingest time.
+ *
+ * State and last_error are left for the single post-pass write (D-14), with
+ * one exception: a released hold leaves needs_attention for ok, because the
+ * hold is gone and mailbox_status_held_check forbids needs_attention without
+ * a held count. Backfill progress is left as is.
+ */
+export async function recordIngestSynced(scope: Scope, at: Date = new Date()): Promise<void> {
+  const row = await scope.mailboxStatus.get();
+  await scope.mailboxStatus.upsert({
+    lastSyncAt: at,
+    lastSeenAt: at,
+    heldNewCount: null,
+    approvedNewCount: null,
+    ...(row?.state === 'needs_attention' ? { state: 'ok', lastError: null } : {}),
+  });
+}
+
+/**
  * A sync run failed. last_error is redacted with the given secret values
  * before it is stored, then truncated (D-51: no secrets in last_error).
  *
