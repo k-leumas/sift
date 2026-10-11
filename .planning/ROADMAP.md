@@ -125,7 +125,7 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: 13/13 plans executed
+**Plans**: 13/20 plans executed (7 gap-closure plans)
 
 Plans:
 **Wave 1**
@@ -153,6 +153,15 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 - [x] 03-13-PLAN.md — README/CONTRIBUTING for rules.yaml, Ollama and sift classify; live-baseline runner and owner baseline (wave 6)
 
+**Gap closure** *(03-VERIFICATION gaps CR-01..03 with WR-01..03; gap waves 1-5)*
+- [ ] 03-14-PLAN.md — CR-02: a body restored or re-inserted for an already-decided message expires 7 days after the write; T-03-20 closed (gap wave 1)
+- [ ] 03-15-PLAN.md — CR-03: spend the volume-valve approval and record last_sync_at with the ingest, inside the lock (gap wave 1)
+- [ ] 03-16-PLAN.md — WR-01/WR-02: control characters rejected in the model reason and in rules.yaml; NUL backstop in recordDecision (gap wave 2)
+- [ ] 03-17-PLAN.md — CR-01: a 500 or timeout confined to one message skips only that message (re-probe, per-pass budget); no backoff (gap wave 2)
+- [ ] 03-18-PLAN.md — WR-03/CR-01: owner-visible notice naming unclassified messages, 3-pass hold-back with a canary check, sift classify skip line (gap wave 3)
+- [ ] 03-19-PLAN.md — Owner checkpoint (one-way door): review llm_error terminal state, core and DB contract, migration 0011 (gap wave 4)
+- [ ] 03-20-PLAN.md — Worker writes review llm_error after 3 passes; runs only if 03-19 chose option-review (gap wave 5)
+
 ### Phase 4: Labels and Real-Inbox Run
 
 **Goal**: Sift auto-labels a real Proton inbox, holds what it is unsure about, and the owner can explain any decision.
@@ -176,7 +185,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
-| 3. Tiered Classification with Traces | v0.1 | 13/13 | In Progress | - |
+| 3. Tiered Classification with Traces | v0.1 | 13/20 | In Progress | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)
