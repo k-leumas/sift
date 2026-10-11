@@ -9,6 +9,7 @@ import { type AppDb, createAppDb, withIngestLock } from '@sift/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
 import { seedMailboxes } from '../../../packages/db/test/support/seed.ts';
+import { llmErrorDetail } from '../src/classify/llm-tier.ts';
 import { createOllamaClient, type LlmClient } from '../src/classify/ollama-client.ts';
 import { createPreflight } from '../src/classify/preflight.ts';
 import {
@@ -1016,6 +1017,137 @@ describe('a message Ollama keeps failing on is held for review (WR-03, CR-01)', 
     expect(unclassifiedNotice(['a', 'b', 'c', 'd', 'e'])).toBe(
       '5 messages could not be classified (ids: a, b, c; and 2 more); see docker compose logs worker',
     );
+  });
+});
+
+describe('only a failure confined to one message becomes llm_error (CR-01, D-16)', () => {
+  /** Chat requests that are the mail-free canary. */
+  function canaryCount(fake: FakeOllama): number {
+    return fake.chatBodies().filter((body) => JSON.stringify(body.messages).includes(CANARY_USER))
+      .length;
+  }
+
+  it('over four passes a 500 whose re-probe always fails writes no decision and is never counted (D-16)', async () => {
+    const box = await newMailbox('reprobe-down');
+    const errorText = `runner crashed and Ollama went away ${randomUUID()}`;
+    mailText.push(errorText);
+    const poison = llmMessage('reprobe-down', minute(300));
+    const fake = await fakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(`from_address: ${poison.from}`)
+          ? { status: 500, json: { error: errorText } }
+          : okAnswer('Noise', 0.9),
+    });
+    const [id] = await seed(box, [poison]);
+    const [bankId] = await seed(box, [bankMessage('reprobe-down-bank', minute(299))]);
+    if (id === undefined) throw new Error('seed returned no id');
+    // Healthy for the pass's own preflight, unreachable for every re-probe.
+    const real = createPreflight(fake.url);
+    let callsThisPass = 0;
+    const firstOnly: typeof real = async (model, shutdown) => {
+      callsThisPass += 1;
+      if (callsThisPass === 1) return real(model, shutdown);
+      return { kind: 'infra', code: 'unreachable', status: null, detail: 'ECONNREFUSED' };
+    };
+    const runtime = testRuntime(fake, dataDir, { preflight: firstOnly });
+
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES + 1; i += 1) {
+      callsThisPass = 0;
+      expect(await pass(box, runtime)).toMatchObject({ kind: 'infra', code: 'server_error' });
+      expect(callsThisPass).toBe(2);
+    }
+    expect(chatsFrom(fake, poison.from)).toBe(MESSAGE_FAILURE_PASSES + 1);
+    expect(canaryCount(fake)).toBe(0);
+    expect(runtime.messageFailures.has(id)).toBe(false);
+    expect((await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId)).toEqual([bankId]);
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([id]);
+  });
+
+  it('with every chat failing, three messages over four passes never become llm_error (D-16)', async () => {
+    const box = await newMailbox('always-500');
+    const errorText = `runner crashes on every prompt ${randomUUID()}`;
+    mailText.push(errorText);
+    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
+    const messages = [
+      llmMessage('always-a', minute(310)),
+      llmMessage('always-b', minute(309)),
+      llmMessage('always-c', minute(308)),
+    ];
+    const ids = await seed(box, messages);
+    const [a, b, c] = ids;
+    const [ma, mb, mc] = messages;
+    if (a === undefined || b === undefined || c === undefined) throw new Error('no ids');
+    if (ma === undefined || mb === undefined || mc === undefined) throw new Error('no messages');
+    const runtime = testRuntime(fake, dataDir);
+
+    // Passes 1 and 2: two messages skipped alone, the third failure is the outage.
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES - 1; i += 1) {
+      expect(await pass(box, runtime)).toMatchObject({ kind: 'infra', code: 'server_error' });
+    }
+    expect(runtime.messageFailures.get(a)).toBe(2);
+    expect(runtime.messageFailures.get(b)).toBe(2);
+    expect(runtime.messageFailures.has(c)).toBe(false);
+    expect(canaryCount(fake)).toBe(0);
+
+    // Passes 3 and 4: the newest would reach the limit, the canary fails, so: an outage.
+    for (let i = 0; i < 2; i += 1) {
+      expect(await pass(box, runtime)).toMatchObject({ kind: 'infra', code: 'server_error' });
+    }
+    expect(canaryCount(fake)).toBe(2);
+    expect(chatsFrom(fake, ma.from)).toBe(4);
+    expect(chatsFrom(fake, mb.from)).toBe(2);
+    expect(chatsFrom(fake, mc.from)).toBe(2);
+    expect(runtime.messageFailures.get(a)).toBe(2);
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+    expect((await pendingIdsOf(db.adminUrl, box.id)).sort()).toEqual([...ids].sort());
+  });
+
+  it('a timeout confined to one message is held for review with llm_error on the third pass (CR-01)', async () => {
+    const box = await newMailbox('slow-llm-error');
+    const slow = llmMessage('slow-llm-error', minute(320));
+    const fake = await fakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(`from_address: ${slow.from}`)
+          ? { hang: true }
+          : okAnswer('Noise', 0.9),
+    });
+    const [id] = await seed(box, [slow]);
+    if (id === undefined) throw new Error('seed returned no id');
+    const runtime = testRuntime(fake, dataDir, { timeoutMs: 2000 });
+
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES - 1; i += 1) {
+      expect(await pass(box, runtime)).toMatchObject({ kind: 'done', unclassified: [id] });
+    }
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+    expect(await pass(box, runtime)).toMatchObject({
+      kind: 'done',
+      review: 1,
+      ollamaFailed: [id],
+      unclassified: [],
+    });
+    expect(canaryCount(fake)).toBe(1);
+    const [decision, ...others] = await decisionsOf(db.adminUrl, box.id);
+    expect(others).toEqual([]);
+    if (decision === undefined) throw new Error('no decision');
+    expect(decision).toMatchObject({
+      messageId: id,
+      outcome: 'review',
+      reviewReason: 'llm_error',
+      tier: 'llm',
+      category: null,
+      confidence: null,
+      decidedBy: 'worker',
+    });
+    const llm = parseDecisionSpans(decision.spans)[2];
+    if (llm?.kind !== 'llm') throw new Error('no llm span');
+    expect(llm.attempts).toHaveLength(1);
+    expect(llm.attempts[0]?.raw).toBeNull();
+    expect(llm.attempts[0]?.validation).toEqual({
+      ok: false,
+      code: 'llm_error',
+      detail: llmErrorDetail('timeout', null),
+    });
+    await expectReplayableDecision(db.adminUrl, decision, fake);
   });
 });
 

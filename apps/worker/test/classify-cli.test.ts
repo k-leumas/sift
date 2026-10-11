@@ -8,7 +8,7 @@ import { type AppDb, createAppDb, latestDecision, withIngestLock, withMailbox } 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
 import { seedMailboxes } from '../../../packages/db/test/support/seed.ts';
-import { type ClassifyRuntime, classifyMailbox } from '../src/classify/run.ts';
+import { CANARY_USER, type ClassifyRuntime, classifyMailbox } from '../src/classify/run.ts';
 import {
   CLASSIFY_CONFIRM_THRESHOLD,
   CLASSIFY_LOCK_WAIT_MS,
@@ -470,6 +470,42 @@ describe('sift classify names a message Ollama failed on alone (CR-01, T-03-74)'
     expect(result.stdout.at(-1)).toBe(
       `Classified 2 messages of ${box.slug}: 2 labelled, 0 review; 1 skipped.`,
     );
+  });
+
+  it('three separate runs (a runtime per run) only skip it: no llm_error decision (CR-01)', async () => {
+    const box = await newMailbox('cli-poison-thrice');
+    const poison = llmMessage('poison', '2026-09-03T08:00:00Z');
+    const errorText = `runner crashed on this prompt ${randomUUID()}`;
+    const fake = await failingFor(poison.from, errorText);
+    const [id] = await seed(box, [poison]);
+
+    for (let run = 0; run < 3; run += 1) {
+      const result = await classify(box, { kind: 'pending' }, testRuntime(fake, dataDir));
+      expect(result.code).toBe(0);
+      expect(result.stderr).toEqual([
+        `message ${id}: Ollama failed on this message (HTTP 500); skipped`,
+      ]);
+    }
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+  });
+
+  it('even a runtime shared by three runs never writes llm_error from sift classify (CR-01)', async () => {
+    const box = await newMailbox('cli-poison-shared');
+    const poison = llmMessage('poison', '2026-09-03T09:00:00Z');
+    const errorText = `runner crashed on this prompt ${randomUUID()}`;
+    const fake = await failingFor(poison.from, errorText);
+    const [id] = await seed(box, [poison]);
+    const runtime = testRuntime(fake, dataDir);
+
+    for (let run = 0; run < 4; run += 1) {
+      const result = await classify(box, { kind: 'message', id: id as string }, runtime);
+      expect(result.code).toBe(0);
+      expect(result.stderr).toEqual([
+        `message ${id}: Ollama failed on this message (HTTP 500); skipped`,
+      ]);
+    }
+    expect(fake.chatBodies().filter((b) => JSON.stringify(b).includes(CANARY_USER))).toEqual([]);
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
   });
 });
 
