@@ -11,17 +11,24 @@ import { seedMailboxes } from '../../../packages/db/test/support/seed.ts';
 import { createOllamaClient, type LlmClient } from '../src/classify/ollama-client.ts';
 import { createPreflight } from '../src/classify/preflight.ts';
 import {
+  CANARY_SYSTEM,
+  CANARY_USER,
   CLASSIFY_CHUNK_SIZE,
   type ClassifyOutcome,
   type ClassifyRuntime,
   classifyMailbox,
   LLM_CALLS_PER_TICK,
   MAX_CONSECUTIVE_MESSAGE_FAILURES,
+  MESSAGE_FAILURE_PASSES,
+  MESSAGE_HELD_BACK_LOG,
+  NOTICE_MAX_IDS,
   OLLAMA_MESSAGE_FAILURE_LOG,
   OLLAMA_MESSAGE_FAILURES_PER_PASS,
   rulesProblemMessage,
+  unclassifiedNotice,
 } from '../src/classify/run.ts';
 import {
+  BASIC_CATEGORIES,
   BASIC_RULES,
   decisionsOf,
   expectReplayableDecision,
@@ -729,6 +736,237 @@ describe('a message Ollama fails on alone: edges (CR-01)', () => {
   });
 });
 
+describe('a message Ollama keeps failing on is held back (WR-03, CR-01)', () => {
+  /** A fake that answers 500 for chats from `address` and Noise for every other chat. */
+  async function poisonFake(address: string): Promise<FakeOllama> {
+    const errorText = `runner crashed on this sender ${randomUUID()}`;
+    mailText.push(errorText);
+    return fakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(`from_address: ${address}`)
+          ? { status: 500, json: { error: errorText } }
+          : okAnswer('Noise', 0.9),
+    });
+  }
+
+  /** Chat requests that are the mail-free canary. */
+  function canaries(fake: FakeOllama): Record<string, unknown>[] {
+    return fake.chatBodies().filter((body) => JSON.stringify(body.messages).includes(CANARY_USER));
+  }
+
+  /** The done outcome of a pass whose only LLM-bound message Ollama failed on alone. */
+  const skipped = (id: string, llmCalls: number): ClassifyOutcome => ({
+    kind: 'done',
+    labelled: 0,
+    review: 0,
+    llmCalls,
+    examined: 1,
+    failures: 0,
+    ollamaFailed: [id],
+    unclassified: [id],
+  });
+
+  it('after MESSAGE_FAILURE_PASSES (3) passes no chat and no preflight is spent on it; after 2 it is still sent (WR-03)', async () => {
+    expect(MESSAGE_FAILURE_PASSES).toBe(3);
+    const box = await newMailbox('held');
+    const poison = llmMessage('held', minute(200));
+    const fake = await poisonFake(poison.from);
+    const [id] = await seed(box, [poison]);
+    if (id === undefined) throw new Error('seed returned no id');
+    const runtime = testRuntime(fake, dataDir);
+
+    expect(await pass(box, runtime)).toEqual(skipped(id, 1));
+    expect(runtime.messageFailures.get(id)).toBe(1);
+    expect(await pass(box, runtime)).toEqual(skipped(id, 1));
+    expect(runtime.messageFailures.get(id)).toBe(2);
+    // Adjacency: after two such passes the message is still sent.
+    expect(chatsFrom(fake, poison.from)).toBe(2);
+    expect(canaries(fake)).toHaveLength(0);
+
+    const log = newLog();
+    // The third pass: the message's chat, then one canary chat, which Ollama answers.
+    expect(await pass(box, runtime, { log })).toEqual(skipped(id, 2));
+    expect(chatsFrom(fake, poison.from)).toBe(3);
+    expect(canaries(fake)).toHaveLength(1);
+    expect(runtime.messageFailures.get(id)).toBe(MESSAGE_FAILURE_PASSES);
+    expect(log.lines.filter((l) => l.msg === MESSAGE_HELD_BACK_LOG)).toEqual([
+      {
+        level: 'warn',
+        obj: { mailbox: box.slug, message: id, passes: MESSAGE_FAILURE_PASSES },
+        msg: MESSAGE_HELD_BACK_LOG,
+      },
+    ]);
+
+    // The fourth pass: held back. No request of any kind reaches Ollama.
+    const before = fake.requests().length;
+    expect(await pass(box, runtime)).toEqual({
+      kind: 'done',
+      labelled: 0,
+      review: 0,
+      llmCalls: 0,
+      examined: 1,
+      failures: 0,
+      ollamaFailed: [],
+      unclassified: [id],
+    });
+    expect(fake.requests()).toHaveLength(before);
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([id]);
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+  });
+
+  it('the canary request carries no email: fixed CANARY_SYSTEM and CANARY_USER, format names only Probe (CR-01)', async () => {
+    const box = await newMailbox('canary');
+    const poison = llmMessage('canary', minute(210));
+    const fake = await poisonFake(poison.from);
+    await seed(box, [poison]);
+    const runtime = testRuntime(fake, dataDir);
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES; i += 1) await pass(box, runtime);
+
+    const [canary] = canaries(fake);
+    if (canary === undefined) throw new Error('no canary chat');
+    expect(canary.model).toBe(FAKE_MODEL);
+    expect(canary.messages).toEqual([
+      { role: 'system', content: CANARY_SYSTEM },
+      { role: 'user', content: CANARY_USER },
+    ]);
+    const format = JSON.stringify(canary.format);
+    expect(format).toContain('Probe');
+    for (const name of BASIC_CATEGORIES) expect(format).not.toContain(name);
+    const text = JSON.stringify(canary);
+    expect(text).not.toContain(poison.from);
+    expect(text).not.toContain(poison.subject);
+    expect(text).not.toContain(poison.body);
+    expect(text).not.toContain('<<<EMAIL');
+  });
+
+  it('a runner that fails every prompt fails the canary: an outage, and the message is not held back (CR-01)', async () => {
+    const box = await newMailbox('all-fail');
+    const errorText = `runner crashed on every prompt ${randomUUID()}`;
+    mailText.push(errorText);
+    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
+    const message = llmMessage('all-fail', minute(220));
+    const [id] = await seed(box, [message]);
+    if (id === undefined) throw new Error('seed returned no id');
+    const runtime = testRuntime(fake, dataDir);
+
+    expect(await pass(box, runtime)).toEqual(skipped(id, 1));
+    expect(await pass(box, runtime)).toEqual(skipped(id, 1));
+    const log = newLog();
+    const third = await pass(box, runtime, { log });
+    expect(third).toMatchObject({ kind: 'infra', code: 'server_error' });
+    expect(canaries(fake)).toHaveLength(1);
+    expect(runtime.messageFailures.get(id)).toBe(2);
+    expect(log.lines.some((l) => l.msg === MESSAGE_HELD_BACK_LOG)).toBe(false);
+
+    // Not held back: the next pass sends the message again.
+    const fourth = await pass(box, runtime);
+    expect(fourth).toMatchObject({ kind: 'infra', code: 'server_error' });
+    expect(chatsFrom(fake, message.from)).toBe(4);
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([id]);
+  });
+
+  it('a fresh runtime (worker restart) sends a held-back message again (WR-03)', async () => {
+    const box = await newMailbox('restart');
+    const poison = llmMessage('restart', minute(230));
+    const fake = await poisonFake(poison.from);
+    const [id] = await seed(box, [poison]);
+    if (id === undefined) throw new Error('seed returned no id');
+    const runtime = testRuntime(fake, dataDir);
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES; i += 1) await pass(box, runtime);
+    expect((await pass(box, runtime)).kind).toBe('done');
+    expect(chatsFrom(fake, poison.from)).toBe(MESSAGE_FAILURE_PASSES);
+
+    const restarted = testRuntime(fake, dataDir);
+    expect(await pass(box, restarted)).toEqual(skipped(id, 1));
+    expect(chatsFrom(fake, poison.from)).toBe(MESSAGE_FAILURE_PASSES + 1);
+    expect(restarted.messageFailures.get(id)).toBe(1);
+  });
+
+  it('a message that failed twice and is then answered is decided and forgotten (WR-03)', async () => {
+    const box = await newMailbox('recovers');
+    const poison = llmMessage('recovers', minute(240));
+    const fake = await poisonFake(poison.from);
+    const [id] = await seed(box, [poison]);
+    if (id === undefined) throw new Error('seed returned no id');
+    const runtime = testRuntime(fake, dataDir);
+    await pass(box, runtime);
+    await pass(box, runtime);
+    expect(runtime.messageFailures.get(id)).toBe(2);
+
+    fake.setChat(() => okAnswer('Noise', 0.9));
+    expect(await pass(box, runtime)).toMatchObject({
+      kind: 'done',
+      labelled: 1,
+      ollamaFailed: [],
+      unclassified: [],
+    });
+    expect((await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId)).toEqual([id]);
+    expect(runtime.messageFailures.has(id)).toBe(false);
+  });
+
+  it('an exact rule added after the message is held back decides it with no chat and forgets it (WR-03)', async () => {
+    const box = await newMailbox('rule-later');
+    const poison = llmMessage('rule-later', minute(250));
+    const fake = await poisonFake(poison.from);
+    const [id] = await seed(box, [poison]);
+    if (id === undefined) throw new Error('seed returned no id');
+    const runtime = testRuntime(fake, dataDir);
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES; i += 1) await pass(box, runtime);
+    expect(runtime.messageFailures.get(id)).toBe(MESSAGE_FAILURE_PASSES);
+
+    await writeRules(
+      dataDir,
+      box.slug,
+      `${BASIC_RULES}  - kind: exact
+    name: the held sender
+    match:
+      from: [${poison.from}]
+    label: Receipts
+`,
+    );
+    const before = fake.requests().length;
+    expect(await pass(box, runtime)).toMatchObject({
+      kind: 'done',
+      labelled: 1,
+      unclassified: [],
+    });
+    expect(fake.requests()).toHaveLength(before);
+    const decisions = await decisionsOf(db.adminUrl, box.id);
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0]).toMatchObject({
+      messageId: id,
+      tier: 'exact_rules',
+      category: 'Receipts',
+    });
+    expect(runtime.messageFailures.has(id)).toBe(false);
+  });
+
+  it('two messages Ollama fails on alone are named newest first (WR-03)', async () => {
+    const box = await newMailbox('order');
+    const errorText = `runner crashed in order ${randomUUID()}`;
+    mailText.push(errorText);
+    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
+    const [newer] = await seed(box, [llmMessage('order-new', minute(261))]);
+    const [older] = await seed(box, [llmMessage('order-old', minute(260))]);
+    const outcome = await pass(box, testRuntime(fake, dataDir));
+    expect(outcome).toMatchObject({ kind: 'done', unclassified: [newer, older] });
+  });
+
+  it('unclassifiedNotice names at most NOTICE_MAX_IDS ids, then a count (WR-03)', () => {
+    expect(NOTICE_MAX_IDS).toBe(3);
+    expect(unclassifiedNotice([])).toBeNull();
+    expect(unclassifiedNotice(['a'])).toBe(
+      '1 message could not be classified (ids: a); see docker compose logs worker',
+    );
+    expect(unclassifiedNotice(['a', 'b', 'c'])).toBe(
+      '3 messages could not be classified (ids: a, b, c); see docker compose logs worker',
+    );
+    expect(unclassifiedNotice(['a', 'b', 'c', 'd', 'e'])).toBe(
+      '5 messages could not be classified (ids: a, b, c; and 2 more); see docker compose logs worker',
+    );
+  });
+});
+
 describe('shutdown, rules files, re-runs and the lock', () => {
   it('shutdown aborts the in-flight call, writes no decision and is not infra', async () => {
     const box = await newMailbox('abort');
@@ -867,6 +1105,7 @@ describe('logs (SEC-01, T-03-26)', () => {
           'examined',
           'failures',
           'ollamaFailed',
+          'passes',
         ]).toContain(key);
       }
     }

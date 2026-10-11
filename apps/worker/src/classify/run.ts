@@ -33,6 +33,7 @@ import {
   createOllamaClient,
   type InfraCode,
   LLM_CALL_TIMEOUT_MS,
+  type LlmCallResult,
   type LlmClient,
   type OllamaHttpOptions,
 } from './ollama-client.ts';
@@ -91,6 +92,20 @@ export const OLLAMA_MESSAGE_FAILURE_LOG =
   'classify: Ollama failed on this message only; skipped this pass';
 /** Message ids named in the owner notice for unclassified messages; the rest are counted. */
 export const NOTICE_MAX_IDS = 3;
+/**
+ * Passes, in one worker process, in which Ollama failed on a message alone
+ * before this process stops sending it to Ollama (WR-03, T-03-65). The count
+ * is in memory, so a worker restart tries the message again.
+ */
+export const MESSAGE_FAILURE_PASSES = 3;
+/** The warn line for a message this process no longer sends to Ollama. */
+export const MESSAGE_HELD_BACK_LOG =
+  'classify: Ollama failed on this message in every pass; not sent again until the worker restarts';
+/** The fixed system text of the mail-free canary chat (not prompt material). */
+export const CANARY_SYSTEM =
+  'You check that the model can answer. Reply with the JSON object the format asks for.';
+/** The fixed user text of the mail-free canary chat: no email, ever. */
+export const CANARY_USER = 'This is a fixed test request from Sift. It contains no email.';
 
 /**
  * The owner notice for messages a pass could not classify (WR-03): Ollama
@@ -123,6 +138,8 @@ export interface ClassifyRuntime {
   preflight: Preflight;
   /** prompt_version rows by material hash, resolved once per process. */
   promptVersions: Map<string, { id: string; version: number }>;
+  /** Passes in which Ollama failed on a message alone, by message id; per worker process (WR-03). */
+  messageFailures: Map<string, number>;
 }
 
 /**
@@ -153,6 +170,7 @@ export function createClassifyRuntime(options: {
     llm: gateClient(llm, options.gate),
     preflight: gatePreflight(preflight, options.gate),
     promptVersions: new Map(),
+    messageFailures: new Map(),
   };
 }
 
@@ -370,6 +388,11 @@ async function promptVersionFor(
     ctx.runtime.promptVersions.set(material.hash, known);
   }
   return { ...known, hash: material.hash };
+}
+
+/** RED scaffold (03-18 Task 2): replaced by the real canary in the GREEN commit. */
+export async function canaryChat(_ctx: ClassifyContext): Promise<LlmCallResult> {
+  throw new Error('canaryChat is not implemented yet');
 }
 
 async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Promise<Drafted> {

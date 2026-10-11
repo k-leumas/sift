@@ -58,6 +58,7 @@ beforeAll(async () => {
     'ingest-connecting',
     'ingest-no-status',
     'ingest-backfill',
+    'ok-notice',
     ...PAIRS.map(([from, to]) => pairSlug(from, to)),
   ]);
   app = createAppDb(fresh.appUrl);
@@ -167,6 +168,32 @@ describe('recordSyncError with and without syncedAt (D-05, D-16)', () => {
     expect(status?.lastSyncAt?.toISOString()).toBe(synced.toISOString());
     expect(status?.heldNewCount).toBeNull();
     expect(status?.approvedNewCount).toBeNull();
+  });
+});
+
+describe('recordSyncSuccess with a notice (WR-03)', () => {
+  it('stores the notice as last_error with state ok; a later call without one clears it', async () => {
+    const id = ids['ok-notice'] as string;
+    const notice = '2 messages could not be classified (ids: a, b); see docker compose logs worker';
+    const at = new Date('2026-10-11T07:00:00.000Z');
+    await withMailbox(app, id, (s) =>
+      s.mailboxStatus.upsert({ heldNewCount: 9, approvedNewCount: 9 }),
+    );
+    await withMailbox(app, id, (s) => recordSyncSuccess(s, at, { notice }));
+    const noted = await statusOf(id);
+    expect(noted?.state).toBe('ok');
+    expect(noted?.lastError).toBe(notice);
+    expect(noted?.lastSyncAt?.toISOString()).toBe(at.toISOString());
+    expect(noted?.heldNewCount).toBeNull();
+    expect(noted?.approvedNewCount).toBeNull();
+
+    await withMailbox(app, id, (s) => recordSyncSuccess(s, at, { notice: 'x'.repeat(2000) }));
+    expect((await statusOf(id))?.lastError).toHaveLength(1000);
+
+    await withMailbox(app, id, (s) => recordSyncSuccess(s, at));
+    const cleared = await statusOf(id);
+    expect(cleared?.state).toBe('ok');
+    expect(cleared?.lastError).toBeNull();
   });
 });
 

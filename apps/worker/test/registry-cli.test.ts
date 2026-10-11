@@ -201,6 +201,8 @@ describe('sift mailbox list states, backfill progress and message counts (02-16,
       'foxtrot',
       'golf',
       'hotel',
+      'india',
+      'juliet',
     ]);
     const status = (slug: string, sql: string) =>
       ownerSql(listDb.ownerUrl, ids[slug] ?? '', sql, [ids[slug]]);
@@ -230,6 +232,18 @@ describe('sift mailbox list states, backfill progress and message counts (02-16,
     );
     await status('foxtrot', "insert into mailbox_status (mailbox_id, state) values ($1, 'ok')");
     await status('hotel', 'update mailbox set disabled_at = now() where id = $1');
+    // WR-03: an ok mailbox whose last pass left messages it could not classify.
+    await status(
+      'india',
+      `insert into mailbox_status (mailbox_id, state, last_error)
+       values ($1, 'ok', '1 message could not be classified (ids: m-1);'
+         || E'\\n  see docker compose logs worker')`,
+    );
+    await status(
+      'juliet',
+      `insert into mailbox_status (mailbox_id, state, last_error, backfill_done, backfill_total)
+       values ($1, 'ok', '5 messages could not be classified (ids: a, b, c; and 2 more); see docker compose logs worker', 10, 40)`,
+    );
   });
 
   afterAll(async () => {
@@ -273,6 +287,17 @@ describe('sift mailbox list states, backfill progress and message counts (02-16,
       '0',
     ]);
     expect(row('foxtrot').slice(0, 3)).toEqual(['foxtrot', 'ok', '0']);
+    // WR-03: the notice follows 'ok', whitespace runs collapsed.
+    expect(row('india').slice(0, 3)).toEqual([
+      'india',
+      'ok; 1 message could not be classified (ids: m-1); see docker compose logs worker',
+      '0',
+    ]);
+    expect(row('juliet').slice(0, 3)).toEqual([
+      'juliet',
+      'ok, backfilling 10 of 40; 5 messages could not be classified (ids: a, b, c; and 2 more); see docker compose logs worker',
+      '0',
+    ]);
     expect(row('golf').slice(0, 3)).toEqual(['golf', 'never run', '0']);
     expect(row('hotel')[1]).toMatch(/^disabled since \d{4}-\d{2}-\d{2}$/);
     expect(stdout.join('\n')).not.toContain(listDb.ownerUrl);
