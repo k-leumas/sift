@@ -4387,6 +4387,38 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T04:50:00.000Z"
+    },
+    {
+      "id": "bug-263",
+      "timestamp": "2026-10-11T04:53:20.380Z",
+      "error_message": "Type error",
+      "file": "apps/worker/src/classify/run.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:53:20.381Z"
+    },
+    {
+      "id": "bug-264",
+      "timestamp": "2026-10-11T04:53:22.820Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/src/classify/run.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:53:22.820Z"
     }
   ]
 }

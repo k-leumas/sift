@@ -1,11 +1,16 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:48:55.723Z
-> Files: 530 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T05:08:24.481Z
+> Files: 533 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
 
 - `esc-test.txt` (~15 tok)
+
+## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/03-17/
+
+- `run-edges.ts` — Declares box (~1293 tok)
+- `run-tests.ts` — Declares box (~1577 tok)
 
 ## ./
 
@@ -228,6 +233,7 @@
 - `03-16-PLAN.md` — Artifacts this plan produces (~4010 tok)
 - `03-16-SUMMARY.md` — Phase 3 Plan 16: Control characters in the model reason (WR-01) Summary (~3146 tok)
 - `03-17-PLAN.md` — Artifacts this plan produces (~6894 tok)
+- `03-17-SUMMARY.md` — Dependency graph (~4531 tok)
 - `03-18-PLAN.md` — Artifacts this plan produces (~6574 tok)
 - `03-19-PLAN.md` — Artifacts this plan produces (~6776 tok)
 - `03-20-PLAN.md` — Artifacts this plan produces (~4621 tok)
@@ -285,7 +291,7 @@
 - `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2539 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
 - `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1547 tok)
-- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~5572 tok)
+- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~6271 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 - `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
 

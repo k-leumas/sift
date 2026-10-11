@@ -261,6 +261,10 @@
 - [2026-10-11] 03-16 (WR-01): validateLlmOutput rejects a reason holding Cc or U+2028/U+2029 (REASON_CONTROL_CHARACTERS, exported from @sift/core/classify) as schema_mismatch 'reason: control_character', checked on the TRIMMED reason (leading/trailing tab/LF/U+2028 are trimmed and pass). recordDecision runs stripNul(parseDecisionSpans(...)) as the NUL backstop. End-to-end fake answers with a JSON escape: build it from String.fromCharCode(92) + 'u' + hex inside JSON.stringify(...).replace(placeholder), mid-sentence.
 - [2026-10-11] JSON.stringify never emits a raw NUL (it writes the 6-char escape): a not.toContain(NUL) check on stringified JSON is vacuous; assert on fields or the escape text (bug-262).
 
+- [2026-10-11] 03-17 (CR-01): draftFor re-runs ctx.runtime.preflight after a chat server_error/timeout; healthy -> skip only that message (state.ollamaFailed, max OLLAMA_MESSAGE_FAILURES_PER_PASS=2, one call off llmCallsLeft, warn OLLAMA_MESSAGE_FAILURE_LOG with slug/id/code/status). The done outcome has ollamaFailed: string[], so every toEqual on a done outcome needs `ollamaFailed: []`; the classify-run 'logs' test keeps an allowlist of log keys (add any new key there). sift classify maps that warn line to a stderr line in its ClassifyLog adapter.
+- [2026-10-11] Dovecot `doveadm save` sets INTERNALDATE with one-second precision; to make one appended mail strictly newer than another (newest-first scan order), wait ~1.1 s between appends (classify-batch poison test).
+- [2026-10-11] RED for a tdd task after a tracer that already implemented everything: copy the plan-base implementation (`git show <base>:file`) plus the new exported names only (no behaviour) over the file, run the new tests with junit + `-t '<describe>'`, targetTest `<describe> > <it>`: RED_EVIDENCE_OK; restore from a scratch copy.
+
 ## Do-Not-Repeat
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
