@@ -396,11 +396,11 @@ The model is `models.llm` from config (default `qwen3:1.7b`, the hybrid thinking
 | Condition | How it shows up | Class | Effect |
 |---|---|---|---|
 | Ollama not running / wrong URL | `fetch` rejects `TypeError('fetch failed')`, `cause.code` `ECONNREFUSED` / `ENOTFOUND` / `ECONNRESET` / `EHOSTUNREACH` **[live]** | infra `unreachable` | No decision, message stays pending, the tick's LLM work stops, `mailbox_status` "Ollama unreachable at <url> (<code>)" with P1 D-51 backoff. Exact-rule decisions in the same tick are still written. |
-| Too slow | `DOMException` `TimeoutError` from `AbortSignal.timeout` **[live]** | infra `timeout` | Same as above. |
+| Too slow | `DOMException` `TimeoutError` from `AbortSignal.timeout` **[live]** | infra `timeout` | (gap closure 03-17) The pass re-runs the preflight. If Ollama answers it, only this message is skipped for the tick (no decision, it stays pending), at most `OLLAMA_MESSAGE_FAILURES_PER_PASS` (2) per tick; otherwise (a failed re-probe, or a third such failure in the tick) backoff as an outage, as in the first row. |
 | Worker shutting down | `shutdown.aborted === true` (check this before the error name) **[live]** | `aborted` | No decision, no status error. Stop between chunks (D-14). |
 | Model not pulled | HTTP 404 `{"error":"model 'qwen3:1.7b' not found"}` **[live]** (or `…not found, try pulling it first`) | infra `model_missing` | Status error names the model and the fix (`ollama pull <model>`). The preflight catches this before any per-message call. |
 | Server busy | HTTP 503 (`OLLAMA_MAX_QUEUE`) or 429 | infra `busy` | Backoff. |
-| Runner crash / OOM / load failure | HTTP 500 `{"error": "..."}`, for example "llama runner process has terminated" | infra `server_error` | Backoff. See the open question about a per-message poison 500 in the planner list. |
+| Runner crash / OOM / load failure | HTTP 500 `{"error": "..."}`, for example "llama runner process has terminated" | infra `server_error` | (gap closure 03-17) The pass re-runs the preflight. If Ollama answers it, only this message is skipped for the tick (no decision, it stays pending), at most `OLLAMA_MESSAGE_FAILURES_PER_PASS` (2) per tick; otherwise (a failed re-probe, or a third such failure in the tick) backoff as an outage, as in the first row. |
 | Prompt longer than `num_ctx` | HTTP 400, error text matches `/context (length\|size)\|longer than the context/i` **[live]** | **message**: `input_too_long` | Decision `review` with reason `input_too_long` (a new D-31 code). Not infra, because the same input fails every time. |
 | Other HTTP 400 | For example an invalid `format`, or `"<model>" does not support thinking` | infra `rejected` | This is a code or config bug, never the email's fault. Show the status error and do not write a review decision. |
 | HTTP 200 without `done: true` + string `message.content`, or a non-JSON body | — | infra `server_error` | Wrong server or proxy on that URL. |
@@ -1129,6 +1129,7 @@ FM = Section 1 critical failure mode. "0" means zero tolerance: one violation fa
 >   - **Recovery:** on the next tick with a healthy fake, every pending message is decided.
 >   - **Shutdown:** an abort writes no decision and no status error.
 >   - **Context length:** a 400 for context length is the one HTTP error that writes a decision: `review/input_too_long` after exactly one call, and the mailbox carries on.
+>   - **Message-confined 500 or timeout (gap closure 03-17):** the 500 and hang scripts follow the re-probe rule in Section 4. A healthy re-probe skips only that message (no decision, still pending, the tick goes on); a failing re-probe or a third such failure in the tick is the outage path above.
 > - **FAIL:** A `review` or `labelled` row written for an infra failure. `input_too_long` treated as infra, which would block the mailbox on every tick. A retry inside the tick after an infra failure.
 > - **Measurement:** Code.
 
@@ -1140,6 +1141,7 @@ FM = Section 1 critical failure mode. "0" means zero tolerance: one violation fa
 >   - **Explicit re-run:** `sift classify --message` appends exactly one new decision, and the latest one is current.
 >   - **Per-tick cap:** with 26 LLM-bound messages pending, one tick makes 25 calls, newest INTERNALDATE first.
 >   - **Single flight:** across concurrent mailboxes, the fake never sees more than 1 request in flight (D-19).
+>   - **A message Ollama fails on alone (gap closure 03-17):** a 500 or a timeout on one message, followed by a healthy re-probe, skips only that message; every other message is still decided in the same tick and the mailbox is not put into backoff.
 > - **FAIL:** A sibling message skipped, a duplicate automatic decision, one mailbox's problem stopping another, or overlapping Ollama calls.
 > - **Measurement:** Code.
 
@@ -1393,7 +1395,7 @@ Five guardrails run on every LLM call or every tick. All five are already in the
 | **Confidence threshold** (`tiers.llm.confidence_threshold`, default 0.75) | Valid output with confidence below the threshold | **Escalate** to `review/low_confidence`, with category null | E10 |
 | **Fence and untrusted-field handling, no silent truncation** | Every LLM call | **Block** by structure: email-derived text is placed only inside a fence marked with a fresh 96-bit nonce per attempt, headers are one line and capped, control characters are stripped, and the body is cut at 4,000 characters with an explicit label. `truncate: false` turns an overflow into `review/input_too_long`, and so does an ok response with `prompt_eval_count ≥ num_ctx − num_predict`. This reduces how far an email can steer the model; it does not prevent steering. | E3, E4, E11 |
 | **Preflight, local model only** | Every tick, before the first LLM call. Fires when `/api/version` is unreachable, `models.llm` is absent from `/api/tags`, the entry has `remote_host`/`remote_model`, or `/api/show` (optional) lacks thinking `false` | **Block** the LLM tier for the tick (fail closed): no `/api/chat` call, and a `mailbox_status` error that names the cause and the fix. Exact rules still decide. | E5, E7 |
-| **Infra-vs-invalid split** (the `LlmClient` result union) | Every call that ends in a transport error, timeout, 404/429/5xx, a 400 other than context length, a non-chat 200, or shutdown | **Block** the decision write: the message stays pending and the tick's LLM work stops. **Flag** it in `mailbox_status` with D-51 backoff. Shutdown writes nothing. A context-length 400 becomes `review/input_too_long` and is never treated as infra. | E5, E6 |
+| **Infra-vs-invalid split** (the `LlmClient` result union) | Every call that ends in a transport error, timeout, 404/429/5xx, a 400 other than context length, a non-chat 200, or shutdown | **Block** the decision write: the message stays pending and the tick's LLM work stops. **Flag** it in `mailbox_status` with D-51 backoff. (gap closure 03-17: a 5xx or timeout after which the preflight still succeeds skips only that message, at most 2 per tick; see Section 4.) Shutdown writes nothing. A context-length 400 becomes `review/input_too_long` and is never treated as infra. | E5, E6 |
 
 **Structural constraints** are not runtime checks, but they are part of the guarantee:
 - No request ever carries `tools`.
@@ -1445,7 +1447,7 @@ There is also one invariant check. It is 0 by construction, and checked anyway: 
 | Signal | Threshold | Surface | Response |
 |--------|-----------|---------|----------|
 | Ollama unreachable, timeout, model missing, remote model | Any occurrence | `mailbox_status` error, immediately (existing D-51 backoff) | Start Ollama, `ollama pull <model>`, or fix `models.llm` |
-| Mailbox stuck in an Ollama error | More than 1 h continuously | `sift mailbox list` | Check the host and Ollama. If one message gives a 500 every time, it is the per-message poison case, an open planner question in Section 4. If the planner adds handling for it, add an E5/E6 test. |
+| Mailbox stuck in an Ollama error | More than 1 h continuously | `sift mailbox list` | Check the host and Ollama. A message Ollama fails on alone (500 or timeout with a healthy re-probe) no longer causes this: it is skipped for the tick and the others are decided (gap closure 03-17, Section 4 error table, E5, E6). A stuck error therefore means Ollama itself is failing. |
 | Pending backlog not draining | Not decreasing over 3 consecutive ticks while state is `ok`, or the oldest LLM-bound pending message is older than 24 h | Weekly SQL or a spot check | Check latency, the per-tick cap, or a stuck message |
 | Category outside its snapshot | More than 0 | Weekly SQL | P0 bug: a guardrail is broken. Stop and fix. |
 | Non-null `thinking` | More than 0 | Weekly SQL | Investigate the same day (D-23) |
