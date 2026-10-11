@@ -293,6 +293,8 @@
 - [2026-10-10] Executors share the orchestrator scratchpad: one overwrote the orchestrator helper gsd.sh. Tell every executor to keep its temp files in a per-plan subdirectory and never touch shared helper scripts.
 - [2026-10-11] The Write tool decodes backslash-u escapes in its content: writing a regex such as [\p{Cc} plus the U+2028/U+2029 escapes into a plan saved the real separator characters (injection warning, bug-240). Describe such characters as U+2028 in prose, or fix with a python replace, and check new files with `LC_ALL=C grep -c -P '[^\x09\x0A\x20-\x7E]'`.
 
+- [2026-10-11] Test titles are single-quoted strings: an apostrophe in an it() title ("a message's body") breaks the vitest transform with 'Transform failed' and 'no tests'. Reword or use double quotes (bug-247).
+
 ## Decision Log
 
 - 2026-10-07 (phase 02 UAT): Owner scoped Sift to Proton Mail through Proton Bridge only, for now: simpler logic, smaller test surface, more security-minded. README must say so (README lines ~105/107/391 still imply any IMAP server). Code still has non-Bridge paths (implicit TLS, mid:/hdr: fallbacks); removing them is a separate decision.

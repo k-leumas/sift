@@ -4090,6 +4090,56 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T03:18:13.360Z"
+    },
+    {
+      "id": "bug-245",
+      "timestamp": "2026-10-11T04:10:36.030Z",
+      "error_message": "Missing guard clause",
+      "file": "packages/db/src/ingest.ts",
+      "root_cause": "No early return/throw for edge case: ids.length === 0",
+      "fix": "Added guard clause: if (ids.length === 0)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:10:36.030Z"
+    },
+    {
+      "id": "bug-246",
+      "timestamp": "2026-10-11T04:10:50.352Z",
+      "error_message": "Significant refactor of ",
+      "file": "packages/db/src/classify.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 23→36 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:10:50.353Z"
+    },
+    {
+      "id": "bug-247",
+      "timestamp": "2026-10-11T04:15:00Z",
+      "error_message": "Error: Transform failed with 1 error (packages/db/test/classify.test.ts, Tests no tests)",
+      "file": "packages/db/test/classify.test.ts",
+      "root_cause": "New it() title written as a single-quoted string containing an apostrophe (a decided message's body)",
+      "fix": "Reworded the title to avoid the apostrophe (the body of a decided message)",
+      "tags": [
+        "vitest",
+        "esbuild",
+        "test-title",
+        "quoting",
+        "03-14"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T04:15:00Z"
     }
   ]
 }

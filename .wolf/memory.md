@@ -1361,3 +1361,12 @@
 | 21:21 | Session end: 48 writes across 11 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 26 reads | ~146065 tok |
 | 21:23 | plan-phase 03 --gaps: 9 gap-closure plans (03-14..03-22) for CR-01/02/03, WR-01..03; checker passed on iteration 2 | .planning/phases/03-*/03-14..22-PLAN.md | ready to execute | ~60k |
 | 21:24 | Session end: 48 writes across 11 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 26 reads | ~146065 tok |
+| 21:44 | Session end: 48 writes across 11 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 26 reads | ~146065 tok |
+| 22:09 | Session end: 48 writes across 11 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 30 reads | ~146065 tok |
+| 22:10 | Edited packages/db/src/ingest.ts | added 1 condition(s) | ~314 |
+| 22:10 | Edited packages/db/src/classify.ts | 3→5 lines | ~68 |
+| 22:10 | Edited packages/db/src/classify.ts | — | ~0 |
+| 22:10 | Edited packages/db/src/classify.ts | added 1 condition(s) | ~414 |
+| 22:10 | Edited apps/worker/src/classify/refetch.ts | expiry() → once() | ~44 |
+| 22:21 | Created .planning/phases/03-tiered-classification-with-traces/03-14-SUMMARY.md | — | ~2975 |
+| 22:22 | 03-14 executed: CR-02 decided-message body expiry at write time (restoreBody + storeMessages, decidedMessageIds), T-03-20 closed; commits ec4a49a 50e2a49 12c3327 1be8646 + docs | packages/db/src/ingest.ts, classify.ts, tests, 03-SECURITY.md | 109 tests pass, typecheck/lint 0 | ~60000 |

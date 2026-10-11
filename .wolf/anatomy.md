@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T03:18:27.124Z
-> Files: 520 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T04:21:16.169Z
+> Files: 523 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
 
@@ -222,6 +222,7 @@
 - `03-13-PLAN.md` — Exports BaselineRow (~4703 tok)
 - `03-13-SUMMARY.md` — Phase 3 Plan 13: Owner Docs and the Live-Baseline Runner Summary (~4140 tok)
 - `03-14-PLAN.md` — Artifacts this plan produces (~5283 tok)
+- `03-14-SUMMARY.md` — Phase 3 Plan 14: Decided-message body expiry at write time (CR-02) Summary (~2789 tok)
 - `03-15-PLAN.md` — Artifacts this plan produces (~4099 tok)
 - `03-16-PLAN.md` — Artifacts this plan produces (~4010 tok)
 - `03-17-PLAN.md` — Artifacts this plan produces (~6894 tok)
@@ -280,7 +281,7 @@
 - `llm-tier.ts` — The LLM tier for one message (D-22..D-24, AI-SPEC section 4): call, (~1551 tok)
 - `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2539 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
-- `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1527 tok)
+- `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1547 tok)
 - `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~5572 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 - `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
@@ -663,3 +664,8 @@
 - `0008_classification_preflight.sql` — Preflight for 0009 (Phase 3): decision and rule_set gain NOT NULL columns (~323 tok)
 - `0009_classification_tables.sql` — SQL: tables: prompt_version, 32 alter(s) (~1592 tok)
 - `0010_classification_grants.sql` (~37 tok)
+
+## packages/db/src/
+
+- `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32); re-exports DECISION_BODY_RETENTION_MS; restoreBody(scope,id,body,at?) expires a decided message's body at once (CR-02). (~2950 tok)
+- `ingest.ts` — Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23); DECISION_BODY_RETENTION_MS, decidedMessageIds (internal), StoreOptions.at (CR-02 decided-body expiry). (~6200 tok)
