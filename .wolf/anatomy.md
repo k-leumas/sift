@@ -1,16 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T05:33:59.522Z
-> Files: 534 tracked | Anatomy hits: 0 | Misses: 0
-
-## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/
-
-- `esc-test.txt` (~15 tok)
-
-## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/03-17/
-
-- `run-edges.ts` — Declares box (~1293 tok)
-- `run-tests.ts` — Declares box (~1577 tok)
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T08:24:11.038Z
+> Files: 510 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -55,17 +46,17 @@
 ## .gsd/
 
 - `.gitignore` — Git ignore rules (~1 tok)
-- `dispatch-isolation-sentinel.json` (~27 tok)
+- `dispatch-isolation-sentinel.json` (~28 tok)
 
 ## .planning/
 
 - `config.json` (~558 tok)
 - `INGEST-CONFLICTS.md` — Conflict Detection Report (~252 tok)
 - `PROJECT.md` — Sift (~3612 tok)
-- `REQUIREMENTS.md` — Requirements: Sift (~2766 tok)
+- `REQUIREMENTS.md` — Requirements: Sift (~2770 tok)
 - `ROADMAP.md` — Roadmap: Sift (~4400 tok)
-- `state.json` (~218 tok)
-- `STATE.md` — Project State (~7046 tok)
+- `state.json` (~214 tok)
+- `STATE.md` — Project State (~7657 tok)
 - `WINDOWS.md` — Broken Windows Ledger (~324 tok)
 
 ## .planning/intel/
@@ -231,24 +222,25 @@
 - `03-15-PLAN.md` — Artifacts this plan produces (~4099 tok)
 - `03-15-SUMMARY.md` — Phase 3 Plan 15: Resume approval spent with the ingest (CR-03) Summary (~2453 tok)
 - `03-16-PLAN.md` — Artifacts this plan produces (~4010 tok)
-- `03-16-SUMMARY.md` — Phase 3 Plan 16: Control characters in the model reason (WR-01) Summary (~3146 tok)
-- `03-17-PLAN.md` — Artifacts this plan produces (~6894 tok)
+- `03-16-SUMMARY.md` — Phase 3 Plan 16: Control characters in the model reason (WR-01) Summary (~3148 tok)
+- `03-17-PLAN.md` — Artifacts this plan produces (~6902 tok)
 - `03-17-SUMMARY.md` — Dependency graph (~4531 tok)
-- `03-18-PLAN.md` — Artifacts this plan produces (~6574 tok)
+- `03-18-PLAN.md` — Artifacts this plan produces (~5612 tok)
 - `03-18-SUMMARY.md` — Dependency graph (~4067 tok)
-- `03-19-PLAN.md` — Artifacts this plan produces (~6776 tok)
-- `03-20-PLAN.md` — Artifacts this plan produces (~4621 tok)
+- `03-19-PLAN.md` — Artifacts this plan produces (~6853 tok)
+- `03-19-SUMMARY.md` — Dependency graph (~3814 tok)
+- `03-20-PLAN.md` — Artifacts this plan produces (~4700 tok)
 - `03-21-PLAN.md` — Artifacts this phase produces (~4078 tok)
 - `03-21-SUMMARY.md` — Phase 03 Plan 21: Control characters in rules.yaml Summary (~2441 tok)
 - `03-22-PLAN.md` — Artifacts this phase produces (~3528 tok)
-- `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~28765 tok)
-- `03-CONTEXT.md` — Phase 3: Tiered Classification with Traces - Context (~4038 tok)
+- `03-AI-SPEC.md` — AI-SPEC — Phase 3: Tiered Classification with Traces (~29093 tok)
+- `03-CONTEXT.md` — Phase 3: Tiered Classification with Traces - Context (~4282 tok)
 - `03-DISCUSSION-LOG.md` — Phase 3: Tiered Classification with Traces - Discussion Log (~1792 tok)
 - `03-PATTERNS.md` — Phase 3: Tiered Classification with Traces - Pattern Map (~3773 tok)
 - `03-RESEARCH.md` — Phase 3: Tiered Classification with Traces - Research (~17483 tok)
 - `03-REVIEW-DISPOSITION.md` — Phase 03: Code Review Disposition (~906 tok)
 - `03-REVIEW.md` — Phase 3: Code Review Report (~5796 tok)
-- `03-SECURITY.md` — threats_open = count of OPEN threats at or above workflow.security_block_on severity (the blocking gate) (~4674 tok)
+- `03-SECURITY.md` — threats_open = count of OPEN threats at or above workflow.security_block_on severity (the blocking gate) (~4761 tok)
 - `03-USER-SETUP.md` — Phase 3: User Setup Required (~579 tok)
 - `03-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~2623 tok)
 - `03-VERIFICATION.md` (~7137 tok)
@@ -292,7 +284,7 @@
 - `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2539 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
 - `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1547 tok)
-- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06); unclassifiedNotice and done.unclassified (WR-03), per-process messageFailures hold-back with canaryChat (03-18). (~7700 tok)
+- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~7846 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 - `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
 
@@ -300,11 +292,11 @@
 
 - `bridge-probe.ts` — Largest earlier report --compare reads (a 200-entry sample is far smaller). (~2890 tok)
 - `bridge-trust.ts` — The owner's other, independent reading of the fingerprint (D-73, D-79). The (~1742 tok)
-- `classify.ts` — Above this many selected messages the owner must confirm (D-17, like P2 D-75). (~5584 tok)
+- `classify.ts` — Above this many selected messages the owner must confirm (D-17, like P2 D-75). (~5752 tok)
 - `config-apply.ts` — Show a path relative to the working directory when it lives under it. (~1341 tok)
 - `config-check.ts` — Show a path relative to the working directory when it lives under it. (~935 tok)
 - `mailbox-backfill.ts` — How long the backfill waits for the mailbox's ingest lock (D-03): one (~3855 tok)
-- `mailbox-list.ts` — `sift mailbox list`: status per mailbox, incl. 'ok; <notice>' for an ok mailbox with last_error (WR-03, NOTICE_PREVIEW 240). (~1122 tok)
+- `mailbox-list.ts` — Longest owner notice shown after 'ok' (WR-03: it names up to three message ids). (~1122 tok)
 - `mailbox-rename.ts` — `sift mailbox rename <old-slug> <new-slug>` (D-32, D-63). Changes the slug (~814 tok)
 - `mailbox-resume.ts` — `sift mailbox resume <slug>` (D-26). The volume valve holds new mail when a (~591 tok)
 - `migrate.ts` — Show a path relative to the working directory when it lives under it. (~848 tok)
@@ -331,7 +323,7 @@
 
 - `backoff.ts` — Longest wait between attempts for a failing mailbox: 15 minutes (D-51). (~179 tok)
 - `heartbeat.ts` — Heartbeat file location (D-54). A non-blank SIFT_HEARTBEAT_FILE wins; (~310 tok)
-- `mailbox-batch.ts` — After the worker starts, connection failures (unreachable, timeout) show as (~6459 tok)
+- `mailbox-batch.ts` — After the worker starts, connection failures (unreachable, timeout) show as (~6465 tok)
 - `run-until-stopped.ts` — Exit code after too many missed heartbeats (IN-05): 75, EX_TEMPFAIL in (~613 tok)
 - `shutdown.ts` — Resolve with the first SIGTERM or SIGINT (D-53). Both listeners are removed (~274 tok)
 - `startup.ts` — Differences between config.yaml and the mailbox registry, one line per (~180 tok)
@@ -347,17 +339,17 @@
 - `bridge-probe.test.ts` — Strings planted in every subject, From, To, body, Message-ID local part and folder name. (~7360 tok)
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2626 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
-- `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~6409 tok)
-- `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~6883 tok)
-- `classify-control-chars.test.ts` — WR-01 end to end: a model reason that holds a control character after (~2241 tok)
+- `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~7642 tok)
+- `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~7150 tok)
+- `classify-control-chars.test.ts` — WR-01 end to end: a model reason that holds a control character after (~2267 tok)
 - `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~765 tok)
 - `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8686 tok)
-- `classify-leak.test.ts` — Mail stays on the machine and out of logs and status (E7, the Phase 3 part (~3136 tok)
+- `classify-leak.test.ts` — Mail stays on the machine and out of logs and status (E7, the Phase 3 part (~3559 tok)
 - `classify-llm-tier.test.ts` — The LLM tier over the real HTTP path against the scripted fake Ollama (~5615 tok)
 - `classify-ollama-client.test.ts` — The client half of D-16/E5: every transport outcome is classified at the (~2386 tok)
 - `classify-preflight.test.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use, section 6 (~3206 tok)
-- `classify-refetch.test.ts` — D-32's refetch half (03-12, P2 D-08): a re-run of a message whose cached (~3654 tok)
-- `classify-run.test.ts` — The classification pass (03-08) against a real database as sift_app and (~7610 tok)
+- `classify-refetch.test.ts` — D-32's refetch half (03-12, P2 D-08): a re-run of a message whose cached (~4072 tok)
+- `classify-run.test.ts` — The classification pass (03-08) against a real database as sift_app and (~13052 tok)
 - `classify-trace.test.ts` — Every way a decision can be made leaves a complete, closed and replayable (~4413 tok)
 - `cli.test.ts` — Deferred mailbox hard-delete command (D-69). It must not appear in any CLI output. (~827 tok)
 - `compose-smoke.test.ts` — Repository files the smoke script reads before it first calls docker. (~6804 tok)
@@ -383,7 +375,7 @@
 - `no-secret-leak.test.ts` — FND-02 / success criterion 2 (automated half, T-01-46): a mailbox password (~2748 tok)
 - `node-version.test.ts` — .nvmrc without the leading "v" and surrounding whitespace, e.g. 26.10.0. (~323 tok)
 - `read-only-ingest.test.ts` — T-02-31 / D-11: ingest never changes the owner's mail. folder-source.ts (~750 tok)
-- `registry-cli.test.ts` — Run the CLI with only the owner URL, the config path and PATH. No mailbox (~3013 tok)
+- `registry-cli.test.ts` — Run the CLI with only the owner URL, the config path and PATH. No mailbox (~3317 tok)
 - `run-until-stopped.test.ts` — A supervisor whose registry read always fails with a coded, URL-quoting error. (~1598 tok)
 - `setup.test.ts` — Committed migrations, from the journal, so new migrations do not break this test. (~2468 tok)
 - `spike-findings.test.ts` — The owner's IMAP usernames when the main checkout has config/config.yaml; [] in CI. (~1660 tok)
@@ -615,13 +607,13 @@
 ## packages/core/src/classify/
 
 - `canonical.ts` — Canonical JSON for content hashes (the prompt_version hash here, the (~417 tok)
-- `decide.ts` — The single assembler of decisions (CLS-05, T-03-12): tier results go in, one (~1581 tok)
+- `decide.ts` — The single assembler of decisions (CLS-05, T-03-12): tier results go in, one (~1648 tok)
 - `exact-rules.ts` — The exact-rules tier (D-08 to D-12, TRC-02): the owner's rules decide, (~1592 tok)
 - `index.ts` — Declares DecideInput (~410 tok)
-- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod schema + validateLlmOutput; REASON_CONTROL_CHARACTERS rejects control characters in the reason (WR-01). (~1293 tok)
+- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~1293 tok)
 - `prompt-version.ts` — The material that keys the unscoped prompt_version table (D-29). It is (~1027 tok)
 - `prompt.ts` — The LLM tier's prompt (D-21, SEC-01, AI-SPEC section 4b). The system message (~2303 tok)
-- `spans.ts` — The `decision.spans` trace (D-27, D-28, D-30, TRC-01, TRC-03, TRC-06): a (~2006 tok)
+- `spans.ts` — The `decision.spans` trace (D-27, D-28, D-30, TRC-01, TRC-03, TRC-06): a (~2114 tok)
 
 ## packages/core/src/config/
 
@@ -638,7 +630,7 @@
 - `index.ts` — Declares RuleSetVersion (~207 tok)
 - `load.ts` — Size cap checked before parsing (T-03-01). A real rules file is a few KiB. (~770 tok)
 - `path.ts` — Data directory, relative to the working directory, when SIFT_DATA is unset. (~363 tok)
-- `schema.ts` — Schema of a mailbox's rules file, data/mailboxes/<slug>/rules.yaml (D-01, (~3520 tok)
+- `schema.ts` — Schema of a mailbox's rules file, data/mailboxes/<slug>/rules.yaml (D-01, (~3648 tok)
 
 ## packages/core/test/
 
@@ -651,38 +643,11 @@
 - `llm-output.test.ts` — AI-SPEC section 4b, [verified] generated format for these three categories. (~2376 tok)
 - `log.test.ts` — Declares capture (~1286 tok)
 - `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1309 tok)
-- `prompt.test.ts` — README-style rules snapshot (the example rules file's categories and judgment). (~3438 tok)
-- `rules-hash.test.ts` — The same rules, written differently: none of these may create a new version (D-03, TRC-04). (~2074 tok)
-- `rules.test.ts` — A categories block with `count` valid, distinct names. (~7121 tok)
-- `spans.test.ts` — exact: ok (~1709 tok)
-
-## packages/db/
-
-- `drizzle.config.ts` — Drizzle ORM configuration (~124 tok)
-- `package.json` — Node.js package manifest (~134 tok)
-- `tsconfig.json` — TypeScript configuration (~22 tok)
 
 ## packages/db/migrations/
 
-- `0000_extensions.sql` (~12 tok)
-- `0001_registry_and_message.sql` — SQL: tables: mailbox, message, 2 alter(s) (~463 tok)
-- `0002_message_force_grants.sql` — SQL: 1 alter(s), 1 function(s) (~177 tok)
-- `0003_scoped_tables.sql` — SQL: tables: decision, folder_sync, label, label_event, 14 alter(s) (~1704 tok)
-- `0004_scoped_tables_force_grants.sql` — SQL: 6 alter(s) (~427 tok)
-- `0005_ingest_preflight.sql` — Preflight for 0006 (T-02-63): message and folder_sync gain NOT NULL and (~311 tok)
-- `0006_ingest_tables.sql` — SQL: tables: message_body, message_location, 45 alter(s) (~2323 tok)
-- `0007_ingest_tables_force_grants.sql` — SQL: 2 alter(s) (~157 tok)
-- `0008_classification_preflight.sql` — Preflight for 0009 (Phase 3): decision and rule_set gain NOT NULL columns (~323 tok)
-- `0009_classification_tables.sql` — SQL: tables: prompt_version, 32 alter(s) (~1592 tok)
-- `0010_classification_grants.sql` (~37 tok)
+- `0011_decision_llm_error_reason.sql` — 03-19: drops and re-adds decision_review_reason_check with llm_error allowed (owner option-review). (~90 tok)
 
-## packages/db/src/
+## packages/db/src/schema/
 
-- `classify.ts` — Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32); re-exports DECISION_BODY_RETENTION_MS; restoreBody(scope,id,body,at?) expires a decided message's body at once (CR-02); recordDecision strips NUL from parsed spans (WR-01 backstop). (~2815 tok)
-- `index.ts` — Database connection-string variables. Values are secrets and are never logged. (~743 tok)
-- `ingest.ts` — Ingest use-cases over the scoped API (D-14, D-15, D-06, D-07, D-21, D-23); DECISION_BODY_RETENTION_MS, decidedMessageIds (internal), StoreOptions.at (CR-02 decided-body expiry). (~6200 tok)
-- `status.ts` — Worker-facing use-cases over scope.mailboxStatus (D-07, D-43 second layer); recordIngestSynced (CR-03); recordSyncSuccess(scope, at, { notice }) keeps state ok with an owner notice (WR-03). (~1800 tok)
-
-## packages/db/test/
-
-- `classify.test.ts` — Classification use-cases (D-03, D-15, D-17, D-18, D-27, D-29, D-32, (~8399 tok)
+- `scoped.ts` — Mailbox-scoped tables (ISO-01). Each one has a NOT NULL mailbox_id that (~4916 tok)

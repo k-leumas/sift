@@ -26,6 +26,8 @@
 - In Phase 3 discuss, owner picked every recommended option; prefers fail-closed, append-only, no automatic reclassification. (2026-10-08)
 
 ## Key Learnings
+- [2026-10-11] Adding a review reason (03-19): append to REVIEW_REASONS (and ATTEMPT_FAILURE_CODES if an attempt can carry it), LlmVerdict's union, scoped.ts decision_review_reason_check, then `pnpm db:generate --name=<x>`: drizzle-kit emits DROP + ADD CONSTRAINT only (no preflight needed when the set only grows). classify.test.ts loops REVIEW_REASONS through recordDecision, so core and SQL lists cannot drift.
+- [2026-10-11] RED evidence files left in the gitignored .vitest/ still fail `pnpm lint` (Biome formats .vitest/*.json). Move the record to the scratchpad after `check tdd-red-evidence`.
 
 - [2026-10-10] 03-12: `sift classify` is apps/worker/src/commands/classify.ts (classifyCommand(deps) is the testable core; run() only parses and wires). It reuses classifyCandidates with decidedBy 'rerun' + newPassState(null) (no cap), selects ids under one lock then classifies 5-id chunks each under its own lock (re-read pendingOnly for --all-pending). Expired bodies go through classify/refetch.ts refetchBodies (EXAMINE, location under current UIDVALIDITY, parseMessage identity key must equal stored, BODY.PEEK, restoreBody). The IMAP entry/password are resolved lazily, so tests of cached-body re-runs can use seedMailboxes + bare siftConfig().
 - [2026-10-10] 03-09: with `classify` set, runBatch writes mailbox status ONCE after classifyMailbox (outside the ingest lock): done/busy/aborted -> ok; rules_invalid -> error with syncedAt, batch resolves (no backoff); infra -> throws ClassifyInfraError, onBatchError records it before the MailboxSyncError grace logic (never connecting). Without `classify` the Phase 2 in-lock recordSyncSuccess path is unchanged.
@@ -308,7 +310,10 @@
 
 - [2026-10-11] `gsd query state.add-decision --summary-file` rejects paths outside the repo (the scratchpad too): pass `--summary "..."` inline (bug-273).
 
+- [2026-10-11] Rewriting .wolf/buglog.json with Python `json.dump` escapes every non-ASCII character (arrows, box chars) and rewrites dozens of old entries. Always pass `ensure_ascii=False` (with indent=2 and a trailing newline), then confirm `git diff` shows additions only.
+
 ## Decision Log
+- 2026-10-11 (03-19 checkpoint): owner chose option-review ("keep fix 1, go with option A"): a message Ollama fails on alone in 3 passes (healthy re-probe + canary) ends as a review decision with reason llm_error; amends D-16/D-31, migration 0011 (one-way). Owner accepted the 03-17 D-16 clarification. 03-20 makes the worker write it.
 
 - 2026-10-07 (phase 02 UAT): Owner scoped Sift to Proton Mail through Proton Bridge only, for now: simpler logic, smaller test surface, more security-minded. README must say so (README lines ~105/107/391 still imply any IMAP server). Code still has non-Bridge paths (implicit TLS, mid:/hdr: fallbacks); removing them is a separate decision.
 - 2026-10-07: Owner wants the README to tell owners to keep the host clock NTP-synced (WR-03 caps future INTERNALDATE at worker clock; worker and Bridge share the host clock, INTERNALDATE is Proton server time).

@@ -4565,6 +4565,56 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T05:36:00Z"
+    },
+    {
+      "id": "bug-274",
+      "timestamp": "2026-10-11T08:15:11.774Z",
+      "error_message": "Significant refactor of ",
+      "file": "packages/core/src/classify/spans.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 17→28 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:15:11.774Z"
+    },
+    {
+      "id": "bug-275",
+      "timestamp": "2026-10-11T08:15:13.314Z",
+      "error_message": "Significant refactor of ",
+      "file": "packages/core/src/classify/decide.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 8→13 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:15:13.315Z"
+    },
+    {
+      "id": "bug-276",
+      "timestamp": "2026-10-11T08:22:30Z",
+      "error_message": "pnpm lint: .vitest/red-03-19.json format - File content differs from formatting output",
+      "file": ".vitest/red-03-19.json",
+      "root_cause": "The TDD RED evidence record was written into the gitignored .vitest/ folder, which Biome still checks",
+      "fix": "Moved the record and its junit report to the scratchpad after check tdd-red-evidence; lint exit 0",
+      "tags": [
+        "lint",
+        "biome",
+        "tdd",
+        "red-evidence",
+        "vitest"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:22:30Z"
     }
   ]
 }
