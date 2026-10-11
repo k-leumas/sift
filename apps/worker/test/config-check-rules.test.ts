@@ -53,6 +53,14 @@ rules:
     label: Noise
 `;
 
+/**
+ * Valid except for a NUL (YAML escape \0) in the first category description:
+ * PostgreSQL jsonb cannot hold it, so the worker could not store the rule set (WR-02).
+ */
+const NUL_DESCRIPTION = TWO_PROBLEMS.replace('label: Receipts', 'label: Important')
+  .replace('      in: body\n', '')
+  .replace('description: things I need to act on', 'description: "things I need\\0 to act on"');
+
 const PASSWORDS = { SIFT_ALPHA_IMAP_PASSWORD: 'a', SIFT_BETA_IMAP_PASSWORD: 'b' };
 
 let work: string;
@@ -139,6 +147,21 @@ describe('sift config check reads every mailbox rules file (D-05)', () => {
     );
     expect(stderr[1]).toMatch(
       new RegExp(`^${source}:${lineOf(TWO_PROBLEMS, 'in: body')}:\\d+ rules\\[1\\]\\.match\\.in: `),
+    );
+  });
+
+  it('exits 1 for a NUL in a description, naming file, position and YAML path (WR-02)', async () => {
+    const data = await dataDir({ alpha: NUL_DESCRIPTION, beta: 'example' });
+    const { status, stdout, stderr } = await check({ ...PASSWORDS, SIFT_DATA: data });
+    expect(status).toBe(1);
+    expect(stdout).toEqual([]);
+    const source = path.relative(work, path.join(data, 'mailboxes', 'alpha', 'rules.yaml'));
+    expect(stderr).toHaveLength(1);
+    expect(stderr[0]).toMatch(
+      new RegExp(
+        `^${source}:${lineOf(NUL_DESCRIPTION, 'things I need')}:\\d+ ` +
+          'categories\\[0\\]\\.description: description must not contain control characters$',
+      ),
     );
   });
 

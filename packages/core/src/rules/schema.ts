@@ -44,7 +44,19 @@ export type PhrasePlace = (typeof PHRASE_PLACES)[number];
 
 const FROM_PATTERN = /^[^\s@]+@[^\s@]+$/;
 const DOMAIN_PATTERN = /^[^\s@.]+(\.[^\s@.]+)*$/;
-const LINE_BREAK = /[\r\n]/;
+/** CR, LF and the Unicode line and paragraph separators U+2028 and U+2029. */
+const LINE_BREAK = /[\r\n\u2028\u2029]/u;
+
+/**
+ * Control characters, matched per code point: the Unicode property Cc (NUL,
+ * tab, CR, LF, DEL and the C1 range with U+0085) plus the separators U+2028
+ * and U+2029 (WR-02). The rule set snapshot is stored as PostgreSQL jsonb,
+ * which cannot hold NUL (SQLSTATE 22P05), so a rules file with one would pass
+ * config check and then fail the rule-set write on every pass (CLS-06).
+ * Trusted prompt text is one line with no control characters; match entries
+ * hold none either. Rejected, never stripped (D-05).
+ */
+const CONTROL_CHARACTERS = /[\p{Cc}\u2028\u2029]/u;
 
 const categoryNameMessage = `category names may use letters, digits, single spaces, - and & (1 to ${CATEGORY_NAME_MAX_CHARS} characters)`;
 const categoriesMessage = `categories must list from ${MIN_CATEGORIES} to ${MAX_CATEGORIES} categories`;
@@ -61,14 +73,24 @@ function length(value: string): number {
   return [...value].length;
 }
 
-/** A trimmed, non-empty, single-line string of at most `max` characters. */
+/**
+ * A trimmed, non-empty, single-line string of at most `max` characters with no
+ * control characters. One issue per value: a line break is reported as such,
+ * any other control character as a control character.
+ */
 function oneLine(name: string, max: number) {
   return z
     .string({ error: unlessMissing(`${name} must be text`) })
     .trim()
     .min(1, `${name} must not be empty`)
     .max(max, `${name} must be at most ${max} characters`)
-    .refine((value) => !LINE_BREAK.test(value), `${name} must be one line`);
+    .superRefine((value, ctx) => {
+      if (LINE_BREAK.test(value)) {
+        ctx.addIssue({ code: 'custom', message: `${name} must be one line` });
+      } else if (CONTROL_CHARACTERS.test(value)) {
+        ctx.addIssue({ code: 'custom', message: `${name} must not contain control characters` });
+      }
+    });
 }
 
 /** Checked as written: a name is never trimmed or otherwise fixed. One message per name. */
