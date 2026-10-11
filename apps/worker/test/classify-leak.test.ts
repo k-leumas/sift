@@ -8,11 +8,16 @@ import { type AppDb, createAppDb } from '@sift/db';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
 import { seedImapMailbox } from '../../../packages/db/test/support/seed.ts';
+import {
+  OLLAMA_MESSAGE_FAILURE_LOG,
+  OLLAMA_MESSAGE_FAILURES_PER_PASS,
+} from '../src/classify/run.ts';
 import { ClassifyInfraError, createMailboxCallbacks } from '../src/runtime/mailbox-batch.ts';
 import {
   BASIC_RULES,
   decisionsOf,
   expectReplayableDecision,
+  pendingIdsOf,
   type StoredDecision,
   testRuntime,
   writeRules,
@@ -47,8 +52,8 @@ import {
  * Mail stays on the machine and out of logs and status (E7, the Phase 3 part
  * of SEC-02; T-03-39, T-03-40). One random sentinel is planted in an email's
  * subject, display name and body, in the fake's reason text and in its HTTP
- * error bodies. Across a normal decision, invalid output, a 500 outage, a
- * context-length 400 and a cloud model, it never appears in a worker log line
+ * error bodies. Across a normal decision, invalid output, a 500 on one
+ * message, a 500 outage, a context-length 400 and a cloud model, it never appears in a worker log line
  * or in mailbox_status.last_error, while it does appear in the decision's raw
  * output (the positive control). Every fetch goes to the configured origin.
  */
@@ -112,11 +117,16 @@ interface LeakRun {
 let counter = 0;
 
 /**
- * A fresh mailbox and fake: one batch records the empty folder, then the
- * sentinel mail is appended and a second batch ingests and classifies it,
- * with onBatchError on failure as the supervisor does. The caller closes the fake.
+ * A fresh mailbox and fake: one batch records the empty folder, then
+ * `count` sentinel mails are appended and a second batch ingests and
+ * classifies them, with onBatchError on failure as the supervisor does. The
+ * caller closes the fake.
  */
-async function leakRun(prefix: string, fakeOptions: FakeOllamaOptions): Promise<LeakRun> {
+async function leakRun(
+  prefix: string,
+  fakeOptions: FakeOllamaOptions,
+  count = 1,
+): Promise<LeakRun> {
   const fake = await startFakeOllama(fakeOptions);
   counter += 1;
   const slug = `${prefix}-${counter}`;
@@ -155,7 +165,7 @@ async function leakRun(prefix: string, fakeOptions: FakeOllamaOptions): Promise<
   try {
     await callbacks.readRegistry();
     await callbacks.runBatch(entry, new AbortController().signal);
-    await appendMessage(user, 'INBOX', sentinelMail());
+    for (let i = 0; i < count; i += 1) await appendMessage(user, 'INBOX', sentinelMail());
     try {
       await callbacks.runBatch(entry, new AbortController().signal);
     } catch (caught) {
@@ -247,12 +257,37 @@ describe('mail text never reaches logs or status (E7, T-03-39)', () => {
     }
   }, 60_000);
 
-  it("a 500 outage: Ollama's error body stays out of status and logs", async () => {
-    const run = await leakRun('outage', {
+  it('a 500 on the only message, Ollama otherwise healthy: skipped by id, error body out of status and logs (CR-01)', async () => {
+    const run = await leakRun('alone', {
       chat: () => ({ status: 500, json: { error: `model runner crashed on ${S}` } }),
     });
     try {
       expectSentinelSent(run);
+      expect(run.error).toBeUndefined();
+      expect(run.status.state).toBe('ok');
+      expect(run.status.last_error).toBeNull();
+      expect(await decisionsOf(db.adminUrl, run.mailboxId)).toEqual([]);
+      const [pending, ...more] = await pendingIdsOf(db.adminUrl, run.mailboxId);
+      expect(more).toEqual([]);
+      const skipped = run.log.lines.filter((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG);
+      expect(skipped.map((l) => l.obj)).toEqual([
+        { mailbox: expect.any(String), message: pending, code: 'server_error', status: 500 },
+      ]);
+      expectNoLeak(run);
+    } finally {
+      await run.fake.close();
+    }
+  }, 60_000);
+
+  it("a 500 on every message: the third is the outage, Ollama's error body stays out of status and logs", async () => {
+    const run = await leakRun(
+      'outage',
+      { chat: () => ({ status: 500, json: { error: `model runner crashed on ${S}` } }) },
+      OLLAMA_MESSAGE_FAILURES_PER_PASS + 1,
+    );
+    try {
+      expectSentinelSent(run);
+      expect(chatCalls(run)).toBe(OLLAMA_MESSAGE_FAILURES_PER_PASS + 1);
       expect(run.error).toBeInstanceOf(ClassifyInfraError);
       expect(run.status.state).toBe('error');
       expect(run.status.last_error).toBe(

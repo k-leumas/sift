@@ -612,6 +612,117 @@ describe('one bad message never stops the others (CLS-06, E6)', () => {
   });
 });
 
+describe('a message Ollama fails on alone: edges (CR-01)', () => {
+  it('a timeout on one message is skipped after a healthy re-probe; the older mail is decided (CR-01)', async () => {
+    const box = await newMailbox('slow');
+    const slow = llmMessage('slow', minute(140));
+    const fake = await fakeOllama({
+      chat: (request) =>
+        JSON.stringify(request).includes(`from_address: ${slow.from}`)
+          ? { hang: true }
+          : okAnswer('Noise', 0.9),
+    });
+    const [slowId] = await seed(box, [slow]);
+    const older = await seed(box, [
+      llmMessage('slow-a', minute(139)),
+      llmMessage('slow-b', minute(138)),
+    ]);
+
+    const log = newLog();
+    const outcome = await pass(box, testRuntime(fake, dataDir, { timeoutMs: 2000 }), { log });
+    expect(outcome).toEqual({
+      kind: 'done',
+      labelled: 2,
+      review: 0,
+      llmCalls: 3,
+      examined: 3,
+      failures: 0,
+      ollamaFailed: [slowId],
+    });
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([slowId]);
+    const decided = (await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId).sort();
+    expect(decided).toEqual([...older].sort());
+    expect(log.lines.filter((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG).map((l) => l.obj)).toEqual(
+      [{ mailbox: box.slug, message: slowId, code: 'timeout', status: null }],
+    );
+    await expectAllReplayable(box, fake);
+  });
+
+  it('a pass whose only LLM-bound message fails alone ends done with that id (CR-01)', async () => {
+    const box = await newMailbox('only-one');
+    const errorText = `runner crashed on the only prompt ${randomUUID()}`;
+    mailText.push(errorText);
+    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
+    const [id] = await seed(box, [llmMessage('only-one', minute(150))]);
+
+    const outcome = await pass(box, testRuntime(fake, dataDir));
+    expect(outcome).toEqual({
+      kind: 'done',
+      labelled: 0,
+      review: 0,
+      llmCalls: 1,
+      examined: 1,
+      failures: 0,
+      ollamaFailed: [id],
+    });
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([id]);
+  });
+
+  it('a shutdown during the re-probe ends the pass aborted with no decision (CR-01)', async () => {
+    const box = await newMailbox('probe-abort');
+    const errorText = `runner crashed before shutdown ${randomUUID()}`;
+    mailText.push(errorText);
+    const fake = await fakeOllama({ chat: () => ({ status: 500, json: { error: errorText } }) });
+    const controller = new AbortController();
+    const real = createPreflight(fake.url);
+    let preflights = 0;
+    const stopping: typeof real = async (model, shutdown) => {
+      preflights += 1;
+      if (preflights === 1) return real(model, shutdown);
+      controller.abort();
+      return { kind: 'aborted' };
+    };
+    const ids = await seed(box, [
+      llmMessage('probe-abort-a', minute(160)),
+      llmMessage('probe-abort-b', minute(159)),
+    ]);
+
+    const outcome = await pass(box, testRuntime(fake, dataDir, { preflight: stopping }), {
+      signal: controller.signal,
+    });
+    expect(outcome).toEqual({ kind: 'aborted' });
+    expect(preflights).toBe(2);
+    expect(chatRequests(fake)).toHaveLength(1);
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+    expect((await pendingIdsOf(db.adminUrl, box.id)).sort()).toEqual([...ids].sort());
+  });
+
+  it('an unreachable chat result is still an outage, with no re-probe (CR-01)', async () => {
+    const box = await newMailbox('chat-down');
+    const fake = await fakeOllama();
+    let chats = 0;
+    const down: LlmClient = {
+      async chat() {
+        chats += 1;
+        return { kind: 'infra', code: 'unreachable', status: null, detail: 'ECONNREFUSED' };
+      },
+    };
+    const llmIds = await seed(box, [
+      llmMessage('chat-down-a', minute(170)),
+      llmMessage('chat-down-b', minute(169)),
+    ]);
+    const [bankId] = await seed(box, [bankMessage('chat-down-bank', minute(168))]);
+
+    const outcome = await pass(box, testRuntime(fake, dataDir, { llm: down }));
+    expect(outcome).toMatchObject({ kind: 'infra', code: 'unreachable', labelled: 1, review: 0 });
+    expect(chats).toBe(1);
+    expect(fake.requests().filter((r) => r.path === '/api/tags')).toHaveLength(1);
+    expect((await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId)).toEqual([bankId]);
+    expect((await pendingIdsOf(db.adminUrl, box.id)).sort()).toEqual([...llmIds].sort());
+  });
+});
+
 describe('shutdown, rules files, re-runs and the lock', () => {
   it('shutdown aborts the in-flight call, writes no decision and is not infra', async () => {
     const box = await newMailbox('abort');
