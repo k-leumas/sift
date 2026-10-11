@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   llmOutputSchema,
   ollamaFormat,
+  REASON_CONTROL_CHARACTERS,
   REASON_MAX_CHARS,
   validateLlmOutput,
 } from '../src/classify/index.ts';
@@ -152,5 +153,62 @@ describe('validateLlmOutput: failure detail', () => {
       ok: false,
       failure: { code: 'out_of_category', detail: 'category: invalid_value; confidence: too_big' },
     });
+  });
+});
+
+describe('control characters in the reason (WR-01)', () => {
+  // Built from code points so this file holds no raw control characters.
+  const cp = (n: number) => String.fromCodePoint(n);
+  const CONTROL_CHARACTER = {
+    ok: false,
+    failure: { code: 'schema_mismatch', detail: 'reason: control_character' },
+  };
+
+  it.each([
+    ['NUL', cp(0)],
+    ['BEL (U+0007)', cp(0x07)],
+    ['ESC (U+001B)', cp(0x1b)],
+    ['DEL (U+007F)', cp(0x7f)],
+    ['U+0085 (next line)', cp(0x85)],
+    ['a tab inside the text', cp(0x09)],
+    ['a line feed inside the text', cp(0x0a)],
+    ['U+2028 (line separator)', cp(0x2028)],
+    ['U+2029 (paragraph separator)', cp(0x2029)],
+  ])('rejects a reason holding %s as schema_mismatch', (_name, char) => {
+    expect(REASON_CONTROL_CHARACTERS.test(char)).toBe(true);
+    expect(validateLlmOutput(schema, answer({ reason: `A bill${char} is due.` }))).toEqual(
+      CONTROL_CHARACTER,
+    );
+  });
+
+  it.each([
+    ['accents', 'Facture à régler, échéance dépassée.'],
+    ['CJK text', '請求書の支払い期限が近い。'],
+    ['an astral emoji', `A bill is due ${cp(0x1f4b8)} soon.`],
+    ['emoji only', cp(0x1f600).repeat(3)],
+  ])('accepts a reason with %s', (_name, reason) => {
+    expect(validateLlmOutput(schema, answer({ reason }))).toEqual({
+      ok: true,
+      value: { reason, category: 'Important', confidence: 0.9 },
+    });
+  });
+
+  it('accepts a reason whose only whitespace control characters lead or trail (trimmed)', () => {
+    const result = validateLlmOutput(
+      schema,
+      answer({ reason: `${cp(0x09)} A bill is due.${cp(0x0a)}${cp(0x0d)}` }),
+    );
+    expect(result).toEqual({
+      ok: true,
+      value: { reason: 'A bill is due.', category: 'Important', confidence: 0.9 },
+    });
+  });
+
+  it('never quotes the reason in the failure detail', () => {
+    const secret = 'QZSECRETTEXT';
+    const result = validateLlmOutput(schema, answer({ reason: `${secret}${cp(0)}${secret}` }));
+    expect(result).toEqual(CONTROL_CHARACTER);
+    if (result.ok) return;
+    expect(result.failure.detail).not.toContain(secret);
   });
 });

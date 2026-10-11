@@ -705,6 +705,48 @@ describe('re-runs, latest decision, body restore and the review reasons (D-17, D
     }
   });
 
+  it('stores an llm decision whose attempt holds NUL in thinking, raw and done_reason, without the NUL (WR-01 backstop)', async () => {
+    const nul = String.fromCodePoint(0);
+    const dirty: LlmAttemptSpan = {
+      ...attempt({ ok: false, code: 'not_json', detail: 'content is not one JSON value' }),
+      raw: `not${nul} json`,
+      thinking: `thinking${nul} aloud`,
+      done_reason: `st${nul}op`,
+    };
+    const draft = decide({
+      exact: noMatch,
+      llm: {
+        verdict: { kind: 'review', reason: 'invalid_output', attempts: [dirty] },
+        context: { ...llmContext(prompt, material.hash), response_model: `qwen3${nul}:1.7b` },
+      },
+      threshold: 0.75,
+    });
+    const row = await withMailbox(app, mailboxId, (s) =>
+      recordDecision(
+        s,
+        decisionInput(newer, ruleSetId, draft, { decidedBy: 'rerun', promptVersionId: prompt.id }),
+      ),
+    );
+    expect(row).toMatchObject({ outcome: 'review', reviewReason: 'invalid_output', tier: 'llm' });
+
+    const [stored] = await adminQuery<{ spans: { kind: string }[] }>(
+      'select spans from decision where id = $1',
+      [row.id],
+    );
+    const llm = stored?.spans.find((s) => s.kind === 'llm') as
+      | { response_model: string; attempts: LlmAttemptSpan[] }
+      | undefined;
+    expect(llm?.response_model).toBe('qwen3:1.7b');
+    expect(llm?.attempts).toHaveLength(1);
+    expect(llm?.attempts[0]).toMatchObject({
+      raw: 'not json',
+      thinking: 'thinking aloud',
+      done_reason: 'stop',
+    });
+    // JSON.stringify writes NUL as a six-character escape: look for that.
+    expect(JSON.stringify(stored?.spans)).not.toContain(`${String.fromCharCode(92)}u0000`);
+  });
+
   it('refuses an unknown review reason with 23514', async () => {
     await expect(
       withMailbox(app, mailboxId, (s) =>

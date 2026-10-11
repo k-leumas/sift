@@ -12,6 +12,7 @@ export {
   type LlmOutputSchema,
   llmOutputSchema,
   ollamaFormat,
+  REASON_CONTROL_CHARACTERS,
   REASON_MAX_CHARS,
   type ValidationFailure,
   validateLlmOutput,
