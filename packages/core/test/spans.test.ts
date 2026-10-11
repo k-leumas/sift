@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ATTEMPT_FAILURE_CODES,
   CLASSIFIER_SKIPPED_SPAN,
   decisionSpansSchema,
   LLM_SPAN_OPTIONS,
@@ -114,6 +115,26 @@ describe('decisionSpansSchema: valid traces (TRC-01, TRC-06)', () => {
     expect(ok([exact, classifier, span, review('input_too_long')])).toBe(true);
   });
 
+  it('accepts an llm_error trace: one failed call, raw null, result null (gap closure 03-19)', () => {
+    const failed = {
+      ...attempt,
+      raw: null,
+      thinking: null,
+      done_reason: null,
+      metrics: null,
+      validation: { ok: false, code: 'llm_error', detail: 'Ollama failed on this message' },
+    };
+    const span = { ...llm, attempts: [failed], result: null, confidence: null };
+    const spans = parseDecisionSpans([exact, classifier, span, review('llm_error')]);
+    expect(spans).toHaveLength(4);
+    expect(spans[3]).toEqual(review('llm_error'));
+  });
+
+  it('ends REVIEW_REASONS and ATTEMPT_FAILURE_CODES with llm_error (gap closure 03-19)', () => {
+    expect(REVIEW_REASONS.at(-1)).toBe('llm_error');
+    expect(ATTEMPT_FAILURE_CODES.at(-1)).toBe('llm_error');
+  });
+
   it('keeps the classifier span frozen and fixed', () => {
     expect(Object.isFrozen(CLASSIFIER_SKIPPED_SPAN)).toBe(true);
     expect(CLASSIFIER_SKIPPED_SPAN).toEqual({
@@ -162,6 +183,10 @@ describe('decisionSpansSchema: rejections', () => {
     ],
     ['an unknown key in action', [exact, classifier, { ...label, applied: true }, label]],
     ['a review reason outside REVIEW_REASONS', [exact, classifier, llm, review('timeout')]],
+    [
+      'a review reason that is not llm_error (model_error)',
+      [exact, classifier, llm, review('model_error')],
+    ],
     ['an action that is not pending', [exact, classifier, { ...label, status: 'done' }]],
     [
       'options with thinking on',

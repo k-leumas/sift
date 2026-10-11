@@ -247,6 +247,23 @@ describe('decide() with an LLM review verdict (D-24, D-31)', () => {
         ],
       },
     },
+    {
+      name: 'llm_error after one call Ollama failed on (gap closure 03-19)',
+      verdict: {
+        kind: 'review',
+        reason: 'llm_error',
+        attempts: [
+          {
+            nonce: 'N0NCE00000000001',
+            raw: null,
+            thinking: null,
+            done_reason: null,
+            metrics: null,
+            validation: { ok: false, code: 'llm_error', detail: 'Ollama failed on this message' },
+          },
+        ],
+      },
+    },
   ];
 
   it.each(reviews)('$name: review with that reason, no confidence, result null', ({ verdict }) => {
