@@ -4649,6 +4649,185 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-11T08:40:00Z"
+    },
+    {
+      "id": "bug-279",
+      "timestamp": "2026-10-11T08:42:06.304Z",
+      "error_message": "Significant refactor of ",
+      "file": "apps/worker/src/classify/llm-tier.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 12→39 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:42:06.304Z"
+    },
+    {
+      "id": "bug-280",
+      "timestamp": "2026-10-11T08:42:10.763Z",
+      "error_message": "Wrong return value",
+      "file": "apps/worker/src/classify/llm-tier.ts",
+      "root_cause": "Was returning: { kind: 'infra', code: result.code, status: result",
+      "fix": "Now returns: {",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:42:10.763Z"
+    },
+    {
+      "id": "bug-281",
+      "timestamp": "2026-10-11T08:42:25.342Z",
+      "error_message": "Type error",
+      "file": "apps/worker/src/classify/run.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:42:25.342Z"
+    },
+    {
+      "id": "bug-282",
+      "timestamp": "2026-10-11T08:42:56.105Z",
+      "error_message": "Significant refactor of ",
+      "file": "apps/worker/src/classify/run.ts",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 15→32 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:42:56.105Z"
+    },
+    {
+      "id": "bug-283",
+      "timestamp": "2026-10-11T08:47:56.704Z",
+      "error_message": "Missing await",
+      "file": "apps/worker/test/classify-cli.test.ts",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:47:56.704Z"
+    },
+    {
+      "id": "bug-284",
+      "timestamp": "2026-10-11T08:49:25.640Z",
+      "error_message": "Missing guard clause",
+      "file": "apps/worker/test/support/classify-harness.ts",
+      "root_cause": "No early return/throw for edge case: response === undefined || response.hang === true",
+      "fix": "Added guard clause: if (response === undefined || response.hang )",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:49:25.641Z"
+    },
+    {
+      "id": "bug-285",
+      "timestamp": "2026-10-11T08:48:30Z",
+      "error_message": "SyntaxError: \"undefined\" is not valid JSON in answeredContent (expectReplayableDecision) for a timeout-derived llm_error trace",
+      "file": "apps/worker/test/support/classify-harness.ts",
+      "root_cause": "A fake { hang: true } response has no status and no body; answeredContent treated status ?? 200 as an answer and JSON.parse'd JSON.stringify(undefined)",
+      "fix": "answeredContent returns null when response.hang is true (no body was sent; the attempt's raw is null) (03-20 Task 2 GREEN)",
+      "tags": [
+        "vitest",
+        "fake-ollama",
+        "hang",
+        "replay",
+        "llm_error",
+        "03-20"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T08:49:00Z"
+    },
+    {
+      "id": "bug-286",
+      "timestamp": "2026-10-11T10:28:46.658Z",
+      "error_message": "Significant refactor of ",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 5→5 lines (3 removed) | Also: result: [pending]; result: [pending]",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-11T10:28:52.609Z"
+    },
+    {
+      "id": "bug-287",
+      "timestamp": "2026-10-11T10:38:56.692Z",
+      "error_message": "Wrong reference: pending should be pass",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "Used \"pending\" instead of \"pass\"",
+      "fix": "Changed pending → pass",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T10:38:56.692Z"
+    },
+    {
+      "id": "bug-288",
+      "timestamp": "2026-10-11T10:38:59.257Z",
+      "error_message": "Significant refactor of ",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 4→4 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T10:38:59.257Z"
+    },
+    {
+      "id": "bug-289",
+      "timestamp": "2026-10-11T10:44:06.193Z",
+      "error_message": "Wrong reference: pending should be pass",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "Used \"pending\" instead of \"pass\"",
+      "fix": "Changed pending → pass",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-11T10:48:09.443Z"
     }
   ]
 }

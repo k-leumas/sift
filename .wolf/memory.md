@@ -1220,3 +1220,61 @@
 | 02:33 | Edited README.md | inline fix | ~98 |
 | 02:36 | Created .planning/phases/03-tiered-classification-with-traces/03-22-SUMMARY.md | — | ~2891 |
 | 08:40 | 03-22: sift classify skip line reworded to (HTTP <status>)/(<code>), CR-01 CLI cases, README notice + skip line, doc pins | apps/worker/src/commands/classify.ts, apps/worker/test/classify-cli.test.ts, README.md, apps/worker/test/user-facing-text.test.ts | 152/152 tests, typecheck, lint ok | ~3200 |
+| 02:39 | Session end: 111 writes across 43 files (03-14-PLAN.md, 03-15-PLAN.md, 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md) | 42 reads | ~222677 tok |
+| 02:42 | Edited apps/worker/src/classify/llm-tier.ts | modified llmErrorDetail() | ~424 |
+| 02:42 | Edited apps/worker/src/classify/llm-tier.ts | modified if() | ~144 |
+| 02:42 | Edited apps/worker/src/classify/run.ts | expanded (+6 lines) | ~208 |
+| 02:42 | Edited apps/worker/src/classify/run.ts | 9→10 lines | ~163 |
+| 02:42 | Edited apps/worker/src/classify/run.ts | 2→5 lines | ~58 |
+| 02:42 | Edited apps/worker/src/classify/run.ts | alone() → pass() | ~58 |
+| 02:42 | Edited apps/worker/src/classify/run.ts | 2→6 lines | ~83 |
+| 02:42 | Edited apps/worker/src/classify/run.ts | 3→3 lines | ~52 |
+| 02:42 | Edited apps/worker/src/classify/run.ts | modified llmSpanContext() | ~368 |
+| 02:43 | Edited apps/worker/src/classify/run.ts | added 1 condition(s) | ~1020 |
+| 02:44 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/03-20/main-test.ts | — | ~1035 |
+| 02:44 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/03-20/restart-test.ts | — | ~264 |
+| 02:47 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/03-20/task2-run.ts | — | ~1678 |
+| 02:47 | Edited apps/worker/test/classify-cli.test.ts | modified for() | ~562 |
+| 02:49 | Edited apps/worker/test/support/classify-harness.ts | added 1 condition(s) | ~133 |
+| 02:56 | Created .planning/phases/03-tiered-classification-with-traces/03-20-SUMMARY.md | — | ~4483 |
+| 08:58 | 03-20: worker writes review llm_error after 3 re-probe-confirmed passes + canary (replaces 03-18 hold-back); llm-tier infra carries llm_error attempts; D-16 outage/always-500/timeout/CLI tests; harness hang replay; README line 91 | apps/worker/src/classify/{llm-tier,run}.ts, apps/worker/test/{classify-run,classify-llm-tier,classify-cli}.test.ts, support/classify-harness.ts, README.md | 244/244 tests, typecheck, lint ok | ~11000 |
+
+## Session: 2026-10-11 03:00
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-10-11 03:23
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-10-11 03:32
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 03:56 | Created .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | — | ~1098 |
+| 03:56 | Created ../../.claude/jobs/415536eb/tmp/uat-auto.sh | — | ~217 |
+| 03:57 | Session end: 2 writes across 2 files (03-UAT.md, uat-auto.sh) | 1 reads | ~1409 tok |
+| 04:12 | Session end: 2 writes across 2 files (03-UAT.md, uat-auto.sh) | 1 reads | ~1409 tok |
+| 04:13 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 5→5 lines | ~105 |
+| 04:13 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 5→5 lines | ~164 |
+| 04:14 | Session end: 4 writes across 2 files (03-UAT.md, uat-auto.sh) | 1 reads | ~1698 tok |
+| 04:18 | Session end: 4 writes across 2 files (03-UAT.md, uat-auto.sh) | 1 reads | ~1698 tok |
+| 04:28 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 5→5 lines | ~160 |
+| 04:28 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 9→11 lines | ~297 |
+| 04:29 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 3→3 lines | ~9 |
+| 04:29 | Session end: 7 writes across 2 files (03-UAT.md, uat-auto.sh) | 2 reads | ~15448 tok |
+| 04:38 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 2→3 lines | ~44 |
+| 04:38 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | table() → owner() | ~69 |
+| 04:39 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 3→3 lines | ~9 |
+| 04:39 | Session end: 10 writes across 2 files (03-UAT.md, uat-auto.sh) | 2 reads | ~15580 tok |
+| 04:44 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 2→2 lines | ~20 |
+| 04:44 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | owner() → confidence_threshold() | ~65 |
+| 04:44 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 3→3 lines | ~9 |
+| 04:44 | Session end: 13 writes across 2 files (03-UAT.md, uat-auto.sh) | 2 reads | ~15681 tok |
+| 04:48 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 2→2 lines | ~20 |
+| 04:48 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | confidence_threshold() → yet() | ~73 |
+| 04:48 | Edited .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md | 3→3 lines | ~9 |
+| 04:48 | Session end: 16 writes across 2 files (03-UAT.md, uat-auto.sh) | 2 reads | ~15790 tok |
+| 04:56 | Session end: 16 writes across 2 files (03-UAT.md, uat-auto.sh) | 2 reads | ~15790 tok |

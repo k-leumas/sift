@@ -1,7 +1,11 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T08:36:34.215Z
-> Files: 512 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-11T10:48:31.553Z
+> Files: 515 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../.claude/jobs/415536eb/tmp/
+
+- `uat-auto.sh` — Appends coverage auto-passed entries, Summary and Gaps to 03-UAT.md. Run from the worktree root. (~217 tok)
 
 ## ./
 
@@ -32,6 +36,10 @@
 ## .claude/rules/
 
 - `openwolf.md` (~313 tok)
+
+## .claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/
+
+- `03-UAT.md` — Current Test (~13336 tok)
 
 ## .github/
 
@@ -230,6 +238,7 @@
 - `03-19-PLAN.md` — Artifacts this plan produces (~6853 tok)
 - `03-19-SUMMARY.md` — Dependency graph (~3814 tok)
 - `03-20-PLAN.md` — Artifacts this plan produces (~4700 tok)
+- `03-20-SUMMARY.md` — Phase 3 Plan 20: llm_error review decision for a message Ollama keeps failing on Summary (~4203 tok)
 - `03-21-PLAN.md` — Artifacts this phase produces (~4078 tok)
 - `03-21-SUMMARY.md` — Phase 03 Plan 21: Control characters in rules.yaml Summary (~2441 tok)
 - `03-22-PLAN.md` — Artifacts this phase produces (~3528 tok)
@@ -281,11 +290,11 @@
 
 ## apps/worker/src/classify/
 
-- `llm-tier.ts` — The LLM tier for one message (D-22..D-24, AI-SPEC section 4): call, (~1551 tok)
+- `llm-tier.ts` — The LLM tier for one message (D-22..D-24, AI-SPEC section 4): call, (~1919 tok)
 - `ollama-client.ts` — The LLM tier's transport (D-16, D-22..D-24, AI-SPEC section 4): one (~2539 tok)
 - `preflight.ts` — The per-tick local-model preflight (AI-SPEC section 4 Tool Use and section (~1425 tok)
 - `refetch.ts` — The refetch half of D-32 (P2 D-08): before an owner re-run classifies a (~1547 tok)
-- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~7846 tok)
+- `run.ts` — The per-mailbox classification pass (D-14..D-18, CLS-01, CLS-02, CLS-06): (~8334 tok)
 - `single-flight.ts` — One Ollama request at a time, worker-wide (D-19, AI-SPEC section 4b (~500 tok)
 - `untrusted-email.ts` — The tiers' views of a stored message (D-08, D-21, RESEARCH Pattern 6), (~491 tok)
 
@@ -341,7 +350,7 @@
 - `bridge-trust.test.ts` — Named in the config, never set: the command must not need it (D-80). (~2626 tok)
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
 - `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~7642 tok)
-- `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~7150 tok)
+- `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~8458 tok)
 - `classify-control-chars.test.ts` — WR-01 end to end: a model reason that holds a control character after (~2267 tok)
 - `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~765 tok)
 - `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8686 tok)
@@ -421,7 +430,7 @@
 
 ## apps/worker/test/support/
 
-- `classify-harness.ts` — Shared pieces of the classification-pass tests (03-08): stored pending (~4642 tok)
+- `classify-harness.ts` — Shared pieces of the classification-pass tests (03-08): stored pending (~4697 tok)
 - `fake-folder-source.ts` — In-memory FolderSource for the sync engine tests (02-10). Synthetic mail (~2284 tok)
 - `fake-imap-server.ts` — A recording fake IMAP server for wire-level tests (D-80): it records every (~2409 tok)
 - `fake-ingest-store.ts` — In-memory IngestStore with the semantics of the @sift/db ingest use-cases (~4470 tok)
