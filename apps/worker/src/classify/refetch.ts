@@ -71,7 +71,8 @@ async function refetchOne(
           await source.downloadText(location.uid, part.part, BODY_DOWNLOAD_MAX_BYTES),
           part.kind,
         );
-  // expires_at stays null; the re-run's decision starts the 7-day expiry (D-32).
+  // restoreBody gives an already-decided message's body its 7-day expiry at
+  // once (CR-02), so an interrupted re-run never leaves it cached forever.
   await session.run((s) =>
     restoreBody(s, candidate.id, {
       bodyText: body.text,

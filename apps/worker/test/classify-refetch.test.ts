@@ -214,6 +214,7 @@ async function rerun(
   m: Mailbox,
   messageId: string,
   env: Record<string, string> = ENV,
+  runtime = testRuntime(fake, dataDir),
 ): Promise<RerunResult> {
   const stdout: string[] = [];
   const stderr: string[] = [];
@@ -225,7 +226,7 @@ async function rerun(
     slug: m.slug,
     selector: { kind: 'message', id: messageId },
     dataDir,
-    runtime: testRuntime(fake, dataDir),
+    runtime,
     confirm: async () => true,
     openImap: async (options) => {
       connections += 1;
@@ -244,7 +245,7 @@ async function rerun(
 }
 
 describe('sift classify refetches an expired body by identity (D-32)', () => {
-  it('restores the body read-only, appends a rerun decision, and the body expires 7 days after it', async () => {
+  it('restores the body read-only, appends a rerun decision, and the body expires 7 days after it was restored', async () => {
     const m = await newMailbox('refetch');
     const [message] = await ingestAndDecide(m, 1);
     if (message === undefined) throw new Error('no message ingested');
@@ -252,6 +253,7 @@ describe('sift classify refetches an expired body by identity (D-32)', () => {
     expect(original).not.toBeNull();
     await expireBody(m, message.id);
 
+    const before = Date.now();
     const result = await rerun(m, message.id);
     expect(result.stderr).toEqual([]);
     expect(result.code).toBe(0);
@@ -266,10 +268,36 @@ describe('sift classify refetches an expired body by identity (D-32)', () => {
     expect(decisions.map((d) => d.decidedBy)).toEqual(['worker', 'rerun']);
     const latest = decisions[1];
     if (latest === undefined) throw new Error('no rerun decision');
-    expect(await bodyExpiryOf(db.adminUrl, m.id, message.id)).toEqual(
-      new Date(latest.createdAt.getTime() + 7 * DAY_MS),
-    );
+    // CR-02: the restore sets the expiry, a moment before the rerun decision.
+    const expiry = await bodyExpiryOf(db.adminUrl, m.id, message.id);
+    expect(expiry).not.toBeNull();
+    expect(expiry?.getTime()).toBeGreaterThanOrEqual(before + 7 * DAY_MS);
+    expect(expiry?.getTime()).toBeLessThanOrEqual(latest.createdAt.getTime() + 7 * DAY_MS);
     await expectReplayableDecision(db.adminUrl, latest, fake);
+  });
+
+  it('gives the restored body its 7-day expiry even when Ollama is down after the refetch (CR-02)', async () => {
+    const m = await newMailbox('outage');
+    const [message] = await ingestAndDecide(m, 1);
+    if (message === undefined) throw new Error('no message ingested');
+    const original = await bodyText(m, message.id);
+    expect(original).not.toBeNull();
+    await expireBody(m, message.id);
+    // Ollama down at a known URL: a fake that is closed at once (never the real port).
+    const downFake = await startFakeOllama();
+    await downFake.close();
+
+    const t0 = Date.now();
+    const result = await rerun(m, message.id, ENV, testRuntime(downFake, dataDir));
+    expect(result.code).toBe(1);
+    expect(result.stderr[0]).toContain('Ollama unreachable at ');
+
+    expect(await bodyText(m, message.id)).toBe(original);
+    expect((await decisionsOf(db.adminUrl, m.id)).map((d) => d.decidedBy)).toEqual(['worker']);
+    const expiry = await bodyExpiryOf(db.adminUrl, m.id, message.id);
+    expect(expiry).not.toBeNull();
+    expect(expiry?.getTime()).toBeGreaterThanOrEqual(t0 + 7 * DAY_MS);
+    expect(expiry?.getTime()).toBeLessThanOrEqual(Date.now() + 7 * DAY_MS);
   });
 
   it('skips a message whose stored identity no longer matches the server copy', async () => {

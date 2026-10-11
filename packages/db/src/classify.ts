@@ -5,9 +5,11 @@ import {
   TRACE_FORMAT_VERSION,
 } from '@sift/core/classify';
 import type { InferSelectModel } from 'drizzle-orm';
-import { stripNul } from './ingest.ts';
+import { DECISION_BODY_RETENTION_MS, decidedMessageIds, stripNul } from './ingest.ts';
 import type { decision } from './schema/index.ts';
 import type { Scope } from './scope.ts';
+
+export { DECISION_BODY_RETENTION_MS } from './ingest.ts';
 
 /**
  * Classification use-cases over the scoped API (D-03, D-15, D-17, D-27, D-32).
@@ -16,9 +18,6 @@ import type { Scope } from './scope.ts';
  * scope) and opens none of its own, takes the scope first and the clock
  * (`at`) last.
  */
-
-/** How long a body stays cached after a message's first decision (D-32): 7 days. */
-export const DECISION_BODY_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type DecisionRow = InferSelectModel<typeof decision>;
 
@@ -214,8 +213,16 @@ export async function latestDecision(scope: Scope, messageId: string): Promise<D
 
 /**
  * Put back a refetched body (D-32) when the message has none: NUL characters
- * are removed, and expires_at stays null so the next decision sets it.
- * Returns true when a row was written; an existing body is left untouched.
+ * are removed. Returns true when a row was written; an existing body is left
+ * untouched.
+ *
+ * expires_at stays null only for a message with no decision: its first
+ * decision starts the 7-day clock (D-32). A message that already has a
+ * decision gets expires_at = at + 7 days in the same insert, because the
+ * re-run that restored it may stop before it records a decision (an Ollama
+ * outage, Ctrl-C, a failure inside the message) and nothing else would ever
+ * expire the body (CR-02). recordDecision only sets a null expiry, so nothing
+ * ever extends this one.
  *
  * Runs in the caller's transaction (the scope).
  */
@@ -223,8 +230,11 @@ export async function restoreBody(
   scope: Scope,
   messageId: string,
   body: { bodyText: string; source: 'text_plain' | 'text_html' | 'none'; truncated: boolean },
+  at: Date = new Date(),
 ): Promise<boolean> {
+  if (!Number.isFinite(at.getTime())) throw new TypeError('restoreBody: at must be a valid Date');
   const clean = stripNul(body);
+  const decided = await decidedMessageIds(scope, [messageId]);
   const inserted = await scope.messageBody.insertOrIgnore(
     [
       {
@@ -232,7 +242,9 @@ export async function restoreBody(
         bodyText: clean.bodyText,
         source: clean.source,
         truncated: clean.truncated,
-        expiresAt: null,
+        expiresAt: decided.has(messageId)
+          ? new Date(at.getTime() + DECISION_BODY_RETENTION_MS)
+          : null,
       },
     ],
     { target: ['messageId'] },

@@ -87,6 +87,31 @@ export interface StoreOptions {
 }
 
 /**
+ * How long a body stays cached after a message's first decision (D-32): 7 days.
+ * A body written later for a message that already has a decision (an owner
+ * re-run's refetch, an ingest re-insert) expires this long after the write
+ * (CR-02). Re-exported by classify.ts, which is where @sift/db exports it from.
+ */
+export const DECISION_BODY_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Which of the given messages have at least one decision row (CR-02): their
+ * bodies are written with an expiry instead of waiting for a decision. One
+ * array parameter; an empty list returns an empty set without SQL.
+ *
+ * @internal Shared with classify.ts (restoreBody); not re-exported from index.ts.
+ */
+export async function decidedMessageIds(
+  scope: Scope,
+  messageIds: readonly string[],
+): Promise<Set<string>> {
+  const ids = [...new Set(messageIds)];
+  if (ids.length === 0) return new Set();
+  const rows = await scope.decision.find({ messageId: ids });
+  return new Set(rows.map((row) => row.messageId));
+}
+
+/**
  * Remove NUL from every string, including nested object keys and values
  * (RESEARCH Pitfall 7: PostgreSQL rejects 0x00 in text and jsonb, which would
  * make a chunk fail on every retry). Dates and other values pass through.
