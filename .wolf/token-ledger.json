@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-10-03T19:14:49.478Z",
   "lifetime": {
-    "total_tokens_estimated": 24344875,
-    "total_reads": 3779,
-    "total_writes": 9223,
+    "total_tokens_estimated": 24490940,
+    "total_reads": 3805,
+    "total_writes": 9271,
     "total_sessions": 27,
-    "anatomy_hits": 2484,
-    "anatomy_misses": 1228,
-    "repeated_reads_blocked": 2779,
-    "estimated_savings_vs_bare_cli": 3928872
+    "anatomy_hits": 2504,
+    "anatomy_misses": 1234,
+    "repeated_reads_blocked": 2784,
+    "estimated_savings_vs_bare_cli": 3952138
   },
   "sessions": [
     {
@@ -71585,6 +71585,419 @@
       "id": "session-2026-10-11-2021",
       "started": "2026-10-11T02:21:46.090Z",
       "ended": "2026-10-11T03:21:35.572Z",
+      "reads": [
+        {
+          "file": "/Users/samuel/.claude/gsd-core/workflows/plan-phase.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-VERIFICATION.md",
+          "tokens_estimated": 7137,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-REVIEW.md",
+          "tokens_estimated": 5796,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-REVIEW-DISPOSITION.md",
+          "tokens_estimated": 906,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-CONTEXT.md",
+          "tokens_estimated": 4038,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/03-planner-contributions.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/STATE.md",
+          "tokens_estimated": 7046,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/runtime/mailbox-batch.ts",
+          "tokens_estimated": 6202,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/run.ts",
+          "tokens_estimated": 5572,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/status.ts",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/classify.ts",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/src/classify/refetch.ts",
+          "tokens_estimated": 1527,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/scope.ts",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/db/src/ingest.ts",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/apps/worker/test/classify-batch.test.ts",
+          "tokens_estimated": 5544,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/llm-output.ts",
+          "tokens_estimated": 984,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/packages/core/src/classify/spans.ts",
+          "tokens_estimated": 2006,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-SECURITY.md",
+          "tokens_estimated": 4674,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-VALIDATION.md",
+          "tokens_estimated": 2623,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-PATTERNS.md",
+          "tokens_estimated": 3773,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 4992,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 6928,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-19-PLAN.md",
+          "tokens_estimated": 5299,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md",
+          "tokens_estimated": 6505,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-20-PLAN.md",
+          "tokens_estimated": 4621,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 4333,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-14-PLAN.md",
+          "tokens_estimated": 6014,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-14-PLAN.md",
+          "tokens_estimated": 74,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-15-PLAN.md",
+          "tokens_estimated": 4684,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 6063,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md",
+          "tokens_estimated": 7411,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md",
+          "tokens_estimated": 63,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 7021,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 209,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 70,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 173,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 218,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 438,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 136,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 228,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-19-PLAN.md",
+          "tokens_estimated": 6056,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-20-PLAN.md",
+          "tokens_estimated": 5282,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 359,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 27,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 21,
+          "action": "edit"
+        },
+        {
+          "file": "/private/tmp/claude-501/-Users-samuel-dev-sift/b2ec0a8d-3ae0-4853-a9cf-9d550901400f/scratchpad/esc-test.txt",
+          "tokens_estimated": 18,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 54,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 17,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 284,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 20,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 30,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 36,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 56,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 30,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 36,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-16-PLAN.md",
+          "tokens_estimated": 215,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-21-PLAN.md",
+          "tokens_estimated": 4660,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 50,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 13,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 206,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 12,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 114,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-18-PLAN.md",
+          "tokens_estimated": 51,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-22-PLAN.md",
+          "tokens_estimated": 4032,
+          "action": "create"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-17-PLAN.md",
+          "tokens_estimated": 552,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/phases/03-tiered-classification-with-traces/03-19-PLAN.md",
+          "tokens_estimated": 84,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 44,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 39,
+          "action": "edit"
+        },
+        {
+          "file": "/Users/samuel/dev/sift/.planning/ROADMAP.md",
+          "tokens_estimated": 117,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 90506,
+        "output_tokens_estimated": 55559,
+        "reads_count": 26,
+        "writes_count": 48,
+        "repeated_reads_blocked": 5,
+        "anatomy_lookups": 20
+      }
+    },
+    {
+      "id": "session-2026-10-11-2021",
+      "started": "2026-10-11T02:21:46.090Z",
+      "ended": "2026-10-11T03:24:19.529Z",
       "reads": [
         {
           "file": "/Users/samuel/.claude/gsd-core/workflows/plan-phase.md",
