@@ -12,6 +12,7 @@ import {
   promptMaterial,
   type TrustedPromptInput,
   trustedInputFrom,
+  type UntrustedEmail,
 } from '@sift/core/classify';
 import { type ConfigIssue, formatPath } from '@sift/core/config';
 import { codedCause } from '@sift/core/log';
@@ -60,6 +61,12 @@ import { matchableOf, untrustedEmailOf } from './untrusted-email.ts';
  *   Ollama answers it, only that message is skipped for the pass (no
  *   decision, it stays pending), up to OLLAMA_MESSAGE_FAILURES_PER_PASS;
  *   otherwise it is an outage (D-16, CR-01).
+ * - In the MESSAGE_FAILURE_PASSES-th such pass of one worker process, and
+ *   only if Ollama also answers a mail-free canary chat, the message is held
+ *   for review with reason llm_error and a trace of the failed call (D-16 as
+ *   amended in 03-19, option-review). A failing canary is an outage, as is a
+ *   failed re-probe or a failure past the per-pass budget: those never count
+ *   and never become a decision. sift classify never writes llm_error.
  * - A done pass reports the ids it could not classify; the batch stores them
  *   as a non-error owner notice (unclassifiedNotice, WR-03).
  * - Logs carry the mailbox slug, message ids, counts and codes only, never
@@ -96,14 +103,15 @@ export const OLLAMA_MESSAGE_FAILURE_LOG =
 /** Message ids named in the owner notice for unclassified messages; the rest are counted. */
 export const NOTICE_MAX_IDS = 3;
 /**
- * Passes, in one worker process, in which Ollama failed on a message alone
- * before this process stops sending it to Ollama (WR-03, T-03-65). The count
- * is in memory, so a worker restart tries the message again.
+ * Passes, in one worker process, in which Ollama must fail on a message alone
+ * (healthy re-probe each time) before the worker holds it for review with
+ * reason llm_error, after a successful canary chat (WR-03, CR-01, 03-19
+ * option-review). The count is in memory: a worker restart starts it again.
  */
 export const MESSAGE_FAILURE_PASSES = 3;
-/** The warn line for a message this process no longer sends to Ollama. */
-export const MESSAGE_HELD_BACK_LOG =
-  'classify: Ollama failed on this message in every pass; not sent again until the worker restarts';
+/** The warn line for a message held for review because Ollama kept failing on it alone. */
+export const MESSAGE_LLM_ERROR_LOG =
+  'classify: Ollama failed on this message in every pass; held for review (llm_error)';
 /** The fixed system text of the mail-free canary chat (not prompt material). */
 export const CANARY_SYSTEM =
   'You check that the model can answer. Reply with the JSON object the format asks for.';
@@ -141,7 +149,10 @@ export interface ClassifyRuntime {
   preflight: Preflight;
   /** prompt_version rows by material hash, resolved once per process. */
   promptVersions: Map<string, { id: string; version: number }>;
-  /** Passes in which Ollama failed on a message alone, by message id; per worker process (WR-03). */
+  /**
+   * Passes in which Ollama failed on a message alone, by message id; per
+   * worker process (WR-03). An entry is removed once the message is decided.
+   */
   messageFailures: Map<string, number>;
 }
 
@@ -291,7 +302,10 @@ export type ClassifyOutcome =
       llmCalls: number;
       examined: number;
       failures: number;
-      /** Messages skipped this pass because Ollama failed on them alone (CR-01). */
+      /**
+       * Messages Ollama failed on alone this pass (CR-01): skipped, or held for
+       * review with llm_error in their MESSAGE_FAILURE_PASSES-th pass.
+       */
       ollamaFailed: string[];
       /** Every message this pass could not classify, in the order it met them (WR-03). */
       unclassified: string[];
@@ -320,7 +334,11 @@ export interface PassState {
   review: number;
   failures: number;
   consecutiveFailures: number;
-  /** Messages Ollama failed on alone in this pass (healthy re-probe), in order (CR-01). */
+  /**
+   * Messages Ollama failed on alone in this pass (healthy re-probe), in order
+   * (CR-01), whether skipped or held for review with llm_error; each counts
+   * against OLLAMA_MESSAGE_FAILURES_PER_PASS.
+   */
   ollamaFailed: { id: string; code: InfraCode; status: number | null }[];
   /**
    * Messages this pass could not classify (Ollama failed on them alone, they
@@ -400,8 +418,8 @@ async function promptVersionFor(
  *
  * The cheap preflight re-probe (CR-01) cannot see a runner that crashes on
  * every prompt while /api/tags still answers; this chat can. It runs only
- * when a message is about to be held back, so at most once per message per
- * process, and takes one call off llmCallsLeft. The canary text is not
+ * when a message is about to be held for review with llm_error, and takes
+ * one call off llmCallsLeft. The canary text is not
  * prompt material (no decision is rendered from it), so the prompt hash does
  * not change.
  */
@@ -421,19 +439,36 @@ export async function canaryChat(ctx: ClassifyContext): Promise<LlmCallResult> {
   );
 }
 
+/** The llm span's request fields (model, prompt recipe, options, body) for one message. */
+function llmSpanContext(
+  ctx: ClassifyContext,
+  preflight: NonNullable<PassState['preflight']>,
+  prompt: { version: number; hash: string },
+  email: UntrustedEmail,
+  responseModel: string | null,
+): LlmSpanContext {
+  const { trusted } = ctx.rules;
+  return {
+    model: ctx.model,
+    response_model: responseModel,
+    model_digest: preflight.modelDigest,
+    ollama_version: preflight.ollamaVersion,
+    prompt_version: prompt.version,
+    prompt_hash: prompt.hash,
+    categories: trusted.categories.map((c) => ({ name: c.name, description: c.description })),
+    judgment_rules: [...trusted.judgment],
+    examples: [],
+    options: { ...LLM_SPAN_OPTIONS },
+    body: bodySummary(email),
+  };
+}
+
 async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Promise<Drafted> {
   const { rules, state, threshold } = ctx;
   const exact = matchExactRules(rules.rules.rules, matchableOf(candidate));
   // An exact rule decides with no Ollama request at all (CLS-01, E9).
   if (exact.winner !== null) {
     return { kind: 'draft', draft: decide({ exact, threshold }), promptVersionId: null };
-  }
-  // Held back (WR-03): Ollama failed on it alone in MESSAGE_FAILURE_PASSES
-  // passes of this process. No preflight, chat or budget is spent on it; it
-  // stays pending and named in the notice until a restart or an exact rule.
-  if ((ctx.runtime.messageFailures.get(candidate.id) ?? 0) >= MESSAGE_FAILURE_PASSES) {
-    markUnclassified(state, candidate.id);
-    return { kind: 'skip' };
   }
   if (state.llmBlocked !== null) return { kind: 'skip' };
   if (state.llmCallsLeft !== null && state.llmCallsLeft <= 0) return { kind: 'skip' };
@@ -455,9 +490,10 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
   const result = await runLlmTier(ctx.runtime.llm, ctx.model, rules.trusted, email, ctx.signal);
   if (result.kind === 'aborted') return { kind: 'aborted' };
   if (result.kind === 'infra') {
-    // Never a decision (D-16): the message stays pending either way. A 5xx
-    // or timeout confined to this message (Ollama still answers the mail-free
-    // preflight) skips only it, within the per-pass budget (CR-01).
+    // An outage is never a decision (D-16). A 5xx or timeout confined to this
+    // message (Ollama still answers the mail-free preflight) skips only it,
+    // within the per-pass budget (CR-01); in its MESSAGE_FAILURE_PASSES-th
+    // such pass, after a successful canary, it is held for review (llm_error).
     if (
       MESSAGE_FAILURE_CODES.includes(result.code) &&
       state.ollamaFailed.length < OLLAMA_MESSAGE_FAILURES_PER_PASS
@@ -466,9 +502,11 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
       if (probe.kind === 'aborted') return { kind: 'aborted' };
       if (probe.kind === 'ok') {
         const passes = (ctx.runtime.messageFailures.get(candidate.id) ?? 0) + 1;
-        if (passes >= MESSAGE_FAILURE_PASSES) {
-          // Hold it back only if Ollama answers a mail-free chat: a runner that
-          // fails every prompt is an outage, not this message (T-03-67).
+        // Only the worker: sift classify skips such a message with a stderr line.
+        const terminal = passes >= MESSAGE_FAILURE_PASSES && ctx.decidedBy === 'worker';
+        if (terminal) {
+          // Only if Ollama answers a mail-free chat: a runner that fails every
+          // prompt is an outage, not this message (T-03-67, T-03-70).
           const canary = await canaryChat(ctx);
           if (canary.kind === 'aborted') return { kind: 'aborted' };
           if (canary.kind !== 'ok') {
@@ -478,15 +516,30 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
                 : { code: 'rejected', status: canary.status, detail: '' };
             return { kind: 'skip' };
           }
-          ctx.log.warn(
-            { mailbox: ctx.slug, message: candidate.id, passes: MESSAGE_FAILURE_PASSES },
-            MESSAGE_HELD_BACK_LOG,
-          );
         }
+        // Kept until the decision commits, so a failed write counts again next pass.
         ctx.runtime.messageFailures.set(candidate.id, passes);
         state.ollamaFailed.push({ id: candidate.id, code: result.code, status: result.status });
+        if (state.llmCallsLeft !== null) state.llmCallsLeft -= result.attempts.length;
+        if (terminal) {
+          ctx.log.warn(
+            { mailbox: ctx.slug, message: candidate.id, passes: MESSAGE_FAILURE_PASSES },
+            MESSAGE_LLM_ERROR_LOG,
+          );
+          // The failed attempt(s) carry fixed llmErrorDetail text, never result.detail.
+          const verdict: LlmVerdict = {
+            kind: 'review',
+            reason: 'llm_error',
+            attempts: result.attempts,
+          };
+          const context = llmSpanContext(ctx, preflight, prompt, email, result.responseModel);
+          return {
+            kind: 'draft',
+            draft: decide({ exact, llm: { verdict, context }, threshold }),
+            promptVersionId: prompt.id,
+          };
+        }
         markUnclassified(state, candidate.id);
-        if (state.llmCallsLeft !== null) state.llmCallsLeft -= 1;
         // Never result.detail: it can hold Ollama's text, which can quote the prompt (T-03-25).
         ctx.log.warn(
           { mailbox: ctx.slug, message: candidate.id, code: result.code, status: result.status },
@@ -500,19 +553,7 @@ async function draftFor(candidate: ClassifyCandidate, ctx: ClassifyContext): Pro
   }
   if (state.llmCallsLeft !== null) state.llmCallsLeft -= result.attempts.length;
 
-  const context: LlmSpanContext = {
-    model: ctx.model,
-    response_model: result.responseModel,
-    model_digest: preflight.modelDigest,
-    ollama_version: preflight.ollamaVersion,
-    prompt_version: prompt.version,
-    prompt_hash: prompt.hash,
-    categories: rules.trusted.categories.map((c) => ({ name: c.name, description: c.description })),
-    judgment_rules: [...rules.trusted.judgment],
-    examples: [],
-    options: { ...LLM_SPAN_OPTIONS },
-    body: bodySummary(email),
-  };
+  const context = llmSpanContext(ctx, preflight, prompt, email, result.responseModel);
   const verdict: LlmVerdict =
     result.kind === 'decided'
       ? { kind: 'decided', output: result.output, attempts: result.attempts }

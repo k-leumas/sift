@@ -7,7 +7,7 @@ import {
   type UntrustedEmail,
 } from '@sift/core/classify';
 import { afterEach, describe, expect, it } from 'vitest';
-import { type LlmTierResult, runLlmTier } from '../src/classify/llm-tier.ts';
+import { type LlmTierResult, llmErrorDetail, runLlmTier } from '../src/classify/llm-tier.ts';
 import { createOllamaClient } from '../src/classify/ollama-client.ts';
 import {
   CONTEXT_LENGTH_ERROR,
@@ -407,7 +407,7 @@ describe('input_too_long is a review after one call, never retried (E5, E11, Pit
 });
 
 describe('an outage is never a verdict (E5, D-16)', () => {
-  it('infra on attempt 1: no verdict, one call', async () => {
+  it('infra on attempt 1: no verdict, one call, the failed call as an llm_error attempt', async () => {
     const { result, f } = await tierAgainst([{ status: 500, json: { error: 'runner died' } }]);
     expect(f.chatBodies()).toHaveLength(1);
     expect(result).toEqual({
@@ -415,16 +415,42 @@ describe('an outage is never a verdict (E5, D-16)', () => {
       code: 'server_error',
       status: 500,
       detail: 'runner died',
+      attempts: [
+        {
+          nonce: expect.any(String),
+          raw: null,
+          thinking: null,
+          done_reason: null,
+          metrics: null,
+          validation: {
+            ok: false,
+            code: 'llm_error',
+            detail: llmErrorDetail('server_error', 500),
+          },
+        },
+      ],
+      responseModel: null,
     });
   });
 
-  it('infra on attempt 2 after an invalid attempt 1: no verdict, two calls', async () => {
+  it('infra on attempt 2 after an invalid attempt 1: no verdict, two calls, both attempts', async () => {
     const { result, f } = await tierAgainst([
       okAnswer('Spam', 0.9),
       { status: 503, json: { error: 'server busy' } },
     ]);
     expect(f.chatBodies()).toHaveLength(2);
-    expect(result).toEqual({ kind: 'infra', code: 'busy', status: 503, detail: 'server busy' });
+    expect(result).toMatchObject({
+      kind: 'infra',
+      code: 'busy',
+      status: 503,
+      detail: 'server busy',
+      responseModel: MODEL,
+    });
+    if (result.kind !== 'infra') throw new Error(result.kind);
+    expect(result.attempts.map((a) => a.validation)).toEqual([
+      { ok: false, code: 'out_of_category', detail: expect.any(String) },
+      { ok: false, code: 'llm_error', detail: llmErrorDetail('busy', 503) },
+    ]);
   });
 
   it('a missing model is infra model_missing after one call', async () => {
@@ -451,6 +477,59 @@ describe('an outage is never a verdict (E5, D-16)', () => {
     const { result, f } = await tierAgainst([{ hang: true }], { signal: controller.signal });
     expect(f.chatBodies()).toHaveLength(1);
     expect(result).toEqual({ kind: 'aborted' });
+  });
+});
+
+describe('the failed call is recorded with fixed text, never Ollama error text (CR-01, T-03-71)', () => {
+  it('llmErrorDetail names the code and the HTTP status only', () => {
+    expect(llmErrorDetail('server_error', 500)).toBe(
+      'Ollama failed on this request (server_error, HTTP 500)',
+    );
+    expect(llmErrorDetail('timeout', null)).toBe('Ollama failed on this request (timeout)');
+  });
+
+  it('a 500 on the first call gives one llm_error attempt without the error text', async () => {
+    const errorText = 'runner crashed while reading: Everything is 20% off this week.';
+    const { result, f } = await tierAgainst([{ status: 500, json: { error: errorText } }]);
+    expect(f.chatBodies()).toHaveLength(1);
+    if (result.kind !== 'infra') throw new Error(result.kind);
+    expect(result.attempts).toHaveLength(1);
+    const [attempt] = result.attempts;
+    expect(attempt?.raw).toBeNull();
+    expect(attempt?.metrics).toBeNull();
+    expect(attempt?.validation).toEqual({
+      ok: false,
+      code: 'llm_error',
+      detail: llmErrorDetail('server_error', 500),
+    });
+    expect(userOf(f.chatBodies()[0])).toContain(`<<<EMAIL ${attempt?.nonce}>>>`);
+    expect(JSON.stringify(result.attempts)).not.toContain('runner crashed');
+    expect(JSON.stringify(result.attempts)).not.toContain(EMAIL.body);
+  });
+
+  it('a 500 on the retry after a non-JSON answer gives two attempts: not_json, then llm_error', async () => {
+    const { result, f } = await tierAgainst([
+      contentAnswer('this is not json'),
+      { status: 500, json: { error: 'runner crashed on the retry' } },
+    ]);
+    expect(f.chatBodies()).toHaveLength(2);
+    if (result.kind !== 'infra') throw new Error(result.kind);
+    expect(result.responseModel).toBe(MODEL);
+    expect(result.attempts.map((a) => a.validation.ok === false && a.validation.code)).toEqual([
+      'not_json',
+      'llm_error',
+    ]);
+    const [first, second] = result.attempts;
+    expect(first?.raw).toBe('this is not json');
+    expect(second?.raw).toBeNull();
+    expect(second?.nonce).not.toBe(first?.nonce);
+    expect(second?.validation).toEqual({
+      ok: false,
+      code: 'llm_error',
+      detail: llmErrorDetail('server_error', 500),
+    });
+    expect(userOf(f.chatBodies()[1])).toContain(`<<<EMAIL ${second?.nonce}>>>`);
+    expect(JSON.stringify(result.attempts)).not.toContain('runner crashed');
   });
 });
 

@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { parseDecisionSpans } from '@sift/core/classify';
 import { type AppDb, createAppDb, withIngestLock } from '@sift/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { freshDatabase, type TestDatabase } from '../../../packages/db/test/support/db.ts';
@@ -20,7 +21,7 @@ import {
   LLM_CALLS_PER_TICK,
   MAX_CONSECUTIVE_MESSAGE_FAILURES,
   MESSAGE_FAILURE_PASSES,
-  MESSAGE_HELD_BACK_LOG,
+  MESSAGE_LLM_ERROR_LOG,
   NOTICE_MAX_IDS,
   OLLAMA_MESSAGE_FAILURE_LOG,
   OLLAMA_MESSAGE_FAILURES_PER_PASS,
@@ -736,7 +737,7 @@ describe('a message Ollama fails on alone: edges (CR-01)', () => {
   });
 });
 
-describe('a message Ollama keeps failing on is held back (WR-03, CR-01)', () => {
+describe('a message Ollama keeps failing on is held for review (WR-03, CR-01)', () => {
   /** A fake that answers 500 for chats from `address` and Noise for every other chat. */
   async function poisonFake(address: string): Promise<FakeOllama> {
     const errorText = `runner crashed on this sender ${randomUUID()}`;
@@ -766,52 +767,102 @@ describe('a message Ollama keeps failing on is held back (WR-03, CR-01)', () => 
     unclassified: [id],
   });
 
-  it('after MESSAGE_FAILURE_PASSES (3) passes no chat and no preflight is spent on it; after 2 it is still sent (WR-03)', async () => {
+  it('after MESSAGE_FAILURE_PASSES passes a message Ollama fails on alone is held for review with reason llm_error (CR-01)', async () => {
     expect(MESSAGE_FAILURE_PASSES).toBe(3);
-    const box = await newMailbox('held');
-    const poison = llmMessage('held', minute(200));
+    const box = await newMailbox('llm-error');
+    const poison = llmMessage('llm-error', minute(200));
     const fake = await poisonFake(poison.from);
     const [id] = await seed(box, [poison]);
-    if (id === undefined) throw new Error('seed returned no id');
+    const [olderId] = await seed(box, [llmMessage('llm-error-older', minute(199))]);
+    if (id === undefined || olderId === undefined) throw new Error('seed returned no id');
     const runtime = testRuntime(fake, dataDir);
 
-    expect(await pass(box, runtime)).toEqual(skipped(id, 1));
-    expect(runtime.messageFailures.get(id)).toBe(1);
+    // Pass 1: the poison message is skipped, the older one decided.
+    expect(await pass(box, runtime)).toEqual({
+      kind: 'done',
+      labelled: 1,
+      review: 0,
+      llmCalls: 2,
+      examined: 2,
+      failures: 0,
+      ollamaFailed: [id],
+      unclassified: [id],
+    });
+    // Pass 2: skipped again, still no decision for it.
     expect(await pass(box, runtime)).toEqual(skipped(id, 1));
     expect(runtime.messageFailures.get(id)).toBe(2);
-    // Adjacency: after two such passes the message is still sent.
+    expect((await decisionsOf(db.adminUrl, box.id)).map((d) => d.messageId)).toEqual([olderId]);
     expect(chatsFrom(fake, poison.from)).toBe(2);
     expect(canaries(fake)).toHaveLength(0);
 
+    // Pass 3: the message's chat, then one canary chat, which Ollama answers, then the decision.
     const log = newLog();
-    // The third pass: the message's chat, then one canary chat, which Ollama answers.
-    expect(await pass(box, runtime, { log })).toEqual(skipped(id, 2));
+    expect(await pass(box, runtime, { log })).toEqual({
+      kind: 'done',
+      labelled: 0,
+      review: 1,
+      llmCalls: 2,
+      examined: 1,
+      failures: 0,
+      ollamaFailed: [id],
+      unclassified: [],
+    });
     expect(chatsFrom(fake, poison.from)).toBe(3);
     expect(canaries(fake)).toHaveLength(1);
-    expect(runtime.messageFailures.get(id)).toBe(MESSAGE_FAILURE_PASSES);
-    expect(log.lines.filter((l) => l.msg === MESSAGE_HELD_BACK_LOG)).toEqual([
+    const decisions = (await decisionsOf(db.adminUrl, box.id)).filter((d) => d.messageId === id);
+    expect(decisions).toHaveLength(1);
+    const [decision] = decisions;
+    if (decision === undefined) throw new Error('no decision');
+    expect(decision).toMatchObject({
+      outcome: 'review',
+      reviewReason: 'llm_error',
+      tier: 'llm',
+      category: null,
+      confidence: null,
+      decidedBy: 'worker',
+      model: FAKE_MODEL,
+    });
+    const llm = parseDecisionSpans(decision.spans)[2];
+    if (llm?.kind !== 'llm') throw new Error('no llm span');
+    expect(llm.result).toBeNull();
+    expect(llm.attempts).toHaveLength(1);
+    expect(llm.attempts[0]).toMatchObject({
+      raw: null,
+      thinking: null,
+      done_reason: null,
+      metrics: null,
+      validation: {
+        ok: false,
+        code: 'llm_error',
+        detail: 'Ollama failed on this request (server_error, HTTP 500)',
+      },
+    });
+    expect(JSON.stringify(decision.spans)).not.toContain('runner crashed');
+    await expectReplayableDecision(db.adminUrl, decision, fake);
+    expect(runtime.messageFailures.has(id)).toBe(false);
+    expect(log.lines.filter((l) => l.msg === MESSAGE_LLM_ERROR_LOG)).toEqual([
       {
         level: 'warn',
         obj: { mailbox: box.slug, message: id, passes: MESSAGE_FAILURE_PASSES },
-        msg: MESSAGE_HELD_BACK_LOG,
+        msg: MESSAGE_LLM_ERROR_LOG,
       },
     ]);
+    expect(log.lines.some((l) => l.msg === OLLAMA_MESSAGE_FAILURE_LOG)).toBe(false);
 
-    // The fourth pass: held back. No request of any kind reaches Ollama.
+    // Pass 4: nothing is pending, so no request of any kind reaches Ollama.
     const before = fake.requests().length;
     expect(await pass(box, runtime)).toEqual({
       kind: 'done',
       labelled: 0,
       review: 0,
       llmCalls: 0,
-      examined: 1,
+      examined: 0,
       failures: 0,
       ollamaFailed: [],
-      unclassified: [id],
+      unclassified: [],
     });
     expect(fake.requests()).toHaveLength(before);
-    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([id]);
-    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([]);
   });
 
   it('the canary request carries no email: fixed CANARY_SYSTEM and CANARY_USER, format names only Probe (CR-01)', async () => {
@@ -839,7 +890,7 @@ describe('a message Ollama keeps failing on is held back (WR-03, CR-01)', () => 
     expect(text).not.toContain('<<<EMAIL');
   });
 
-  it('a runner that fails every prompt fails the canary: an outage, and the message is not held back (CR-01)', async () => {
+  it('a runner that fails every prompt fails the canary: an outage, and the message is not held for review (CR-01)', async () => {
     const box = await newMailbox('all-fail');
     const errorText = `runner crashed on every prompt ${randomUUID()}`;
     mailText.push(errorText);
@@ -856,30 +907,31 @@ describe('a message Ollama keeps failing on is held back (WR-03, CR-01)', () => 
     expect(third).toMatchObject({ kind: 'infra', code: 'server_error' });
     expect(canaries(fake)).toHaveLength(1);
     expect(runtime.messageFailures.get(id)).toBe(2);
-    expect(log.lines.some((l) => l.msg === MESSAGE_HELD_BACK_LOG)).toBe(false);
+    expect(log.lines.some((l) => l.msg === MESSAGE_LLM_ERROR_LOG)).toBe(false);
 
-    // Not held back: the next pass sends the message again.
+    // Not held for review: the next pass sends the message again.
     const fourth = await pass(box, runtime);
     expect(fourth).toMatchObject({ kind: 'infra', code: 'server_error' });
     expect(chatsFrom(fake, message.from)).toBe(4);
     expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([id]);
   });
 
-  it('a fresh runtime (worker restart) sends a held-back message again (WR-03)', async () => {
+  it('a fresh runtime (worker restart) counts the passes from zero again (WR-03)', async () => {
     const box = await newMailbox('restart');
     const poison = llmMessage('restart', minute(230));
     const fake = await poisonFake(poison.from);
     const [id] = await seed(box, [poison]);
     if (id === undefined) throw new Error('seed returned no id');
     const runtime = testRuntime(fake, dataDir);
-    for (let i = 0; i < MESSAGE_FAILURE_PASSES; i += 1) await pass(box, runtime);
-    expect((await pass(box, runtime)).kind).toBe('done');
-    expect(chatsFrom(fake, poison.from)).toBe(MESSAGE_FAILURE_PASSES);
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES - 1; i += 1) await pass(box, runtime);
+    expect(runtime.messageFailures.get(id)).toBe(MESSAGE_FAILURE_PASSES - 1);
 
     const restarted = testRuntime(fake, dataDir);
     expect(await pass(box, restarted)).toEqual(skipped(id, 1));
-    expect(chatsFrom(fake, poison.from)).toBe(MESSAGE_FAILURE_PASSES + 1);
     expect(restarted.messageFailures.get(id)).toBe(1);
+    expect(chatsFrom(fake, poison.from)).toBe(MESSAGE_FAILURE_PASSES);
+    expect(canaries(fake)).toHaveLength(0);
+    expect(await decisionsOf(db.adminUrl, box.id)).toEqual([]);
   });
 
   it('a message that failed twice and is then answered is decided and forgotten (WR-03)', async () => {
@@ -904,15 +956,15 @@ describe('a message Ollama keeps failing on is held back (WR-03, CR-01)', () => 
     expect(runtime.messageFailures.has(id)).toBe(false);
   });
 
-  it('an exact rule added after the message is held back decides it with no chat and forgets it (WR-03)', async () => {
+  it('an exact rule added after two failures decides it with no chat and forgets it (WR-03)', async () => {
     const box = await newMailbox('rule-later');
     const poison = llmMessage('rule-later', minute(250));
     const fake = await poisonFake(poison.from);
     const [id] = await seed(box, [poison]);
     if (id === undefined) throw new Error('seed returned no id');
     const runtime = testRuntime(fake, dataDir);
-    for (let i = 0; i < MESSAGE_FAILURE_PASSES; i += 1) await pass(box, runtime);
-    expect(runtime.messageFailures.get(id)).toBe(MESSAGE_FAILURE_PASSES);
+    for (let i = 0; i < MESSAGE_FAILURE_PASSES - 1; i += 1) await pass(box, runtime);
+    expect(runtime.messageFailures.get(id)).toBe(MESSAGE_FAILURE_PASSES - 1);
 
     await writeRules(
       dataDir,

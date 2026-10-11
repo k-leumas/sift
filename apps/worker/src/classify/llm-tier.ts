@@ -26,7 +26,17 @@ import type { InfraCode, LlmCallMetrics, LlmClient } from './ollama-client.ts';
  * `thinking` is recorded on the attempt as an anomaly.
  */
 
-/** Same shape as decide()'s LlmVerdict, plus the response model, or a no-verdict outcome. */
+/**
+ * Same shape as decide()'s LlmVerdict, plus the response model, or a
+ * no-verdict outcome.
+ *
+ * An infra result is never a verdict here (D-16). It still carries the
+ * attempts so far plus the failed call (raw null, validation llm_error with
+ * llmErrorDetail text), so that the classification pass can record them when
+ * it confirms, over MESSAGE_FAILURE_PASSES passes, that Ollama fails on this
+ * message alone (CR-01, 03-19 option-review). `detail` can hold Ollama's own
+ * error text and must never be stored or shown (T-03-25).
+ */
 export type LlmTierResult =
   | { kind: 'decided'; output: LlmOutput; attempts: LlmAttemptSpan[]; responseModel: string | null }
   | {
@@ -35,9 +45,26 @@ export type LlmTierResult =
       attempts: LlmAttemptSpan[];
       responseModel: string | null;
     }
-  /** Write NO decision (D-16): the message stays pending. */
-  | { kind: 'infra'; code: InfraCode; status: number | null; detail: string }
+  | {
+      kind: 'infra';
+      code: InfraCode;
+      status: number | null;
+      detail: string;
+      attempts: LlmAttemptSpan[];
+      responseModel: string | null;
+    }
   | { kind: 'aborted' };
+
+/**
+ * The attempt detail for a call Ollama failed (validation code llm_error).
+ * Fixed text with the code and HTTP status only, never Ollama's error text,
+ * which can quote the prompt (T-03-25, T-03-71).
+ */
+export function llmErrorDetail(code: InfraCode, status: number | null): string {
+  return status === null
+    ? `Ollama failed on this request (${code})`
+    : `Ollama failed on this request (${code}, HTTP ${status})`;
+}
 
 /** Fixed attempt detail for Ollama's context-length 400: its error text can quote the prompt. */
 const CONTEXT_400_DETAIL = 'Ollama refused the prompt as longer than the context';
@@ -86,7 +113,26 @@ export async function runLlmTier(
     );
     if (result.kind === 'aborted') return result;
     if (result.kind === 'infra') {
-      return { kind: 'infra', code: result.code, status: result.status, detail: result.detail };
+      attempts.push({
+        nonce,
+        raw: null,
+        thinking: null,
+        done_reason: null,
+        metrics: null,
+        validation: {
+          ok: false,
+          code: 'llm_error',
+          detail: llmErrorDetail(result.code, result.status),
+        },
+      });
+      return {
+        kind: 'infra',
+        code: result.code,
+        status: result.status,
+        detail: result.detail,
+        attempts,
+        responseModel,
+      };
     }
     if (result.kind === 'input_too_long') {
       // Same input next time: retrying is pointless and must not stall the mailbox.
