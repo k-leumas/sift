@@ -38,6 +38,12 @@ import { recordingLog } from './support/mailbox-harness.ts';
  * a reason as schema_mismatch: one retry, then a stored review invalid_output
  * decision, and the pass decides the other messages. Before the fix the
  * insert failed on every pass and the message stayed pending forever.
+ *
+ * WR-04 end to end: the same for a reason holding an unpaired UTF-16
+ * surrogate (U+D800 or U+DC00 from a JSON escape without its partner), which
+ * jsonb also rejects. validateLlmOutput fails it as schema_mismatch
+ * 'reason: lone_surrogate'; five such messages in a row no longer make the
+ * pass throw (ROADMAP SC5, CLS-06).
  */
 
 let db: TestDatabase;
@@ -135,12 +141,23 @@ const CONTROL_CHARACTER_FAILURE = {
   detail: 'reason: control_character',
 } as const;
 
+const LONE_SURROGATE_FAILURE = {
+  ok: false,
+  code: 'schema_mismatch',
+  detail: 'reason: lone_surrogate',
+} as const;
+
+type ExpectedValidation = typeof CONTROL_CHARACTER_FAILURE | typeof LONE_SURROGATE_FAILURE;
+
 /**
  * Two LLM-bound messages: the newer one always gets the control-character
  * reason, the older one a valid answer. The newer one must become a stored
  * review invalid_output decision after two attempts, the older one labelled.
  */
-async function expectHeldForReview(hex: string): Promise<void> {
+async function expectHeldForReview(
+  hex: string,
+  failure: ExpectedValidation = CONTROL_CHARACTER_FAILURE,
+): Promise<void> {
   const box = await newMailbox(`ctl-${hex.toLowerCase()}`);
   const bad = llmMessage(`bad-${hex}`, minute(20));
   const good = llmMessage(`good-${hex}`, minute(10));
@@ -171,10 +188,7 @@ async function expectHeldForReview(hex: string): Promise<void> {
     category: null,
   });
   const attempts = llmAttempts(held as StoredDecision);
-  expect(attempts.map((a) => a.validation)).toEqual([
-    CONTROL_CHARACTER_FAILURE,
-    CONTROL_CHARACTER_FAILURE,
-  ]);
+  expect(attempts.map((a) => a.validation)).toEqual([failure, failure]);
   expect(decisions.find((d) => d.messageId === goodId)).toMatchObject({
     outcome: 'labelled',
     category: 'Receipts',
@@ -229,5 +243,74 @@ describe('a model reason with a control character (WR-01, CLS-03, CLS-06)', () =
 
   it('U+2028 in the reason twice: stored as review invalid_output', async () => {
     await expectHeldForReview('2028');
+  });
+});
+
+describe('a model reason with a lone surrogate (WR-04, CLS-06)', () => {
+  it('a lone high surrogate (U+D800) twice: stored as review invalid_output, the other message labelled', async () => {
+    await expectHeldForReview('D800', LONE_SURROGATE_FAILURE);
+  });
+
+  it('a lone low surrogate (U+DC00) twice: stored as review invalid_output, the other message labelled', async () => {
+    await expectHeldForReview('DC00', LONE_SURROGATE_FAILURE);
+  });
+
+  it('five lone-surrogate answers in a row and an older valid message: all six decided in the first pass (SC5)', async () => {
+    const box = await newMailbox('ctl-five');
+    const bad = [60, 59, 58, 57, 56].map((n) => llmMessage(`five-${n}`, minute(n)));
+    const good = llmMessage('five-good', minute(10));
+    const fake = await fakeOllama((request) =>
+      bad.some((m) => asksAbout(request, m.subject))
+        ? controlReasonAnswer('D800')
+        : okAnswer('Receipts', 0.9),
+    );
+    const ids = await seedPendingMessages(appDb, box.id, [...bad, good]);
+    const badIds = ids.slice(0, bad.length);
+    const goodId = ids[bad.length];
+    const log = recordingLog();
+
+    const outcome = await classifyMailbox({
+      db: appDb,
+      mailbox: box,
+      model: FAKE_MODEL,
+      threshold: 0.75,
+      runtime: testRuntime(fake, dataDir),
+      signal: new AbortController().signal,
+      log,
+    });
+    expect(outcome).toEqual({
+      kind: 'done',
+      labelled: 1,
+      review: 5,
+      llmCalls: 11,
+      examined: 6,
+      failures: 0,
+      ollamaFailed: [],
+      unclassified: [],
+    });
+
+    const decisions = await decisionsOf(db.adminUrl, box.id);
+    expect(decisions).toHaveLength(6);
+    for (const badId of badIds) {
+      const held = decisions.find((d) => d.messageId === badId);
+      expect(held).toMatchObject({
+        outcome: 'review',
+        reviewReason: 'invalid_output',
+        tier: 'llm',
+        category: null,
+      });
+      expect(llmAttempts(held as StoredDecision).map((a) => a.validation)).toEqual([
+        LONE_SURROGATE_FAILURE,
+        LONE_SURROGATE_FAILURE,
+      ]);
+    }
+    expect(decisions.find((d) => d.messageId === goodId)).toMatchObject({
+      outcome: 'labelled',
+      category: 'Receipts',
+      tier: 'llm',
+    });
+    for (const decision of decisions) await expectReplayableDecision(db.adminUrl, decision, fake);
+    expect(await pendingIdsOf(db.adminUrl, box.id)).toEqual([]);
+    expect(log.messages()).not.toContain('classify: message failed');
   });
 });

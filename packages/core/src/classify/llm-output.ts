@@ -77,6 +77,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * JSON.parse and the schema's trim) is `schema_mismatch` with the fixed detail
  * `reason: control_character`: rejected and retried like any other invalid
  * answer, never stripped.
+ *
+ * A reason that is not well-formed UTF-16 is `schema_mismatch` with the fixed
+ * detail `reason: lone_surrogate` (WR-04). llama.cpp's JSON grammar lets the
+ * model write a JSON escape for a code unit in U+D800..U+DFFF without its
+ * partner, and JSON.parse turns that into an unpaired surrogate. PostgreSQL
+ * jsonb refuses one ("Unicode low surrogate must follow a high surrogate"), so
+ * the decision insert would fail on every pass. The answer is rejected and
+ * retried like any other invalid answer, never repaired, and the detail is
+ * fixed text that never quotes the model. isWellFormed() is the same predicate
+ * the rules schema uses (03-26), so the worker and config check cannot drift.
  */
 export function validateLlmOutput(
   schema: LlmOutputSchema,
@@ -96,6 +106,9 @@ export function validateLlmOutput(
         ok: false,
         failure: { code: 'schema_mismatch', detail: 'reason: control_character' },
       };
+    }
+    if (!result.data.reason.isWellFormed()) {
+      return { ok: false, failure: { code: 'schema_mismatch', detail: 'reason: lone_surrogate' } };
     }
     return { ok: true, value: result.data };
   }
