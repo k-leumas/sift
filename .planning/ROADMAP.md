@@ -125,7 +125,7 @@ Plans:
   5. A message whose text tries to give the model instructions (for example, text telling the model to pick a particular label) does not change which categories are allowed or what the pipeline does, and one failed message (for example Ollama unavailable) does not stop the others
   6. Every trace has a classifier span marked skipped ("not trained"), sitting between the exact-rules span and the LLM span, so M2 can fill it in without changing the trace layout
 
-**Plans**: 26 plans, 24 executed (13 gap-closure plans; 03-23 and 03-24 close UAT gaps G-03-2 and G-03-8; 03-25 and 03-26 close the SC5 lone-surrogate gap)
+**Plans**: 25/26 plans executed, 24 executed (13 gap-closure plans; 03-23 and 03-24 close UAT gaps G-03-2 and G-03-8; 03-25 and 03-26 close the SC5 lone-surrogate gap)
 
 Plans:
 **Wave 1**
@@ -169,7 +169,7 @@ Plans:
 - [x] 03-24-PLAN.md — G-03-8: README intro links the quick start; 12 steps led by bold imperatives, list shape pinned (gap wave 1)
 
 **Gap closure** *(03-VERIFICATION 2026-10-12 gap: SC5 / CLS-06 lone-surrogate path, WR-04 and WR-05; one wave, run in parallel)*
-- [ ] 03-25-PLAN.md — WR-04: a lone-surrogate model reason is invalid output (retry, then review); toWellFormed backstop in recordDecision; five in a row no longer stop the pass (gap wave 1)
+- [x] 03-25-PLAN.md — WR-04: a lone-surrogate model reason is invalid output (retry, then review); toWellFormed backstop in recordDecision; five in a row no longer stop the pass (gap wave 1)
 - [ ] 03-26-PLAN.md — WR-05: rules.yaml rejects unpaired surrogates (same isWellFormed predicate), so sift config check and the worker agree (gap wave 1)
 
 ### Phase 4: Labels and Real-Inbox Run
@@ -195,7 +195,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
-| 3. Tiered Classification with Traces | v0.1 | 24/24 | In Progress | - |
+| 3. Tiered Classification with Traces | v0.1 | 25/26 | In Progress | - |
 | 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)

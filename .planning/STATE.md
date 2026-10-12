@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: tiered-classification-with-traces
 status: executing
-stopped_at: Completed 03-24-PLAN.md
-last_updated: "2026-10-12T21:00:29.078Z"
+stopped_at: Completed 03-25-PLAN.md
+last_updated: "2026-10-12T21:33:24.280Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 03 execution started
-state_head: 1aae7bcdffab5e3a35beb65a336199c1f010d4ad
+state_head: 38509449b4c452cb9ddcac9e0436044058453c85
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 60
-  completed_plans: 58
+  completed_plans: 59
 ---
 
 # Project State
@@ -24,12 +24,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** Every incoming email is auto-labelled correctly or explicitly held for the owner, entirely on local hardware, with a decision trace explaining why.
-**Current focus:** Phase 03 — Tiered Classification with Traces
+**Current focus:** Phase 03 — tiered-classification-with-traces
 
 ## Current Position
 
-Phase: 03 (tiered-classification-with-traces) — READY TO EXECUTE
-Plan: 24 of 24
+Phase: 03 (tiered-classification-with-traces) — EXECUTING
+Plan: 2 of 26
 Status: Ready to execute
 Last activity: 2026-10-12 — Phase 03 execution started
 
@@ -114,6 +114,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P20 | 16 min | 2 tasks | 7 files |
 | Phase 03 P23 | 4min | 2 tasks | 4 files |
 | Phase 03 P24 | 6 min | 2 tasks | 2 files |
+| Phase 03 P25 | 6 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -282,6 +283,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-23: live baseline prints ready + per-email progress on stderr via BaselineOptions.progress; stdout stays the table (G-03-2)
 - [Phase 03]: 03-24: README quick-start steps are bold imperatives (<=60 chars) with commands below; intro Get started line links #quick-start with the step count (G-03-8)
 - [Phase 03]: 03-24: pushing local main to GitHub stays the owner's decision (origin 168 commits behind); read README.md in the sift checkout until then
+- [Phase 03]: 03-25 WR-04: validateLlmOutput rejects a reason that is not isWellFormed() as schema_mismatch 'reason: lone_surrogate'; recordDecision applies wellFormed(stripNul(parseDecisionSpans(...)))
+- [Phase 03]: 03-25: run.ts throw path left unchanged; residual: a write-time rejection other than DB/connection failure would still reach it with no terminal state
 
 ### Pending Todos
 
@@ -309,6 +312,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T19:40:40.926Z
-Stopped at: Completed 03-24-PLAN.md
+Last session: 2026-10-12T21:33:24.113Z
+Stopped at: Completed 03-25-PLAN.md
 Resume file: None
