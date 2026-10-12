@@ -57,11 +57,11 @@ findings:
     title: "`loadRules` reads the whole file before checking the 256 KiB cap and blocks on a FIFO"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A model reason that contains a lone UTF-16 surrogate cannot be stored, so that message fails on every pass (WR-01 residual)"
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A rules file with a lone surrogate passes `sift config check`, then every decision of that mailbox fails (WR-02 residual)"
   - id: WR-06
     severity: warning
@@ -91,9 +91,25 @@ findings:
     severity: info
     disposition: open
     title: "README security bullet has a garbled tense"
-open: 16
-total: 22
-recorded: 2026-10-12T21:30:00.000Z
+  - id: IN-13
+    severity: info
+    disposition: open
+    title: "The retry after a `control_character` or `lone_surrogate` rejection tells the model the wrong reason, so the one retry is likely wasted"
+  - id: IN-14
+    severity: info
+    disposition: open
+    title: "The `wellFormed` backstop silently changes `raw`, and nothing in the trace records it, so such an attempt cannot be replayed faithfully"
+  - id: IN-15
+    severity: info
+    disposition: open
+    title: "`oneLine` claims one issue per value, but an over-long value with a lone surrogate gets two issues; the cannot-drift claim is not enforced"
+  - id: IN-16
+    severity: info
+    disposition: open
+    title: "The rule-set snapshot is protected only by the schema, and `CategoryName` and `label` are safe only because the category-name pattern is ASCII"
+open: 18
+total: 26
+recorded: 2026-10-12T22:22:42.626Z
 ---
 
 # Phase 03: Code Review Disposition
@@ -113,8 +129,8 @@ recorded: 2026-10-12T21:30:00.000Z
 | IN-05 | info | open | - |
 | IN-06 | info | open | - |
 | IN-07 | info | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
+| WR-04 | warning | fixed | 03-25 (review 03-REVIEW.md 2026-10-12T22:20Z) |
+| WR-05 | warning | fixed | 03-26 (review 03-REVIEW.md 2026-10-12T22:20Z) |
 | WR-06 | warning | open | - |
 | WR-07 | warning | open | - |
 | IN-08 | info | open | - |
@@ -122,6 +138,10 @@ recorded: 2026-10-12T21:30:00.000Z
 | IN-10 | info | open | - |
 | IN-11 | info | open | - |
 | IN-12 | info | open | - |
+| IN-13 | info | open | - |
+| IN-14 | info | open | - |
+| IN-15 | info | open | - |
+| IN-16 | info | open | - |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
