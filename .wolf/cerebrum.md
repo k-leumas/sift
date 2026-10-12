@@ -36,7 +36,7 @@
 - **tui-llm** (sibling repo, not this tree): `src/ui/CandidateSelect.tsx` and `tests/modal-layout.test.ts` live in `/Users/samuel/dev/tui-llm`. A biome `suppressions/unused` on `useExhaustiveDependencies` means the dep list is already complete; delete the ignore comment.
 - (2026-10-12) Owner-run commands (e.g. llm-baseline.ts) must be run from the sift repo root; the owner also has /Users/samuel/dev/public_gsd-2 checked out. Local main can be far ahead of origin (168 commits on 2026-10-12), so the GitHub README may lack recent docs.
 - (2026-10-12) README has a second numbered bold list (Contributing, ~line 704), so count quick-start steps inside the '### Quick start'..'### Managing mailboxes' slice only. Branch uat/03-verify (worktree .claude/worktrees/uat-03-verify) holds its own unmerged 03-23 plan and a different G-03-8; main's 03-23/03-24 (planned 2026-10-12) collide by number if it is ever merged.
-- (2026-10-12) llm-baseline.ts runs 10 Ollama chats (~4 min on qwen3:1.7b) and prints only at the end; live baseline 2026-10-12: flips 3, clean personal reply filed as Reading (E12 candidate).
+- (2026-10-12) llm-baseline.ts runs 10 Ollama chats (~4 min on qwen3:1.7b); it prints a ready line and one progress line per email on stderr, and the table on stdout at the end (03-23, G-03-2); live baseline 2026-10-12: flips 3, clean personal reply filed as Reading (E12 candidate).
 
 ## Do-Not-Repeat
 - [2026-10-11] Use `ensure_ascii=False` (indent=2, trailing newline) when rewriting .wolf/buglog.json with Python. Confirm the diff is additions only.

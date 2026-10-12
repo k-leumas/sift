@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T18:55:50.763Z
-> Files: 531 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T19:33:07.614Z
+> Files: 534 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../tui-llm/src/ui/
 
@@ -720,11 +720,17 @@
 ## .planning/phases/03-tiered-classification-with-traces/
 
 - `03-23-PLAN.md` — Artifacts this plan produces (~5440 tok)
+- `03-23-SUMMARY.md` — Dependency graph (~2284 tok)
 - `03-24-PLAN.md` — Artifacts this plan produces (~5490 tok)
 
 ## apps/worker/test/
 
+- `llm-baseline.test.ts` — The manual live-baseline runner (AI-SPEC section 5, Set B: E4 live, E11); progress-line tests for G-03-2 (~4300 tok)
 - `release-workflow.test.ts` — Declares WORKFLOW (~903 tok)
+
+## apps/worker/test/support/
+
+- `llm-baseline.ts` — The manual live baseline of AI-SPEC section 5 (Set B: E4 live, E11 live, E12); readyLine/progressLine on stderr via BaselineOptions.progress, table on stdout (~3741 tok)
 
 ## scripts/
 
