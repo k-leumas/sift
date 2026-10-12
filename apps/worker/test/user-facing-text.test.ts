@@ -249,6 +249,85 @@ describe('README quick start (D-28, D-56, D-58)', () => {
   });
 });
 
+describe('README quick start is easy to find and scan (G-03-8)', () => {
+  const readme = read('README.md');
+
+  interface QuickStartStep {
+    number: number;
+    /** The rest of the step's first line, after `<n>. `. */
+    lead: string;
+    /** The lines below the step's first line, up to the next step. */
+    lines: string[];
+  }
+
+  /** The numbered steps between '### Quick start' and '### Managing mailboxes'. */
+  function quickStartSteps(): QuickStartStep[] {
+    const start = readme.indexOf('### Quick start');
+    const end = readme.indexOf('### Managing mailboxes');
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    const lines = readme.slice(start, end).split('\n');
+    const first = lines.findIndex((line) => /^1\. /.test(line));
+    expect(first).toBeGreaterThanOrEqual(0);
+    const steps: QuickStartStep[] = [];
+    for (const line of lines.slice(first)) {
+      const step = /^(\d+)\. (.*)$/.exec(line);
+      if (step) {
+        steps.push({ number: Number(step[1]), lead: step[2] ?? '', lines: [] });
+        continue;
+      }
+      // A non-blank line at the left margin ends the list.
+      if (line.trim() !== '' && !line.startsWith(' ')) break;
+      steps[steps.length - 1]?.lines.push(line);
+    }
+    return steps;
+  }
+
+  /** GitHub's heading anchor: trim, lower-case, keep a-z, 0-9, spaces and hyphens, spaces to hyphens. */
+  function anchor(heading: string): string {
+    return heading
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/ /g, '-');
+  }
+
+  /** Markdown headings outside fenced code blocks (YAML comments in code blocks start with '#'). */
+  function headings(): string[] {
+    const found: string[] = [];
+    let fenced = false;
+    for (const line of readme.split('\n')) {
+      if (/^ *```/.test(line)) {
+        fenced = !fenced;
+        continue;
+      }
+      const heading = /^#{1,6} (.*)$/.exec(line);
+      if (!fenced && heading) found.push(heading[1] ?? '');
+    }
+    return found;
+  }
+
+  it('links the quick start from the intro with its step count (G-03-8)', () => {
+    const intro = readme.slice(0, readme.indexOf('## Why'));
+    const count = quickStartSteps().length;
+    expect(count).toBeGreaterThan(0);
+    expect(intro).toContain('[Quick start](#quick-start)');
+    expect(intro).toMatch(new RegExp(`(?<!\\d)${count} numbered steps`));
+    expect(intro).toContain('it does not put labels in Proton yet');
+    // The ordering pins read the first occurrence, so the intro names no quick-start command.
+    for (const command of ['docker compose', 'cp ', 'ollama pull']) {
+      expect(intro).not.toContain(command);
+    }
+  });
+
+  it('has exactly one heading with the quick-start anchor (G-03-8)', () => {
+    expect(headings().filter((heading) => anchor(heading) === 'quick-start')).toEqual([
+      'Quick start',
+    ]);
+    expect(readme).toMatch(/^### Quick start$/m);
+  });
+});
+
 describe('README scope and host requirements (G-02-8, G-02-9)', () => {
   const readme = read('README.md');
   const SCOPE = 'Sift supports only Proton Mail, through Proton Bridge, for now';

@@ -12,6 +12,8 @@ Your email never leaves your network. No cloud model, no telemetry, no accounts.
 
 > **Status: pre-alpha, in design.** This README describes the target. See [Roadmap](#roadmap) for what exists today.
 
+**Get started:** the [Quick start](#quick-start) takes you from cloning the repository to a running Sift in 12 numbered steps. Today Sift reads your mail and classifies each new message on your machine; it does not put labels in Proton yet.
+
 ---
 
 ## Why
