@@ -8,7 +8,9 @@ name: release
 # the section's highlights (new features, updates, bug fixes) from the commit
 # messages, each linked to its commits; without it, or if that call fails, the
 # section has the linked commit lists only. This job then checks the tag and
-# pushes the commit and the tag together. A push made with GITHUB_TOKEN starts no workflow, so the release
+# pushes the commit and the tag together, then publishes a GitHub Release with
+# that version's CHANGELOG.md section as its notes. Every push to main counts,
+# merges included (a merged pull request is a push to main). A push made with GITHUB_TOKEN starts no workflow, so the release
 # commit does not run ci again and release-tag.yml does not see the tag; the
 # same check runs here instead. If main moved on while ci ran, the newer
 # commit's own run releases both, so this run stops without releasing.
@@ -57,6 +59,7 @@ jobs:
       # runner's environment. LEFTHOOK=0: the install set up the commit hooks,
       # which must not run on the release commit.
       - name: Release
+        id: release
         env:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           SIFT_RELEASE_CI: '1'
@@ -74,3 +77,14 @@ jobs:
           TAG=$(git describe --tags --exact-match HEAD)
           node scripts/release-check.ts "$TAG"
           git push --atomic origin HEAD:refs/heads/main "refs/tags/$TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      # Only after the push: the Release points at the tag that is now on GitHub.
+      - name: Publish GitHub Release
+        if: steps.release.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          node scripts/release-notes.ts "$TAG" > "$RUNNER_TEMP/release-notes.md"
+          gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/release-notes.md"

@@ -7,6 +7,7 @@ const WORKFLOW = fileURLToPath(new URL('../../../.github/workflows/release.yml',
 const CI_WORKFLOW = fileURLToPath(new URL('../../../.github/workflows/ci.yml', import.meta.url));
 
 interface Step {
+  if?: string;
   uses?: string;
   run?: string;
   with?: Record<string, unknown>;
@@ -76,6 +77,18 @@ describe('.github/workflows/release.yml', () => {
     expect(run.indexOf('pnpm install --frozen-lockfile')).toBeLessThan(
       run.indexOf('node scripts/release.ts'),
     );
+  });
+
+  it('publishes a GitHub Release from the CHANGELOG section only after the push', () => {
+    const publish = steps.find((s) => s.run?.includes('gh release create') === true);
+    expect(publish?.if).toBe("steps.release.outputs.tag != ''");
+    expect(publish?.env?.GH_TOKEN).toBe(['$', '{{ github.token }}'].join(''));
+    expect(publish?.run).toContain('node scripts/release-notes.ts "$TAG"');
+    expect(publish?.run).toContain('--verify-tag');
+    expect(steps.indexOf(publish as Step)).toBeGreaterThan(
+      steps.findIndex((s) => s.run?.includes('git push --atomic') === true),
+    );
+    expect(run).toContain('echo "tag=$TAG" >> "$GITHUB_OUTPUT"');
   });
 
   it('stops without releasing when main has moved past the tested commit', () => {

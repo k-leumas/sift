@@ -14,7 +14,6 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { renderHighlights, writeHighlights } from './changelog-ai.ts';
 import {
   latestReleaseTag,
   planRelease,
@@ -194,6 +193,9 @@ export async function main(argv: readonly string[]): Promise<number> {
     const repoUrl = repoUrlFromEnv(process.env);
     let plan = planRelease(input, { repoUrl });
     if (process.env.ANTHROPIC_API_KEY !== undefined && process.env.ANTHROPIC_API_KEY !== '') {
+      // Loaded only here: release-check.ts imports this file in a job that
+      // installs nothing, so @anthropic-ai/sdk must not load at import time.
+      const { renderHighlights, writeHighlights } = await import('./changelog-ai.ts');
       const highlights = await writeHighlights({
         version: plan.version,
         commits: plan.releasable,
