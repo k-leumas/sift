@@ -1363,3 +1363,19 @@
 | 02:23 | CI release workflow (f74d3e6) + AI changelog highlights with commit links (290ce72); gap plans 03-23/03-24 checked | release.yml, scripts/release*.ts, changelog-ai.ts | 183 tests pass | ~90k tok |
 | 02:24 | Session end: 18 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 17 reads | ~29890 tok |
 | 02:47 | release.yml now publishes a GitHub Release per version; fixed release-check import chain | release.yml, release-notes.ts, release.ts | 187 tests pass | ~15k tok |
+| 02:48 | Session end: 18 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 17 reads | ~29890 tok |
+| 03:49 | Session end: 18 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 17 reads | ~29890 tok |
+| 04:08 | Session end: 18 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 17 reads | ~29890 tok |
+| 04:13 | Session end: 18 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 17 reads | ~29890 tok |
+| 12:55 | Edited .github/workflows/release.yml | expanded (+6 lines) | ~170 |
+| 12:55 | Edited .github/workflows/release.yml | 6→8 lines | ~116 |
+| 12:55 | Edited .github/workflows/release.yml | modified chore() | ~77 |
+| 12:56 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:04 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:05 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:06 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:08 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:13 | v0.1.0 released via deploy key; fixed release.test fixture that broke ci on the release commit | test/support/release-repo.ts | 71 release tests pass | ~20k tok |
+| 13:13 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:19 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:22 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |

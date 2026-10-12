@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T08:13:11.590Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T18:55:50.763Z
 > Files: 531 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../tui-llm/src/ui/
@@ -672,7 +672,7 @@
 - `bridge-image.yml` — CI: bridge-image (~328 tok)
 - `ci.yml` — CI: ci (~951 tok)
 - `release-tag.yml` — CI: release-tag (~291 tok)
-- `release.yml` — CI: release (~704 tok)
+- `release.yml` — CI: release (~1269 tok)
 
 ## .gsd/
 
@@ -734,10 +734,3 @@
 
 - `changelog-ai.test.ts` — A client whose beta.messages.parse returns `result` (or throws it) and records the request. (~2396 tok)
 - `release.test.ts` — Each case spawns git and node a dozen times; slow under full-suite load (bug-189). (~2676 tok)
-
-- `scripts/changelog-ai.ts` — Claude-written CHANGELOG highlights (summary, New features, Updates, Bug fixes) from release commit messages; only cited release SHAs become links; null on any failure (~1.6k tok)
-- `test/changelog-ai.test.ts` — fake-client tests for writeHighlights, renderHighlights, cleanText, commit links and section layout (~1.8k tok)
-- `.github/workflows/release.yml` — after green ci on main: pnpm install, release.ts (SIFT_RELEASE_CI=1, ANTHROPIC_API_KEY secret), release-check, atomic push of commit + tag (~0.6k tok)
-- `apps/worker/test/release-workflow.test.ts` — pins release.yml trigger, permissions, checkout, env and step order (~0.7k tok)
-- `scripts/release-notes.ts` — prints one version's CHANGELOG.md section body (no heading) for the GitHub Release notes; Node built-ins only (~0.4k tok)
-- `test/release-notes.test.ts` — section extraction and CLI exit codes for release-notes.ts (~0.5k tok)

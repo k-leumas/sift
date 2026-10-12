@@ -5056,6 +5056,39 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-12T02:40:00Z"
+    },
+    {
+      "id": "bug-304",
+      "timestamp": "2026-10-12T18:55:48.980Z",
+      "error_message": "Significant refactor of ",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 4→10 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "yml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T18:55:48.980Z"
+    },
+    {
+      "id": "bug-305",
+      "timestamp": "2026-10-12T19:15:00Z",
+      "error_message": "ci on chore(release): v0.1.0 failed: test/release.test.ts first release expected [CHANGELOG.md, 4 package.json] got [CHANGELOG.md]",
+      "file": "test/support/release-repo.ts",
+      "root_cause": "buildFresh copied the real package.json files, which carry 0.1.0 after the first release, so the fixture first release changed no versions",
+      "fix": "buildFresh sets every copied package.json to UNRELEASED_VERSION 0.0.0 via setPackageVersion",
+      "tags": [
+        "release",
+        "test-fixture",
+        "ci",
+        "version"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T19:15:00Z"
     }
   ]
 }
