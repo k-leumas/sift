@@ -5,16 +5,16 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: tiered-classification-with-traces
 status: executing
-stopped_at: Completed 03-25-PLAN.md
-last_updated: "2026-10-12T21:33:24.280Z"
+stopped_at: Completed 03-26-PLAN.md
+last_updated: "2026-10-12T21:42:15.129Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 03 execution started
-state_head: 38509449b4c452cb9ddcac9e0436044058453c85
+state_head: f0f353faaa408cc49881f5947f418c090822a417
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 60
-  completed_plans: 59
+  completed_plans: 60
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 03 (tiered-classification-with-traces) — EXECUTING
-Plan: 2 of 26
+Plan: 3 of 26
 Status: Ready to execute
 Last activity: 2026-10-12 — Phase 03 execution started
 
@@ -115,6 +115,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P23 | 4min | 2 tasks | 4 files |
 | Phase 03 P24 | 6 min | 2 tasks | 2 files |
 | Phase 03 P25 | 6 min | 2 tasks | 6 files |
+| Phase 03 P26 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -285,6 +286,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-24: pushing local main to GitHub stays the owner's decision (origin 168 commits behind); read README.md in the sift checkout until then
 - [Phase 03]: 03-25 WR-04: validateLlmOutput rejects a reason that is not isWellFormed() as schema_mismatch 'reason: lone_surrogate'; recordDecision applies wellFormed(stripNul(parseDecisionSpans(...)))
 - [Phase 03]: 03-25: run.ts throw path left unchanged; residual: a write-time rejection other than DB/connection failure would still reach it with no terminal state
+- [Phase 03]: 03-26: rules schema rejects unpaired surrogates (isWellFormed) in oneLine fields and from/domain/phrase entries with its own message; reject, never repair; no ensureRuleSet backstop (WR-05)
+- [Phase 03]: 03-26: entries keep separate non-aborting refines, so control char plus unpaired surrogate in one entry gives two issues at one path; one issue per value holds for one-line fields (WR-05)
 
 ### Pending Todos
 
@@ -312,6 +315,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T21:33:24.113Z
-Stopped at: Completed 03-25-PLAN.md
+Last session: 2026-10-12T21:42:14.913Z
+Stopped at: Completed 03-26-PLAN.md
 Resume file: None
