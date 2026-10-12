@@ -69,6 +69,15 @@ describe('.github/workflows/release.yml', () => {
     expect(run).toContain('git push --atomic origin HEAD:refs/heads/main "refs/tags/$TAG"');
   });
 
+  it('passes the API key from a secret and skips the commit hooks on the release commit', () => {
+    const release = steps.find((s) => s.run?.includes('node scripts/release.ts') === true);
+    expect(release?.env?.ANTHROPIC_API_KEY).toBe(['$', '{{ secrets.ANTHROPIC_API_KEY }}'].join(''));
+    expect(release?.env?.LEFTHOOK).toBe('0');
+    expect(run.indexOf('pnpm install --frozen-lockfile')).toBeLessThan(
+      run.indexOf('node scripts/release.ts'),
+    );
+  });
+
   it('stops without releasing when main has moved past the tested commit', () => {
     expect(run.indexOf('git rev-parse origin/main')).toBeLessThan(
       run.indexOf('node scripts/release.ts'),

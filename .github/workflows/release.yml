@@ -4,8 +4,11 @@ name: release
 # picks the version from the Conventional Commits since the last v* tag (the
 # first release is v0.1.0; a feat bumps the minor, anything else the patch),
 # writes every package.json and CHANGELOG.md, commits chore(release): vX.Y.Z
-# and tags it. This job then checks the tag and pushes the commit and the tag
-# together. A push made with GITHUB_TOKEN starts no workflow, so the release
+# and tags it. With the ANTHROPIC_API_KEY repository secret set, Claude writes
+# the section's highlights (new features, updates, bug fixes) from the commit
+# messages, each linked to its commits; without it, or if that call fails, the
+# section has the linked commit lists only. This job then checks the tag and
+# pushes the commit and the tag together. A push made with GITHUB_TOKEN starts no workflow, so the release
 # commit does not run ci again and release-tag.yml does not see the tag; the
 # same check runs here instead. If main moved on while ci ran, the newer
 # commit's own run releases both, so this run stops without releasing.
@@ -37,18 +40,28 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      # Reads packageManager from package.json. Node 26 ships without corepack.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
       # Node from .nvmrc: the release scripts are TypeScript run by Node's type
-      # stripping. Nothing is installed, so no commit hook runs and there is no
-      # package cache.
+      # stripping. The install brings @anthropic-ai/sdk for the highlights.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
+          cache: pnpm
 
-      # The commit SHA reaches the script only through the runner's environment.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The commit SHA and the API key reach the script only through the
+      # runner's environment. LEFTHOOK=0: the install set up the commit hooks,
+      # which must not run on the release commit.
       - name: Release
         env:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           SIFT_RELEASE_CI: '1'
+          LEFTHOOK: '0'
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ "$(git rev-parse origin/main)" != "$HEAD_SHA" ]; then
             echo "main has moved past $HEAD_SHA; its newer ci run releases it."

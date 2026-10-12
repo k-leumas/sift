@@ -22,6 +22,15 @@ export interface ReleasePlan {
   version: string;
   tag: string;
   section: string;
+  /** The commits the section is built from (release commits left out), newest first. */
+  releasable: RawCommit[];
+}
+
+export interface SectionOptions {
+  /** `https://github.com/<owner>/<repo>`: every short SHA links to its commit. */
+  repoUrl?: string | undefined;
+  /** Written summary and groups (scripts/changelog-ai.ts), put above the commit lists. */
+  highlights?: string | undefined;
 }
 
 /** A refusal the owner can act on (no releasable commits, dirty tree, ...). */
@@ -84,13 +93,17 @@ export function latestReleaseTag(tags: readonly string[]): string | null {
   return best === null ? null : best.tag;
 }
 
-export function planRelease(input: {
-  lastTag: string | null;
-  commits: readonly RawCommit[];
-  date: string;
-}): ReleasePlan {
+export function planRelease(
+  input: {
+    lastTag: string | null;
+    commits: readonly RawCommit[];
+    date: string;
+  },
+  options: SectionOptions = {},
+): ReleasePlan {
   // Merge commits never arrive: the wrapper logs with --no-merges.
-  const releasable = input.commits.map(parseCommit).filter((c) => !isReleaseCommit(c));
+  const raw = input.commits.filter((c) => !isReleaseCommit(parseCommit(c)));
+  const releasable = raw.map(parseCommit);
   if (releasable.length === 0) {
     const since = input.lastTag === null ? 'the first commit' : input.lastTag;
     throw new ReleaseRefusedError(`no releasable commits since ${since}`);
@@ -99,7 +112,8 @@ export function planRelease(input: {
   return {
     version,
     tag: `v${version}`,
-    section: renderChangelogSection(version, input.date, releasable),
+    section: renderChangelogSection(version, input.date, releasable, options),
+    releasable: raw,
   };
 }
 
@@ -118,27 +132,44 @@ function isReleaseCommit(commit: ParsedCommit): boolean {
   return commit.type === 'chore' && commit.scope === 'release';
 }
 
-function bullet(commit: ParsedCommit): string {
-  const sha = commit.sha.slice(0, 7);
+function bullet(commit: ParsedCommit, repoUrl: string | undefined): string {
+  const short = commit.sha.slice(0, 7);
+  const sha = repoUrl === undefined ? short : `[${short}](${repoUrl}/commit/${commit.sha})`;
   return commit.scope === undefined
     ? `- ${commit.description} (${sha})`
     : `- **${commit.scope}:** ${commit.description} (${sha})`;
 }
 
+/**
+ * Without highlights: Breaking, Features and Fixes as `###` lists (other types
+ * left out). With highlights: those first, then every commit under
+ * `### All commits`, the same groups one level down plus Other changes.
+ */
 export function renderChangelogSection(
   version: string,
   date: string,
   commits: readonly ParsedCommit[],
+  options: SectionOptions = {},
 ): string {
+  const isFix = (c: ParsedCommit) => c.type === 'fix' || c.type === 'perf';
   const groups: Array<[string, ParsedCommit[]]> = [
     ['Breaking', commits.filter((c) => c.breaking)],
     ['Features', commits.filter((c) => !c.breaking && c.type === 'feat')],
-    ['Fixes', commits.filter((c) => !c.breaking && (c.type === 'fix' || c.type === 'perf'))],
+    ['Fixes', commits.filter((c) => !c.breaking && isFix(c))],
   ];
+  const highlights = options.highlights?.trim() ?? '';
   const lines = [`## v${version} (${date})`, ''];
+  if (highlights !== '') {
+    groups.push([
+      'Other changes',
+      commits.filter((c) => !c.breaking && c.type !== 'feat' && !isFix(c)),
+    ]);
+    lines.push(highlights, '', '### All commits', '');
+  }
+  const level = highlights === '' ? '###' : '####';
   for (const [heading, entries] of groups) {
     if (entries.length === 0) continue;
-    lines.push(`### ${heading}`, '', ...entries.map(bullet), '');
+    lines.push(`${level} ${heading}`, '', ...entries.map((c) => bullet(c, options.repoUrl)), '');
   }
   if (lines.length === 2) {
     const n = commits.filter((c) => !isReleaseCommit(c)).length;

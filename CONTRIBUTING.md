@@ -119,11 +119,15 @@ Versions come from the [Conventional Commits](https://www.conventionalcommits.or
 
 Releases are cut by the `.github/workflows/release.yml` workflow, never by hand. Every time the `ci` workflow passes for a push to `main`, it runs `pnpm release` on that commit: it sets the version in `package.json` and in every workspace package (`apps/*`, `packages/*`), prepends the section to `CHANGELOG.md`, commits `chore(release): vX.Y.Z`, creates the annotated tag `vX.Y.Z`, checks the tag, and then pushes the commit and the tag together. If `main` has moved on while `ci` was running, it releases nothing: the newer commit's run releases both. A failed `ci` run releases nothing.
 
+Each `CHANGELOG.md` section links every short SHA to its commit on GitHub. When the `ANTHROPIC_API_KEY` repository secret is set (Settings, Secrets and variables, Actions), Claude (`claude-opus-5-5`) also reads that release's commit messages and writes a short summary plus **New features**, **Updates** and **Bug fixes**, each entry linked to the commits it comes from; the full grouped list follows under **All commits**. Only commit messages are sent, never mail or other repository content. An entry that cites no commit of the release is dropped. Without the secret, or if the call fails, the release still goes out with the linked commit lists only.
+
 Locally you can only preview the next release:
 
 ```bash
 pnpm release --dry-run   # print the next version and its CHANGELOG section; changes nothing
 ```
+
+With `ANTHROPIC_API_KEY` set in your shell, the preview includes Claude's highlights (one API call); without it, it shows the commit lists.
 
 A real `pnpm release` on your machine refuses: it needs `SIFT_RELEASE_CI=1`, which only the workflow sets. The workflow pushes with the repository's `GITHUB_TOKEN`, so if `main` is a protected branch, allow GitHub Actions to push to it. Each release adds a commit to `main` on GitHub, so run `git pull --rebase` before you push again; a plain `git push` is rejected until you do. `.github/workflows/release-tag.yml` still checks any `v*` tag pushed by hand: the tag must equal `v` plus the root `package.json` version, every workspace package must have that version, and `CHANGELOG.md` must have a `## vX.Y.Z` section. `sift --version` prints the version.
 

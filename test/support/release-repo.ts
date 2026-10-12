@@ -55,11 +55,13 @@ export interface RunResult {
   stderr: string;
 }
 
-/** Child env without the owner's GIT_* variables, global config, signing or hooksPath; runs as the release workflow. */
+/** Child env without GIT_*, GITHUB_* or ANTHROPIC_* variables, global config, signing or hooksPath; runs as the release workflow. */
 function isolatedEnv(aux: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {};
   for (const [key, value] of Object.entries(process.env)) {
-    if (!key.startsWith('GIT_')) env[key] = value;
+    // No GITHUB_* (repository links) or ANTHROPIC_* (a real Claude call) from the
+    // runner or the owner's shell: the changelog stays the plain commit lists.
+    if (!/^(GIT|GITHUB|ANTHROPIC)_/.test(key)) env[key] = value;
   }
   return {
     ...env,

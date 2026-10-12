@@ -2,6 +2,10 @@
  * `pnpm release [--dry-run]`: cut a release from the Conventional Commits since
  * the last `v*` tag. Writes the version into every package.json, prepends
  * CHANGELOG.md, makes one `chore(release): vX.Y.Z` commit and an annotated tag.
+ * With ANTHROPIC_API_KEY set, Claude writes the section's highlights from the
+ * commit messages (scripts/changelog-ai.ts); without it, or if that fails, the
+ * section has the commit lists only. Short SHAs link to GitHub when the
+ * repository URL is known (GITHUB_SERVER_URL + GITHUB_REPOSITORY in Actions).
  * A real run happens only in the release workflow (SIFT_RELEASE_CI=1), after CI
  * passes on main; locally only `--dry-run` works. It never pushes: the workflow does. Git runs through execFileSync with an argv array only, so no
  * commit text or tag name ever reaches a shell.
@@ -10,6 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
+import { renderHighlights, writeHighlights } from './changelog-ai.ts';
 import {
   latestReleaseTag,
   planRelease,
@@ -99,6 +104,15 @@ function gitSucceeds(root: string, args: readonly string[]): boolean {
   }
 }
 
+/** The repository's web URL in GitHub Actions, else undefined (short SHAs stay unlinked). */
+export function repoUrlFromEnv(env: NodeJS.ProcessEnv): string | undefined {
+  const server = env.GITHUB_SERVER_URL;
+  const repo = env.GITHUB_REPOSITORY;
+  if (server === undefined || repo === undefined) return undefined;
+  if (!/^https:\/\/[\w.-]+$/.test(server) || !/^[\w.-]+\/[\w.-]+$/.test(repo)) return undefined;
+  return `${server}/${repo}`;
+}
+
 /** Why a real run must refuse: dirty tree, not on main, or the tag exists (LD-4). */
 function guardProblems(root: string, tag: string): string[] {
   const problems: string[] = [];
@@ -156,7 +170,7 @@ function commitRelease(root: string, version: string, section: string, tag: stri
   }
 }
 
-export function main(argv: readonly string[]): number {
+export async function main(argv: readonly string[]): Promise<number> {
   let dryRun: boolean;
   try {
     const { values } = parseArgs({
@@ -176,7 +190,20 @@ export function main(argv: readonly string[]): number {
     const tags = git(root, ['tag', '--list', 'v*', '--merged', 'HEAD']).split('\n');
     const lastTag = latestReleaseTag(tags.map((t) => t.trim()));
     const commits = readCommits(root, lastTag);
-    const plan = planRelease({ lastTag, commits, date: localDate(new Date()) });
+    const input = { lastTag, commits, date: localDate(new Date()) };
+    const repoUrl = repoUrlFromEnv(process.env);
+    let plan = planRelease(input, { repoUrl });
+    if (process.env.ANTHROPIC_API_KEY !== undefined && process.env.ANTHROPIC_API_KEY !== '') {
+      const highlights = await writeHighlights({
+        version: plan.version,
+        commits: plan.releasable,
+        warn: (line) => process.stderr.write(`${line}\n`),
+      });
+      if (highlights !== null) {
+        const text = renderHighlights(highlights, plan.releasable, repoUrl);
+        plan = planRelease(input, { repoUrl, highlights: text });
+      }
+    }
 
     const problems = guardProblems(root, plan.tag);
 
@@ -222,5 +249,5 @@ export function main(argv: readonly string[]): number {
 
 if (import.meta.main) {
   // Set exitCode instead of calling process.exit so buffered output is flushed.
-  process.exitCode = main(process.argv.slice(2));
+  process.exitCode = await main(process.argv.slice(2));
 }
