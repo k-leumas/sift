@@ -326,6 +326,41 @@ describe('README quick start is easy to find and scan (G-03-8)', () => {
     ]);
     expect(readme).toMatch(/^### Quick start$/m);
   });
+
+  it('numbers the steps 1 to 12, each led by a short bold imperative (G-03-8)', () => {
+    const steps = quickStartSteps();
+    expect(steps.map((step) => step.number)).toEqual(Array.from({ length: 12 }, (_, i) => i + 1));
+    for (const { number, lead } of steps) {
+      const bold = /^\*\*([^*]+)\*\*$/.exec(lead);
+      expect(bold, `step ${number}: ${lead}`).not.toBeNull();
+      const text = bold?.[1] ?? '';
+      expect(text.endsWith('.'), `step ${number}: ${text}`).toBe(true);
+      expect(text.length, `step ${number}: ${text}`).toBeLessThanOrEqual(60);
+    }
+  });
+
+  it('indents every line of a step under its number (G-03-8)', () => {
+    for (const { number, lines } of quickStartSteps()) {
+      // `1. ` is 3 characters wide and `10. ` is 4: list content starts there, code fences too.
+      const indent = number < 10 ? '   ' : '    ';
+      for (const line of lines.filter((l) => l.trim() !== '')) {
+        expect(line.startsWith(indent), `step ${number}: ${line}`).toBe(true);
+      }
+    }
+  });
+
+  it('keeps the step numbers other text refers to (G-03-8)', () => {
+    const lead = (n: number) => quickStartSteps().find((step) => step.number === n)?.lead ?? '';
+    // CONTRIBUTING "steps 6 to 9", README "step 8" (login), "step 9" (pin) and "step 12" (start).
+    expect(lead(6)).toContain("Bridge's volume");
+    expect(lead(8)).toMatch(/^\*\*Log in/);
+    expect(lead(9)).toMatch(/^\*\*Pin/);
+    expect(lead(12)).toMatch(/^\*\*Start/);
+    expect(readme).toContain('([Quick start](#quick-start), step 9)');
+    expect(readme).toContain('the Bridge login in step 8');
+    expect(readme).toContain('(step 12)');
+    expect(read('CONTRIBUTING.md')).toContain('(README.md#quick-start) (steps 6 to 9)');
+  });
 });
 
 describe('README scope and host requirements (G-02-8, G-02-9)', () => {
