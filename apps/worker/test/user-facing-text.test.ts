@@ -320,10 +320,12 @@ describe('CONTRIBUTING development loop and gates (D-22, D-31, D-47)', () => {
     'sift bridge trust <slug>',
     'scripts/test-imap.sh up',
     'scripts/bridge-smoke.sh',
-    // Releases (quick 261007-2ke): local pnpm release, CI tag check, sift --version.
+    // Releases: the release workflow cuts them after ci passes on main; locally only a dry run.
     'pnpm release --dry-run',
     'pnpm release',
-    'git push --follow-tags',
+    '.github/workflows/release.yml',
+    'SIFT_RELEASE_CI=1',
+    'git pull --rebase',
     'chore(release): v',
     'sift --version',
     '.github/workflows/release-tag.yml',

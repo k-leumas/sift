@@ -55,7 +55,7 @@ export interface RunResult {
   stderr: string;
 }
 
-/** Child env without the owner's GIT_* variables, global config, signing or hooksPath. */
+/** Child env without the owner's GIT_* variables, global config, signing or hooksPath; runs as the release workflow. */
 function isolatedEnv(aux: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {};
   for (const [key, value] of Object.entries(process.env)) {
@@ -65,6 +65,8 @@ function isolatedEnv(aux: string): NodeJS.ProcessEnv {
     ...env,
     GIT_CONFIG_GLOBAL: path.join(aux, 'gitconfig'),
     GIT_CONFIG_NOSYSTEM: '1',
+    // The release workflow sets this; a test that checks the local refusal deletes it.
+    SIFT_RELEASE_CI: '1',
     GIT_AUTHOR_NAME: 'Release Test',
     GIT_AUTHOR_EMAIL: 'release-test@example.invalid',
     GIT_COMMITTER_NAME: 'Release Test',

@@ -53,7 +53,7 @@ describe('pnpm release: first release (LD-3, LD-4)', { timeout: E2E_TIMEOUT_MS }
 
     expect(stderr).toBe('');
     expect(status).toBe(0);
-    expect(stdout).toContain('git push --follow-tags');
+    expect(stdout).toContain('The release workflow pushes both.');
     expect(git(repo, 'log', '-1', '--format=%s').trim()).toBe('chore(release): v0.1.0');
     const committed = git(repo, 'show', '--name-only', '--format=', 'HEAD')
       .split('\n')
@@ -138,6 +138,24 @@ describe('pnpm release: later releases (LD-1, LD-2)', { timeout: E2E_TIMEOUT_MS 
 });
 
 describe('pnpm release: guards and rollback (LD-4)', { timeout: E2E_TIMEOUT_MS }, () => {
+  it('refuses a real run outside the release workflow, but still dry-runs', () => {
+    const repo = repos.released();
+    commit(repo, 'feat: more');
+    delete repo.env.SIFT_RELEASE_CI;
+    const before = snapshot(repo);
+
+    const real = release(repo);
+    expect(real.status).toBe(1);
+    expect(real.stderr).toContain('releases are cut by the release workflow');
+    expect(real.stderr).toContain('pnpm release --dry-run');
+    expect(snapshot(repo)).toEqual(before);
+
+    const dry = release(repo, '--dry-run');
+    expect(dry.status).toBe(0);
+    expect(dry.stderr).toBe('');
+    expect(dry.stdout).toContain('Next release: v0.2.0 (after v0.1.0)');
+  });
+
   it('refuses on an untracked file', () => {
     const repo = repos.released();
     commit(repo, 'feat: more');

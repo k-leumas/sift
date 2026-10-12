@@ -117,15 +117,15 @@ Versions come from the [Conventional Commits](https://www.conventionalcommits.or
 - A breaking change (`!` after the type, or a `BREAKING CHANGE:` footer) gives a minor bump while the major version is 0. Reaching 1.0.0 is a manual decision.
 - The first release is v0.1.0.
 
+Releases are cut by the `.github/workflows/release.yml` workflow, never by hand. Every time the `ci` workflow passes for a push to `main`, it runs `pnpm release` on that commit: it sets the version in `package.json` and in every workspace package (`apps/*`, `packages/*`), prepends the section to `CHANGELOG.md`, commits `chore(release): vX.Y.Z`, creates the annotated tag `vX.Y.Z`, checks the tag, and then pushes the commit and the tag together. If `main` has moved on while `ci` was running, it releases nothing: the newer commit's run releases both. A failed `ci` run releases nothing.
+
+Locally you can only preview the next release:
+
 ```bash
 pnpm release --dry-run   # print the next version and its CHANGELOG section; changes nothing
-pnpm release             # bump, write CHANGELOG.md, commit and tag locally
-git push --follow-tags   # publish the release commit and its tag yourself
 ```
 
-`pnpm release` runs only on a clean `main`, so commit everything first. It sets the version in `package.json` and in every workspace package (`apps/*`, `packages/*`), prepends the section to `CHANGELOG.md`, commits `chore(release): vX.Y.Z` and creates the annotated tag `vX.Y.Z`. It refuses when there are no commits since the last tag or the tag already exists, and it never pushes.
-
-Releases run only locally, never in CI or a git hook. The `.github/workflows/release-tag.yml` workflow checks every pushed `v*` tag: the tag must equal `v` plus the root `package.json` version, every workspace package must have that version, and `CHANGELOG.md` must have a `## vX.Y.Z` section. `sift --version` prints the version.
+A real `pnpm release` on your machine refuses: it needs `SIFT_RELEASE_CI=1`, which only the workflow sets. The workflow pushes with the repository's `GITHUB_TOKEN`, so if `main` is a protected branch, allow GitHub Actions to push to it. Each release adds a commit to `main` on GitHub, so run `git pull --rebase` before you push again; a plain `git push` is rejected until you do. `.github/workflows/release-tag.yml` still checks any `v*` tag pushed by hand: the tag must equal `v` plus the root `package.json` version, every workspace package must have that version, and `CHANGELOG.md` must have a `## vX.Y.Z` section. `sift --version` prints the version.
 
 ## Coding standards
 

@@ -1,0 +1,63 @@
+name: release
+
+# Cuts a release after every green ci run for a push to main: scripts/release.ts
+# picks the version from the Conventional Commits since the last v* tag (the
+# first release is v0.1.0; a feat bumps the minor, anything else the patch),
+# writes every package.json and CHANGELOG.md, commits chore(release): vX.Y.Z
+# and tags it. This job then checks the tag and pushes the commit and the tag
+# together. A push made with GITHUB_TOKEN starts no workflow, so the release
+# commit does not run ci again and release-tag.yml does not see the tag; the
+# same check runs here instead. If main moved on while ci ran, the newer
+# commit's own run releases both, so this run stops without releasing.
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      # The exact commit ci tested, with full history and tags for the version.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      # Node from .nvmrc: the release scripts are TypeScript run by Node's type
+      # stripping. Nothing is installed, so no commit hook runs and there is no
+      # package cache.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      # The commit SHA reaches the script only through the runner's environment.
+      - name: Release
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          SIFT_RELEASE_CI: '1'
+        run: |
+          if [ "$(git rev-parse origin/main)" != "$HEAD_SHA" ]; then
+            echo "main has moved past $HEAD_SHA; its newer ci run releases it."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -q -C main "$HEAD_SHA"
+          node scripts/release.ts
+          TAG=$(git describe --tags --exact-match HEAD)
+          node scripts/release-check.ts "$TAG"
+          git push --atomic origin HEAD:refs/heads/main "refs/tags/$TAG"

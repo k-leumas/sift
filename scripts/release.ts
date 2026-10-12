@@ -1,8 +1,9 @@
 /**
- * `pnpm release [--dry-run]`: cut a release locally from the Conventional Commits
- * since the last `v*` tag. Writes the version into every package.json, prepends
+ * `pnpm release [--dry-run]`: cut a release from the Conventional Commits since
+ * the last `v*` tag. Writes the version into every package.json, prepends
  * CHANGELOG.md, makes one `chore(release): vX.Y.Z` commit and an annotated tag.
- * It never pushes. Git runs through execFileSync with an argv array only, so no
+ * A real run happens only in the release workflow (SIFT_RELEASE_CI=1), after CI
+ * passes on main; locally only `--dry-run` works. It never pushes: the workflow does. Git runs through execFileSync with an argv array only, so no
  * commit text or tag name ever reaches a shell.
  */
 import { execFileSync } from 'node:child_process';
@@ -23,6 +24,8 @@ export const WORKSPACE_DIRS = ['apps', 'packages'] as const;
 
 const CHANGELOG = 'CHANGELOG.md';
 const USAGE = 'Usage: pnpm release [--dry-run]';
+/** Set only by .github/workflows/release.yml; a real run refuses without it. */
+export const RELEASE_CI_ENV = 'SIFT_RELEASE_CI';
 
 /** Repo-relative POSIX paths: `package.json`, then every workspace package.json, sorted. */
 export function packageJsonFiles(root: string): string[] {
@@ -185,6 +188,12 @@ export function main(argv: readonly string[]): number {
       }
       return 0;
     }
+    if (process.env[RELEASE_CI_ENV] !== '1') {
+      problems.unshift(
+        'releases are cut by the release workflow after CI passes on main; ' +
+          'run pnpm release --dry-run to preview the next one',
+      );
+    }
     if (problems.length > 0) throw new ReleaseRefusedError(problems.join('; '));
 
     commitRelease(root, plan.version, plan.section, plan.tag);
@@ -199,7 +208,7 @@ export function main(argv: readonly string[]): number {
     }
     process.stdout.write(
       `Created commit chore(release): ${plan.tag} and annotated tag ${plan.tag}.\n` +
-        'Push when ready: git push --follow-tags\n',
+        'The release workflow pushes both.\n',
     );
     return 0;
   } catch (error) {

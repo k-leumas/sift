@@ -2,8 +2,10 @@ name: release-tag
 
 # Checks every pushed v* tag against the tagged files: the tag must equal `v` plus
 # the root package.json version, every workspace package must carry that version,
-# and CHANGELOG.md must have the tag's section. Tags are cut locally with
-# `pnpm release` (see CONTRIBUTING.md); this workflow never creates or pushes one.
+# and CHANGELOG.md must have the tag's section. Tags are cut by release.yml after
+# ci passes on main, which runs the same check itself (a tag pushed with
+# GITHUB_TOKEN starts no workflow), so this one guards tags pushed by hand. It
+# never creates or pushes one.
 # The tag name reaches the script only through the runner's environment.
 
 on:
