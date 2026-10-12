@@ -212,3 +212,47 @@ describe('control characters in the reason (WR-01)', () => {
     expect(result.failure.detail).not.toContain(secret);
   });
 });
+
+describe('lone surrogates in the reason (WR-04)', () => {
+  // Built from UTF-16 code units so this file holds no raw surrogate. answer()
+  // JSON.stringifies the fields, which writes an unpaired surrogate as a JSON
+  // escape: the same path a model answer takes.
+  const unit = (n: number) => String.fromCharCode(n);
+  const LONE_SURROGATE = {
+    ok: false,
+    failure: { code: 'schema_mismatch', detail: 'reason: lone_surrogate' },
+  };
+
+  it.each([
+    ['a lone high surrogate U+D800 inside', `A bill${unit(0xd800)} is due.`],
+    ['a lone high surrogate U+DBFF inside', `A bill${unit(0xdbff)} is due.`],
+    ['a lone low surrogate U+DC00 inside', `A bill${unit(0xdc00)} is due.`],
+    ['a lone low surrogate U+DFFF inside', `A bill${unit(0xdfff)} is due.`],
+    ['a reversed pair (U+DE00 then U+D83D)', `A bill ${unit(0xde00)}${unit(0xd83d)} is due.`],
+    ['a lone high surrogate at the very end', `A bill is due.${unit(0xd800)}`],
+  ])('rejects a reason holding %s as schema_mismatch', (_name, reason) => {
+    expect(reason.isWellFormed()).toBe(false);
+    expect(validateLlmOutput(schema, answer({ reason }))).toEqual(LONE_SURROGATE);
+  });
+
+  it.each([
+    ['a valid pair (U+D83D U+DE00) inside', `A bill ${unit(0xd83d)}${unit(0xde00)} is due.`],
+    ['a valid pair at the very end', `A bill is due ${unit(0xd83d)}${unit(0xde00)}`],
+  ])('accepts a reason holding %s, unchanged', (_name, reason) => {
+    expect(validateLlmOutput(schema, answer({ reason }))).toEqual({
+      ok: true,
+      value: { reason, category: 'Important', confidence: 0.9 },
+    });
+  });
+
+  it('never quotes the reason in the failure detail', () => {
+    const secret = 'QZSECRETTEXT';
+    const result = validateLlmOutput(
+      schema,
+      answer({ reason: `${secret}${unit(0xdc00)}${secret}` }),
+    );
+    expect(result).toEqual(LONE_SURROGATE);
+    if (result.ok) return;
+    expect(result.failure.detail).not.toContain(secret);
+  });
+});

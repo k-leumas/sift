@@ -747,6 +747,55 @@ describe('re-runs, latest decision, body restore and the review reasons (D-17, D
     expect(JSON.stringify(stored?.spans)).not.toContain(`${String.fromCharCode(92)}u0000`);
   });
 
+  it('stores an llm decision whose attempt holds lone surrogates in thinking, raw, done_reason and response_model as U+FFFD (WR-04 backstop)', async () => {
+    // Built from UTF-16 code units so this file holds no raw surrogate.
+    const high = String.fromCharCode(0xd800);
+    const low = String.fromCharCode(0xdc00);
+    const pair = String.fromCharCode(0xd83d, 0xde00);
+    const replacement = String.fromCharCode(0xfffd);
+    const dirty: LlmAttemptSpan = {
+      ...attempt({ ok: false, code: 'not_json', detail: 'content is not one JSON value' }),
+      raw: `not${high} json`,
+      thinking: `think${low} ${pair} aloud`,
+      done_reason: `st${high}op`,
+    };
+    const draft = decide({
+      exact: noMatch,
+      llm: {
+        verdict: { kind: 'review', reason: 'invalid_output', attempts: [dirty] },
+        context: { ...llmContext(prompt, material.hash), response_model: `qwen3${low}:1.7b` },
+      },
+      threshold: 0.75,
+    });
+    const row = await withMailbox(app, mailboxId, (s) =>
+      recordDecision(
+        s,
+        decisionInput(newer, ruleSetId, draft, { decidedBy: 'rerun', promptVersionId: prompt.id }),
+      ),
+    );
+    expect(row).toMatchObject({ outcome: 'review', reviewReason: 'invalid_output', tier: 'llm' });
+
+    const [stored] = await adminQuery<{ spans: { kind: string }[] }>(
+      'select spans from decision where id = $1',
+      [row.id],
+    );
+    const llm = stored?.spans.find((s) => s.kind === 'llm') as
+      | { response_model: string; attempts: LlmAttemptSpan[] }
+      | undefined;
+    expect(llm?.response_model).toBe(`qwen3${replacement}:1.7b`);
+    expect(llm?.attempts).toHaveLength(1);
+    expect(llm?.attempts[0]).toMatchObject({
+      raw: `not${replacement} json`,
+      thinking: `think${replacement} ${pair} aloud`,
+      done_reason: `st${replacement}op`,
+    });
+    // JSON.stringify writes an unpaired surrogate as a six-character escape: look for that.
+    const text = JSON.stringify(stored?.spans);
+    const backslash = String.fromCharCode(92);
+    expect(text).not.toContain(`${backslash}ud800`);
+    expect(text).not.toContain(`${backslash}udc00`);
+  });
+
   it('refuses an unknown review reason with 23514', async () => {
     await expect(
       withMailbox(app, mailboxId, (s) =>
