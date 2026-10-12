@@ -134,6 +134,28 @@ export function stripNul<V>(value: V): V {
   return value;
 }
 
+/**
+ * Replace every unpaired UTF-16 surrogate with U+FFFD in every string,
+ * including nested object keys and values (WR-04). PostgreSQL jsonb rejects an
+ * unpaired surrogate escape ("Unicode low surrogate must follow a high
+ * surrogate"), node-postgres sends jsonb as JSON text, and JSON.stringify
+ * writes an unpaired surrogate as such an escape, so one would make the insert
+ * fail on every retry. Valid pairs are kept. Same walk as stripNul; Dates and
+ * other values pass through.
+ *
+ * @internal Shared with classify.ts (recordDecision); not re-exported from index.ts.
+ */
+export function wellFormed<V>(value: V): V {
+  if (typeof value === 'string') return value.toWellFormed() as V;
+  if (Array.isArray(value)) return value.map((v) => wellFormed(v)) as V;
+  if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [wellFormed(k), wellFormed(v)]),
+    ) as V;
+  }
+  return value;
+}
+
 /** The message row for a group of items sharing one identity key. */
 function messageRow(group: readonly StoreItem[]) {
   const first = group[0]?.message as MessageInput;

@@ -5,7 +5,7 @@ import {
   TRACE_FORMAT_VERSION,
 } from '@sift/core/classify';
 import type { InferSelectModel } from 'drizzle-orm';
-import { DECISION_BODY_RETENTION_MS, decidedMessageIds, stripNul } from './ingest.ts';
+import { DECISION_BODY_RETENTION_MS, decidedMessageIds, stripNul, wellFormed } from './ingest.ts';
 import type { decision } from './schema/index.ts';
 import type { Scope } from './scope.ts';
 
@@ -128,13 +128,21 @@ function assertConsistent(input: RecordDecisionInput, spans: DecisionSpans): voi
  * response_model) reach the trace as they came. The model's reason itself is
  * rejected earlier, by validateLlmOutput, never stripped.
  *
+ * Then every unpaired UTF-16 surrogate in those strings becomes U+FFFD (WR-04
+ * backstop): jsonb rejects one as well ("Unicode low surrogate must follow a
+ * high surrogate"). The model's reason is rejected earlier by validateLlmOutput
+ * ('reason: lone_surrogate'), never repaired. A stored attempt whose raw was
+ * repaired no longer equals what the server sent; that is accepted because
+ * real Ollama never emits an unpaired surrogate (its encoder replaces invalid
+ * text) and the alternative is a decision that can never be stored.
+ *
  * Runs in the caller's transaction (the scope).
  */
 export async function recordDecision(
   scope: Scope,
   input: RecordDecisionInput,
 ): Promise<DecisionRow> {
-  const spans = stripNul(parseDecisionSpans(input.spans));
+  const spans = wellFormed(stripNul(parseDecisionSpans(input.spans)));
   assertConsistent(input, spans);
   const at = input.at ?? new Date();
   if (!Number.isFinite(at.getTime())) throw mismatch('at', 'must be a valid Date');
