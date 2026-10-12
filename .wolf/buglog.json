@@ -4828,6 +4828,217 @@
       "related_bugs": [],
       "occurrences": 2,
       "last_seen": "2026-10-11T10:48:09.443Z"
+    },
+    {
+      "id": "bug-290",
+      "timestamp": "2026-10-11T11:01:50.191Z",
+      "error_message": "Wrong reference: pending should be pass",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "Used \"pending\" instead of \"pass\"",
+      "fix": "Changed pending → pass",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T11:01:50.191Z"
+    },
+    {
+      "id": "bug-291",
+      "timestamp": "2026-10-11T15:50:14.637Z",
+      "error_message": "Wrong reference: pending should be pass",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "Used \"pending\" instead of \"pass\"",
+      "fix": "Changed pending → pass",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T15:50:14.637Z"
+    },
+    {
+      "id": "bug-292",
+      "timestamp": "2026-10-11T15:55:52.640Z",
+      "error_message": "Significant refactor of ",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 9→16 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T15:55:52.641Z"
+    },
+    {
+      "id": "bug-293",
+      "timestamp": "2026-10-11T16:20:20.838Z",
+      "error_message": "Wrong reference: pending should be pass",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "Used \"pending\" instead of \"pass\"",
+      "fix": "Changed pending → pass",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-11T16:24:15.276Z"
+    },
+    {
+      "id": "bug-294",
+      "timestamp": "2026-10-11T16:24:10.665Z",
+      "error_message": "Significant refactor of ",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-UAT.md",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 3→11 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-11T16:24:10.665Z"
+    },
+    {
+      "id": "bug-295",
+      "timestamp": "2026-10-11T16:29:13.619Z",
+      "error_message": "Incorrect value in code",
+      "file": ".claude/worktrees/uat-03-verify/.planning/phases/03-tiered-classification-with-traces/03-23-PLAN.md",
+      "root_cause": "Had `git diff --stat`",
+      "fix": "Changed to `git diff --numstat`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-11T16:29:30.376Z"
+    },
+    {
+      "id": "bug-296",
+      "timestamp": "2026-10-12T06:30:00Z",
+      "error_message": "biome check: unused useExhaustiveDependencies suppression in CandidateSelect.tsx:161, unused afterEach/beforeEach/vi in tests/modal-layout.test.ts, renovate.json format",
+      "file": "/Users/samuel/dev/tui-llm/src/ui/CandidateSelect.tsx",
+      "root_cause": "The layout effect already lists every value it reads, so the ignore comment suppressed nothing. The test file imported vitest helpers it never calls. renovate.json extends was a three-line array; Biome wants it on one line.",
+      "fix": "Removed the biome-ignore comment, dropped the unused vitest imports, and collapsed extends to one line. biome check . is clean.",
+      "tags": [
+        "biome",
+        "tui-llm",
+        "lint"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T06:30:00Z"
+    },
+    {
+      "id": "bug-297",
+      "timestamp": "2026-10-12T07:49:49.933Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-24-PLAN.md",
+      "root_cause": "Had `grep -c \"",
+      "fix": "Changed to `awk '",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-12T07:50:40.659Z"
+    },
+    {
+      "id": "bug-298",
+      "timestamp": "2026-10-12T07:51:16.989Z",
+      "error_message": "Wrong reference: files should be precondition",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-23-PLAN.md",
+      "root_cause": "Used \"files\" instead of \"precondition\"",
+      "fix": "Changed files → precondition",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T07:51:16.989Z"
+    },
+    {
+      "id": "bug-299",
+      "timestamp": "2026-10-12T07:51:19.355Z",
+      "error_message": "Wrong reference: files should be precondition",
+      "file": ".planning/phases/03-tiered-classification-with-traces/03-24-PLAN.md",
+      "root_cause": "Used \"files\" instead of \"precondition\"",
+      "fix": "Changed files → precondition",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T07:51:19.355Z"
+    },
+    {
+      "id": "bug-300",
+      "timestamp": "2026-10-12T02:20:00Z",
+      "error_message": "PARSE_ERROR Unterminated regular expression at scripts/changelog-ai.ts (regex with \\u2028\\u2029)",
+      "file": "scripts/changelog-ai.ts",
+      "root_cause": "The Write tool turned the \\u2028/\\u2029 escapes inside a regex literal into the raw line-separator characters, which end a JS regex literal",
+      "fix": "Rewrote the raw U+2028/U+2029 characters back to \\\\u2028/\\\\u2029 escapes with Python",
+      "tags": [
+        "write-tool",
+        "regex",
+        "unicode",
+        "line-separator"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T02:20:00Z"
+    },
+    {
+      "id": "bug-301",
+      "timestamp": "2026-10-12T02:20:00Z",
+      "error_message": "fatal: pathspec '<all files>' did not match any files (git add -- $F in zsh)",
+      "file": "(shell)",
+      "root_cause": "zsh does not word-split an unquoted $F string, so the whole space-separated list became one pathspec",
+      "fix": "Use a zsh array F=(a b c) and pass $F",
+      "tags": [
+        "zsh",
+        "git",
+        "pathspec",
+        "word-splitting"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T02:20:00Z"
+    },
+    {
+      "id": "bug-302",
+      "timestamp": "2026-10-12T02:20:00Z",
+      "error_message": "the command doesn't yeild anything on my computer (llm-baseline.ts)",
+      "file": "apps/worker/test/support/llm-baseline.ts",
+      "root_cause": "Runner prints only after all 10 Ollama chats (~4 min); first try ran from another checkout (MODULE_NOT_FOUND)",
+      "fix": "Not fixed yet: gap G-03-2, plan 03-23 adds stderr progress lines and setup docs",
+      "tags": [
+        "uat",
+        "llm-baseline",
+        "progress",
+        "G-03-2"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T02:20:00Z"
     }
   ]
 }

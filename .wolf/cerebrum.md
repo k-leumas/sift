@@ -13,6 +13,7 @@
 - [2026-10-05] Privacy: IMAP is the source of truth. Bodies live only in a short-lived cache (classified + 7 d). Traces store the prompt recipe, not raw prompts.
 - [2026-10-05] When a durable key format changes, migrate or dual-read old keys and prefer a CHECK that makes the old format unstorable. Tuning values are named constants, and computed values such as watermarks get logged.
 - [2026-10-04] `.claude/`, `.wolf/`, `.gsd/`, `.planning/`, `CLAUDE.md` are code: commit them like source, after a secrets scan.
+- (2026-10-12) Owner treats README discoverability as a real defect: the quick start must be findable from the top of the README, not only present. When pointing at README content, give line numbers.
 
 ## Key Learnings
 - **Project:** sift is self-hosted email triage: plain-English rules, a tiny classifier and a small local LLM. It supports Proton Mail via Bridge only.
@@ -32,6 +33,10 @@
 - **Compose 2.2.3:** a missing env_file or external volume fails every command. Single-file bind mounts: rename gives EBUSY, so write in place. `docker compose run` needs `-T` in the agent shell. Local smoke: `SMOKE_ALLOW_VOLUME_REMOVAL=yes COMPOSE_PROJECT_NAME=sift-smoke SIFT_DB_PORT=55433 scripts/compose-smoke.sh --down`.
 - **GSD:** gsd-tools is at ~/.claude/gsd-core/bin/gsd-tools.cjs; wrap it as `gsdq() { node ... "$@"; }`. evaluation-scope under-scopes, so use `git diff --name-only <start>..HEAD`. Verifier overrides go only in VERIFICATION.md frontmatter `overrides:`. Run worktree-blind owner Docker steps from the main checkout.
 - **Write/Edit tools** decode backslash-u escapes. Check new files with `LC_ALL=C grep -c -P '[^\x09\x0A\x20-\x7E]'`.
+- **tui-llm** (sibling repo, not this tree): `src/ui/CandidateSelect.tsx` and `tests/modal-layout.test.ts` live in `/Users/samuel/dev/tui-llm`. A biome `suppressions/unused` on `useExhaustiveDependencies` means the dep list is already complete; delete the ignore comment.
+- (2026-10-12) Owner-run commands (e.g. llm-baseline.ts) must be run from the sift repo root; the owner also has /Users/samuel/dev/public_gsd-2 checked out. Local main can be far ahead of origin (168 commits on 2026-10-12), so the GitHub README may lack recent docs.
+- (2026-10-12) README has a second numbered bold list (Contributing, ~line 704), so count quick-start steps inside the '### Quick start'..'### Managing mailboxes' slice only. Branch uat/03-verify (worktree .claude/worktrees/uat-03-verify) holds its own unmerged 03-23 plan and a different G-03-8; main's 03-23/03-24 (planned 2026-10-12) collide by number if it is ever merged.
+- (2026-10-12) llm-baseline.ts runs 10 Ollama chats (~4 min on qwen3:1.7b) and prints only at the end; live baseline 2026-10-12: flips 3, clean personal reply filed as Reading (E12 candidate).
 
 ## Do-Not-Repeat
 - [2026-10-11] Use `ensure_ascii=False` (indent=2, trailing newline) when rewriting .wolf/buglog.json with Python. Confirm the diff is additions only.
@@ -52,6 +57,9 @@
 - [2026-10-04] Run `state.advance-plan` exactly once and read its JSON.
 - [2026-10-04] A test net.Server socket needs `socket.resume()` to see FIN.
 - [2026-10-03] zsh does not word-split `$FILES`; use arrays.
+- [2026-10-12] Do not write UAT checkpoint text that describes behaviour superseded by a later plan (03-22 "hold-back until restart" was replaced by 03-20 llm_error review). Check the latest SUMMARY/README before phrasing a test.
+- [2026-10-12] In zsh, pass file lists to git as an array F=(a b) not a string (bug log). Never put raw \u2028/\u2029 in a regex via the Write tool; check with grep after writing.
+- [2026-10-12] `vitest run test/` matches apps/*/test too and needs DB/IMAP services; name test files explicitly.
 
 ## Decision Log
 - 2026-10-11 (03-19): owner chose option-review. A message Ollama fails on alone in 3 passes (healthy re-probe + canary) ends as review `llm_error` (migration 0011, one-way).
@@ -61,3 +69,6 @@
 - 2026-10-05 D-80: never send credentials or data over an unverified connection. Keep capture.ts and disable verification nowhere else.
 - 2026-10-05 D-79/D-81: one-shot `bridge-init` service (profile tools) alone mounts `.env.mailboxes`, plus a pre-created 0600 `.env.mailboxes.bak`.
 - 2026-10-04: the worker exits 75 after 3 missed heartbeats, with `restart: unless-stopped` and no autoheal sidecar. It refuses privileged roles or any role membership. compose-smoke `--down` refuses outside CI without SMOKE_ALLOW_VOLUME_REMOVAL=yes.
+- (2026-10-12) Releases moved from local-only to CI: .github/workflows/release.yml runs after a green ci run on main (owner choice over every push); a real local pnpm release refuses without SIFT_RELEASE_CI=1, --dry-run stays. Reverses the quick-261007-2ke "releases run only locally" decision.
+- (2026-10-12) CHANGELOG highlights are written by Claude API (claude-opus-5-5, fallbacks default) from commit messages only, via the ANTHROPIC_API_KEY repo secret; owner chose this over local Ollama. Falls back to linked commit lists.
+
