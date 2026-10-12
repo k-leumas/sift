@@ -739,3 +739,5 @@
 - `test/changelog-ai.test.ts` — fake-client tests for writeHighlights, renderHighlights, cleanText, commit links and section layout (~1.8k tok)
 - `.github/workflows/release.yml` — after green ci on main: pnpm install, release.ts (SIFT_RELEASE_CI=1, ANTHROPIC_API_KEY secret), release-check, atomic push of commit + tag (~0.6k tok)
 - `apps/worker/test/release-workflow.test.ts` — pins release.yml trigger, permissions, checkout, env and step order (~0.7k tok)
+- `scripts/release-notes.ts` — prints one version's CHANGELOG.md section body (no heading) for the GitHub Release notes; Node built-ins only (~0.4k tok)
+- `test/release-notes.test.ts` — section extraction and CLI exit codes for release-notes.ts (~0.5k tok)

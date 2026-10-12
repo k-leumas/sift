@@ -1362,3 +1362,4 @@
 | 02:13 | Created test/changelog-ai.test.ts | — | ~2396 |
 | 02:23 | CI release workflow (f74d3e6) + AI changelog highlights with commit links (290ce72); gap plans 03-23/03-24 checked | release.yml, scripts/release*.ts, changelog-ai.ts | 183 tests pass | ~90k tok |
 | 02:24 | Session end: 18 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 17 reads | ~29890 tok |
+| 02:47 | release.yml now publishes a GitHub Release per version; fixed release-check import chain | release.yml, release-notes.ts, release.ts | 187 tests pass | ~15k tok |

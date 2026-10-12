@@ -5039,6 +5039,23 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-12T02:20:00Z"
+    },
+    {
+      "id": "bug-303",
+      "timestamp": "2026-10-12T02:40:00Z",
+      "error_message": "release-check.ts would fail in release-tag.yml (no install) once release.ts statically imported changelog-ai.ts / @anthropic-ai/sdk",
+      "file": "scripts/release.ts",
+      "root_cause": "release-check.ts imports packageJsonFiles from release.ts; a static SDK import made that chain need node_modules",
+      "fix": "Dynamic import of changelog-ai.ts inside the ANTHROPIC_API_KEY branch",
+      "tags": [
+        "release",
+        "import",
+        "ci",
+        "sdk"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T02:40:00Z"
     }
   ]
 }
