@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T21:32:52.521Z
-> Files: 544 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T21:41:32.496Z
+> Files: 548 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/758c530a-24e0-4192-aa8e-f64050646abd/scratchpad/
 
@@ -731,11 +731,13 @@
 - `03-25-PLAN.md` — WR-04 gap plan: lone-surrogate model reason is schema_mismatch 'reason: lone_surrogate'; wellFormed backstop in recordDecision; run.ts left unchanged (reasoned) (~7182 tok)
 - `03-25-SUMMARY.md` — Phase 3 Plan 25: Lone-surrogate model reasons (WR-04) Summary (~2983 tok)
 - `03-26-PLAN.md` — WR-05 gap plan: rules.yaml rejects unpaired surrogates (noUnpairedSurrogate / isWellFormed) in oneLine and from/domain/phrase entries (~5369 tok)
+- `03-26-SUMMARY.md` — Phase 3 Plan 26: Unpaired surrogates in rules.yaml (WR-05) Summary (~2563 tok)
 - `03-REVIEW.md` — Phase 3: Code Review Report (incremental, 3431a58..HEAD) (~4915 tok)
 - `03-VERIFICATION.md` (~8633 tok)
 
 ## apps/worker/test/
 
+- `config-check-rules.test.ts` — sift config check over rules files (D-05): missing file, file:line:col issues, NUL (WR-02) and lone U+D800 (WR-05) descriptions (~2900 tok)
 - `llm-baseline.test.ts` — The manual live-baseline runner (AI-SPEC section 5, Set B: E4 live, E11); progress-line tests for G-03-2 (~4300 tok)
 - `release-workflow.test.ts` — Declares WORKFLOW (~903 tok)
 - `user-facing-text.test.ts` — Doc pins: D-69 deferred command never named; README quick start commands/order; G-03-8 quickStartSteps() list shape, intro link, unique anchor; scope; CONTRIBUTING (~5872 tok)
@@ -747,6 +749,14 @@
 ## packages/core/src/classify/
 
 - `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~1538 tok)
+
+## packages/core/src/rules/
+
+- `schema.ts` — rules.yaml Zod schema (D-01, D-02): categories, judgment, exact rules; oneLine checks line break, control chars (WR-02), unpaired surrogate (WR-05); entry refines noControl + noUnpairedSurrogate (~4200 tok)
+
+## packages/core/test/
+
+- `rules.test.ts` — A categories block with `count` valid, distinct names. (~8074 tok)
 
 ## scripts/
 

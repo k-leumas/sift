@@ -1434,3 +1434,12 @@
 | 15:25 | Edited packages/core/src/classify/llm-output.ts | added 1 condition(s) | ~84 |
 | 15:31 | 03-25 WR-04: validateLlmOutput rejects lone-surrogate reasons ('reason: lone_surrogate'); recordDecision wellFormed backstop; 3 commits (c6306b1, c5a1d3c, bb0cc78) | llm-output.ts, ingest.ts, classify.ts, 3 test files | 232 tests pass | ~4000 |
 | 15:32 | Created .planning/phases/03-tiered-classification-with-traces/03-25-SUMMARY.md | — | ~3182 |
+| 15:35 | Session end: 3 writes across 2 files (llm-output.ts, 03-25-SUMMARY.md) | 23 reads | ~21191 tok |
+| 15:36 | Edited packages/core/src/rules/schema.ts | modified noControl() | ~392 |
+| 15:36 | Edited packages/core/src/rules/schema.ts | added 1 condition(s) | ~68 |
+| 15:36 | Edited apps/worker/test/config-check-rules.test.ts | expanded (+17 lines) | ~226 |
+| 15:36 | Edited apps/worker/test/config-check-rules.test.ts | added nullish coalescing | ~281 |
+| 15:38 | Edited packages/core/test/rules.test.ts | modified withDescription() | ~409 |
+| 15:38 | Edited packages/core/test/rules.test.ts | modified for() | ~938 |
+| 15:41 | Created .planning/phases/03-tiered-classification-with-traces/03-26-SUMMARY.md | — | ~2734 |
+| 15:41 | 03-26 WR-05: rules schema rejects unpaired surrogates (isWellFormed) in oneLine fields and from/domain/phrase entries; config check exits 1 with file:line:col; 3 commits (c0c4035, 5339884, e75dbd0) | schema.ts, config-check-rules.test.ts, rules.test.ts | 153 tests pass | ~3200 |

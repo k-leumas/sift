@@ -5189,6 +5189,74 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-12T21:31:00Z"
+    },
+    {
+      "id": "bug-312",
+      "timestamp": "2026-10-12T21:36:01.818Z",
+      "error_message": "Significant refactor of ",
+      "file": "packages/core/src/rules/schema.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 10→32 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T21:36:01.818Z"
+    },
+    {
+      "id": "bug-313",
+      "timestamp": "2026-10-12T21:36:18.020Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/test/config-check-rules.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T21:36:18.021Z"
+    },
+    {
+      "id": "bug-314",
+      "timestamp": "2026-10-12T21:38:27.890Z",
+      "error_message": "Type error",
+      "file": "packages/core/test/rules.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T21:38:27.890Z"
+    },
+    {
+      "id": "bug-315",
+      "timestamp": "2026-10-12T21:40:00Z",
+      "error_message": "rules.yaml with a YAML escape for an unpaired surrogate (U+D800) passed sift config check, then every rule_set insert failed: jsonb 'Unicode low surrogate must follow a high surrogate' naming neither file nor line (WR-05)",
+      "file": "packages/core/src/rules/schema.ts",
+      "root_cause": "rules schema checked line breaks and control characters (WR-02) but not well-formed UTF-16; rule_set.snapshot is jsonb, which refuses unpaired surrogates",
+      "fix": "noUnpairedSurrogate (String.prototype.isWellFormed) as oneLine's third branch (after line break, control char; one issue per value) and refine(noUnpairedSurrogate) after noControl on from/domain/phrase entries; message 'must not contain an unpaired surrogate (U+D800 to U+DFFF); write the character itself, not its escape'. Reject, never repair",
+      "tags": [
+        "rules",
+        "jsonb",
+        "unicode",
+        "surrogate",
+        "config-check",
+        "WR-05",
+        "zod"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T21:40:00Z"
     }
   ]
 }
