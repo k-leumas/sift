@@ -1,7 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T19:40:11.694Z
-> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T21:32:52.521Z
+> Files: 544 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/758c530a-24e0-4192-aa8e-f64050646abd/scratchpad/
+
+- `surrogate.mjs` — Declares src (~84 tok)
+- `yaml-surrogate.mjs` — Declares doc (~60 tok)
 
 ## ../tui-llm/src/ui/
 
@@ -375,7 +380,7 @@
 - `ci-workflow.test.ts` — Index of the first run step containing `command`, or -1. (~1250 tok)
 - `classify-batch.test.ts` — Classification in the worker's batch (03-09; D-05, D-14, D-16, D-19): (~7642 tok)
 - `classify-cli.test.ts` — `sift classify` (03-12, D-17) against a real database as sift_app and the (~8455 tok)
-- `classify-control-chars.test.ts` — WR-01 end to end: a model reason that holds a control character after (~2267 tok)
+- `classify-control-chars.test.ts` — WR-01 and WR-04 end to end: model reasons with a control character or a lone surrogate are held for review; five in a row all decided in one pass (~3100 tok)
 - `classify-hermetic.test.ts` — Hermeticity guard (RESEARCH Pitfall 2, E7): the classification tests and (~765 tok)
 - `classify-injection.test.ts` — An email cannot steer the pipeline (D-33, SEC-01, CLS-05; AI-SPEC section 5 (~8686 tok)
 - `classify-leak.test.ts` — Mail stays on the machine and out of logs and status (E7, the Phase 3 part (~3559 tok)
@@ -684,7 +689,7 @@
 - `config.json` (~558 tok)
 - `PROJECT.md` — Sift (~3612 tok)
 - `REQUIREMENTS.md` — Requirements: Sift (~2769 tok)
-- `ROADMAP.md` — Roadmap: Sift (~4501 tok)
+- `ROADMAP.md` — Roadmap: Sift (~4633 tok)
 - `state.json` (~214 tok)
 - `STATE.md` — Project State (~8024 tok)
 - `WINDOWS.md` — Broken Windows Ledger (~324 tok)
@@ -723,6 +728,11 @@
 - `03-23-SUMMARY.md` — Dependency graph (~2284 tok)
 - `03-24-PLAN.md` — Artifacts this plan produces (~5490 tok)
 - `03-24-SUMMARY.md` — Dependency graph (~2905 tok)
+- `03-25-PLAN.md` — WR-04 gap plan: lone-surrogate model reason is schema_mismatch 'reason: lone_surrogate'; wellFormed backstop in recordDecision; run.ts left unchanged (reasoned) (~7182 tok)
+- `03-25-SUMMARY.md` — Phase 3 Plan 25: Lone-surrogate model reasons (WR-04) Summary (~2983 tok)
+- `03-26-PLAN.md` — WR-05 gap plan: rules.yaml rejects unpaired surrogates (noUnpairedSurrogate / isWellFormed) in oneLine and from/domain/phrase entries (~5369 tok)
+- `03-REVIEW.md` — Phase 3: Code Review Report (incremental, 3431a58..HEAD) (~4915 tok)
+- `03-VERIFICATION.md` (~8633 tok)
 
 ## apps/worker/test/
 
@@ -733,6 +743,10 @@
 ## apps/worker/test/support/
 
 - `llm-baseline.ts` — The manual live baseline of AI-SPEC section 5 (Set B: E4 live, E11 live, E12); readyLine/progressLine on stderr via BaselineOptions.progress, table on stdout (~3741 tok)
+
+## packages/core/src/classify/
+
+- `llm-output.ts` — The LLM tier's output contract (D-22, D-24, AI-SPEC section 4b). One Zod (~1538 tok)
 
 ## scripts/
 

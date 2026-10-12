@@ -5089,6 +5089,106 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-12T19:15:00Z"
+    },
+    {
+      "id": "bug-306",
+      "timestamp": "2026-10-12T19:29:26.115Z",
+      "error_message": "Significant refactor of ",
+      "file": "apps/worker/test/support/llm-baseline.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 3→5 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T19:29:26.115Z"
+    },
+    {
+      "id": "bug-307",
+      "timestamp": "2026-10-12T19:29:30.811Z",
+      "error_message": "Type error",
+      "file": "apps/worker/test/support/llm-baseline.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T19:29:30.811Z"
+    },
+    {
+      "id": "bug-308",
+      "timestamp": "2026-10-12T19:36:23.449Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: it('numbers the steps 1 to 12, each led by a short bold impe; const steps = quickStartSteps();",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-12T19:37:25.243Z"
+    },
+    {
+      "id": "bug-309",
+      "timestamp": "2026-10-12T19:38:20.722Z",
+      "error_message": "Incorrect value in code",
+      "file": "README.md",
+      "root_cause": "Had 's certificate: copy the `",
+      "fix": "Changed to 's certificate.**\n\n   Copy the `",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T19:38:20.722Z"
+    },
+    {
+      "id": "bug-310",
+      "timestamp": "2026-10-12T21:25:18.819Z",
+      "error_message": "Wrong return value",
+      "file": "packages/core/src/classify/llm-output.ts",
+      "root_cause": "Was returning: { ok: true, value: result.data };",
+      "fix": "Now returns: { ok: false, failure: { code: 'schema_mismatch', d",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T21:25:18.819Z"
+    },
+    {
+      "id": "bug-311",
+      "timestamp": "2026-10-12T21:31:00Z",
+      "error_message": "WR-04: a model reason with a lone UTF-16 surrogate passed validateLlmOutput; the decision insert failed with SQLSTATE 22P02 'Unicode low surrogate must follow a high surrogate.' on every pass, and five in a row made classifyCandidates rethrow (0 decisions, 3 throwing passes)",
+      "file": "packages/core/src/classify/llm-output.ts",
+      "root_cause": "llama.cpp's JSON grammar allows a JSON escape for a code unit in U+D800..U+DFFF without its partner; JSON.parse yields an unpaired surrogate; JSON.stringify writes it back as an escape that PostgreSQL jsonb refuses. Only NUL and control characters were checked (WR-01).",
+      "fix": "validateLlmOutput rejects a reason that is not isWellFormed() as schema_mismatch 'reason: lone_surrogate' (retry, then review invalid_output); recordDecision applies wellFormed(stripNul(parseDecisionSpans(...))) so Ollama-supplied strings become U+FFFD (03-25)",
+      "tags": [
+        "jsonb",
+        "unicode",
+        "surrogate",
+        "llm-output",
+        "recordDecision",
+        "WR-04",
+        "CLS-06"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-12T21:31:00Z"
     }
   ]
 }

@@ -1379,3 +1379,58 @@
 | 13:13 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
 | 13:19 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
 | 13:22 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:24 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 18 reads | ~30957 tok |
+| 13:28 | Session end: 21 writes across 10 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 19 reads | ~30957 tok |
+| 13:29 | Edited apps/worker/test/support/llm-baseline.ts | 3→5 lines | ~104 |
+| 13:29 | Edited apps/worker/test/support/llm-baseline.ts | modified readyLine() | ~252 |
+| 13:31 | 03-23: llm-baseline progress lines on stderr (readyLine/progressLine) + tests; USER-SETUP/CONTRIBUTING run notes (G-03-2) | apps/worker/test/support/llm-baseline.ts, apps/worker/test/llm-baseline.test.ts, CONTRIBUTING.md, 03-USER-SETUP.md | 7765ff9, fbc6820; 130 tests pass | ~30000 |
+| 13:33 | Created .planning/phases/03-tiered-classification-with-traces/03-23-SUMMARY.md | — | ~2437 |
+| 13:34 | Session end: 24 writes across 12 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 19 reads | ~33924 tok |
+| 13:36 | Session end: 24 writes across 12 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 20 reads | ~47749 tok |
+| 13:36 | Edited apps/worker/test/user-facing-text.test.ts | added optional chaining | ~883 |
+| 13:36 | Edited README.md | 3→5 lines | ~79 |
+| 13:37 | Edited apps/worker/test/user-facing-text.test.ts | added optional chaining | ~513 |
+| 13:38 | Edited README.md | expanded (+14 lines) | ~655 |
+| 13:38 | Edited README.md | 1→3 lines | ~25 |
+| 13:38 | Edited README.md | 7→9 lines | ~113 |
+| 13:38 | Edited README.md | expanded (+6 lines) | ~92 |
+| 13:39 | 03-24: README intro Get started link to #quick-start; 12 quick-start steps led by bold imperatives; step-12 notes under '#### After the first start'; G-03-8 doc tests | README.md, apps/worker/test/user-facing-text.test.ts | 113 tests pass, code blocks byte-identical | ~45000 |
+| 13:40 | Created .planning/phases/03-tiered-classification-with-traces/03-24-SUMMARY.md | — | ~3099 |
+| 13:50 | Session end: 32 writes across 15 files (CandidateSelect.tsx, modal-layout.test.ts, release.test.ts, release.yml, release-workflow.test.ts) | 20 reads | ~53497 tok |
+| 13:54 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/758c530a-24e0-4192-aa8e-f64050646abd/scratchpad/surrogate.mjs | — | ~84 |
+| 13:54 | Created ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/758c530a-24e0-4192-aa8e-f64050646abd/scratchpad/yaml-surrogate.mjs | — | ~60 |
+
+## Session: 2026-10-12 13:56
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 13:59 | Created .planning/phases/03-tiered-classification-with-traces/03-REVIEW.md | — | ~5242 |
+| 14:01 | Session end: 1 writes across 1 files (03-REVIEW.md) | 0 reads | ~5617 tok |
+| 14:03 | Session end: 1 writes across 1 files (03-REVIEW.md) | 0 reads | ~5617 tok |
+| 14:14 | Created .planning/phases/03-tiered-classification-with-traces/03-VERIFICATION.md | — | ~9208 |
+| 14:15 | execute-phase 3 --gaps-only: 03-23, 03-24 done; review 05faf3b (0C/4W/12I); verify gaps_found (WR-04/05 lone surrogate) | 03-REVIEW*.md, 03-VERIFICATION.md | next: plan-phase 3 --gaps | ~120k tok |
+| 14:15 | Session end: 2 writes across 2 files (03-REVIEW.md, 03-VERIFICATION.md) | 6 reads | ~20398 tok |
+
+## Session: 2026-10-12 14:39
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 14:55 | Created .planning/phases/03-tiered-classification-with-traces/03-25-PLAN.md | — | ~7661 |
+| 14:56 | Created .planning/phases/03-tiered-classification-with-traces/03-26-PLAN.md | — | ~5727 |
+| 14:57 | Edited .planning/ROADMAP.md | 2→6 lines | ~162 |
+| 14:57 | Edited .planning/ROADMAP.md | inline fix | ~42 |
+| 14:58 | Session end: 4 writes across 3 files (03-25-PLAN.md, 03-26-PLAN.md, ROADMAP.md) | 11 reads | ~40636 tok |
+| 13:58 | Explained release has notes only; install path is GHCR images plus a compose bundle | .github/workflows/release.yml, Dockerfile, compose.yaml | answered | ~4k |
+| 15:00 | Session end: 4 writes across 3 files (03-25-PLAN.md, 03-26-PLAN.md, ROADMAP.md) | 19 reads | ~59522 tok |
+| 15:01 | plan-phase 03 --gaps: planned 03-25 (WR-04 llm reason + recordDecision backstop) and 03-26 (WR-05 rules predicate); checker passed; committed 84913d9 | .planning/phases/03-*/03-25-PLAN.md, 03-26-PLAN.md | ok | ~40k |
+| 15:01 | Session end: 4 writes across 3 files (03-25-PLAN.md, 03-26-PLAN.md, ROADMAP.md) | 19 reads | ~59522 tok |
+| 15:13 | Session end: 4 writes across 3 files (03-25-PLAN.md, 03-26-PLAN.md, ROADMAP.md) | 20 reads | ~59522 tok |
+
+## Session: 2026-10-12 15:14
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:25 | Edited packages/core/src/classify/llm-output.ts | expanded (+10 lines) | ~232 |
+| 15:25 | Edited packages/core/src/classify/llm-output.ts | added 1 condition(s) | ~84 |
+| 15:31 | 03-25 WR-04: validateLlmOutput rejects lone-surrogate reasons ('reason: lone_surrogate'); recordDecision wellFormed backstop; 3 commits (c6306b1, c5a1d3c, bb0cc78) | llm-output.ts, ingest.ts, classify.ts, 3 test files | 232 tests pass | ~4000 |
+| 15:32 | Created .planning/phases/03-tiered-classification-with-traces/03-25-SUMMARY.md | — | ~3182 |
