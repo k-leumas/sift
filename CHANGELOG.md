@@ -2,6 +2,12 @@
 
 Each version is computed by `pnpm release` from the Conventional Commits since the previous tag (see CONTRIBUTING.md).
 
+## v0.2.0 (2026-10-12)
+
+### Features
+
+- **03-23:** print baseline progress on stderr while stdout keeps the table ([7765ff9](https://github.com/k-leumas/sift/commit/7765ff967a2ed37904b6ee8d1441182331b974ea))
+
 ## v0.1.1 (2026-10-12)
 
 - No features or fixes (1 other commit).
