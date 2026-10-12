@@ -29,11 +29,13 @@ None. Ollama runs locally and needs no account.
 
 ## Verification
 
-Live baseline, on synthetic data only, at phase verification (AI-SPEC section 5: E4 live, E11 live, E12 baseline). Run it from the repository root after `pnpm install`:
+Live baseline, on synthetic data only, at phase verification (AI-SPEC section 5: E4 live, E11 live, E12 baseline). Run it from the root of your sift checkout (the folder that holds `README.md` and `apps/`) after `pnpm install`. If node prints `Cannot find module` or `MODULE_NOT_FOUND`, you are in another folder:
 
 ```bash
 node apps/worker/test/support/llm-baseline.ts --url http://localhost:11434 --model qwen3:1.7b
 ```
+
+The run takes a few minutes (about 4 on qwen3:1.7b; each email takes 10-40 seconds). After the model check it prints `qwen3:1.7b is ready on Ollama; sending 10 synthetic emails one at a time, which takes a few minutes`, then one line per email as it finishes, like `fixture 3/10 pair-payment-failure.eml: 39 s`. These progress lines go to stderr. The table goes to stdout at the end, so adding ` > baseline.md` to the command keeps only the table in that file while the progress still shows in the terminal.
 
 Expected results:
 - A Markdown table with the header `| fixture | category | confidence | attempts | thinking null | total_ms | flip | model digest |`
