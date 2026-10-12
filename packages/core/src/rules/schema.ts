@@ -92,8 +92,9 @@ const UNPAIRED_SURROGATE =
  * which PostgreSQL refuses ("Unicode low surrogate must follow a high
  * surrogate"), so such a file would pass config check and then fail every
  * decision of the mailbox. Same predicate as validateLlmOutput (plan 03-25).
- * Used by the one-line fields (description, judgment lines, rule name).
- * Rejected, never repaired (D-05).
+ * Used by the one-line fields (description, judgment lines, rule name) and,
+ * directly after their control-character check, by the from, domain and
+ * phrase entries. Rejected, never repaired (D-05).
  */
 function noUnpairedSurrogate(value: string): boolean {
   return value.isWellFormed();
@@ -213,6 +214,7 @@ const FromEntry = z
   .trim()
   .toLowerCase()
   .refine(noControl, 'from entries must not contain control characters')
+  .refine(noUnpairedSurrogate, `from entries ${UNPAIRED_SURROGATE}`)
   .max(FROM_MAX_CHARS, `from entries must be at most ${FROM_MAX_CHARS} characters`)
   .regex(FROM_PATTERN, fromMessage);
 
@@ -223,6 +225,7 @@ const DomainEntry = z
   .toLowerCase()
   .overwrite((value) => (value.endsWith('.') ? value.slice(0, -1) : value))
   .refine(noControl, 'domain entries must not contain control characters')
+  .refine(noUnpairedSurrogate, `domain entries ${UNPAIRED_SURROGATE}`)
   .max(DOMAIN_MAX_CHARS, `domain entries must be at most ${DOMAIN_MAX_CHARS} characters`)
   .regex(DOMAIN_PATTERN, domainMessage);
 
@@ -233,6 +236,7 @@ const PhraseEntry = z
   .overwrite((value) => value.replace(/\s+/g, ' '))
   // After the collapse, so a tab inside a phrase is already one space and still loads.
   .refine(noControl, 'phrase entries must not contain control characters')
+  .refine(noUnpairedSurrogate, `phrase entries ${UNPAIRED_SURROGATE}`)
   .min(1, 'phrase entries must not be empty')
   .max(PHRASE_MAX_CHARS, `phrase entries must be at most ${PHRASE_MAX_CHARS} characters`);
 
