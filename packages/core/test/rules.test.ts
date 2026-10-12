@@ -449,42 +449,45 @@ describe('exact rules (D-08, D-09, D-10, D-13)', () => {
   });
 });
 
+/** A file whose first category description is `description`, written as YAML. */
+function withDescription(description: string): string {
+  const categories = [
+    'categories:',
+    '  - name: Important',
+    `    description: ${description}`,
+    '  - name: Noise',
+    '    description: everything else',
+  ].join('\n');
+  return rulesYaml({ categories, rules: 'rules: []' });
+}
+
+/** The three one-line fields: YAML path, message name and a file holding `value` there. */
+const oneLineFields: [string, string, (value: string) => string][] = [
+  ['categories[0].description', 'description', withDescription],
+  ['judgment[0]', 'judgment lines', (value) => rulesYaml({ judgment: `judgment:\n  - ${value}` })],
+  [
+    'rules[0].name',
+    'name',
+    (value) =>
+      rulesYaml({
+        rules: ruleWith(['      domain: [bank.example.test]']).replace(
+          '  - kind: exact',
+          `  - kind: exact\n    name: ${value}`,
+        ),
+      }),
+  ],
+];
+
+/** The three exact-rule entry lists: key and a valid entry to break. */
+const entryKinds: [string, string][] = [
+  ['from', 'receipts@shop.example.test'],
+  ['domain', 'bank.example.test'],
+  ['phrase', 'order confirmation'],
+];
+
 // Fixtures write control characters as YAML double-quoted escapes (\0, \x07, \t, \N for
 // U+0085, \L for U+2028), so this file holds none of them raw.
 describe('control characters in rules text (WR-02, D-05)', () => {
-  /** A file whose first category description is `description`, written as YAML. */
-  function withDescription(description: string): string {
-    const categories = [
-      'categories:',
-      '  - name: Important',
-      `    description: ${description}`,
-      '  - name: Noise',
-      '    description: everything else',
-    ].join('\n');
-    return rulesYaml({ categories, rules: 'rules: []' });
-  }
-
-  /** The three one-line fields: YAML path, message name and a file holding `value` there. */
-  const oneLineFields: [string, string, (value: string) => string][] = [
-    ['categories[0].description', 'description', withDescription],
-    [
-      'judgment[0]',
-      'judgment lines',
-      (value) => rulesYaml({ judgment: `judgment:\n  - ${value}` }),
-    ],
-    [
-      'rules[0].name',
-      'name',
-      (value) =>
-        rulesYaml({
-          rules: ruleWith(['      domain: [bank.example.test]']).replace(
-            '  - kind: exact',
-            `  - kind: exact\n    name: ${value}`,
-          ),
-        }),
-    ],
-  ];
-
   it('rejects NUL, BEL, an inner tab and U+0085 in a description, judgment line or rule name', () => {
     for (const [path, name, file] of oneLineFields) {
       for (const value of ['"to\\0do"', '"to\\x07do"', '"to\\tdo"', '"to\\Ndo"']) {
@@ -532,6 +535,80 @@ describe('control characters in rules text (WR-02, D-05)', () => {
     const description = 'factures du café, Rechnungen für Übersee, 領収書';
     const rules = parsed(withDescription(description));
     expect(rules.categories[0]?.description).toBe(description);
+  });
+});
+
+// Unpaired surrogates (U+D800 to U+DFFF without a partner) are written as YAML
+// double-quoted escapes built at runtime from BACKSLASH, so this file holds no
+// backslash-u sequence and no raw surrogate (the Write/Edit tools and biome would
+// decode one, and a raw lone surrogate cannot be saved as UTF-8 at all).
+describe('unpaired surrogates in rules text (WR-05, D-05)', () => {
+  const BACKSLASH = String.fromCharCode(92);
+  /** The YAML double-quoted escape for the UTF-16 code unit `hex`. */
+  const esc = (hex: string): string => `${BACKSLASH}u${hex}`;
+  const SURROGATE_MESSAGE = 'must not contain an unpaired surrogate (U+D800 to U+DFFF)';
+
+  it('sentinel: the escapes are built, not written', () => {
+    expect(esc('D800')).toHaveLength(6);
+    expect(esc('D800').charCodeAt(0)).toBe(92);
+  });
+
+  it('rejects a lone high (U+D800) or low (U+DC00) surrogate in a description, judgment line or rule name', () => {
+    for (const [path, name, file] of oneLineFields) {
+      for (const value of [`"to${esc('D800')}do"`, `"to${esc('DC00')}do"`]) {
+        const text = file(value);
+        expectIssue(text, path, `${name} ${SURROGATE_MESSAGE}`, value);
+        expect(issuesOf(text)).toHaveLength(1);
+      }
+    }
+  });
+
+  it('names the fix and never quotes the value', () => {
+    const [issue] = issuesOf(withDescription(`"secret${esc('D800')}text"`));
+    expect(issue?.message).toBe(
+      `description ${SURROGATE_MESSAGE}; write the character itself, not its escape`,
+    );
+    expect(issue?.message).not.toContain('secret');
+  });
+
+  it('reports a line break or a control character first, as the only issue', () => {
+    for (const [path, name, file] of oneLineFields) {
+      const cases: [string, string][] = [
+        [`"to${BACKSLASH}ndo${esc('D800')}"`, `${name} must be one line`],
+        [`"to${BACKSLASH}0do${esc('D800')}"`, `${name} must not contain control characters`],
+      ];
+      for (const [value, message] of cases) {
+        const text = file(value);
+        expectIssue(text, path, message, value);
+        expect(issuesOf(text)).toHaveLength(1);
+      }
+    }
+  });
+
+  it('rejects from, domain and phrase entries holding a lone surrogate', () => {
+    for (const [key, entry] of entryKinds) {
+      for (const hex of ['D800', 'DC00']) {
+        const value = `"${entry.slice(0, 4)}${esc(hex)}${entry.slice(4)}"`;
+        const text = rulesYaml({ rules: ruleWith([`      ${key}: [${value}]`]) });
+        expectIssue(
+          text,
+          `rules[0].match.${key}[0]`,
+          `${key} entries ${SURROGATE_MESSAGE}`,
+          `${key}: [`,
+        );
+        expect(issuesOf(text)).toHaveLength(1);
+      }
+    }
+  });
+
+  it('still loads a description written as the two escapes of a valid pair', () => {
+    const rules = parsed(withDescription(`"smile ${esc('D83D')}${esc('DE00')} please"`));
+    expect(rules.categories[0]?.description).toBe(`smile ${String.fromCodePoint(0x1f600)} please`);
+  });
+
+  it('still loads a description holding the emoji itself, unchanged', () => {
+    const description = `inbox ${String.fromCodePoint(0x1f600)} zero`;
+    expect(parsed(withDescription(description)).categories[0]?.description).toBe(description);
   });
 });
 
