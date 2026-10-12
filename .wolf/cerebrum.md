@@ -16,6 +16,7 @@
 - (2026-10-12) Owner treats README discoverability as a real defect: the quick start must be findable from the top of the README, not only present. When pointing at README content, give line numbers.
 
 ## Key Learnings
+- **Verifier scratch tests:** a vitest file outside the repo runs with a scratch config that sets `root` to the repo, `process.chdir(ROOT)`, loads the dev env file, uses the absolute global-setup path and imports repo modules by absolute path (they resolve to the same modules as `@sift/*`). Nothing is written to the repo, and freshDatabase gives an isolated DB.
 - **Project:** sift is self-hosted email triage: plain-English rules, a tiny classifier and a small local LLM. It supports Proton Mail via Bridge only.
 - **Shell:** use Node 26.10.0 via `PATH=$HOME/.nvm/versions/node/v26.10.0/bin:$HOME/Library/pnpm:$PATH` and run `unfunction pnpm` first. zsh: `cp`/`rm` are interactive aliases (use `command cp -f`/`command rm -f`), `g` is an alias, `$VAR:path` applies modifiers (write `"${VAR}:path"`), `echo` interprets backslashes (use `printf '%s\n'`). Exec latency is about 1 s per spawn.
 - **Guard hooks:** any Bash text that names `.env.<suffix>` is blocked, so put such checks in test code. GSD worktree agents reject commands that read as git. Re-run `dispatch-isolation --force-isolation none` before every executor dispatch, because the sentinel lasts 10 min.

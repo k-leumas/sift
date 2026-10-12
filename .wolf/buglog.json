@@ -2501,7 +2501,7 @@
       "error_message": "apps/worker/test/bridge-probe.test.ts > --label-test > reports a missing target UID, before any write: 'sift bridge probe: unreachable: Unexpected close' (full suite only)",
       "file": "apps/worker/test/bridge-probe.test.ts",
       "root_cause": "Intermittent: the Dovecot test server closed the IMAP connection under full-suite load; not reproducible on rerun",
-      "fix": "None yet; reran pnpm test (779/779). This is the phase's known intermittent full-suite failure",
+      "fix": "None yet; reran pnpm test (779/779). This is the phase's known intermittent full-suite failure; 2026-10-12 verifier: 5 classify-batch/injection/refetch tests hit 30 s/60 s timeouts at host load average 62-78 when 15 files ran together; all passed run one file at a time",
       "tags": [
         "flaky",
         "dovecot",
@@ -2510,8 +2510,8 @@
         "intermittent"
       ],
       "related_bugs": [],
-      "occurrences": 2,
-      "last_seen": "2026-10-06T14:58:00Z"
+      "occurrences": 3,
+      "last_seen": "2026-10-12T22:35:00Z"
     },
     {
       "id": "bug-152",
@@ -2712,8 +2712,8 @@
       "related_bugs": [
         "bug-151"
       ],
-      "occurrences": 1,
-      "last_seen": "2026-10-06T19:33:00Z"
+      "occurrences": 2,
+      "last_seen": "2026-10-12T22:12:35.026Z"
     },
     {
       "id": "bug-163",
