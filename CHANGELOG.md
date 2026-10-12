@@ -2,6 +2,10 @@
 
 Each version is computed by `pnpm release` from the Conventional Commits since the previous tag (see CONTRIBUTING.md).
 
+## v0.1.1 (2026-10-12)
+
+- No features or fixes (1 other commit).
+
 ## v0.1.0 (2026-10-12)
 
 ### Features
