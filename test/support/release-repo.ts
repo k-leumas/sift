@@ -19,10 +19,14 @@ import {
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
+import { setPackageVersion } from '../../scripts/release-plan.ts';
 
 export const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 
 /** The four package.json files the throwaway repos start from (copied from this repo). */
+/** Every package.json in a fresh template repo has this version, whatever the real repo has. */
+export const UNRELEASED_VERSION = '0.0.0';
+
 export const PACKAGE_FILES = [
   'package.json',
   'apps/worker/package.json',
@@ -151,7 +155,9 @@ function buildFresh(dir: string): Repo {
   execFileSync('git', ['init', '--bare', '-q', repo.remote], { env: repo.env });
   for (const file of PACKAGE_FILES) {
     mkdirSync(path.dirname(path.join(repo.work, file)), { recursive: true });
-    writeWork(repo, file, readFileSync(path.join(REPO_ROOT, file), 'utf8'));
+    // The real files carry the last released version; a fresh repo is unreleased.
+    const real = readFileSync(path.join(REPO_ROOT, file), 'utf8');
+    writeWork(repo, file, setPackageVersion(real, UNRELEASED_VERSION));
   }
   git(repo, 'init', '-q', '-b', 'main');
   // Relative to the work tree, so the URL stays right in every copy of the template.
