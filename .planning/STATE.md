@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
-current_phase_name: tiered-classification-with-traces
+current_phase_name: Tiered Classification with Traces
 status: executing
-stopped_at: Completed 03-20-PLAN.md
-last_updated: "2026-10-11T08:57:33.456Z"
-last_activity: 2026-10-10
+stopped_at: Completed 03-23-PLAN.md
+last_updated: "2026-10-12T19:33:28.383Z"
+last_activity: 2026-10-12
 last_activity_desc: Phase 03 execution started
-state_head: 48df004073056304a033090e56cc02b9d2792adf
+state_head: 0c41d9b47acd8be20f91ceaa07b54edfe872d7f1
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 56
-  completed_plans: 56
+  total_plans: 58
+  completed_plans: 57
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** Every incoming email is auto-labelled correctly or explicitly held for the owner, entirely on local hardware, with a decision trace explaining why.
-**Current focus:** Phase 03 — tiered-classification-with-traces
+**Current focus:** Phase 03 — Tiered Classification with Traces
 
 ## Current Position
 
-Phase: 03 (tiered-classification-with-traces) — EXECUTING
-Plan: 10 of 22
+Phase: 03 (Tiered Classification with Traces) — EXECUTING
+Plan: 24 of 24
 Status: Ready to execute
-Last activity: 2026-10-10 — Phase 03 execution started
+Last activity: 2026-10-12 — Phase 03 execution started
 
 Progress: [███░░░░░░░] 25%
 
@@ -112,6 +112,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P19 | 8 min | 3 tasks | 10 files |
 | Phase 03 P22 | 8min | 2 tasks | 4 files |
 | Phase 03 P20 | 16 min | 2 tasks | 7 files |
+| Phase 03 P23 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -277,6 +278,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-20: llm_error is written only when decidedBy is worker; sift classify keeps skipping such a message even with a shared runtime
 - [Phase 03]: 03-20: messageFailures is set before the llm_error draft and removed only after the decision commits, so a failed write counts again
 - [Phase 03]: 03-20: the llm_error message stays in ollamaFailed (per-pass budget) but not in unclassified; MESSAGE_HELD_BACK_LOG replaced by MESSAGE_LLM_ERROR_LOG
+- [Phase 03]: 03-23: live baseline prints ready + per-email progress on stderr via BaselineOptions.progress; stdout stays the table (G-03-2)
 
 ### Pending Todos
 
@@ -304,6 +306,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T08:57:32.998Z
-Stopped at: Completed 03-20-PLAN.md
+Last session: 2026-10-12T19:33:28.202Z
+Stopped at: Completed 03-23-PLAN.md
 Resume file: None
