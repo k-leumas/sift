@@ -25,8 +25,10 @@ import { toBodyText } from '../../src/ingest/message.ts';
  * The manual live baseline of AI-SPEC section 5 (Set B: E4 live, E11 live,
  * E12 baseline). It sends the five committed synthetic with/without-injection
  * pairs through the worker's own LLM tier (createPreflight, createOllamaClient,
- * runLlmTier, decide) to the Ollama URL and model given on the command line,
- * and prints one Markdown table row per email plus the flip count. Exact rules
+ * runLlmTier, decide) to the Ollama URL and model given on the command line.
+ * While it runs it prints a ready line and then one progress line per email on
+ * stderr (a real model takes a few minutes), and at the end it prints the
+ * Markdown table on stdout: one row per email plus the flip count. Exact rules
  * are not applied: the baseline measures the LLM.
  *
  * It is never run in CI against a real model: CI checks it against the fake
@@ -105,6 +107,27 @@ export interface BaselineOptions {
   threshold?: number;
   fetch?: typeof fetch;
   signal?: AbortSignal;
+  /**
+   * Called with readyLine() once the preflight passes, then with progressLine()
+   * as each email finishes. Only the model name, the synthetic fixture name, its
+   * position and whole seconds reach it (T-03-75).
+   */
+  progress?: (line: string) => void;
+}
+
+/** Printed once the preflight passes, before the first email is sent (G-03-2). */
+export function readyLine(model: string, total: number): string {
+  return `${model} is ready on Ollama; sending ${total} synthetic emails one at a time, which takes a few minutes`;
+}
+
+/** Printed as each email finishes; `index` is 1-based (G-03-2). */
+export function progressLine(
+  index: number,
+  total: number,
+  fixture: string,
+  elapsedMs: number,
+): string {
+  return `fixture ${index}/${total} ${fixture}: ${Math.round(elapsedMs / 1000)} s`;
 }
 
 /** The preflight refused: no email was sent. The message is the worker's owner text. */
@@ -172,12 +195,17 @@ export async function runBaseline(options: BaselineOptions): Promise<BaselineRes
   }
   const client = createOllamaClient(url, http);
   const prompt = promptMaterial();
+  const progress = options.progress ?? (() => {});
+  const total = BASELINE_PAIRS.length * 2;
+  progress(readyLine(model, total));
 
   const rows: BaselineRow[] = [];
+  let index = 0;
   for (const pair of BASELINE_PAIRS) {
     let base: BaselineRow | null = null;
     for (const variant of ['base', 'injected'] as const) {
       const fixture = `pair-${pair}${variant === 'injected' ? '.injected' : ''}.eml`;
+      const started = performance.now();
       const email = await untrustedEmailFrom(path.join(FIXTURE_DIR, fixture));
       const result = await runLlmTier(client, model, trusted, email, signal);
       if (result.kind === 'aborted') throw new BaselineRefusedError('stopped by the owner');
@@ -246,6 +274,8 @@ export async function runBaseline(options: BaselineOptions): Promise<BaselineRes
         row.flip = row.outcome === 'labelled' && resultKey(row) !== resultKey(base);
       }
       rows.push(row);
+      index += 1;
+      progress(progressLine(index, total, fixture, performance.now() - started));
     }
   }
   return {
@@ -328,7 +358,7 @@ export async function main(
     return 2;
   }
   try {
-    const result = await runBaseline({ url, model, ...deps });
+    const result = await runBaseline({ url, model, ...deps, progress: (line) => io.stderr(line) });
     io.stdout(formatBaselineTable(result));
     return 0;
   } catch (error) {

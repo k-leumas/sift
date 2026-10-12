@@ -15,6 +15,8 @@ import {
   type BaselineRow,
   formatBaselineTable,
   main,
+  progressLine,
+  readyLine,
   runBaseline,
 } from './support/llm-baseline.ts';
 
@@ -236,7 +238,26 @@ describe('the live-baseline runner refuses what the worker refuses (T-03-51)', (
   });
 });
 
-describe('the live-baseline command line', () => {
+/** True for a ready or progress line, which a refused or misused run must never print. */
+function isProgress(line: string): boolean {
+  return line.startsWith('fixture ') || line.includes('is ready on Ollama');
+}
+
+describe('the live-baseline progress lines (G-03-2)', () => {
+  it('formats the ready line and the per-email line in whole seconds', () => {
+    expect(progressLine(3, 10, 'pair-payment-failure.eml', 39_400)).toBe(
+      'fixture 3/10 pair-payment-failure.eml: 39 s',
+    );
+    expect(progressLine(1, 10, 'pair-bank-notice.eml', 0)).toBe(
+      'fixture 1/10 pair-bank-notice.eml: 0 s',
+    );
+    expect(readyLine('qwen3:1.7b', 10)).toBe(
+      'qwen3:1.7b is ready on Ollama; sending 10 synthetic emails one at a time, which takes a few minutes',
+    );
+  });
+});
+
+describe('the live-baseline command line (G-03-2)', () => {
   function io() {
     const out: string[] = [];
     const err: string[] = [];
@@ -257,20 +278,60 @@ describe('the live-baseline command line', () => {
     const run = io();
     expect(await main(argv, run.io)).toBe(2);
     expect(run.out).toEqual([]);
+    expect(run.err.filter(isProgress)).toEqual([]);
     expect(run.err.at(-1)).toBe(
       'Usage: node apps/worker/test/support/llm-baseline.ts --url <ollama url> --model <model>',
     );
   });
 
-  it('prints the table and exits 0 against the fake', async () => {
+  it('prints one progress line per email on stderr and only the table on stdout (G-03-2)', async () => {
     const fake = await startFakeOllama({ compromised: true });
     try {
       const run = io();
       expect(await main(['--url', fake.url, '--model', FAKE_MODEL], run.io)).toBe(0);
+
+      expect(run.err).toHaveLength(11);
+      expect(run.err[0]).toBe(readyLine(FAKE_MODEL, 10));
+      const progress = run.err.slice(1).map((line) => {
+        const match = /^fixture (\d+)\/10 (\S+): \d+ s$/.exec(line);
+        if (match === null) throw new Error(`not a progress line: ${line}`);
+        return { index: Number(match[1]), fixture: match[2] };
+      });
+      expect(progress.map((p) => p.index)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      expect(progress.map((p) => p.fixture)).toEqual(EXPECTED_FIXTURES);
+
       const lines = run.out.join('\n').split('\n');
+      expect(lines).toHaveLength(13);
       expect(lines[0]).toBe(HEADER);
+      expect(lines.slice(2, 12).every((line) => line.startsWith('| pair-'))).toBe(true);
       expect(lines.at(-1)).toBe('flips: 3');
-      expect(run.err).toEqual([]);
+      expect(lines.filter((line) => line.startsWith('fixture '))).toEqual([]);
+    } finally {
+      await fake.close();
+    }
+  });
+
+  it('writes each progress line as soon as that email is done, before the table (G-03-2)', async () => {
+    const fake = await startFakeOllama({ compromised: true });
+    try {
+      const events: { stream: 'stdout' | 'stderr'; line: string; chats: number }[] = [];
+      const record = (stream: 'stdout' | 'stderr') => (line: string) =>
+        events.push({ stream, line, chats: fake.chatBodies().length });
+      const exit = await main(['--url', fake.url, '--model', FAKE_MODEL], {
+        stdout: record('stdout'),
+        stderr: record('stderr'),
+      });
+      expect(exit).toBe(0);
+      const finalChats = fake.chatBodies().length;
+
+      const first = events.find((e) => e.line.startsWith('fixture 1/10 '));
+      expect(first?.stream).toBe('stderr');
+      expect(first?.chats).toBeGreaterThanOrEqual(1);
+      expect(first?.chats).toBeLessThan(finalChats);
+
+      expect(events.filter((e) => e.stream === 'stdout')).toHaveLength(1);
+      expect(events.at(-1)?.stream).toBe('stdout');
+      expect(events.slice(0, -1).every((e) => e.stream === 'stderr')).toBe(true);
     } finally {
       await fake.close();
     }
@@ -283,6 +344,7 @@ describe('the live-baseline command line', () => {
       expect(await main(['--url', fake.url, '--model', 'qwen3:0.6b'], run.io)).toBe(1);
       expect(run.out).toEqual([]);
       expect(run.err.join('\n')).toContain('run: ollama pull qwen3:0.6b');
+      expect(run.err.filter(isProgress)).toEqual([]);
     } finally {
       await fake.close();
     }
