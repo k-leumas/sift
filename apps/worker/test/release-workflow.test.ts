@@ -91,6 +91,18 @@ describe('.github/workflows/release.yml', () => {
     expect(run).toContain('echo "tag=$TAG" >> "$GITHUB_OUTPUT"');
   });
 
+  it('pushes over the release deploy key, which the rulesets let bypass them', () => {
+    const checkout = steps.find((s) => s.uses?.startsWith('actions/checkout@'));
+    expect(checkout?.with?.['ssh-key']).toBe(['$', '{{ secrets.RELEASE_DEPLOY_KEY }}'].join(''));
+  });
+
+  it('stops on its own release commit, which the deploy-key push sends through ci', () => {
+    expect(run).toContain(`git log -1 --format=%s "$HEAD_SHA" | grep -q '^chore(release): '`);
+    expect(run.indexOf("grep -q '^chore(release): '")).toBeLessThan(
+      run.indexOf('node scripts/release.ts'),
+    );
+  });
+
   it('stops without releasing when main has moved past the tested commit', () => {
     expect(run.indexOf('git rev-parse origin/main')).toBeLessThan(
       run.indexOf('node scripts/release.ts'),

@@ -10,10 +10,16 @@ name: release
 # section has the linked commit lists only. This job then checks the tag and
 # pushes the commit and the tag together, then publishes a GitHub Release with
 # that version's CHANGELOG.md section as its notes. Every push to main counts,
-# merges included (a merged pull request is a push to main). A push made with GITHUB_TOKEN starts no workflow, so the release
-# commit does not run ci again and release-tag.yml does not see the tag; the
-# same check runs here instead. If main moved on while ci ran, the newer
-# commit's own run releases both, so this run stops without releasing.
+# merges included (a merged pull request is a push to main). If main moved on
+# while ci ran, the newer commit's own run releases both, so this run stops
+# without releasing.
+#
+# The push goes over the RELEASE_DEPLOY_KEY secret, a write deploy key that the
+# main and v* rulesets let bypass them (on a personal repository GITHUB_TOKEN
+# cannot be given a bypass). A deploy-key push starts workflows: the release
+# commit runs ci again, and this job stops when it sees that the tested commit
+# is its own chore(release) commit. The tag runs release-tag.yml, which repeats
+# the check made here.
 
 on:
   workflow_run:
@@ -36,11 +42,13 @@ jobs:
 
     steps:
       # The exact commit ci tested, with full history and tags for the version.
+      # The deploy key is what the later git push authenticates with.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           fetch-tags: true
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
 
       # Reads packageManager from package.json. Node 26 ships without corepack.
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -66,6 +74,10 @@ jobs:
           LEFTHOOK: '0'
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          if git log -1 --format=%s "$HEAD_SHA" | grep -q '^chore(release): '; then
+            echo "$HEAD_SHA is a release commit; nothing to release."
+            exit 0
+          fi
           if [ "$(git rev-parse origin/main)" != "$HEAD_SHA" ]; then
             echo "main has moved past $HEAD_SHA; its newer ci run releases it."
             exit 0
