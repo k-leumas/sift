@@ -4,17 +4,17 @@ milestone: v0.1
 milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: Tiered Classification with Traces
-status: executing
-stopped_at: Completed 03-23-PLAN.md
-last_updated: "2026-10-12T19:33:28.383Z"
+status: verifying
+stopped_at: Completed 03-24-PLAN.md
+last_updated: "2026-10-12T19:40:41.119Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 03 execution started
-state_head: 0c41d9b47acd8be20f91ceaa07b54edfe872d7f1
+state_head: dd2c0c4e37d110f0b9e707b2dad0a708947e6c91
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 58
-  completed_plans: 57
+  completed_plans: 58
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 
 Phase: 03 (Tiered Classification with Traces) — EXECUTING
 Plan: 24 of 24
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-12 — Phase 03 execution started
 
 Progress: [███░░░░░░░] 25%
@@ -113,6 +113,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03 P22 | 8min | 2 tasks | 4 files |
 | Phase 03 P20 | 16 min | 2 tasks | 7 files |
 | Phase 03 P23 | 4min | 2 tasks | 4 files |
+| Phase 03 P24 | 6 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -279,6 +280,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-20: messageFailures is set before the llm_error draft and removed only after the decision commits, so a failed write counts again
 - [Phase 03]: 03-20: the llm_error message stays in ollamaFailed (per-pass budget) but not in unclassified; MESSAGE_HELD_BACK_LOG replaced by MESSAGE_LLM_ERROR_LOG
 - [Phase 03]: 03-23: live baseline prints ready + per-email progress on stderr via BaselineOptions.progress; stdout stays the table (G-03-2)
+- [Phase 03]: 03-24: README quick-start steps are bold imperatives (<=60 chars) with commands below; intro Get started line links #quick-start with the step count (G-03-8)
+- [Phase 03]: 03-24: pushing local main to GitHub stays the owner's decision (origin 168 commits behind); read README.md in the sift checkout until then
 
 ### Pending Todos
 
@@ -306,6 +309,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T19:33:28.202Z
-Stopped at: Completed 03-23-PLAN.md
+Last session: 2026-10-12T19:40:40.926Z
+Stopped at: Completed 03-24-PLAN.md
 Resume file: None

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T19:33:07.614Z
-> Files: 534 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T19:40:11.694Z
+> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../tui-llm/src/ui/
 
@@ -27,7 +27,7 @@
 - `package.json` — Node.js package manifest (~286 tok)
 - `pnpm-lock.yaml` — pnpm lock file (~29253 tok)
 - `pnpm-workspace.yaml` (~79 tok)
-- `README.md` — Project documentation (~13825 tok)
+- `README.md` — Project documentation; intro Get started line links #quick-start (12 numbered steps, bold leads, then #### After the first start) (~13964 tok)
 - `renovate.json` (~235 tok)
 - `tsconfig.base.json` (~107 tok)
 - `tsconfig.json` — TypeScript configuration (~50 tok)
@@ -722,11 +722,13 @@
 - `03-23-PLAN.md` — Artifacts this plan produces (~5440 tok)
 - `03-23-SUMMARY.md` — Dependency graph (~2284 tok)
 - `03-24-PLAN.md` — Artifacts this plan produces (~5490 tok)
+- `03-24-SUMMARY.md` — Dependency graph (~2905 tok)
 
 ## apps/worker/test/
 
 - `llm-baseline.test.ts` — The manual live-baseline runner (AI-SPEC section 5, Set B: E4 live, E11); progress-line tests for G-03-2 (~4300 tok)
 - `release-workflow.test.ts` — Declares WORKFLOW (~903 tok)
+- `user-facing-text.test.ts` — Doc pins: D-69 deferred command never named; README quick start commands/order; G-03-8 quickStartSteps() list shape, intro link, unique anchor; scope; CONTRIBUTING (~5872 tok)
 
 ## apps/worker/test/support/
 
