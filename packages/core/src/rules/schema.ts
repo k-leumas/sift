@@ -79,9 +79,31 @@ function noControl(value: string): boolean {
 }
 
 /**
+ * Message tail for a value holding an unpaired surrogate (WR-05). It names the
+ * fix and never quotes the value.
+ */
+const UNPAIRED_SURROGATE =
+  'must not contain an unpaired surrogate (U+D800 to U+DFFF); write the character itself, not its escape';
+
+/**
+ * True when `value` is well-formed UTF-16 (WR-05). A YAML double-quoted escape
+ * for a code unit in U+D800..U+DFFF without its partner parses into an
+ * unpaired surrogate. The validated file is stored as rule_set.snapshot jsonb,
+ * which PostgreSQL refuses ("Unicode low surrogate must follow a high
+ * surrogate"), so such a file would pass config check and then fail every
+ * decision of the mailbox. Same predicate as validateLlmOutput (plan 03-25).
+ * Used by the one-line fields (description, judgment lines, rule name).
+ * Rejected, never repaired (D-05).
+ */
+function noUnpairedSurrogate(value: string): boolean {
+  return value.isWellFormed();
+}
+
+/**
  * A trimmed, non-empty, single-line string of at most `max` characters with no
- * control characters. One issue per value: a line break is reported as such,
- * any other control character as a control character.
+ * control characters and no unpaired surrogate. One issue per value, first
+ * match wins: a line break is reported as such, then any other control
+ * character as a control character, then an unpaired surrogate.
  */
 function oneLine(name: string, max: number) {
   return z
@@ -94,6 +116,8 @@ function oneLine(name: string, max: number) {
         ctx.addIssue({ code: 'custom', message: `${name} must be one line` });
       } else if (CONTROL_CHARACTERS.test(value)) {
         ctx.addIssue({ code: 'custom', message: `${name} must not contain control characters` });
+      } else if (!noUnpairedSurrogate(value)) {
+        ctx.addIssue({ code: 'custom', message: `${name} ${UNPAIRED_SURROGATE}` });
       }
     });
 }

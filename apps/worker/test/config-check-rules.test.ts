@@ -61,6 +61,23 @@ const NUL_DESCRIPTION = TWO_PROBLEMS.replace('label: Receipts', 'label: Importan
   .replace('      in: body\n', '')
   .replace('description: things I need to act on', 'description: "things I need\\0 to act on"');
 
+/** Built at runtime so this file holds no backslash-u sequence (Write/Edit tools and biome decode them). */
+const BACKSLASH = String.fromCharCode(92);
+
+/**
+ * Valid except for a YAML escape for a lone high surrogate (U+D800) in the first
+ * category description: PostgreSQL jsonb cannot hold an unpaired surrogate, so
+ * the worker could not store the rule set (WR-05).
+ */
+const LONE_SURROGATE_DESCRIPTION = NUL_DESCRIPTION.replace(
+  `"things I need${BACKSLASH}0 to act on"`,
+  `"things I need${BACKSLASH}uD800 to act on"`,
+);
+
+const UNPAIRED_SURROGATE_MESSAGE =
+  'description must not contain an unpaired surrogate (U+D800 to U+DFFF); ' +
+  'write the character itself, not its escape';
+
 const PASSWORDS = { SIFT_ALPHA_IMAP_PASSWORD: 'a', SIFT_BETA_IMAP_PASSWORD: 'b' };
 
 let work: string;
@@ -163,6 +180,24 @@ describe('sift config check reads every mailbox rules file (D-05)', () => {
           'categories\\[0\\]\\.description: description must not contain control characters$',
       ),
     );
+  });
+
+  it('exits 1 for an unpaired surrogate in a description, naming file, position and YAML path (WR-05)', async () => {
+    expect(LONE_SURROGATE_DESCRIPTION).toContain(`${BACKSLASH}uD800`);
+    const data = await dataDir({ alpha: LONE_SURROGATE_DESCRIPTION, beta: 'example' });
+    const { status, stdout, stderr } = await check({ ...PASSWORDS, SIFT_DATA: data });
+    expect(stdout).toEqual([]);
+    expect(status).toBe(1);
+    const source = path.relative(work, path.join(data, 'mailboxes', 'alpha', 'rules.yaml'));
+    expect(stderr).toHaveLength(1);
+    const line = stderr[0] ?? '';
+    expect(line).toMatch(
+      new RegExp(
+        `^${source}:${lineOf(LONE_SURROGATE_DESCRIPTION, 'things I need')}:\\d+ ` +
+          'categories\\[0\\]\\.description: ',
+      ),
+    );
+    expect(line.endsWith(`categories[0].description: ${UNPAIRED_SURROGATE_MESSAGE}`)).toBe(true);
   });
 
   it('checks every mailbox before exiting, so problems in two files are all printed', async () => {
