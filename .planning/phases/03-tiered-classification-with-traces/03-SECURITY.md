@@ -96,12 +96,56 @@ created: "2026-10-10"
 | T-03-50 (03-13) | Information Disclosure | real mail pasted into the committed verification | medium | mitigate | The runner reads only committed synthetic fixtures; instructions say synthetic data only; table holds categories, numbers and the model digest | closed |
 | T-03-51 (03-13) | Information Disclosure | the runner sending fixtures to a cloud model | low | mitigate | createPreflight refuses remote_host/remote_model entries; no default URL | closed |
 | T-03-52 (03-13) | Tampering | owner commands that break the shell (heredocs) or mislead | low | mitigate | Single-line commands with exact expected output (owner preference); doc test pins them | closed |
+| T-03-53 (03-14) | Information Disclosure | restoreBody (sift classify refetch) | medium | mitigate | A body restored for a decided message is inserted with expires_at = restore time + 7 days in the same statement; refetch-then-outage test (Task 1) | closed |
+| T-03-54 (03-14) | Information Disclosure | storeMessages body re-insert | medium | mitigate | decidedMessageIds lookup before the insert gives decided messages' bodies an expiry; ingest.test.ts CR-02 case (Task 2) | closed |
+| T-03-SC (03-14) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-55 (03-15) | Elevation of Privilege | runBatch valve handling after a failed classification pass | high | mitigate | recordIngestSynced clears approved/held counts inside the ingest lock with the ingest commit; resume-then-throw test asserts the next batch uses the cap (Task 1) | closed |
+| T-03-56 (03-15) | Denial of Service | needs_attention left without a held count (stuck mailbox, resume impossible) | medium | mitigate | recordIngestSynced moves needs_attention to ok in the same upsert that clears the counts; mailbox_status_held_check backs it; unit test (Task 2) | closed |
+| T-03-SC (03-15) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-57 (03-16) | Denial of Service | validateLlmOutput / recordDecision (injected text makes the model emit a NUL in its reason) | high | mitigate | Control characters in the reason are schema_mismatch: one retry, then review invalid_output; end-to-end test (Task 1); stripNul backstop over parsed spans (Task 2) | closed |
+| T-03-SC (03-16) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-60 (03-17) | Denial of Service | draftFor / runBatch (one poison email blocking older mail and slowing ingest through backoff) | high | mitigate | Re-probe after server_error/timeout; healthy -> skip only that message; batch-level and pass-level tests (Task 1) | closed |
+| T-03-61 (03-17) | Spoofing (misleading state) | a real outage read as a message failure, hiding a broken Ollama behind ok | medium | mitigate | Failed re-probe or more than OLLAMA_MESSAGE_FAILURES_PER_PASS failures in a pass = outage with the D-16 status and backoff; budget and confirmed-outage tests (Task 1) | closed |
+| T-03-62 (03-17) | Information Disclosure | the skip warn line | high | mitigate | Logs slug, message id, code and status only, never result.detail or mail text; leak test with sentinels in mail and in the 500 body (Task 2) | closed |
+| T-03-63 (03-17) | Denial of Service | re-probes and repeated 120 s timeouts lengthening a pass | low | mitigate | At most 2 skips per pass; preflight has its own 10 s timeout; each skip counts against LLM_CALLS_PER_TICK; 03-18 stops repeat offenders | closed |
+| T-03-SC (03-17) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-64 (03-18) | Information Disclosure | unclassifiedNotice in last_error and sift mailbox list | high | mitigate | Fixed template with message ids and counts only; exact-string tests (Tasks 1-2). The sift classify stderr line is 03-22 (T-03-74) | closed |
+| T-03-65 (03-18) | Denial of Service | a message Ollama fails on alone costing a call (up to 120 s) on every pass | medium | mitigate | MESSAGE_FAILURE_PASSES = 3, then no preflight, chat or budget for it in this process; four-pass test (Task 2) | closed |
+| T-03-66 (03-18) | Denial of Service | messageFailures growing without bound | low | accept | One entry per pending message Ollama failed on, deleted when the message is decided, cleared on restart; bounded by the pending set | closed |
+| T-03-67 (03-18) | Spoofing (misleading state) | a runner that fails every prompt while /api/tags answers, read as per-message failures and hiding the outage behind ok | medium | mitigate | canaryChat (mail-free) must succeed before a message is held back; a failing canary is an outage with D-16 status and backoff; always-500 test (Task 2) | closed |
+| T-03-SC (03-18) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-68 (03-19) | Repudiation / Tampering | llm_error reason (an outage recorded as a decision, breaking D-16's core) | high | mitigate | This plan adds only the contract and writes no decision; the blocking owner checkpoint gates it; the only writer (03-20) records llm_error after MESSAGE_FAILURE_PASSES re-probe-confirmed failures and a successful mail-free canary chat, with outage tests there | closed |
+| T-03-69 (03-19) | Tampering | migration 0011 on the decision CHECK | low | mitigate | The migration only drops and re-adds decision_review_reason_check with one more allowed value; review_reason is still tied to outcome review; classify-schema tests for acceptance and refusal; db:generate reports no drift (Task 2) | closed |
+| T-03-73 (03-19) | Repudiation | option-keep override in 03-VERIFICATION.md (a residual phase-goal gap accepted without a traceable owner decision) | medium | mitigate | Written only after the blocking-human checkpoint resolves to option-keep; accepted_by, accepted_at and the owner's verbatim words are required and checked by the YAML parse in Task 3; the SUMMARY quotes the same entry | closed |
+| T-03-SC (03-19) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-70 (03-20) | Repudiation / Tampering | run.ts llm_error branch (an outage recorded as a review) | high | mitigate | Requires MESSAGE_FAILURE_PASSES re-probe-confirmed failures in one process plus a successful mail-free canary chat; outage, budget and always-500 tests write no decision (Tasks 1-2) | closed |
+| T-03-71 (03-20) | Information Disclosure | llm_error attempt detail | high | mitigate | llmErrorDetail is a fixed template with the code and HTTP status only, never result.detail; tier test asserts the fake's error text is absent (Task 1) | closed |
+| T-03-72 (03-20) | Repudiation | an llm_error decision that cannot be explained or replayed | medium | mitigate | The failed attempt keeps its nonce and the llm span its prompt version and model; expectReplayableDecision for the 500 and timeout paths (Tasks 1-2) | closed |
+| T-03-SC (03-20) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-58 (03-21) | Denial of Service | rules.yaml with control characters passing config check, failing every decision | medium | mitigate | Strict schema refines with positioned messages; config-check end-to-end test (Task 1) and schema cases (Task 2) | closed |
+| T-03-59 (03-21) | Tampering | control characters from rules text reaching the trusted system prompt | low | mitigate | Same schema refines: trusted one-line text and match entries are control-free (Tasks 1-2) | closed |
+| T-03-SC (03-21) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-74 (03-22) | Information Disclosure | sift classify skip line (stderr) | high | mitigate | Fixed template with the message id and the HTTP status or failure code only, never the warn object's other fields; exact-stderr tests with an error-text sentinel in the fake's 500 body and the file's output scan (Task 1) | closed |
+| T-03-SC (03-22) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-75 (03-23) | Information Disclosure | progress lines on stderr (llm-baseline.ts readyLine/progressLine) | low | mitigate | Fixed templates holding only the model name, the committed synthetic fixture file name, its position and whole seconds; never the model reason, mail text, URL or Ollama error text; exact-shape stderr tests and no progress after a refusal (Task 1). The fixtures are synthetic example.test mail (T-03-50 unchanged) | closed |
+| T-03-76 (03-23) | Tampering | hermeticity of the runner and its test (a default URL or the real port creeping in with the new strings) | medium | mitigate | No URL, localhost or port in the new strings; classify-hermetic.test.ts and 'has no default URL and reads only the committed synthetic fixtures' run in Task 1 verify | closed |
+| T-03-SC (03-23) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-77 (03-24) | Tampering | quick-start commands during the restructure (for example the mode-600 step for the mailbox password file or its backup losing its chmod, or a step changing order) | high | mitigate | Commands move with their step and stay byte-identical: the code-block diff in Task 2 step 6, the existing pins for both chmod 600 commands (CR-02, D-39) and the existing ordering tests in Task 2 verify | closed |
+| T-03-78 (03-24) | Spoofing (misleading owner docs) | the new Get started line | low | mitigate | The line says Sift does not put labels in Proton yet; the existing pin 'Nothing is written into your mailbox yet' stays; owner human-check at UAT re-test | closed |
+| T-03-SC (03-24) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-79 (03-25) | Denial of Service | validateLlmOutput / classifyCandidates (an email asks the model to end its reason with an unpaired surrogate escape; the insert fails on every pass; five in a row stop the mailbox's classification) | high | mitigate | isWellFormed() check gives schema_mismatch 'reason: lone_surrogate': one retry, then review invalid_output (Task 1); five-in-a-row end-to-end test asserts all six decided in one pass with failures 0 | closed |
+| T-03-80 (03-25) | Denial of Service | recordDecision (an Ollama-compatible server returns unpaired surrogates in raw, thinking, done_reason or response_model) | medium | mitigate | wellFormed backstop over the NUL-stripped parsed spans before assertConsistent and the insert (Task 2), unit case with all four fields | closed |
+| T-03-81 (03-25) | Repudiation | recordDecision backstop (a repaired raw string no longer equals what the server sent, so that attempt does not replay byte for byte) | low | accept | Only reachable for a non-Ollama or compromised server (Ollama's encoder never emits unpaired surrogates); the reason itself is never repaired; same accepted trade-off as the 03-16 NUL backstop | closed |
+| T-03-SC (03-25) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
+| T-03-82 (03-26) | Denial of Service | rules schema -> ensureRuleSet (an unpaired surrogate escape in rules.yaml passes config check, then every decision insert of the mailbox fails with an anonymous jsonb error) | medium | mitigate | noUnpairedSurrogate (isWellFormed) in oneLine and on from/domain/phrase entries; config check exits 1 naming file:line:col and YAML path (Task 1); the worker fails closed as rules_invalid through the same loadRules (D-05) | closed |
+| T-03-83 (03-26) | Information Disclosure | rules-file error messages (stderr and mailbox_status.last_error) | low | mitigate | Fixed message text that never quotes the value (existing convention); the config-check case matches the whole stderr line, so an echoed value would fail it | closed |
+| T-03-SC (03-26) | Tampering | npm/pip/cargo installs | low | accept | This plan installs no packages | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low — only open threats at or above workflow.security_block_on count toward threats_open*
 *Disposition: mitigate (implementation required) · accept (documented risk) · transfer (third-party)*
 
-Evidence (file:line and tests) for every row is in the gsd-security-auditor verdict of 2026-10-10; key files: apps/worker/src/classify/{run,ollama-client,preflight,llm-tier,refetch}.ts, packages/core/src/classify/*, packages/db/src/{classify,prompt-version,scope,status}.ts, migrations 0004/0009/0010, and apps/worker/test/classify-{leak,injection,run,batch,hermetic}.test.ts.
+Evidence (file:line and tests) for T-03-01..T-03-52 is in the gsd-security-auditor verdict of 2026-10-10, and for T-03-53..T-03-83 (plans 03-14..03-26) in the verdict of 2026-10-12 (L1, all 29 mitigations closed with code and test evidence); key files: apps/worker/src/classify/{run,ollama-client,preflight,llm-tier,refetch}.ts, packages/core/src/classify/*, packages/db/src/{classify,prompt-version,scope,status}.ts, migrations 0004/0009/0010, and apps/worker/test/classify-{leak,injection,run,batch,hermetic}.test.ts.
 
 ---
 
@@ -112,16 +156,21 @@ Evidence (file:line and tests) for every row is in the gsd-security-auditor verd
 | AR-03-01 | T-03-SC (all 13 plans) | No new dependency in Phase 3 (Node fetch, no Ollama SDK; postal-mime already approved); pnpm-lock and package manifests unchanged except packages/core exports | plan-time threat model; verified by auditor | 2026-10-10 |
 | AR-03-02 | T-03-49 | An exact rule an owner writes can mislabel mail; owner-authored, named in the trace (AI-SPEC: "Accepted, not a defect") | plan-time threat model (03-04) | 2026-10-10 |
 | AR-03-03 | T-03-37 | A compromised or steered model can still pick a wrong but allowed category (e.g. bank notice -> Noise). Phase 3 applies no labels; flip count recorded by the live baseline. Phase 4 must decide before labels are applied (AI-SPEC §6) | plan-time threat model (03-10); owner decision deferred to Phase 4 | 2026-10-10 |
+| AR-03-04 | T-03-66 | messageFailures is an in-process Map with one entry per message Ollama failed on alone (at most OLLAMA_MESSAGE_FAILURES_PER_PASS new entries per mailbox pass); deleted when the message is decided and cleared on restart | plan-time threat model (03-18); verified by auditor | 2026-10-12 |
+| AR-03-05 | T-03-81 | The recordDecision wellFormed backstop turns unpaired surrogates in server-supplied strings (raw, thinking, done_reason, response_model) into U+FFFD, so such an attempt no longer replays byte for byte. Only a non-Ollama or compromised server can trigger it; the model reason is rejected (lone_surrogate), never repaired. Same trade-off as the 03-16 NUL backstop | plan-time threat model (03-25) | 2026-10-12 |
+| AR-03-06 | T-03-SC (03-14..03-26) | No plan in 03-14..03-26 installs or changes a dependency: none of their commits touches a manifest or lockfile (lockfile changes in this window come only from release-tooling commits outside the phase plans) | plan-time threat model; verified by auditor | 2026-10-12 |
 
 *Accepted risks do not resurface in future audit runs.*
 
 ### Open owner decisions (not register threats)
 
-- A message that makes Ollama return HTTP 500 every time is treated as infra: the mailbox backs off every batch and older LLM-bound mail is blocked. Availability, not confidentiality; tracked for a possible gap-closure plan.
+- Resolved (2026-10-12): a message that makes Ollama return HTTP 500 every time is now skipped per pass and, after 3 passes plus a successful canary, decided as review llm_error (CR-01; 03-17..03-20, T-03-60..T-03-72). Open owner decisions on its tuning remain WR-06 and WR-07 (03-VERIFICATION human_verification).
 
 ### Auditor notes (informational)
 
 - T-03-27: the 500-messages-examined cap is in code but has no test.
+- T-03-82: the worker side rests on the shared loadRules; there is no worker-level WR-05 rules_invalid test (evidence: config-check e2e, schema cases, existing rules_invalid path; the 03-26 re-verification reproduced rules_invalid against the worker).
+- T-03-83: two older messages (duplicate category name, unknown label) quote the owner value; they predate 03-26 and carry owner config, not mail.
 - T-03-33: outage and volume-hold isolation are tested with one mailbox each; isolation rests on per-mailbox state.
 - T-03-30: worker-classify.test.ts (spawned worker) does not call expectReplayableDecision; writes still pass recordDecision validation.
 - The CLI `sift classify` has its own single-flight gate, so worker and CLI can each have one Ollama request in flight (matches T-03-24 / D-19 as written).
@@ -133,6 +182,7 @@ Evidence (file:line and tests) for every row is in the gsd-security-auditor verd
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-10 | 64 | 64 | 0 | gsd-security-auditor (ASVS L1, block_on high) |
+| 2026-10-12 | 108 | 108 | 0 | gsd-security-auditor (ASVS L1, block_on high; plans 03-14..03-26 added) |
 
 ---
 
@@ -143,7 +193,7 @@ Evidence (file:line and tests) for every row is in the gsd-security-auditor verd
 - [x] `threats_open: 0` confirmed
 - [x] `status: verified` set in frontmatter
 
-**Approval:** verified 2026-10-10
+**Approval:** verified 2026-10-10; re-verified 2026-10-12 after gap closure 03-14..03-26
 
 ## Security Audit 2026-10-11
 
@@ -152,3 +202,11 @@ Evidence (file:line and tests) for every row is in the gsd-security-auditor verd
 | Threats found | 64 |
 | Closed | 63 |
 | Open | 1 |
+
+## Security Audit 2026-10-12
+
+| Metric | Count |
+|---|---|
+| Threats found | 108 |
+| Closed | 108 |
+| Open | 0 |
