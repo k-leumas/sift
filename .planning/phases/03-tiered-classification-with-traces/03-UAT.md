@@ -1,12 +1,13 @@
 ---
-status: diagnosed
+status: complete
 phase: 03-tiered-classification-with-traces
 source: [03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md, 03-05-SUMMARY.md, 03-06-SUMMARY.md, 03-07-SUMMARY.md, 03-08-SUMMARY.md, 03-09-SUMMARY.md, 03-10-SUMMARY.md, 03-11-SUMMARY.md, 03-12-SUMMARY.md, 03-13-SUMMARY.md, 03-14-SUMMARY.md, 03-15-SUMMARY.md, 03-16-SUMMARY.md, 03-17-SUMMARY.md, 03-18-SUMMARY.md, 03-19-SUMMARY.md, 03-20-SUMMARY.md, 03-21-SUMMARY.md, 03-22-SUMMARY.md]
 started: 2026-10-12T06:09:37Z
-updated: 2026-10-12T07:38:37.235Z
+updated: 2026-10-13T18:17:58.000Z
 ---
 
 ## Current Test
+<!-- OVERWRITE each test - shows where we are -->
 
 [testing complete]
 
@@ -791,10 +792,28 @@ result: pass
 source: automated
 coverage_id: 03-22-D2
 
+### 133. Re-test 2 after 03-23: live baseline shows progress (G-03-2, CLS-02)
+expected: From the sift repository root, with Ollama running and qwen3:1.7b pulled, run: node apps/worker/test/support/llm-baseline.ts --url http://localhost:11434 --model qwen3:1.7b. A ready line appears on stderr right after the model check, then one line per email as each finishes (fixture N/10 <file>: <s> s). At the end the Markdown table prints on stdout: 10 rows, thinking null yes in every row, one model digest, last line flips: <n>. The run takes a few minutes.
+result: pass
+
+### 134. Re-test 8 after 03-24: README quick start is findable and scannable (G-03-8)
+expected: Open the LOCAL README.md (GitHub main does not have these commits yet). Under the status note at the top, a Get started line links to Quick start. The quick start reads as one list numbered 1 to 12, and each step starts with a short bold imperative, with details below it.
+result: pass
+
+### 135. Owner decision WR-06: per-pass budget of 2 messages Ollama fails on alone
+expected: Reply keep to confirm the accepted 03-17 rule (at most 2 such messages per pass; a third in the same pass is treated as an Ollama outage, so with k such messages the mailbox spends about 3k/2 passes in backoff with slower IMAP polling), or describe the change you want (for example the reviewer canary-instead-of-outage fix).
+result: pass
+note: "Owner decision 2026-10-13: keep the accepted 03-17 rule (at most 2 alone-failing messages per pass; a third is an outage). WR-06 accepted as designed."
+
+### 136. Owner decision WR-07: evidence needed before a permanent llm_error review
+expected: Reply keep to accept that 3 failed passes a poll interval apart plus a successful canary make a message review llm_error, or describe the extra evidence you want (for example a minimum time span, or a successful real chat in between).
+result: pass
+note: "Owner decision 2026-10-13: keep (3 failed passes a poll interval apart plus a successful canary give review llm_error). WR-07 accepted as designed."
+
 ## Summary
 
-total: 132
-passed: 129
+total: 136
+passed: 133
 issues: 2
 pending: 0
 skipped: 1
@@ -804,7 +823,9 @@ blocked: 0
 
 - gap_id: G-03-2
   truth: "The live baseline runner gives the owner visible output when run as documented in 03-USER-SETUP.md"
-  status: failed
+  status: resolved
+  resolved_by: 03-23-PLAN.md
+  resolved_at: 2026-10-12
   reason: "User reported: the command doesn't yeild anything on my computer"
   severity: minor
   test: 2
@@ -819,7 +840,9 @@ blocked: 0
     - "Say in 03-USER-SETUP.md (and the README if it mentions the runner) that the run takes a few minutes and must start from the repository root"
 - gap_id: G-03-8
   truth: "An owner opening the README finds the 12-step quick start straight away and sees it as one numbered list"
-  status: failed
+  status: resolved
+  resolved_by: 03-24-PLAN.md
+  resolved_at: 2026-10-12
   reason: "User reported: that this is hard to find is a real problem... i see no 12 step numbered list"
   severity: major
   test: 8

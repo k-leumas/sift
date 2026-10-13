@@ -67,6 +67,7 @@
 - [2026-10-12] `vitest run test/` matches apps/*/test too and needs DB/IMAP services; name test files explicitly.
 
 ## Decision Log
+- 2026-10-13 (03 UAT 135-136): owner kept WR-06 (max 2 alone-failing messages per pass, a third is an outage) and WR-07 (3 failed passes + healthy canary -> review `llm_error`) as designed; no canary-instead-of-outage or minimum-span change.
 - 2026-10-11 (03-19): owner chose option-review. A message Ollama fails on alone in 3 passes (healthy re-probe + canary) ends as review `llm_error` (migration 0011, one-way).
 - 2026-10-10 (plan-phase 3): `decided_by` worker|rerun with one worker decision per message. rule_set is append-only. prompt_version is unscoped (advisory lock 815309003). The ingest lock is taken per 5-message chunk. needs_attention mailboxes are not classified. Category names are ASCII.
 - 2026-10-08: evals use Vitest + the fake Ollama (E1–E11 as CI gates); live-model quality is a manual baseline. No external trace tool (SEC-02); decision.spans is the trace store.
