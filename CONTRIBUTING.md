@@ -150,7 +150,7 @@ A real `pnpm release` on your machine refuses: it needs `SIFT_RELEASE_CI=1`, whi
   - `packages/db/test/catalog.test.ts` checks every table in the migrated schema: `mailbox_id`, enabled and forced row-level security with the standard policy, grants and the `updated_at` trigger. A table that is deliberately not mailbox-scoped needs an allowlist entry with a reason.
   - `packages/db/test/isolation.test.ts` seeds two mailboxes and fails if either can read or write the other's rows.
 
-  The cross-mailbox eval suite that checks prompts and training sets (`evals/isolation/`) arrives with multiple-mailbox support in M5. See the [Data model](README.md#data-model) section of the README.
+  The cross-mailbox eval suite that checks prompts and training sets (`evals/isolation/`) arrives with multiple-mailbox support in M5. See the [Data model](docs/architecture.md#data-model) section of `docs/architecture.md`.
 - **Treat email as untrusted input.** Changes that touch how email content reaches the LLM prompt or any tier must keep it fenced off from instructions, and the injection suite (`evals/injection/`, planned) must still pass. See the [Security model](README.md#security-model).
 
 Branch names aren't fixed by any convention. A short descriptive name such as `docs/adr-0004-drafts` or `fix/relabel-echo` is fine. PRs target `main`.

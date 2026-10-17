@@ -17,9 +17,17 @@ function read(file: string): string {
  */
 const DEFERRED_COMMAND = new RegExp(['pur', 'ge'].join(''), 'i');
 
+/**
+ * The owner-facing docs split out of README.md in quick-261017-505. Every new
+ * owner doc is added here, so the D-69, bind, scope and old-config scans and
+ * the link check below cover it.
+ */
+const OWNER_DOCS = ['docs/architecture.md'];
+
 /** Owner- and contributor-facing files that ship with the repository. */
 const SCANNED_FILES = [
   'README.md',
+  ...OWNER_DOCS,
   'CONTRIBUTING.md',
   'config/config.example.yaml',
   '.env.example',
@@ -46,6 +54,30 @@ function matches(file: string, text: string, pattern: RegExp): string[] {
   return text
     .split('\n')
     .flatMap((line, i) => (pattern.test(line) ? [`${file}:${i + 1}: ${line.trim()}`] : []));
+}
+
+/** GitHub's heading anchor: trim, lower-case, keep a-z, 0-9, spaces and hyphens, spaces to hyphens. */
+function anchor(heading: string): string {
+  return heading
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/ /g, '-');
+}
+
+/** Markdown headings outside fenced code blocks (YAML comments in code blocks start with '#'). */
+function headings(markdown: string): string[] {
+  const found: string[] = [];
+  let fenced = false;
+  for (const line of markdown.split('\n')) {
+    if (/^ *```/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    const heading = /^#{1,6} (.*)$/.exec(line);
+    if (!fenced && heading) found.push(heading[1] ?? '');
+  }
+  return found;
 }
 
 describe('D-69: the deferred mailbox hard-delete command is never named', () => {
@@ -239,8 +271,11 @@ describe('README quick start (D-28, D-56, D-58)', () => {
 
   it('no longer points at the old add-mailbox command or the root example config', () => {
     const oldAdd = new RegExp(['sift', 'mailbox', 'add'].join('\\s+'));
-    expect(readme).not.toMatch(oldAdd);
-    expect(readme).not.toMatch(/cp config\.example\.yaml/);
+    for (const file of ['README.md', ...OWNER_DOCS]) {
+      const text = read(file);
+      expect(text, file).not.toMatch(oldAdd);
+      expect(text, file).not.toMatch(/cp config\.example\.yaml/);
+    }
   });
 
   it('documents rename and list through the setup service, with no deletion step', () => {
@@ -283,30 +318,6 @@ describe('README quick start is easy to find and scan (G-03-8)', () => {
     return steps;
   }
 
-  /** GitHub's heading anchor: trim, lower-case, keep a-z, 0-9, spaces and hyphens, spaces to hyphens. */
-  function anchor(heading: string): string {
-    return heading
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/ /g, '-');
-  }
-
-  /** Markdown headings outside fenced code blocks (YAML comments in code blocks start with '#'). */
-  function headings(): string[] {
-    const found: string[] = [];
-    let fenced = false;
-    for (const line of readme.split('\n')) {
-      if (/^ *```/.test(line)) {
-        fenced = !fenced;
-        continue;
-      }
-      const heading = /^#{1,6} (.*)$/.exec(line);
-      if (!fenced && heading) found.push(heading[1] ?? '');
-    }
-    return found;
-  }
-
   it('links the quick start from the intro with its step count (G-03-8)', () => {
     const intro = readme.slice(0, readme.indexOf('## Why'));
     const count = quickStartSteps().length;
@@ -321,7 +332,7 @@ describe('README quick start is easy to find and scan (G-03-8)', () => {
   });
 
   it('has exactly one heading with the quick-start anchor (G-03-8)', () => {
-    expect(headings().filter((heading) => anchor(heading) === 'quick-start')).toEqual([
+    expect(headings(readme).filter((heading) => anchor(heading) === 'quick-start')).toEqual([
       'Quick start',
     ]);
     expect(readme).toMatch(/^### Quick start$/m);
@@ -400,7 +411,9 @@ describe('README scope and host requirements (G-02-8, G-02-9)', () => {
     'for Proton,',
     'An IMAP account per mailbox',
   ])('no longer contains %s', (phrase) => {
-    expect(readme.toLowerCase()).not.toContain(phrase.toLowerCase());
+    for (const file of ['README.md', ...OWNER_DOCS]) {
+      expect(read(file).toLowerCase(), file).not.toContain(phrase.toLowerCase());
+    }
   });
 });
 
@@ -487,14 +500,83 @@ describe('Bridge command form and bind addresses (D-79)', () => {
   /** The wildcard bind address, built from parts so this file does not contain it. */
   const WILDCARD_BIND = new RegExp(['0', '0', '0', '0'].join('\\.'));
 
-  it.each(['README.md', 'CONTRIBUTING.md', 'bridge/entrypoint.sh', 'compose.yaml'])(
+  it.each(['README.md', ...OWNER_DOCS, 'CONTRIBUTING.md', 'bridge/entrypoint.sh', 'compose.yaml'])(
     '%s never shows the old init command form',
     (file) => {
       expect(matches(file, read(file), OLD_INIT)).toEqual([]);
     },
   );
 
-  it.each(['README.md', 'CONTRIBUTING.md'])('%s never shows the wildcard bind address', (file) => {
-    expect(matches(file, read(file), WILDCARD_BIND)).toEqual([]);
+  it.each(['README.md', ...OWNER_DOCS, 'CONTRIBUTING.md'])(
+    '%s never shows the wildcard bind address',
+    (file) => {
+      expect(matches(file, read(file), WILDCARD_BIND)).toEqual([]);
+    },
+  );
+});
+
+describe('README, CONTRIBUTING, docs and ADR links resolve (quick-261017-505)', () => {
+  const ADR_DIR = 'docs/adr';
+  const adrs = readdirSync(path.join(REPO_ROOT, ADR_DIR))
+    .filter((name) => name.endsWith('.md'))
+    .map((name) => `${ADR_DIR}/${name}`);
+  const LINKED_FILES = ['README.md', 'CONTRIBUTING.md', ...OWNER_DOCS, ...adrs];
+
+  /** Every `](target)` outside fenced code blocks, with inline code spans removed first. */
+  function linkTargets(text: string): string[] {
+    const targets: string[] = [];
+    let fenced = false;
+    for (const line of text.split('\n')) {
+      if (/^ *```/.test(line)) {
+        fenced = !fenced;
+        continue;
+      }
+      if (fenced) continue;
+      const plain = line.replace(/`[^`]*`/g, '');
+      for (const m of plain.matchAll(/\]\(([^)\s]*)\)/g)) targets.push(m[1] ?? '');
+    }
+    return targets;
+  }
+
+  it('resolves every relative link and anchor', () => {
+    expect(adrs.length).toBeGreaterThan(0);
+    const failures: string[] = [];
+    let checked = 0;
+    for (const file of LINKED_FILES) {
+      for (const target of linkTargets(read(file))) {
+        if (/^[a-z][a-z0-9+.-]*:/i.test(target)) continue;
+        checked++;
+        const hash = target.indexOf('#');
+        const pathPart = hash === -1 ? target : target.slice(0, hash);
+        const fragment = hash === -1 ? '' : target.slice(hash + 1);
+        const resolved =
+          pathPart === '' ? file : path.join(path.dirname(file), decodeURIComponent(pathPart));
+        if (!existsSync(path.join(REPO_ROOT, resolved))) {
+          failures.push(`${file}: ${target} (no such path ${resolved})`);
+          continue;
+        }
+        if (fragment !== '' && resolved.endsWith('.md')) {
+          const anchors = headings(read(resolved)).map(anchor);
+          if (!anchors.includes(fragment)) {
+            failures.push(`${file}: ${target} (no heading ${fragment} in ${resolved})`);
+          }
+        }
+      }
+    }
+    expect(failures).toEqual([]);
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it('links every owner doc from the README', () => {
+    const readme = read('README.md');
+    for (const doc of OWNER_DOCS) expect(readme, doc).toContain(`](${doc}`);
+  });
+
+  it('gives every heading in the README and the owner docs its own anchor', () => {
+    for (const file of ['README.md', ...OWNER_DOCS]) {
+      const anchors = headings(read(file)).map(anchor);
+      const repeated = anchors.filter((a, i) => anchors.indexOf(a) !== i);
+      expect(repeated, file).toEqual([]);
+    }
   });
 });
