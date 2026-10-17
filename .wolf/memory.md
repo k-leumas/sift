@@ -1606,3 +1606,53 @@
 | 03:58 | Edited packages/core/test/prompt-version.test.ts | 2→3 lines | ~26 |
 | 03:59 | Edited packages/core/test/prompt.test.ts | 1→4 lines | ~36 |
 | 04:00 | quick-261017-505: split README.md into docs/{how-it-works,configuration,operations,troubleshooting,architecture,security,evals}.md; OWNER_DOCS + link/anchor test; pins repointed (271 tests pass) | README.md, docs/*.md, CONTRIBUTING.md, docs/adr/0002, user-facing-text.test.ts, 4 core tests | 3 commits, preserved: OK | ~60000 |
+| 04:01 | Created .planning/quick/261017-505-split-readme-md-into-focused-docs-readme/261017-505-SUMMARY.md | — | ~2007 |
+| 04:03 | Session end: 99 writes across 33 files (04-RESEARCH.md, 04-VALIDATION.md, 04-PATTERNS.md, gsd-progress-statusline.js, settings.json) | 30 reads | ~257500 tok |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-03-PLAN.md | inline fix | ~16 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-03-PLAN.md | inline fix | ~83 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-04-PLAN.md | inline fix | ~39 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-04-PLAN.md | inline fix | ~29 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md | inline fix | ~25 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md | "Pure renderer of the READ" → "Pure renderer of the docs" | ~26 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md | inline fix | ~28 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md | inline fix | ~25 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md | inline fix | ~18 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md | inline fix | ~42 |
+| 04:06 | Edited .planning/phases/04-labels-and-real-inbox-run/04-13-PLAN.md | "After the first start" → "## After the first start" | ~59 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | expanded (+6 lines) | ~121 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | "README " → "docs/how-it-works.md " | ~35 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | modified look() | ~669 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~35 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~48 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | expanded (+18 lines) | ~350 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 6→6 lines | ~79 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 4→4 lines | ~217 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~504 |
+| 04:08 | Session end: 119 writes across 33 files (04-RESEARCH.md, 04-VALIDATION.md, 04-PATTERNS.md, gsd-progress-statusline.js, settings.json) | 38 reads | ~269176 tok |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 2→2 lines | ~63 |
+| 04:08 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 173() → 139() | ~138 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | "What M1 stores today" → "## Decision traces" | ~43 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 2→2 lines | ~114 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 12→12 lines | ~371 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 6→11 lines | ~337 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | modified intro() | ~555 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 2→2 lines | ~411 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 9→11 lines | ~316 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 2→2 lines | ~61 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~27 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | "pnpm vitest run apps/work" → "pnpm vitest run apps/work" | ~20 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~26 |
+| 04:09 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | modified Addendum() | ~218 |
+| 04:13 | Session end: 133 writes across 33 files (04-RESEARCH.md, 04-VALIDATION.md, 04-PATTERNS.md, gsd-progress-statusline.js, settings.json) | 38 reads | ~272069 tok |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 1→2 lines | ~32 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 1→2 lines | ~156 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~30 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | modified files() | ~84 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | modified route() | ~336 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~106 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 1→4 lines | ~139 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | inline fix | ~46 |
+| 04:14 | Edited .planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md | 2→3 lines | ~82 |
+| 04:15 | Session end: 142 writes across 33 files (04-RESEARCH.md, 04-VALIDATION.md, 04-PATTERNS.md, gsd-progress-statusline.js, settings.json) | 38 reads | ~273152 tok |
+| 04:16 | README split (261017-505) + Phase 4 plans repointed to docs/; checker pass (info only) | README.md docs/ .planning/phases/04-* | 2935126 e4622ea 7748185 | ~ |
+| 04:16 | Session end: 142 writes across 33 files (04-RESEARCH.md, 04-VALIDATION.md, 04-PATTERNS.md, gsd-progress-statusline.js, settings.json) | 38 reads | ~273152 tok |

@@ -5660,6 +5660,102 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-17T10:00:00Z"
+    },
+    {
+      "id": "bug-341",
+      "timestamp": "2026-10-17T10:06:45.784Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md",
+      "root_cause": "Had \"Pure renderer of the README trace tree, the match",
+      "fix": "Changed to \"Pure renderer of the docs/how-it-works.md trace t",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T10:06:45.784Z"
+    },
+    {
+      "id": "bug-342",
+      "timestamp": "2026-10-17T10:06:49.520Z",
+      "error_message": "Wrong reference: README should be docs",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-07-PLAN.md",
+      "root_cause": "Used \"README\" instead of \"docs\"",
+      "fix": "Changed README → docs",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T10:06:49.520Z"
+    },
+    {
+      "id": "bug-343",
+      "timestamp": "2026-10-17T10:06:54.906Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-13-PLAN.md",
+      "root_cause": "Had 'After the first start'",
+      "fix": "Changed to '## After the first start'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T10:06:54.906Z"
+    },
+    {
+      "id": "bug-344",
+      "timestamp": "2026-10-17T10:08:05.249Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 13→19 lines (3 removed) | Also: provides: \"Owner documentation for labels, traces,; - path: \"apps/worker/test/readme-sql.test.ts\" | Also: the exact IMAP writes Sift may send and the networ; Purpose: the live run (04-13) follows the README,  | Also: 3. user-facing-text.test.ts: pin the sift trace fo; <automated>pnpm vitest run apps/worker/test/readme | Also: <name>Task 2: README label modes, settings, data m; <files>README.md, apps/worker/test/user-facing-tex | Also: 1. Quick start intro: replace the sentence that la; 2. '#### After the first start': a **Labels.** bul | Also: <fails_when>non-zero exit, a quick-start shape or ; - `grep -c \"Nothing is written into your mailbox y | Also: - README sections: 'What M1 shows today' (trace co; - Test file `apps/worker/test/readme-sql.test.ts`;",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 8,
+      "last_seen": "2026-10-17T10:09:54.912Z"
+    },
+    {
+      "id": "bug-345",
+      "timestamp": "2026-10-17T10:08:07.208Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md",
+      "root_cause": "Had \"README '",
+      "fix": "Changed to \"docs/how-it-works.md '",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 6,
+      "last_seen": "2026-10-17T10:09:49.228Z"
+    },
+    {
+      "id": "bug-346",
+      "timestamp": "2026-10-17T10:09:47.750Z",
+      "error_message": "Wrong reference: readme should be docs",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-12-PLAN.md",
+      "root_cause": "Used \"readme\" instead of \"docs\"",
+      "fix": "Changed readme → docs",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T10:09:47.750Z"
     }
   ]
 }

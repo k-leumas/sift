@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-17T09:59:18.380Z
-> Files: 581 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-17T10:14:42.885Z
+> Files: 585 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/758c530a-24e0-4192-aa8e-f64050646abd/scratchpad/
 
@@ -755,17 +755,17 @@
 
 - `04-01-PLAN.md` — Declares Existing (~8039 tok)
 - `04-02-PLAN.md` — Declares WritePermit (~8114 tok)
-- `04-03-PLAN.md` — Declares classify (~5253 tok)
-- `04-04-PLAN.md` — Trust Boundaries (~2679 tok)
+- `04-03-PLAN.md` — Declares classify (~5276 tok)
+- `04-04-PLAN.md` — Trust Boundaries (~2709 tok)
 - `04-05-PLAN.md` — Declares DRY_RUN_KINDS (~5432 tok)
 - `04-06-PLAN.md` (~4437 tok)
-- `04-07-PLAN.md` (~6797 tok)
+- `04-07-PLAN.md` (~6898 tok)
 - `04-08-PLAN.md` — Declares PlannedSiftLabel (~4902 tok)
 - `04-09-PLAN.md` (~6140 tok)
 - `04-10-PLAN.md` — Declares FakeMailbox (~5069 tok)
 - `04-11-PLAN.md` — Declares setLabelMode (~4756 tok)
-- `04-12-PLAN.md` — Declares yes (~4380 tok)
-- `04-13-PLAN.md` (~5631 tok)
+- `04-12-PLAN.md` (~6900 tok)
+- `04-13-PLAN.md` (~5660 tok)
 - `04-14-PLAN.md` — Declares parameter (~4889 tok)
 - `04-CONTEXT.md` — Phase 4: Labels and Real-Inbox Run - Context (~4204 tok)
 - `04-DISCUSS-CHECKPOINT.json` (~639 tok)
@@ -778,6 +778,7 @@
 ## .planning/quick/261017-505-split-readme-md-into-focused-docs-readme/
 
 - `261017-505-PLAN.md` — Source coverage audit (~10467 tok)
+- `261017-505-SUMMARY.md` — Phase quick-261017-505 Plan 01: Split README.md into focused docs Summary (~1882 tok)
 
 ## apps/worker/test/
 
@@ -792,13 +793,13 @@
 
 ## docs/
 
-- `how-it-works.md` — How it works: the three tiers (exact rules, classifier, LLM incl. what runs today in M1 and the Ollama error lines), spot checks, quick confirm, review queue, learning from mail-app relabels, decision traces (~3370 tok)
-- `configuration.md` — Configuring Sift in plain English: rules.md target, the rules file today (rules.yaml, sift config check, sift classify), save/preview, Technical settings YAML (parsed by user-facing-text test) (~2484 tok)
-- `operations.md` — Operations: Mac mini vs mini PC, After the first start (port 1143, worker health, later milestones), Managing mailboxes, Remote access (~2172 tok)
-- `troubleshooting.md` — Troubleshooting: 12 entries (What you see / Why / Fix / Details link) gathered from the other docs; no new advice (~2594 tok)
 - `architecture.md` — Architecture: Data model (tables, RLS isolation), Project structure, Stack, ADR list (~1158 tok)
-- `security.md` — Security model (trusted/untrusted, TLS pin, Bridge session, full-disk encryption) and Privacy (~1362 tok)
+- `configuration.md` — Configuring Sift in plain English: rules.md target, the rules file today (rules.yaml, sift config check, sift classify), save/preview, Technical settings YAML (parsed by user-facing-text test) (~2484 tok)
 - `evals.md` — Evals: synthetic inbox, per-run metrics, open learn-from-LLM experiment (~539 tok)
+- `how-it-works.md` — How it works: the three tiers (exact rules, classifier, LLM incl. what runs today in M1 and the Ollama error lines), spot checks, quick confirm, review queue, learning from mail-app relabels, decision traces (~3370 tok)
+- `operations.md` — Operations: Mac mini vs mini PC, After the first start (port 1143, worker health, later milestones), Managing mailboxes, Remote access (~2172 tok)
+- `security.md` — Security model (trusted/untrusted, TLS pin, Bridge session, full-disk encryption) and Privacy (~1362 tok)
+- `troubleshooting.md` — Troubleshooting: 12 entries (What you see / Why / Fix / Details link) gathered from the other docs; no new advice (~2594 tok)
 
 ## packages/core/src/classify/
 
