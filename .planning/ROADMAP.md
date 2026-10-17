@@ -184,7 +184,7 @@ Plans:
   4. Every change Sift made in the mailbox is recorded in `label_event`, and every label it applied is marked as applied by Sift and not owner-confirmed
   5. Sift runs against one real Proton mailbox on the target machine end to end (exact rules plus the LLM), and a sample of the resulting decisions can each be explained from its trace; Sift never sent, deleted or forwarded anything, and nothing left the machine except calls to the configured model URL
 
-**Plans**: 13 plans
+**Plans**: 14 plans
 
 Plans:
 **Wave 1**
@@ -192,6 +192,7 @@ Plans:
 - [ ] 04-02-PLAN.md — IMAP write gate (label-writer.ts) plus a connection-level command allowlist; probe routed through the gate; CI proves no other writer (wave 1)
 - [ ] 04-03-PLAN.md — `sift egress-relay`, SIFT_MODELS_RELAY_HOST transport, network call-site allowlist, telemetry and mail-sending denylist (wave 1)
 - [ ] 04-04-PLAN.md — labels.case_sensitive config key (default false) in schema, example config and tests (wave 1)
+- [ ] 04-14-PLAN.md — Label decision table: pure planLabelStep for dry run and apply, tuning constants, cross-product totality test (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 04-05-PLAN.md — Label-work use-cases in @sift/db: shared pending/summary SQL, record actions, events, Sift labels, removals, notices (wave 2)
@@ -199,7 +200,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 04-07-PLAN.md — `sift trace <slug>`: exact lookup and search, README tree with action history, --all, --json, rules-changed hint (wave 3)
-- [ ] 04-08-PLAN.md — Label step: pure decision table, dry run and paused, worker hook after classification (wave 3)
+- [ ] 04-08-PLAN.md — Label step: dry run and paused through the 04-14 decision table, worker hook after classification (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 04-09-PLAN.md — Apply executor: labels land in Labels/<Category>, holds, moves, review removals, presence check, skips, case rule and conflicts, resync guard (wave 4)
@@ -222,7 +223,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
 | 3. Tiered Classification with Traces | v0.1 | 26/26 | In Progress | - |
-| 4. Labels and Real-Inbox Run | v0.1 | 0/13 | Not started | - |
+| 4. Labels and Real-Inbox Run | v0.1 | 0/14 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)
 
