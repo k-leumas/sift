@@ -68,6 +68,7 @@
 - [2026-10-12] `vitest run test/` matches apps/*/test too and needs DB/IMAP services; name test files explicitly.
 
 ## Decision Log
+- 2026-10-17 (plan-phase 4): 13 plans in 6 waves. Label work ("pending") is defined once in packages/db/src/label-work.ts and run by both the scope (worker) and the owner registry (sift labels counts). SUBSCRIBE after CREATE is refused by the write gate (D-28 literal list; research A3). Label copies live in label/label_event only, never message_location (Pitfall 6). Apply arm of the label step lands in 04-09; until then apply behaves like paused. Owner, not Claude, runs sift trace on the real mailbox in the live run (privacy).
 - 2026-10-13 (03 UAT 135-136): owner kept WR-06 (max 2 alone-failing messages per pass, a third is an outage) and WR-07 (3 failed passes + healthy canary -> review `llm_error`) as designed; no canary-instead-of-outage or minimum-span change.
 - 2026-10-11 (03-19): owner chose option-review. A message Ollama fails on alone in 3 passes (healthy re-probe + canary) ends as review `llm_error` (migration 0011, one-way).
 - 2026-10-10 (plan-phase 3): `decided_by` worker|rerun with one worker decision per message. rule_set is append-only. prompt_version is unscoped (advisory lock 815309003). The ingest lock is taken per 5-message chunk. needs_attention mailboxes are not classified. Category names are ASCII.

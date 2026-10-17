@@ -184,7 +184,33 @@ Plans:
   4. Every change Sift made in the mailbox is recorded in `label_event`, and every label it applied is marked as applied by Sift and not owner-confirmed
   5. Sift runs against one real Proton mailbox on the target machine end to end (exact rules plus the LLM), and a sample of the resulting decisions can each be explained from its trace; Sift never sent, deleted or forwarded anything, and nothing left the machine except calls to the configured model URL
 
-**Plans**: TBD
+**Plans**: 13 plans
+
+Plans:
+**Wave 1**
+- [ ] 04-01-PLAN.md — Label records schema: label/label_event columns, append-only label_action, mailbox.label_mode (dry_run default), label_notice, migrations 0012-0014 (wave 1)
+- [ ] 04-02-PLAN.md — IMAP write gate (label-writer.ts) plus a connection-level command allowlist; probe routed through the gate; CI proves no other writer (wave 1)
+- [ ] 04-03-PLAN.md — `sift egress-relay`, SIFT_MODELS_RELAY_HOST transport, network call-site allowlist, telemetry and mail-sending denylist (wave 1)
+- [ ] 04-04-PLAN.md — labels.case_sensitive config key (default false) in schema, example config and tests (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 04-05-PLAN.md — Label-work use-cases in @sift/db: shared pending/summary SQL, record actions, events, Sift labels, removals, notices (wave 2)
+- [ ] 04-06-PLAN.md — Compose lockdown: worker on an internal-only network, models-egress relay service, Bridge socat per IP, smoke tests refuse an outside address (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 04-07-PLAN.md — `sift trace <slug>`: exact lookup and search, README tree with action history, --all, --json, rules-changed hint (wave 3)
+- [ ] 04-08-PLAN.md — Label step: pure decision table, dry run and paused, worker hook after classification (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 04-09-PLAN.md — Apply executor: labels land in Labels/<Category>, holds, moves, review removals, presence check, skips, case rule and conflicts, resync guard (wave 4)
+- [ ] 04-11-PLAN.md — `sift labels dry-run|apply|pause|resume|retry` with the D-05 count confirmation; LABELS column in `sift mailbox list` (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 04-10-PLAN.md — Apply failures: attempts and failed, unconfirmed COPY resync, dropped connections, gluon-like fake, write-count invariant (wave 5)
+- [ ] 04-12-PLAN.md — README and ADR 0003 for labels, traces, psql recipes, network lockdown; doc pins and a test that runs the README SQL (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 04-13-PLAN.md — Supervised real-inbox run on personal: dry run, ~20 traces judged by the owner, switch to apply, egress capture, 04-LIVE-RUN.md (wave 6, owner checkpoint)
 
 ## Progress
 
@@ -196,7 +222,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation and Isolation | v0.1 | 13/13 | Complete    | 2026-10-04 |
 | 2. Bridge Spike and IMAP Ingest | v0.1 | 21/21 | In Progress|  |
 | 3. Tiered Classification with Traces | v0.1 | 26/26 | In Progress | - |
-| 4. Labels and Real-Inbox Run | v0.1 | 0/0 | Not started | - |
+| 4. Labels and Real-Inbox Run | v0.1 | 0/13 | Not started | - |
 
 ## Backlog (future README milestones, not planned phases)
 
