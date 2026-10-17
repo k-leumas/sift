@@ -5,6 +5,7 @@
 > Last updated: 2026-10-11
 
 ## User Preferences
+- 2026-10-17: Prefers positive boolean config names (chose `case_sensitive` over `ignore_case`); wants runtime mode switches as CLI commands picked up without worker restart; asks "how do we track problems" when privacy lockdowns are proposed — answer with local observability.
 - [2026-10-08] Short first-sync backfill: `ingest.initial_backfill_days` default 3 (D-20). Prefers fail-closed, append-only, no automatic reclassification; picked every recommended Phase 3 option.
 - [2026-10-07] Tests for root scripts go in root `test/<name>.test.ts`, not apps/worker/test; existing tests stay put. Move committed files in a follow-up `git mv` commit, never a history rewrite.
 - [2026-10-07] Commands for the user to paste must be single-line (e.g. `psql -Atc "..."`), never heredocs.

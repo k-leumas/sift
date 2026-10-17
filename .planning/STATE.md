@@ -5,11 +5,11 @@ milestone_name: "Classify (README M1, \"M1 on real inbox\")"
 current_phase: 03
 current_phase_name: tiered-classification-with-traces
 status: executing
-stopped_at: Completed 03-26-PLAN.md
-last_updated: "2026-10-12T21:42:15.129Z"
+stopped_at: Phase 4 context gathered
+last_updated: "2026-10-17T07:53:27.617Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 03 execution started
-state_head: f0f353faaa408cc49881f5947f418c090822a417
+state_head: f58e345ee3f47e373232b113332130838345a9c8
 progress:
   total_phases: 4
   completed_phases: 1
@@ -315,6 +315,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13
-Stopped at: Session resumed; Phase 03 UAT in progress (tests 135-136, WR-06/WR-07 owner decisions pending)
-Resume file: .planning/phases/03-tiered-classification-with-traces/03-UAT.md
+Last session: 2026-10-17T07:53:27.170Z
+Stopped at: Phase 4 context gathered
+Resume file: .planning/phases/04-labels-and-real-inbox-run/04-CONTEXT.md
