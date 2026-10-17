@@ -22,7 +22,10 @@ import {
   validateLlmOutput,
 } from '../src/classify/index.ts';
 
-/** README-style rules snapshot (the example rules file's categories and judgment). */
+/**
+ * Rules snapshot shaped like the docs/configuration.md example (the example
+ * rules file's categories and judgment).
+ */
 const SNAPSHOT = {
   categories: [
     { name: 'Important', description: 'things I need to act on or reply to personally' },

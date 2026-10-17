@@ -39,7 +39,7 @@ describe('rulesPathFor', () => {
 });
 
 describe(`${RULES_EXAMPLE_PATH} (D-04)`, () => {
-  it('validates with the real schema and uses the README categories', async () => {
+  it('validates with the real schema and uses the categories from docs/configuration.md', async () => {
     const result = await loadRules(EXAMPLE);
     if (!result.ok) throw new Error(`example rules are invalid: ${JSON.stringify(result.issues)}`);
     const { rules } = result;
@@ -50,6 +50,10 @@ describe(`${RULES_EXAMPLE_PATH} (D-04)`, () => {
       'Reading',
       'Noise',
     ]);
+    const configurationDoc = readFileSync(`${ROOT}docs/configuration.md`, 'utf8');
+    for (const { name } of rules.categories) {
+      expect(configurationDoc, name).toContain(`\n- ${name}: `);
+    }
     expect(rules.judgment.length).toBeGreaterThanOrEqual(1);
     const matches = rules.rules.map((rule) => rule.match);
     expect(matches.some((m) => m.domain !== undefined)).toBe(true);

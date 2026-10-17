@@ -17,7 +17,8 @@ import { PROMPT_MATERIAL_PARTS, promptMaterialFrom } from '../src/classify/promp
  */
 const EXPECTED_PROMPT_HASH = '8bd77eefeaa3de33f29d99ffb88d789e37cb3a3e88d77e995bd4d1193e707d97';
 
-const README_CATEGORIES = ['Important', 'Job search', 'Receipts', 'Reading', 'Noise'];
+/** The example categories, as listed in docs/configuration.md. */
+const DOC_CATEGORIES = ['Important', 'Job search', 'Receipts', 'Reading', 'Noise'];
 
 describe('canonicalJson', () => {
   it('sorts object keys recursively and keeps array order', () => {
@@ -77,7 +78,7 @@ describe('promptMaterial (D-29)', () => {
       expect(template).toContain(placeholder);
     }
     for (const note of Object.values(RETRY_NOTE)) expect(template).toContain(note);
-    for (const name of README_CATEGORIES) expect(template).not.toContain(name);
+    for (const name of DOC_CATEGORIES) expect(template).not.toContain(name);
   });
 
   it('records the output schema shape for the placeholder category', () => {

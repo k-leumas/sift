@@ -120,7 +120,7 @@ function expectIssue(text: string, path: string, message: string, needle: string
 }
 
 describe('a valid rules file (D-01, D-02)', () => {
-  it('parses a README-shaped file into the validated object', () => {
+  it('parses a file shaped like the docs/configuration.md example into the validated object', () => {
     const rules = parsed(rulesYaml());
     expect(rules.version).toBe(RULES_FORMAT_VERSION);
     expect(rules.categories.map((c) => c.name)).toEqual([

@@ -26,6 +26,7 @@ const OWNER_DOCS = [
   'docs/how-it-works.md',
   'docs/configuration.md',
   'docs/operations.md',
+  'docs/troubleshooting.md',
   'docs/architecture.md',
   'docs/security.md',
   'docs/evals.md',
@@ -617,6 +618,38 @@ describe('README, CONTRIBUTING, docs and ADR links resolve (quick-261017-505)', 
       const anchors = headings(read(file)).map(anchor);
       const repeated = anchors.filter((a, i) => anchors.indexOf(a) !== i);
       expect(repeated, file).toEqual([]);
+    }
+  });
+});
+
+describe('docs/troubleshooting.md gathers the scattered fixes (quick-261017-505)', () => {
+  const troubleshooting = read('docs/troubleshooting.md');
+
+  it.each([
+    'Ollama unreachable at http://host.docker.internal:11434 (ECONNREFUSED)',
+    'has no model qwen3:1.7b',
+    'rules file not found',
+    'needs attention: <n> new messages held',
+    'sift bridge trust <slug>',
+    'SIFT_BRIDGE_PORT',
+    'sntp time.apple.com',
+    'timedatectl',
+    'cp .env.mailboxes.bak .env.mailboxes',
+    'bind source path does not exist',
+    'sudo chown 1000 backups',
+    'sift mailbox backfill <slug>',
+  ])('contains %s', (text) => {
+    expect(troubleshooting).toContain(text);
+  });
+
+  it('has at least nine entries, each linking to the section with the full detail', () => {
+    const sections = troubleshooting.split(/^(?=## )/m).filter((part) => part.startsWith('## '));
+    expect(sections.length).toBeGreaterThanOrEqual(9);
+    for (const section of sections) {
+      const relative = [...section.matchAll(/\]\(([^)\s]+)\)/g)].filter(
+        (m) => !/^[a-z][a-z0-9+.-]*:/i.test(m[1] ?? ''),
+      );
+      expect(relative.length, section.split('\n')[0]).toBeGreaterThan(0);
     }
   });
 });

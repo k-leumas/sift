@@ -174,7 +174,7 @@ What works today: the database, the one-shot `setup` service (migrations with a 
 
     It should print one line, with your own slugs: `Config OK: 2 mailboxes (personal, job-search); password env vars present; rules files valid`.
 
-For the first minutes, worker health and what arrives in later milestones, see [After the first start](docs/operations.md#after-the-first-start) in the operations doc.
+For the first minutes, worker health and what arrives in later milestones, see [After the first start](docs/operations.md#after-the-first-start) in the operations doc. When something goes wrong, see [Troubleshooting](docs/troubleshooting.md).
 
 ---
 
@@ -185,6 +185,7 @@ For the first minutes, worker health and what arrives in later milestones, see [
 | How it works: the three tiers (exact rules, classifier, LLM), spot checks, quick confirm, the review queue, learning from your mail app and decision traces | [docs/how-it-works.md](docs/how-it-works.md) |
 | Configuring Sift in plain English: the rules file today, what happens when you save, preview before it applies and the technical settings | [docs/configuration.md](docs/configuration.md) |
 | Operations: Mac mini vs mini PC, after the first start, managing mailboxes and remote access | [docs/operations.md](docs/operations.md) |
+| Troubleshooting: symptom, cause and fix for common problems | [docs/troubleshooting.md](docs/troubleshooting.md) |
 | System design: the data model and mailbox isolation, the project structure, the stack and the ADRs | [docs/architecture.md](docs/architecture.md) |
 | Security model: trusted and untrusted input, the pinned Bridge certificate, the Bridge session and privacy | [docs/security.md](docs/security.md) |
 | Evals: the synthetic inbox, what each eval run reports and the open learn-from-LLM experiment | [docs/evals.md](docs/evals.md) |
