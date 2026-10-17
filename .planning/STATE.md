@@ -6,10 +6,10 @@ current_phase: 4
 current_phase_name: Labels and Real-Inbox Run
 status: executing
 stopped_at: Phase 4 context gathered
-last_updated: "2026-10-17T09:35:27.698Z"
+last_updated: "2026-10-17T10:02:34.687Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 03 execution started
-state_head: 7184d47cb06d904606401a586b008614e83edaf0
+state_head: c9c2fa41f8c9b375f05a39ecbb99a2e8e0a6cc05
 progress:
   total_phases: 4
   completed_phases: 1
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 Phase: 4 (Labels and Real-Inbox Run) — READY TO EXECUTE
 Plan: 3 of 26
 Status: Ready to execute
-Last activity: 2026-10-12 — Phase 03 execution started
+Last activity: 2026-10-17 - Completed quick task 261017-505: Split README.md into focused docs
 
 Progress: [███░░░░░░░] 25%
 
@@ -304,6 +304,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 261007-2ke | Commit-driven versioning: local pnpm release (feat->minor, fix->patch, v0.1.0 start), CI tag check, sift --version | 2026-10-07 | 1e275d9 | [261007-2ke-add-commit-driven-versioning-local-pnpm-](./quick/261007-2ke-add-commit-driven-versioning-local-pnpm-/) |
+| 261017-505 | Split README.md into focused docs: README keeps abstract, quick start and a docs index; detail moves to docs/ | 2026-10-17 | c9c2fa4 | [261017-505-split-readme-md-into-focused-docs-readme](./quick/261017-505-split-readme-md-into-focused-docs-readme/) |
 
 ## Deferred Items
 
