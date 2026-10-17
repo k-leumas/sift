@@ -2,6 +2,18 @@
 
 Each version is computed by `pnpm release` from the Conventional Commits since the previous tag (see CONTRIBUTING.md).
 
+## v0.3.0 (2026-10-17)
+
+### Features
+
+- **03-26:** reject an unpaired surrogate in from, domain and phrase entries, WR-05 ([e75dbd0](https://github.com/k-leumas/sift/commit/e75dbd0ea4673d379ad351770db4c15d4d206bde))
+- **03-25:** replace unpaired surrogates in decision spans before the insert, WR-04 ([bb0cc78](https://github.com/k-leumas/sift/commit/bb0cc78b802aee73c36b0c7ba962f3ad4a2d4067))
+
+### Fixes
+
+- **03-26:** reject an unpaired surrogate in one-line rules text, WR-05 ([c0c4035](https://github.com/k-leumas/sift/commit/c0c4035dac12f55cf81447ec76e1e6be83b83214))
+- **03-25:** hold a lone-surrogate model reason for review, WR-04 ([c6306b1](https://github.com/k-leumas/sift/commit/c6306b1d8dee7784659aa882487c3164ba72c8f6))
+
 ## v0.2.0 (2026-10-12)
 
 ### Features
