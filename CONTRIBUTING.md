@@ -3,7 +3,7 @@
 
 Issues and PRs are welcome. Sift is **pre-alpha**. Phase 1 ships the foundation: a pnpm workspace with the worker app (`apps/worker`), shared config and logging code (`packages/core`) and the database package (`packages/db`), the database isolation layer (Postgres row-level security for every mailbox-scoped table, behind a scoped API), and the worker skeleton that runs one loop per enabled mailbox. Phase 2 adds Proton Bridge in its own container (`bridge/`) and IMAP ingest: the worker reads each mailbox over pinned TLS and stores metadata, headers and a short-lived body cache. Phase 3 adds classification: each mailbox's exact rules from `data/mailboxes/<slug>/rules.yaml`, then a small local LLM through Ollama, with every decision and its trace stored in the database. Applying labels in Proton arrives next; see the [Roadmap](README.md#roadmap). Design feedback and questions about the ADRs are as welcome as code.
 
-Before changing anything substantial, read the [README](README.md) for the target design and the architecture decision records in [`docs/adr/`](docs/adr/):
+Before changing anything substantial, read the [README](README.md) and the docs it links in [`docs/`](docs/) for the target design and the architecture decision records in [`docs/adr/`](docs/adr/):
 
 - [ADR 0001: Multiple mailboxes, single owner](docs/adr/0001-multiple-mailboxes-single-owner.md)
 - [ADR 0002: Tiered classification](docs/adr/0002-tiered-classification.md)
@@ -151,7 +151,7 @@ A real `pnpm release` on your machine refuses: it needs `SIFT_RELEASE_CI=1`, whi
   - `packages/db/test/isolation.test.ts` seeds two mailboxes and fails if either can read or write the other's rows.
 
   The cross-mailbox eval suite that checks prompts and training sets (`evals/isolation/`) arrives with multiple-mailbox support in M5. See the [Data model](docs/architecture.md#data-model) section of `docs/architecture.md`.
-- **Treat email as untrusted input.** Changes that touch how email content reaches the LLM prompt or any tier must keep it fenced off from instructions, and the injection suite (`evals/injection/`, planned) must still pass. See the [Security model](README.md#security-model).
+- **Treat email as untrusted input.** Changes that touch how email content reaches the LLM prompt or any tier must keep it fenced off from instructions, and the injection suite (`evals/injection/`, planned) must still pass. See the [Security model](docs/security.md).
 
 Branch names aren't fixed by any convention. A short descriptive name such as `docs/adr-0004-drafts` or `fix/relabel-echo` is fine. PRs target `main`.
 
@@ -160,7 +160,7 @@ Branch names aren't fixed by any convention. A short descriptive name such as `d
 Report bugs and request features through [GitHub Issues](https://github.com/k-leumas/sift/issues). There are no issue templates yet, so please include:
 
 - **For bugs:** what you did, what you expected, what happened instead, and your environment (OS, Node.js version, mail provider or IMAP server, Ollama model if relevant).
-- **For design feedback:** which section of the README or which ADR it concerns, and the case it doesn't handle.
+- **For design feedback:** which section of the README or of a doc in `docs/`, or which ADR it concerns, and the case it doesn't handle.
 - **For feature requests:** the problem you're trying to solve, not only the proposed solution. Check the [Roadmap](README.md#roadmap) and the "Not planned" list first. Sending email and a hosted version are out of scope.
 
 **Don't paste real email content into issues.** If a bug depends on a specific message, reduce it to a fictional example with the same structure (headers, encoding, label folder layout) before posting.

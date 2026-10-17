@@ -22,7 +22,17 @@ const DEFERRED_COMMAND = new RegExp(['pur', 'ge'].join(''), 'i');
  * owner doc is added here, so the D-69, bind, scope and old-config scans and
  * the link check below cover it.
  */
-const OWNER_DOCS = ['docs/architecture.md'];
+const OWNER_DOCS = [
+  'docs/how-it-works.md',
+  'docs/configuration.md',
+  'docs/operations.md',
+  'docs/architecture.md',
+  'docs/security.md',
+  'docs/evals.md',
+];
+
+/** The README heading after the quick start; the quick-start slices end here. */
+const QUICK_START_END = '## Where to read next';
 
 /** Owner- and contributor-facing files that ship with the repository. */
 const SCANNED_FILES = [
@@ -106,58 +116,85 @@ describe('D-69: the deferred mailbox hard-delete command is never named', () => 
 describe('README quick start (D-28, D-56, D-58)', () => {
   const readme = read('README.md');
 
+  // Each pin is asserted in the file it lives in since the README split (quick-261017-505).
   it.each([
-    'cp config/config.example.yaml config/config.yaml',
-    'cp .env.example .env',
-    'cp .env.mailboxes.example .env.mailboxes',
-    'docker compose up -d',
-    'docker compose run --rm setup',
-    'sudo chown 1000 backups',
-    'docker compose logs worker',
-    'version: 1',
-    // Phase 2: Bridge setup, pinning and the owner's mailbox commands.
-    'docker volume create sift-bridge',
-    'docker compose run --rm bridge-init',
-    'touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak',
-    'cp .env.mailboxes.bak .env.mailboxes',
+    // Quick start: copy the example files, Bridge setup and pinning, start (D-28, D-56, D-58).
+    ['README.md', 'cp config/config.example.yaml config/config.yaml'],
+    ['README.md', 'cp .env.example .env'],
+    ['README.md', 'cp .env.mailboxes.example .env.mailboxes'],
+    ['README.md', 'docker compose up -d'],
+    ['README.md', 'sudo chown 1000 backups'],
+    ['README.md', 'docker volume create sift-bridge'],
+    ['README.md', 'docker compose run --rm bridge-init'],
+    ['README.md', 'touch .env.mailboxes.bak && chmod 600 .env.mailboxes.bak'],
+    ['README.md', 'cp .env.mailboxes.bak .env.mailboxes'],
     // CR-02 (D-39): the IMAP password file is created owner-only.
-    'cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes',
-    'does not echo',
-    'pin_sha256',
-    'sift bridge trust <slug>',
-    'sift mailbox resume <slug>',
-    'sift mailbox backfill <slug> --days 3',
-    'SIFT_BRIDGE_KEYCHAIN_PASSPHRASE',
-    // D-37, D-10, D-73 and the scoped spike outcome (SPK-04).
-    'Sift never stores your Proton password; Bridge stores session tokens in the sift-bridge volume',
-    'FileVault',
-    'LUKS',
-    'imap.tls.pin_sha256',
-    'Proton Bridge v3.27.0',
-    '02-SPIKE-FINDINGS.md',
-    // Phase 3: the rules file, the local model and the re-run command (D-01, D-05, D-07, D-17).
-    'mkdir -p data/mailboxes/<slug> && cp data/mailboxes/example/rules.example.yaml data/mailboxes/<slug>/rules.yaml',
-    'ollama pull qwen3:1.7b',
-    'docker compose run --rm --no-deps worker sift config check',
-    'Config OK: 2 mailboxes (personal, job-search); password env vars present; rules files valid',
-    'rules files valid',
-    'Labels/<Category>',
-    'docker compose run --rm --no-deps worker sift classify <slug> --all-pending',
-    'sift classify <slug> --all-pending',
-    '--since <YYYY-MM-DD>',
-    '--message <id>',
-    '`--yes`',
-    'mv data/mailboxes/<old> data/mailboxes/<new>',
-    'not trained',
-    'Nothing is written into your mailbox yet',
-  ])('contains %s', (text) => {
-    expect(readme).toContain(text);
+    ['README.md', 'cp .env.mailboxes.example .env.mailboxes && chmod 600 .env.mailboxes'],
+    ['README.md', 'does not echo'],
+    ['README.md', 'pin_sha256'],
+    ['README.md', 'SIFT_BRIDGE_KEYCHAIN_PASSPHRASE'],
+    // D-73 and the scoped spike outcome (SPK-04).
+    ['README.md', 'FileVault'],
+    ['README.md', 'LUKS'],
+    ['README.md', '02-SPIKE-FINDINGS.md'],
+    // Phase 3: the rules file and the local model (D-01, D-05).
+    [
+      'README.md',
+      'mkdir -p data/mailboxes/<slug> && cp data/mailboxes/example/rules.example.yaml data/mailboxes/<slug>/rules.yaml',
+    ],
+    ['README.md', 'ollama pull qwen3:1.7b'],
+    ['README.md', 'docker compose run --rm --no-deps worker sift config check'],
+    [
+      'README.md',
+      'Config OK: 2 mailboxes (personal, job-search); password env vars present; rules files valid',
+    ],
+    ['README.md', 'rules files valid'],
+    // Configuration: the technical settings and the re-run command (D-07, D-17).
+    ['docs/configuration.md', 'docker compose run --rm setup'],
+    ['docs/configuration.md', 'version: 1'],
+    ['docs/configuration.md', 'Labels/<Category>'],
+    [
+      'docs/configuration.md',
+      'docker compose run --rm --no-deps worker sift classify <slug> --all-pending',
+    ],
+    ['docs/configuration.md', 'sift classify <slug> --all-pending'],
+    ['docs/configuration.md', '--since <YYYY-MM-DD>'],
+    ['docs/configuration.md', '--message <id>'],
+    ['docs/configuration.md', '`--yes`'],
+    ['docs/configuration.md', 'imap.tls.pin_sha256'],
+    // Operations: worker health and the owner's mailbox commands (Phase 2).
+    ['docs/operations.md', 'docker compose logs worker'],
+    ['docs/operations.md', 'sift bridge trust <slug>'],
+    ['docs/operations.md', 'sift mailbox resume <slug>'],
+    ['docs/operations.md', 'sift mailbox backfill <slug> --days 3'],
+    ['docs/operations.md', 'Proton Bridge v3.27.0'],
+    ['docs/operations.md', 'mv data/mailboxes/<old> data/mailboxes/<new>'],
+    // Security model: D-37, D-10.
+    [
+      'docs/security.md',
+      'Sift never stores your Proton password; Bridge stores session tokens in the sift-bridge volume',
+    ],
+    // How it works: what M1 stores today.
+    ['docs/how-it-works.md', 'not trained'],
+    ['docs/how-it-works.md', 'Nothing is written into your mailbox yet'],
+  ])('%s contains %s', (file, text) => {
+    expect(read(file)).toContain(text);
   });
+
+  /** The later-milestones block of docs/operations.md, up to Managing mailboxes. */
+  function laterMilestones(): string {
+    const operations = read('docs/operations.md');
+    const start = operations.indexOf('**Arriving in later milestones**');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = operations.indexOf('## Managing mailboxes', start);
+    expect(end).toBeGreaterThan(start);
+    return operations.slice(start, end);
+  }
 
   it('creates the rules file and pulls the model before the first docker compose up -d', () => {
     const quickStart = readme.slice(
       readme.indexOf('### Quick start'),
-      readme.indexOf('### Managing mailboxes'),
+      readme.indexOf(QUICK_START_END),
     );
     const steps = [
       'pin_sha256',
@@ -169,21 +206,21 @@ describe('README quick start (D-28, D-56, D-58)', () => {
     expect(steps.every((i) => i >= 0)).toBe(true);
     expect([...steps].sort((a, b) => a - b)).toEqual(steps);
     // The model pull works today, so it is no longer listed under later milestones.
-    const later = quickStart.slice(quickStart.indexOf('**Arriving in later milestones**'));
-    expect(later).not.toContain('qwen3:1.7b');
+    expect(laterMilestones()).not.toContain('qwen3:1.7b');
   });
 
   it('quotes the owner lines exactly as the code prints them', async () => {
     const { infraOwnerMessage, unclassifiedNotice } = await import('../src/classify/run.ts');
+    const howItWorks = read('docs/how-it-works.md');
     const ctx = { modelsUrl: 'http://host.docker.internal:11434', model: 'qwen3:1.7b' };
     for (const line of [
       infraOwnerMessage('unreachable', { ...ctx, status: null, detail: 'ECONNREFUSED' }),
       infraOwnerMessage('model_missing', { ...ctx, status: null, detail: '' }),
     ]) {
-      expect(readme).toContain(`error: ${line}`);
+      expect(howItWorks).toContain(`error: ${line}`);
     }
     // The ok-state notice sift mailbox list shows for a message Ollama failed on alone (WR-03).
-    expect(readme).toContain(`ok; ${unclassifiedNotice(['<id>'])}`);
+    expect(howItWorks).toContain(`ok; ${unclassifiedNotice(['<id>'])}`);
     const sources: Record<string, string[]> = {
       'apps/worker/src/commands/config-check.ts': ['password env vars present; rules files valid'],
       'apps/worker/src/commands/classify.ts': [
@@ -214,7 +251,7 @@ describe('README quick start (D-28, D-56, D-58)', () => {
   it('creates the volume and the backup file before the first Bridge login, then starts (D-81)', () => {
     const quickStart = readme.slice(
       readme.indexOf('### Quick start'),
-      readme.indexOf('### Managing mailboxes'),
+      readme.indexOf(QUICK_START_END),
     );
     const steps = [
       'cp config/config.example.yaml config/config.yaml',
@@ -231,15 +268,15 @@ describe('README quick start (D-28, D-56, D-58)', () => {
   });
 
   it('no longer lists the Bridge login under later milestones', () => {
-    const start = readme.indexOf('**Arriving in later milestones**');
-    expect(start).toBeGreaterThanOrEqual(0);
-    const later = readme.slice(start, readme.indexOf('### Managing mailboxes'));
-    expect(later).not.toMatch(/bridge/i);
+    expect(laterMilestones()).not.toMatch(/bridge/i);
   });
 
-  /** The first YAML block under "Technical settings". */
+  /** The first YAML block under "Technical settings" in docs/configuration.md. */
   function technicalSettingsYaml(): string {
-    const section = readme.slice(readme.indexOf('### Technical settings'));
+    const configuration = read('docs/configuration.md');
+    const heading = configuration.indexOf('## Technical settings');
+    expect(heading).toBeGreaterThanOrEqual(0);
+    const section = configuration.slice(heading);
     const start = section.indexOf('```yaml') + '```yaml'.length;
     return section.slice(start, section.indexOf('```', start)).trimStart();
   }
@@ -279,8 +316,9 @@ describe('README quick start (D-28, D-56, D-58)', () => {
   });
 
   it('documents rename and list through the setup service, with no deletion step', () => {
-    expect(readme).toContain('docker compose run --rm setup sift mailbox rename <old> <new>');
-    expect(readme).toContain('docker compose run --rm setup sift mailbox list');
+    const operations = read('docs/operations.md');
+    expect(operations).toContain('docker compose run --rm setup sift mailbox rename <old> <new>');
+    expect(operations).toContain('docker compose run --rm setup sift mailbox list');
   });
 });
 
@@ -295,10 +333,10 @@ describe('README quick start is easy to find and scan (G-03-8)', () => {
     lines: string[];
   }
 
-  /** The numbered steps between '### Quick start' and '### Managing mailboxes'. */
+  /** The numbered steps between '### Quick start' and QUICK_START_END. */
   function quickStartSteps(): QuickStartStep[] {
     const start = readme.indexOf('### Quick start');
-    const end = readme.indexOf('### Managing mailboxes');
+    const end = readme.indexOf(QUICK_START_END);
     expect(start).toBeGreaterThanOrEqual(0);
     expect(end).toBeGreaterThan(start);
     const lines = readme.slice(start, end).split('\n');
@@ -367,7 +405,9 @@ describe('README quick start is easy to find and scan (G-03-8)', () => {
     expect(lead(8)).toMatch(/^\*\*Log in/);
     expect(lead(9)).toMatch(/^\*\*Pin/);
     expect(lead(12)).toMatch(/^\*\*Start/);
-    expect(readme).toContain('([Quick start](#quick-start), step 9)');
+    expect(read('docs/configuration.md')).toContain(
+      '([Quick start](../README.md#quick-start), step 9)',
+    );
     expect(readme).toContain('the Bridge login in step 8');
     expect(readme).toContain('(step 12)');
     expect(read('CONTRIBUTING.md')).toContain('(README.md#quick-start) (steps 6 to 9)');
@@ -389,11 +429,11 @@ describe('README scope and host requirements (G-02-8, G-02-9)', () => {
 
   it('states the Proton-only scope in the intro and in Requirements', () => {
     expect(readme.slice(0, readme.indexOf('## Why'))).toContain(SCOPE);
-    expect(between('### Requirements', '### Mac mini vs mini PC')).toContain(SCOPE);
+    expect(between('### Requirements', '### Quick start')).toContain(SCOPE);
   });
 
   it('asks for an NTP-synced host clock in Requirements, with the macOS and Linux checks', () => {
-    const requirements = between('### Requirements', '### Mac mini vs mini PC');
+    const requirements = between('### Requirements', '### Quick start');
     expect(requirements).toContain('A host clock kept in sync over NTP');
     expect(requirements).toContain('timedatectl');
     expect(requirements).toContain('sntp time.apple.com');

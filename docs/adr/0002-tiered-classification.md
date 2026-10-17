@@ -54,7 +54,7 @@ Letting the classifier learn from the LLM's most confident decisions ("distillat
 
 - More moving parts than a single LLM call: two models, a trained classifier per mailbox, escalation logic and per-tier thresholds to tune.
 - The cold start is slower than with distillation. Quick confirm reduces it, but it asks the owner for attention.
-- The classifier learns judgment rules from labels, not from the rule text, so a rule change can contradict earlier labels. The rule-change preview has to surface those conflicts (see the README).
+- The classifier learns judgment rules from labels, not from the rule text, so a rule change can contradict earlier labels. The rule-change preview has to surface those conflicts (see [Preview before it applies](../configuration.md#preview-before-it-applies)).
 
 ## Alternatives considered
 
