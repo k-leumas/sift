@@ -1,12 +1,28 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-10-12T21:41:32.496Z
-> Files: 548 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-10-17T09:59:18.380Z
+> Files: 581 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/758c530a-24e0-4192-aa8e-f64050646abd/scratchpad/
 
 - `surrogate.mjs` — Declares src (~84 tok)
 - `yaml-surrogate.mjs` — Declares doc (~60 tok)
+
+## ../../../../private/tmp/claude-501/-Users-samuel-dev-sift/b81144b9-86e3-4010-bf6a-4a9501f582c2/scratchpad/
+
+- `wr04.scratch.test.ts` — AppDb: box, pass (~2090 tok)
+
+## ../../.claude/
+
+- `settings.json` (~3435 tok)
+
+## ../../.claude/hooks/
+
+- `gsd-progress-statusline.js` — Wraps gsd-statusline.js and appends a live step list for the running GSD workflow. (~1404 tok)
+
+## ../../.claude/projects/-Users-samuel-dev-sift/memory/
+
+- `gsd-progress-footer.md` (~325 tok)
 
 ## ../tui-llm/src/ui/
 
@@ -32,7 +48,7 @@
 - `package.json` — Node.js package manifest (~286 tok)
 - `pnpm-lock.yaml` — pnpm lock file (~29253 tok)
 - `pnpm-workspace.yaml` (~79 tok)
-- `README.md` — Project documentation; intro Get started line links #quick-start (12 numbered steps, bold leads, then #### After the first start) (~13964 tok)
+- `README.md` — Entry point: intro (Get started links #quick-start), Why, Running it at home (Requirements, the 12-step ### Quick start), ## Where to read next (index of docs/*.md, ADRs, CONTRIBUTING), Roadmap, Contributing pointer, License (~3681 tok)
 - `renovate.json` (~235 tok)
 - `tsconfig.base.json` (~107 tok)
 - `tsconfig.json` — TypeScript configuration (~50 tok)
@@ -689,7 +705,7 @@
 - `config.json` (~558 tok)
 - `PROJECT.md` — Sift (~3612 tok)
 - `REQUIREMENTS.md` — Requirements: Sift (~2769 tok)
-- `ROADMAP.md` — Roadmap: Sift (~4633 tok)
+- `ROADMAP.md` — Roadmap: Sift (~5235 tok)
 - `state.json` (~214 tok)
 - `STATE.md` — Project State (~8024 tok)
 - `WINDOWS.md` — Broken Windows Ledger (~324 tok)
@@ -732,19 +748,57 @@
 - `03-25-SUMMARY.md` — Phase 3 Plan 25: Lone-surrogate model reasons (WR-04) Summary (~2983 tok)
 - `03-26-PLAN.md` — WR-05 gap plan: rules.yaml rejects unpaired surrogates (noUnpairedSurrogate / isWellFormed) in oneLine and from/domain/phrase entries (~5369 tok)
 - `03-26-SUMMARY.md` — Phase 3 Plan 26: Unpaired surrogates in rules.yaml (WR-05) Summary (~2563 tok)
-- `03-REVIEW.md` — Phase 3: Code Review Report (incremental, 3431a58..HEAD) (~4915 tok)
-- `03-VERIFICATION.md` (~8633 tok)
+- `03-REVIEW.md` — Phase 3: Code Review Report (incremental, 499cdd9..HEAD) (~4170 tok)
+- `03-VERIFICATION.md` — Phase 3: Tiered Classification with Traces Verification Report (~5832 tok)
+
+## .planning/phases/04-labels-and-real-inbox-run/
+
+- `04-01-PLAN.md` — Declares Existing (~8039 tok)
+- `04-02-PLAN.md` — Declares WritePermit (~8114 tok)
+- `04-03-PLAN.md` — Declares classify (~5253 tok)
+- `04-04-PLAN.md` — Trust Boundaries (~2679 tok)
+- `04-05-PLAN.md` — Declares DRY_RUN_KINDS (~5432 tok)
+- `04-06-PLAN.md` (~4437 tok)
+- `04-07-PLAN.md` (~6797 tok)
+- `04-08-PLAN.md` — Declares PlannedSiftLabel (~4902 tok)
+- `04-09-PLAN.md` (~6140 tok)
+- `04-10-PLAN.md` — Declares FakeMailbox (~5069 tok)
+- `04-11-PLAN.md` — Declares setLabelMode (~4756 tok)
+- `04-12-PLAN.md` — Declares yes (~4380 tok)
+- `04-13-PLAN.md` (~5631 tok)
+- `04-14-PLAN.md` — Declares parameter (~4889 tok)
+- `04-CONTEXT.md` — Phase 4: Labels and Real-Inbox Run - Context (~4204 tok)
+- `04-DISCUSS-CHECKPOINT.json` (~639 tok)
+- `04-DISCUSSION-LOG.md` — Phase 4: Labels and Real-Inbox Run - Discussion Log (~1308 tok)
+- `04-PATTERNS.md` — Phase 4: Labels and Real-Inbox Run - Pattern Map (~3924 tok)
+- `04-RESEARCH.md` — Phase 4: Labels and Real-Inbox Run - Research (~19523 tok)
+- `04-VALIDATION.md` — status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6) (~1719 tok)
+- `COVERAGE.md` — API Coverage — IMAP on Proton Bridge v3.27.0 (label writes), plus the Ollama transport (~819 tok)
+
+## .planning/quick/261017-505-split-readme-md-into-focused-docs-readme/
+
+- `261017-505-PLAN.md` — Source coverage audit (~10467 tok)
 
 ## apps/worker/test/
 
 - `config-check-rules.test.ts` — sift config check over rules files (D-05): missing file, file:line:col issues, NUL (WR-02) and lone U+D800 (WR-05) descriptions (~2900 tok)
 - `llm-baseline.test.ts` — The manual live-baseline runner (AI-SPEC section 5, Set B: E4 live, E11); progress-line tests for G-03-2 (~4300 tok)
 - `release-workflow.test.ts` — Declares WORKFLOW (~903 tok)
-- `user-facing-text.test.ts` — Doc pins: D-69 deferred command never named; README quick start commands/order; G-03-8 quickStartSteps() list shape, intro link, unique anchor; scope; CONTRIBUTING (~5872 tok)
+- `user-facing-text.test.ts` — Owner-doc pins: OWNER_DOCS (docs/*.md) feeds the D-69, bind, scope and old-config scans; quick-start pins as [file, text] pairs; G-03-8 step shape; link and anchor check over README, CONTRIBUTING, docs and ADRs; troubleshooting entries (~6670 tok)
 
 ## apps/worker/test/support/
 
 - `llm-baseline.ts` — The manual live baseline of AI-SPEC section 5 (Set B: E4 live, E11 live, E12); readyLine/progressLine on stderr via BaselineOptions.progress, table on stdout (~3741 tok)
+
+## docs/
+
+- `how-it-works.md` — How it works: the three tiers (exact rules, classifier, LLM incl. what runs today in M1 and the Ollama error lines), spot checks, quick confirm, review queue, learning from mail-app relabels, decision traces (~3370 tok)
+- `configuration.md` — Configuring Sift in plain English: rules.md target, the rules file today (rules.yaml, sift config check, sift classify), save/preview, Technical settings YAML (parsed by user-facing-text test) (~2484 tok)
+- `operations.md` — Operations: Mac mini vs mini PC, After the first start (port 1143, worker health, later milestones), Managing mailboxes, Remote access (~2172 tok)
+- `troubleshooting.md` — Troubleshooting: 12 entries (What you see / Why / Fix / Details link) gathered from the other docs; no new advice (~2594 tok)
+- `architecture.md` — Architecture: Data model (tables, RLS isolation), Project structure, Stack, ADR list (~1158 tok)
+- `security.md` — Security model (trusted/untrusted, TLS pin, Bridge session, full-disk encryption) and Privacy (~1362 tok)
+- `evals.md` — Evals: synthetic inbox, per-run metrics, open learn-from-LLM experiment (~539 tok)
 
 ## packages/core/src/classify/
 
@@ -756,6 +810,9 @@
 
 ## packages/core/test/
 
+- `example-rules.test.ts` — Same address shape as apps/worker/test/support/privacy-scan.ts. (~1552 tok)
+- `prompt-version.test.ts` — The prompt_version key (D-29). Any change to the prompt template, a retry (~1326 tok)
+- `prompt.test.ts` — buildPrompt tests on a rules snapshot shaped like the docs/configuration.md example (the example rules file's categories and judgment) (~3450 tok)
 - `rules.test.ts` — A categories block with `count` valid, distinct names. (~8074 tok)
 
 ## scripts/

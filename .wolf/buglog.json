@@ -5257,6 +5257,409 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-10-12T21:40:00Z"
+    },
+    {
+      "id": "bug-316",
+      "timestamp": "2026-10-17T08:13:50.433Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-RESEARCH.md",
+      "root_cause": "Had 's previous UIDNEXT never happens; owners report t",
+      "fix": "Changed to `X-Pm-Internal-Id`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:13:50.433Z"
+    },
+    {
+      "id": "bug-317",
+      "timestamp": "2026-10-17T08:32:40.075Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../.claude/hooks/gsd-progress-statusline.js",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 8→14 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:32:40.075Z"
+    },
+    {
+      "id": "bug-318",
+      "timestamp": "2026-10-17T08:32:48.084Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../.claude/settings.json",
+      "root_cause": "Had \"/Users/samuel/.claude/hooks/gsd-statusline.js\\\"",
+      "fix": "Changed to \"/Users/samuel/.claude/hooks/gsd-progress-statusli",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:32:48.084Z"
+    },
+    {
+      "id": "bug-319",
+      "timestamp": "2026-10-17T08:34:19.833Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "../../.claude/hooks/gsd-progress-statusline.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:34:19.833Z"
+    },
+    {
+      "id": "bug-320",
+      "timestamp": "2026-10-17T08:34:35.085Z",
+      "error_message": "Wrong condition in logic",
+      "file": "../../.claude/hooks/gsd-progress-statusline.js",
+      "root_cause": "Condition was: if (!file)",
+      "fix": "Changed to: if (!file || !process.env.GSD_PROGRESS_LINKS)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:34:35.085Z"
+    },
+    {
+      "id": "bug-321",
+      "timestamp": "2026-10-17T08:36:18.472Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../../.claude/hooks/gsd-progress-statusline.js",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:36:18.472Z"
+    },
+    {
+      "id": "bug-322",
+      "timestamp": "2026-10-17T08:39:08.199Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../.claude/hooks/gsd-progress-statusline.js",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 6→10 lines (6 removed) | Also: const re = new RegExp('^' + glob.replace(/[.+^${}(; try { return fs.readdirSync(dir).filter(f => re.te",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-17T08:42:52.001Z"
+    },
+    {
+      "id": "bug-323",
+      "timestamp": "2026-10-17T08:40:29.503Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../.claude/hooks/gsd-progress-statusline.js",
+      "root_cause": "Had '.claude'",
+      "fix": "Changed to 't clash\nconst STATE_DIR = path.join(os.homedir(),",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:40:29.503Z"
+    },
+    {
+      "id": "bug-324",
+      "timestamp": "2026-10-17T08:40:30.158Z",
+      "error_message": "Missing guard clause",
+      "file": "../../.claude/hooks/gsd-progress-statusline.js",
+      "root_cause": "No early return/throw for edge case: !s.project",
+      "fix": "Added guard clause: if (!s.project)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:40:30.158Z"
+    },
+    {
+      "id": "bug-325",
+      "timestamp": "2026-10-17T08:40:40.496Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../.claude/projects/-Users-samuel-dev-sift/memory/gsd-progress-footer.md",
+      "root_cause": "Had `~/.claude/cache/gsd-progress.json`",
+      "fix": "Changed to `~/.claude/cache/gsd-progress/<project path, / → -",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:40:40.496Z"
+    },
+    {
+      "id": "bug-326",
+      "timestamp": "2026-10-17T08:46:53.023Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-06-PLAN.md",
+      "root_cause": "Had \"A blocked outbound call fails loudly: the smoke c",
+      "fix": "Changed to \"A blocked outbound call fails loudly: the smoke c",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:46:53.023Z"
+    },
+    {
+      "id": "bug-327",
+      "timestamp": "2026-10-17T08:53:17.135Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-09-PLAN.md",
+      "root_cause": "Had 'ABC-&z'",
+      "fix": "Changed to ' unchanged, so an owner label Labels/Éclair never",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:53:17.135Z"
+    },
+    {
+      "id": "bug-328",
+      "timestamp": "2026-10-17T08:56:29.200Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-11-PLAN.md",
+      "root_cause": "Had \"The worker picks up every mode change on its next",
+      "fix": "Changed to \"The worker picks up every mode change on its next",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T08:56:29.200Z"
+    },
+    {
+      "id": "bug-329",
+      "timestamp": "2026-10-17T09:00:09.426Z",
+      "error_message": "Incorrect value in code",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-13-PLAN.md",
+      "root_cause": "Had '\\s*0'",
+      "fix": "Changed to \"$(git status --porcelain data/)\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T09:00:09.426Z"
+    },
+    {
+      "id": "bug-330",
+      "timestamp": "2026-10-17T09:01:49.982Z",
+      "error_message": "Wrong reference: Planned should be Not",
+      "file": ".planning/ROADMAP.md",
+      "root_cause": "Used \"Planned\" instead of \"Not\"",
+      "fix": "Changed Planned → Not",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T09:01:49.982Z"
+    },
+    {
+      "id": "bug-331",
+      "timestamp": "2026-10-17T09:00:00Z",
+      "error_message": "commitlint rejected the phase-4 plan commit (body line over 100 characters)",
+      "file": ".planning/phases/04-labels-and-real-inbox-run (commit message)",
+      "root_cause": "The commit body was passed as one long -m paragraph; config-conventional caps body lines at 100 chars",
+      "fix": "Build the message with printf, one body line per argument, each under 100 characters, then commit with the explicit pathspec",
+      "tags": [
+        "commitlint",
+        "git",
+        "commit-message",
+        "planning"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T09:00:00Z"
+    },
+    {
+      "id": "bug-332",
+      "timestamp": "2026-10-17T09:18:26.242Z",
+      "error_message": "Significant refactor of ",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-08-PLAN.md",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 22→19 lines (8 removed) | Also: - path: \"apps/worker/src/labels/plan.ts\"; provides: \"Pure decision table and tuning constant | Also: <name>Task 2: The full decision table, apply rows ; <files>apps/worker/src/labels/plan.ts, apps/worker",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-17T09:19:18.578Z"
+    },
+    {
+      "id": "bug-333",
+      "timestamp": "2026-10-17T09:19:20.282Z",
+      "error_message": "Wrong reference: behavior should be drift",
+      "file": ".planning/phases/04-labels-and-real-inbox-run/04-08-PLAN.md",
+      "root_cause": "Used \"behavior\" instead of \"drift\"",
+      "fix": "Changed behavior → drift",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T09:19:20.282Z"
+    },
+    {
+      "id": "bug-334",
+      "timestamp": "2026-10-17T09:52:59.589Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: /** GitHub's heading anchor: trim, lower-case, keep a-z, 0-9; function anchor(heading: string): string {",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-17T09:53:09.195Z"
+    },
+    {
+      "id": "bug-335",
+      "timestamp": "2026-10-17T09:53:08.666Z",
+      "error_message": "Significant refactor of ",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "18 lines replaced/restructured",
+      "fix": "Rewrote 28→4 lines (18 removed) | Also: expect(readme).not.toMatch(oldAdd);; expect(readme).not.toMatch(/cp config\\.example\\.ya | Also: 'cp config/config.example.yaml config/config.yaml'; 'cp .env.example .env',",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-10-17T09:56:16.828Z"
+    },
+    {
+      "id": "bug-336",
+      "timestamp": "2026-10-17T09:53:09.739Z",
+      "error_message": "Wrong reference: filter should be readme",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Used \"filter\" instead of \"readme\"",
+      "fix": "Changed filter → readme",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T09:53:09.739Z"
+    },
+    {
+      "id": "bug-337",
+      "timestamp": "2026-10-17T09:56:19.547Z",
+      "error_message": "Incorrect value in code",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Had '([Quick start](#quick-start), step 9)'",
+      "fix": "Changed to 'docs/configuration.md'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-10-17T09:58:21.023Z"
+    },
+    {
+      "id": "bug-338",
+      "timestamp": "2026-10-17T09:58:28.856Z",
+      "error_message": "Null/undefined access in ",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T09:58:28.856Z"
+    },
+    {
+      "id": "bug-339",
+      "timestamp": "2026-10-17T09:58:50.333Z",
+      "error_message": "Type error",
+      "file": "packages/core/test/prompt-version.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T09:58:50.333Z"
+    },
+    {
+      "id": "bug-340",
+      "timestamp": "2026-10-17T10:00:00Z",
+      "error_message": "pnpm lint (biome ci): apps/worker/test/user-facing-text.test.ts File content differs from formatting output",
+      "file": "apps/worker/test/user-facing-text.test.ts",
+      "root_cause": "Hand-written it.each list and wrapped it() call did not match biome line-width formatting",
+      "fix": "Ran pnpm exec biome format --write on the test file before committing (quick-261017-505 Task 1)",
+      "tags": [
+        "biome",
+        "lint",
+        "format",
+        "tests",
+        "quick-261017-505"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-10-17T10:00:00Z"
     }
   ]
 }
