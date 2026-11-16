@@ -10,8 +10,8 @@ ARG GO_VERSION=1.26.7
 FROM golang:${GO_VERSION}-trixie AS build
 
 # renovate: datasource=github-tags depName=ProtonMail/proton-bridge
-ARG BRIDGE_VERSION=v3.27.1
-ARG BRIDGE_COMMIT=43b9237786204a0215abfd4dcc51ee7bb92f52d4
+ARG BRIDGE_VERSION=v3.27.2
+ARG BRIDGE_COMMIT=3e9f85aa3c676a573b64b1d90829970ded26dbfa
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
